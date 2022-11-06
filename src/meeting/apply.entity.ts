@@ -34,6 +34,7 @@ export class Apply extends BaseEntity {
 
   @ManyToOne(() => User, (user) => user.id, {
     eager: true,
+    onDelete: 'CASCADE',
   })
   @JoinTable()
   user: User;

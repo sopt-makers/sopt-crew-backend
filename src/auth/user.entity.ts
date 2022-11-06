@@ -4,6 +4,7 @@ import {
   BaseEntity,
   Column,
   Entity,
+  JoinTable,
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -25,6 +26,7 @@ export class User {
   @OneToMany(() => Meeting, (meeting) => meeting.user, { eager: true })
   meetings: Meeting[];
 
-  @ManyToMany(() => Apply, (apply) => apply.user)
+  @OneToMany(() => Apply, (apply) => apply.user)
+  @JoinTable()
   apply: Apply[];
 }

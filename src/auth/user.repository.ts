@@ -33,7 +33,7 @@ export class UserRepository extends Repository<User> {
   async getUserById(id: number): Promise<User> {
     return await this.findOne({
       where: { id },
-      relations: ['ApplyedMeetings'],
+      relations: ['apply'],
     });
   }
 }

@@ -8,14 +8,21 @@ import { FilterMeetingDto } from './dto/filter-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-metting-dto';
 import { Meeting, ImageURL } from './meeting.entity';
 import { Apply } from './apply.entity';
+import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
   async getMeetingById(id: number): Promise<Meeting> {
     const meeting = await this.findOne({
-      where: { id: id },
+      where: { id },
       relations: ['user', 'appliedInfo'],
     });
+    if (!meeting) {
+      throw new HttpException(
+        { message: '모임이 없습니다' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     return meeting;
   }
 
@@ -23,7 +30,7 @@ export class MeetingRepository extends Repository<Meeting> {
     const meetings = await this.find({ relations: ['user', 'appliedInfo'] });
     if (!meetings) {
       throw new HttpException(
-        { message: '배열이 없습니다' },
+        { message: '모임이 없습니다' },
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -137,16 +144,12 @@ export class MeetingRepository extends Repository<Meeting> {
     return result;
   }
 
-  async applyMeeting(id: number, content: string, user: User) {
-    // meeting에 user 있는지 저장
-    // meeting에 user id 저장
-    // meeting 상태 업데이트
+  async applyMeeting(applyMeetingDto: ApplyMeetingDto, user: User) {
+    const { id, content } = applyMeetingDto;
     const meeting = await this.findOne({
       where: { id },
       relations: ['user', 'appliedInfo'],
     });
-
-    console.log(meeting);
 
     if (!meeting) {
       throw new HttpException(

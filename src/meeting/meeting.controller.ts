@@ -33,19 +33,24 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
+import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 
 @Controller('meeting')
 export class MeetingController {
   constructor(private meetingService: MeetingService) {}
 
+  @ApiOperation({
+    summary: '모임 지원/취소',
+    description: '모임 지원/취소',
+  })
+  @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   @Post('/apply')
   applyMeeting(
-    @Body('id') id: number,
-    @Body('content') content: string,
+    @Body() applyMeetingDto: ApplyMeetingDto,
     @GetUser() user: User,
   ) {
-    return this.meetingService.applyMeeting(id, content, user);
+    return this.meetingService.applyMeeting(applyMeetingDto, user);
   }
 
   @ApiOperation({

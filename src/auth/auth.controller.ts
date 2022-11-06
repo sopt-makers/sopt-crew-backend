@@ -22,12 +22,6 @@ export class AuthController {
     return this.authService.loginUser(accessToken);
   }
 
-  @Post('/test')
-  @UseGuards(AuthGuard('jwt'))
-  test(@GetUser() user: User) {
-    console.log(user);
-  }
-
   @Get('/:id')
   getUserById(@Param('id', ParseIntPipe) id: number) {
     return this.authService.getUserById(id);

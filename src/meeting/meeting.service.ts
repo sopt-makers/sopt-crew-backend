@@ -7,6 +7,7 @@ import { UpdateMeetingDto } from './dto/update-metting-dto';
 import { FilterMeetingDto } from './dto/filter-meeting.dto';
 import { User } from 'src/auth/user.entity';
 import { UserRepository } from 'src/auth/user.repository';
+import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 
 @Injectable()
 export class MeetingService {
@@ -59,12 +60,12 @@ export class MeetingService {
     return this.meetingRepository.searchMeetingByFilter(filterMeetingDTO);
   }
 
-  async applyMeeting(id: number, content: string, user: User) {
+  async applyMeeting(applyMeetingDto: ApplyMeetingDto, user: User) {
     // meeting에 user 있는지 저장
     // meeting에 user id 저장
     // meeting 상태 업데이트
 
     // user 상태 업데이트
-    return this.meetingRepository.applyMeeting(id, content, user);
+    return this.meetingRepository.applyMeeting(applyMeetingDto, user);
   }
 }
