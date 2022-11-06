@@ -108,6 +108,11 @@ export class MeetingController {
     return this.meetingService.updateMeetingById(id, updateMeetingDto, files);
   }
 
+  @ApiOperation({
+    summary: '모임 삭제',
+    description: '모임 삭제',
+  })
+  @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Delete('/:id')
   deleteMeetingById(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.meetingService.deleteMeetingById(id);
