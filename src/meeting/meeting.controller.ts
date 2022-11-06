@@ -69,7 +69,7 @@ export class MeetingController {
     return this.meetingService.getAllMeeting();
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: '모임 생성',
     description: '모임 생성',
@@ -78,18 +78,7 @@ export class MeetingController {
   @ApiCreatedResponse({
     description: '모임 생성',
     schema: {
-      example: {
-        timeMatrix: [
-          [0, 506.3, 383.8],
-          [563.9, 0, 381.7],
-          [445.6, 368.4, 0],
-        ],
-        distanceMatrix: [
-          [0, 6784.4, 5333.5],
-          [7203.9, 0, 5122.3],
-          [5571.6, 5004.1, 0],
-        ],
-      },
+      example: {},
     },
   })
   @Post('/')
