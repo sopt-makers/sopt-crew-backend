@@ -71,12 +71,12 @@ export class MeetingController {
 
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
-    summary: 'Distance Matrix 생성',
-    description: 'Distance Matrix 생성',
+    summary: '모임 생성',
+    description: '모임 생성',
   })
   @ApiSecurity('X-API-KEY', ['X-API-KEY'])
   @ApiCreatedResponse({
-    description: 'Distance Matrix 생성',
+    description: '모임 생성',
     schema: {
       example: {
         timeMatrix: [
