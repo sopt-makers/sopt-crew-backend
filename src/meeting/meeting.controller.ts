@@ -74,7 +74,7 @@ export class MeetingController {
     summary: '모임 생성',
     description: '모임 생성',
   })
-  @ApiSecurity('X-API-KEY', ['X-API-KEY'])
+  // @ApiSecurity('X-API-KEY', ['X-API-KEY'])
   @ApiCreatedResponse({
     description: '모임 생성',
     schema: {

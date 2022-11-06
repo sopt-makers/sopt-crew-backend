@@ -86,14 +86,29 @@ export class CreateMeetingDto {
   @IsNotEmpty()
   readonly mEndDate: Date;
 
+  @ApiProperty({
+    example: '안녕하세요 기획 파트 000입니다',
+    description: '개설자 소개',
+    required: true,
+  })
   @IsString()
   @IsNotEmpty()
   readonly leaderDesc: string;
 
+  @ApiProperty({
+    example: '개발 모르는 사람도 환영',
+    description: '모집 대상',
+    required: true,
+  })
   @IsString()
   @IsNotEmpty()
   readonly targetDesc: string;
 
+  @ApiProperty({
+    example: '유의할 사항',
+    description: '유의 사항',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   readonly note: string;
