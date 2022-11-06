@@ -11,7 +11,15 @@ export function setupSwagger(app: INestApplication): void {
     .setTitle('OMELET Main API Server Docs')
     .setDescription('OMELET Main API Server Docs')
     .setVersion('1.0.0')
-    .addApiKey({ type: 'apiKey', name: 'X-API-KEY', in: 'header' }, 'X-API-KEY')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        name: 'JWT',
+        in: 'header',
+      },
+      'access-token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, options);

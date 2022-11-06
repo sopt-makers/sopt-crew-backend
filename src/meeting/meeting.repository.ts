@@ -34,7 +34,7 @@ export class MeetingRepository extends Repository<Meeting> {
     createMeetingDto: CreateMeetingDto,
     files: Array<Express.MulterS3.File>,
     user: User,
-  ): Promise<Meeting> {
+  ): Promise<void> {
     const imageURL: Array<ImageURL> = files.map((file, index) => ({
       id: index,
       url: file.location,
@@ -46,8 +46,8 @@ export class MeetingRepository extends Repository<Meeting> {
       user,
       appliedInfo: [],
     });
-    const savedMeeting = await this.save(meeting);
-    return savedMeeting;
+    await this.save(meeting);
+    return null;
   }
 
   async updateMeetingById(

@@ -30,6 +30,7 @@ import {
   ApiExcludeEndpoint,
   ApiConsumes,
   ApiBody,
+  ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
 
@@ -45,13 +46,6 @@ export class MeetingController {
     @GetUser() user: User,
   ) {
     return this.meetingService.applyMeeting(id, content, user);
-  }
-
-  @Post('/filter')
-  searchMeetingByFilter(
-    @Body() filterMeetingDto: FilterMeetingDto,
-  ): Promise<Meeting[]> {
-    return this.meetingService.searchMeetingByFilter(filterMeetingDto);
   }
 
   @Post('/search')
@@ -77,12 +71,11 @@ export class MeetingController {
     return this.meetingService.getAllMeeting();
   }
 
-  // @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: '모임 생성',
     description: '모임 생성',
   })
-  // @ApiSecurity('X-API-KEY', ['X-API-KEY'])
+  @ApiBearerAuth('access-token')
   @ApiConsumes('multipart/form-data')
   @ApiCreatedResponse({
     description: '모임 생성',
@@ -91,13 +84,14 @@ export class MeetingController {
     },
   })
   @Post('/')
+  @UseGuards(AuthGuard('jwt'))
   @HttpCode(200)
   @UseInterceptors(FilesInterceptor('files', 6))
   createMeeting(
     @UploadedFiles() files: Array<Express.MulterS3.File>,
     @Body() createMeetingDto: CreateMeetingDto,
     @GetUser() user: User,
-  ): Promise<Meeting> {
+  ): Promise<void> {
     return this.meetingService.createMeeting(createMeetingDto, files, user);
   }
 

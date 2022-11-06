@@ -29,7 +29,7 @@ export class MeetingService {
     createMeetingDto: CreateMeetingDto,
     files: Array<Express.MulterS3.File>,
     user: User,
-  ): Promise<Meeting> {
+  ): Promise<void> {
     return this.meetingRepository.createMeeting(createMeetingDto, files, user);
   }
 
