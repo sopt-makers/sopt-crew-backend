@@ -28,6 +28,8 @@ import {
   ApiCreatedResponse,
   ApiSecurity,
   ApiExcludeEndpoint,
+  ApiConsumes,
+  ApiBody,
 } from '@nestjs/swagger';
 
 @Controller('meeting')
@@ -75,6 +77,7 @@ export class MeetingController {
     description: '모임 생성',
   })
   // @ApiSecurity('X-API-KEY', ['X-API-KEY'])
+  @ApiConsumes('multipart/form-data')
   @ApiCreatedResponse({
     description: '모임 생성',
     schema: {
