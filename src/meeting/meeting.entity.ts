@@ -22,7 +22,7 @@ export interface AppliedInfo {
   content: string;
 }
 
-@Entity('Meeting')
+@Entity('meeting')
 export class Meeting extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;

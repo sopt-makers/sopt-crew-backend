@@ -21,7 +21,7 @@ export interface AppliedInfo {
   content: string;
 }
 
-@Entity('Apply')
+@Entity('apply')
 export class Apply extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;

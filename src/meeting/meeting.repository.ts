@@ -162,7 +162,6 @@ export class MeetingRepository extends Repository<Meeting> {
       // });
       meeting.appliedInfo.push(apply);
     } else {
-      console.log('?!?!?!');
       const targetApply = meeting.appliedInfo[result];
       meeting.appliedInfo.splice(result, 1);
       await Apply.delete({ id: targetApply.id });

@@ -10,7 +10,7 @@ import {
   Unique,
 } from 'typeorm';
 
-@Entity('User')
+@Entity('user')
 @Unique(['id'])
 export class User {
   @PrimaryGeneratedColumn()
