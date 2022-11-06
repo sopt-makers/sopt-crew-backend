@@ -78,7 +78,6 @@ export class MeetingController {
     summary: '모임 생성',
     description: '모임 생성',
   })
-  @ApiBearerAuth('access-token')
   @ApiConsumes('multipart/form-data')
   @ApiCreatedResponse({
     description: '모임 생성',
@@ -87,6 +86,7 @@ export class MeetingController {
     },
   })
   @Post('/')
+  @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(200)
   @UseInterceptors(FilesInterceptor('files', 6))
@@ -112,6 +112,8 @@ export class MeetingController {
     summary: '모임 삭제',
     description: '모임 삭제',
   })
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Delete('/:id')
   deleteMeetingById(@Param('id', ParseIntPipe) id: number): Promise<void> {
