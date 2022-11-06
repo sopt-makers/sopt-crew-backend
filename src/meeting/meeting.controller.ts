@@ -30,6 +30,7 @@ import {
   ApiExcludeEndpoint,
   ApiConsumes,
   ApiBody,
+  ApiParam,
 } from '@nestjs/swagger';
 
 @Controller('meeting')
@@ -61,6 +62,11 @@ export class MeetingController {
     return this.meetingService.searchMeeting(query, filterMeetingDto);
   }
 
+  @ApiOperation({
+    summary: '모임 상세 조회',
+    description: '모임 상세 조회',
+  })
+  @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Get('/:id')
   getMeetingById(@Param('id', ParseIntPipe) id: number): Promise<Meeting> {
     return this.meetingService.getMeetingById(id);
