@@ -9,7 +9,6 @@ import {
   Post,
   Put,
   Query,
-  Res,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -23,6 +22,13 @@ import { FilterMeetingDto } from './dto/filter-meeting.dto';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { User } from 'src/auth/user.entity';
 import { AuthGuard } from '@nestjs/passport';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiCreatedResponse,
+  ApiSecurity,
+  ApiExcludeEndpoint,
+} from '@nestjs/swagger';
 
 @Controller('meeting')
 export class MeetingController {
@@ -64,6 +70,28 @@ export class MeetingController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: 'Distance Matrix 생성',
+    description: 'Distance Matrix 생성',
+  })
+  @ApiSecurity('X-API-KEY', ['X-API-KEY'])
+  @ApiCreatedResponse({
+    description: 'Distance Matrix 생성',
+    schema: {
+      example: {
+        timeMatrix: [
+          [0, 506.3, 383.8],
+          [563.9, 0, 381.7],
+          [445.6, 368.4, 0],
+        ],
+        distanceMatrix: [
+          [0, 6784.4, 5333.5],
+          [7203.9, 0, 5122.3],
+          [5571.6, 5004.1, 0],
+        ],
+      },
+    },
+  })
   @Post('/')
   @HttpCode(200)
   @UseInterceptors(FilesInterceptor('files', 6))
