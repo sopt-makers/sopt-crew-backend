@@ -69,6 +69,10 @@ export class MeetingController {
     return this.meetingService.getMeetingById(id);
   }
 
+  @ApiOperation({
+    summary: '모임 전체 조회',
+    description: '모임 전체 조회',
+  })
   @Get('/')
   getAllMeeting(): Promise<Meeting[]> {
     return this.meetingService.getAllMeeting();
