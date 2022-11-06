@@ -48,12 +48,15 @@ export class MeetingController {
     return this.meetingService.applyMeeting(id, content, user);
   }
 
+  @ApiOperation({
+    summary: '검색/필터링 기능',
+    description: '검색/필터링 기능',
+  })
   @Post('/search')
   searchMeeting(
-    @Query('query') query: string,
     @Body() filterMeetingDto: FilterMeetingDto,
   ): Promise<Meeting[]> {
-    return this.meetingService.searchMeeting(query, filterMeetingDto);
+    return this.meetingService.searchMeeting(filterMeetingDto);
   }
 
   @ApiOperation({

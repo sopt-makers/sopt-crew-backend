@@ -67,31 +67,38 @@ export class MeetingRepository extends Repository<Meeting> {
     return null;
   }
 
-  async searchMeeting(
-    query: string,
-    filterMeetingDto: FilterMeetingDto,
-  ): Promise<Meeting[]> {
-    const { category, status } = filterMeetingDto;
-    const nowDate = new Date('2022-09-20');
+  async searchMeeting(filterMeetingDto: FilterMeetingDto): Promise<Meeting[]> {
+    const { category, status, query } = filterMeetingDto;
+    const nowDate = new Date();
 
-    const statusDate =
-      status === 0
-        ? null
-        : status === 1
-        ? {
-            startDate: LessThan(nowDate),
-            endDate: MoreThan(nowDate),
-          }
-        : {
-            startDate: MoreThan(nowDate),
-            endDate: LessThan(nowDate),
-          };
+    let statusDate;
+    switch (status) {
+      case 0:
+        statusDate = null;
+      case 1:
+        statusDate = {
+          startDate: LessThan(nowDate),
+          endDate: MoreThan(nowDate),
+        };
+      case 2:
+        statusDate = {
+          startDate: MoreThan(nowDate),
+          endDate: LessThan(nowDate),
+        };
+      default:
+        statusDate = null;
+    }
 
-    const querys = category.map((item) => ({
-      category: item,
-      title: Like(`%${query}%`),
-      ...statusDate,
-    }));
+    let querys;
+    if (category) {
+      querys = category.map((item) => ({
+        category: item,
+        title: query ? Like(`%${query}%`) : null,
+        ...statusDate,
+      }));
+    } else {
+      querys = query ? [{ title: Like(`%${query}%`), ...statusDate }] : null;
+    }
 
     const result = await this.find({
       where: querys,

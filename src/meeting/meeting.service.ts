@@ -49,11 +49,8 @@ export class MeetingService {
     return this.meetingRepository.deleteMeetingById(id);
   }
 
-  async searchMeeting(
-    query: string,
-    filterMeetingDto: FilterMeetingDto,
-  ): Promise<Meeting[]> {
-    return this.meetingRepository.searchMeeting(query, filterMeetingDto);
+  async searchMeeting(filterMeetingDto: FilterMeetingDto): Promise<Meeting[]> {
+    return this.meetingRepository.searchMeeting(filterMeetingDto);
   }
 
   async searchMeetingByFilter(
