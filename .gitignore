@@ -5,6 +5,8 @@
 /src/configs/
 
 .dev.env
+.prod.env
+
 
 # Logs
 logs

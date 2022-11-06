@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MeetingModule } from './meeting/meeting.module';
 import { ConfigModule } from '@nestjs/config';
-import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { SearchModule } from './search/search.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './common/interfaces/transform.interceptor';
@@ -12,8 +11,8 @@ import { AuthModule } from './auth/auth.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'dev' ? '.dev.env' : '.env.test',
-      ignoreEnvFile: process.env.NODE_ENV === 'prod',
+      envFilePath: process.env.NODE_ENV === 'dev' ? '.dev.env' : '.prod.env',
+      // ignoreEnvFile: process.env.NODE_ENV === 'prod',
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -25,16 +24,6 @@ import { AuthModule } from './auth/auth.module';
       entities: [__dirname + '/**/*.entity.{js,ts}'],
       synchronize: true,
     }),
-    ElasticsearchModule.registerAsync({
-      useFactory: () => ({
-        node: 'http://localhost:9200',
-        maxRetries: 10,
-        requestTimeout: 60000,
-        pingTimeout: 60000,
-        sniffOnStart: true,
-      }),
-    }),
-
     MeetingModule,
     SearchModule,
     AuthModule,
