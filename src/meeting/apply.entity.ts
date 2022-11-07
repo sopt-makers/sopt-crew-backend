@@ -45,8 +45,8 @@ export class Apply extends BaseEntity {
   @Column()
   appliedDate: Date;
 
-  @Column({ default: false })
-  status: boolean;
+  @Column({ default: 0 })
+  status: number;
 
   static async createApply(user: User, content: string, meeting: Meeting) {
     const nowDate = new Date();

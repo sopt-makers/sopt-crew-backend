@@ -10,6 +10,14 @@ export class UsersService {
     private userRepository: UserRepository,
   ) {}
 
+  async getMeetingByUser(user: User) {
+    return this.userRepository.getMeetingByUser(user);
+  }
+
+  async getApplyByUser(user: User) {
+    return this.userRepository.getApplyByUser(user);
+  }
+
   async getUserById(id: number): Promise<User> {
     return this.userRepository.getUserById(id);
   }
