@@ -1,4 +1,4 @@
-import { User } from 'src/auth/user.entity';
+import { User } from 'src/users/user.entity';
 import { Meeting } from 'src/meeting/meeting.entity';
 
 import {

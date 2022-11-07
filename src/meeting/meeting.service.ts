@@ -5,9 +5,10 @@ import { Meeting } from './meeting.entity';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-metting-dto';
 import { FilterMeetingDto } from './dto/filter-meeting.dto';
-import { User } from 'src/auth/user.entity';
-import { UserRepository } from 'src/auth/user.repository';
+import { User } from 'src/users/user.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
+import { UserRepository } from 'src/users/user.repository';
+import { GetMeetingDto } from './dto/get-meeting.dto';
 
 @Injectable()
 export class MeetingService {
@@ -22,8 +23,8 @@ export class MeetingService {
     return this.meetingRepository.getMeetingById(id);
   }
 
-  async getAllMeeting(): Promise<Meeting[]> {
-    return this.meetingRepository.getAllMeeting();
+  async getAllMeeting(getMeetingDto: GetMeetingDto): Promise<Meeting[]> {
+    return this.meetingRepository.getAllMeeting(getMeetingDto);
   }
 
   async createMeeting(

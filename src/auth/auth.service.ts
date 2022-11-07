@@ -1,8 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserRepository } from './user.repository';
 import { JwtService } from '@nestjs/jwt';
-import { User } from './user.entity';
+import { User } from '../users/user.entity';
+import { UserRepository } from 'src/users/user.repository';
 
 @Injectable()
 export class AuthService {
@@ -36,9 +36,5 @@ export class AuthService {
     //   throw new UnauthorizedException('로그인 실패');
     // }
     return null;
-  }
-
-  async getUserById(id: number): Promise<User> {
-    return this.userRepository.getUserById(id);
   }
 }

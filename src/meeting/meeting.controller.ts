@@ -20,7 +20,7 @@ import { FilesInterceptor } from '@nestjs/platform-express/multer/interceptors/f
 import { UpdateMeetingDto } from './dto/update-metting-dto';
 import { FilterMeetingDto } from './dto/filter-meeting.dto';
 import { GetUser } from 'src/auth/get-user.decorator';
-import { User } from 'src/auth/user.entity';
+import { User } from 'src/users/user.entity';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiTags,
@@ -34,6 +34,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
+import { GetMeetingDto } from './dto/get-meeting.dto';
 
 @Controller('meeting')
 export class MeetingController {
@@ -75,12 +76,12 @@ export class MeetingController {
   }
 
   @ApiOperation({
-    summary: '모임 전체 조회',
-    description: '모임 전체 조회',
+    summary: '모임 전체 조회/검색/필터링',
+    description: '모임 전체 조회/검색/필터링',
   })
   @Get('/')
-  getAllMeeting(): Promise<Meeting[]> {
-    return this.meetingService.getAllMeeting();
+  getAllMeeting(@Query() getMeetingDto: GetMeetingDto): Promise<Meeting[]> {
+    return this.meetingService.getAllMeeting(getMeetingDto);
   }
 
   @ApiOperation({

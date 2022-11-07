@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { User } from 'src/auth/user.entity';
-import { UserRepository } from 'src/auth/user.repository';
+import { User } from 'src/users/user.entity';
 import { CustomRepository } from 'src/db/typeorm-ex.decorator';
 import { LessThan, Like, MoreThan, Repository } from 'typeorm';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
@@ -9,6 +8,7 @@ import { UpdateMeetingDto } from './dto/update-metting-dto';
 import { Meeting, ImageURL } from './meeting.entity';
 import { Apply } from './apply.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
+import { GetMeetingDto } from './dto/get-meeting.dto';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
@@ -26,15 +26,54 @@ export class MeetingRepository extends Repository<Meeting> {
     return meeting;
   }
 
-  async getAllMeeting() {
-    const meetings = await this.find({ relations: ['user', 'appliedInfo'] });
-    if (!meetings) {
-      throw new HttpException(
-        { message: '모임이 없습니다' },
-        HttpStatus.BAD_REQUEST,
-      );
+  async getAllMeeting(getMeetingDto: GetMeetingDto) {
+    const { category, status, query } = getMeetingDto;
+    const nowDate = new Date();
+
+    const categoryArr = category ? category.split(',') : [];
+    let statusDate;
+    switch (status) {
+      case 0:
+        statusDate = null;
+        break;
+      case 1:
+        // and
+        statusDate = {
+          startDate: LessThan(nowDate),
+          endDate: MoreThan(nowDate),
+        };
+        break;
+      case 2:
+        // or
+        statusDate = [
+          {
+            startDate: MoreThan(nowDate),
+          },
+          {
+            endDate: LessThan(nowDate),
+          },
+        ];
+        break;
+      default:
+        statusDate = null;
+        break;
     }
-    return meetings;
+
+    let querys;
+    if (categoryArr.length !== 0) {
+      querys = categoryArr.map((item) => ({
+        category: item,
+        title: query ? Like(`%${query}%`) : null,
+        ...statusDate,
+      }));
+    } else {
+      querys = query ? [{ title: Like(`%${query}%`), ...statusDate }] : null;
+    }
+
+    const result = await this.find({
+      where: statusDate,
+    });
+    return result;
   }
 
   async createMeeting(

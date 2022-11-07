@@ -23,7 +23,7 @@ export class User {
   @Column()
   originId: string;
 
-  @OneToMany(() => Meeting, (meeting) => meeting.user, { eager: true })
+  @OneToMany(() => Meeting, (meeting) => meeting.user)
   meetings: Meeting[];
 
   @OneToMany(() => Apply, (apply) => apply.user)

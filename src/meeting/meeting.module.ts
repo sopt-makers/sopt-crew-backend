@@ -9,7 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 import { AuthModule } from 'src/auth/auth.module';
 import { JwtStrategy } from 'src/auth/jwt.strategy';
-import { UserRepository } from 'src/auth/user.repository';
+import { UserRepository } from 'src/users/user.repository';
 
 @Module({
   imports: [

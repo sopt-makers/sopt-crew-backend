@@ -6,6 +6,7 @@ import { SearchModule } from './search/search.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './common/interfaces/transform.interceptor';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AuthModule } from './auth/auth.module';
     MeetingModule,
     SearchModule,
     AuthModule,
+    UsersModule,
   ],
   providers: [
     {
