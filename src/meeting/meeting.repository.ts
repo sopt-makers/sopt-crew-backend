@@ -12,6 +12,20 @@ import { GetMeetingDto } from './dto/get-meeting.dto';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
+  async getListByMeeting(id, user) {
+    const meeting = await this.findOne({
+      where: { id },
+      relations: ['appliedInfo'],
+    });
+    if (!meeting) {
+      throw new HttpException(
+        { message: '모임이 없습니다' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return meeting;
+  }
+
   async getMeetingById(id: number): Promise<Meeting> {
     const meeting = await this.findOne({
       where: { id },
@@ -197,9 +211,13 @@ export class MeetingRepository extends Repository<Meeting> {
       );
     }
 
+    console.log(meeting.appliedInfo);
+
     const result = meeting.appliedInfo.findIndex(
       (target) => target.user.id === user.id,
     );
+
+    console.log('??');
 
     if (result === -1) {
       const apply = await Apply.createApply(user, content, meeting);

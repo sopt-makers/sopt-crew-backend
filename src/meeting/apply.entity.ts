@@ -28,13 +28,12 @@ export class Apply extends BaseEntity {
 
   @ManyToOne(() => Meeting, (meeting) => meeting.id, {
     onDelete: 'CASCADE',
-    eager: true,
   })
   meeting: Meeting;
 
   @ManyToOne(() => User, (user) => user.id, {
-    eager: true,
     onDelete: 'CASCADE',
+    eager: true,
   })
   @JoinTable()
   user: User;

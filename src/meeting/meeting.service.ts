@@ -19,6 +19,10 @@ export class MeetingService {
     private readonly userRepository: UserRepository,
   ) {}
 
+  async getListByMeeting(id: number, user: User) {
+    return this.meetingRepository.getListByMeeting(id, user);
+  }
+
   async getMeetingById(id: number): Promise<Meeting> {
     return this.meetingRepository.getMeetingById(id);
   }

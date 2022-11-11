@@ -41,6 +41,20 @@ export class MeetingController {
   constructor(private meetingService: MeetingService) {}
 
   @ApiOperation({
+    summary: '모임 지원자 조회',
+    description: '모임 지원자 조회',
+  })
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/:id/list')
+  getListByMeeting(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User,
+  ) {
+    return this.meetingService.getListByMeeting(id, user);
+  }
+
+  @ApiOperation({
     summary: '모임 지원/취소',
     description: '모임 지원/취소',
   })
