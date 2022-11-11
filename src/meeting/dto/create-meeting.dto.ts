@@ -13,7 +13,6 @@ export class CreateMeetingDto {
   readonly title: string;
 
   @ApiProperty({ type: 'string', format: 'binary' })
-  @IsNotEmpty()
   files: any;
 
   @IsString()

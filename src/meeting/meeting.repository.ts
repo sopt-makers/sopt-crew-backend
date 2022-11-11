@@ -95,6 +95,13 @@ export class MeetingRepository extends Repository<Meeting> {
     files: Array<Express.MulterS3.File>,
     user: User,
   ): Promise<void> {
+    if (files.length === 0) {
+      throw new HttpException(
+        { message: '이미지 파일이 없습니다.' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const imageURL: Array<ImageURL> = files.map((file, index) => ({
       id: index,
       url: file.location,
