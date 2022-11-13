@@ -8,6 +8,7 @@ import {
   JoinTable,
   ManyToOne,
   PrimaryGeneratedColumn,
+  RelationId,
 } from 'typeorm';
 
 export interface ImageURL {
@@ -25,6 +26,10 @@ export interface AppliedInfo {
 export class Apply extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @RelationId((apply: Apply) => apply.meeting) // you need to specify target relation
+  @Column()
+  meetingId: number;
 
   @ManyToOne(() => Meeting, (meeting) => meeting.id, {
     onDelete: 'CASCADE',

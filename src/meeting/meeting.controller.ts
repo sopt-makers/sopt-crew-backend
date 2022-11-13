@@ -35,6 +35,7 @@ import {
 } from '@nestjs/swagger';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto } from './dto/get-meeting.dto';
+import { GetListDto } from './dto/get-list.dto';
 
 @Controller('meeting')
 export class MeetingController {
@@ -48,10 +49,11 @@ export class MeetingController {
   @UseGuards(AuthGuard('jwt'))
   @Get('/:id/list')
   getListByMeeting(
+    @Query() getListDto: GetListDto,
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
   ) {
-    return this.meetingService.getListByMeeting(id, user);
+    return this.meetingService.getListByMeeting(id, user, getListDto);
   }
 
   @ApiOperation({

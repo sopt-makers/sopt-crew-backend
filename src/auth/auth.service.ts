@@ -16,7 +16,7 @@ export class AuthService {
     // accessToken으로 유저 정보 받아서
 
     const originId = '1';
-    const id = 2;
+    const id = 3;
     const name = 'lee';
 
     const user = await this.userRepository.findOne({ where: { id } });

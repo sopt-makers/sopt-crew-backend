@@ -9,6 +9,7 @@ import { User } from 'src/users/user.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { UserRepository } from 'src/users/user.repository';
 import { GetMeetingDto } from './dto/get-meeting.dto';
+import { GetListDto } from './dto/get-list.dto';
 
 @Injectable()
 export class MeetingService {
@@ -19,8 +20,8 @@ export class MeetingService {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async getListByMeeting(id: number, user: User) {
-    return this.meetingRepository.getListByMeeting(id, user);
+  async getListByMeeting(id: number, user: User, getListDto: GetListDto) {
+    return this.meetingRepository.getListByMeeting(id, user, getListDto);
   }
 
   async getMeetingById(id: number): Promise<Meeting> {

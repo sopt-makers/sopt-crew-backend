@@ -9,13 +9,16 @@ import { Meeting, ImageURL } from './meeting.entity';
 import { Apply } from './apply.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto } from './dto/get-meeting.dto';
+import { GetListDto, ListStatus } from './dto/get-list.dto';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
-  async getListByMeeting(id, user) {
+  async getListByMeeting(id: number, user: User, getListDto: GetListDto) {
+    const { date, limit, status } = getListDto;
+
     const meeting = await this.findOne({
       where: { id },
-      relations: ['appliedInfo'],
+      relations: ['user'],
     });
     if (!meeting) {
       throw new HttpException(
@@ -23,7 +26,25 @@ export class MeetingRepository extends Repository<Meeting> {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return meeting;
+
+    const cUser = meeting.user.id === user.id ? true : false;
+
+    const apply = await Apply.find({
+      where: {
+        meetingId: id,
+        status:
+          status == ListStatus.ALL
+            ? null
+            : status == ListStatus.APPROVE
+            ? 1
+            : 2,
+      },
+      order: { appliedDate: date },
+      select: ['appliedDate', 'content', 'id', cUser ? 'status' : 'id'],
+      take: limit,
+    });
+
+    return apply;
   }
 
   async getMeetingById(id: number): Promise<Meeting> {
@@ -228,12 +249,7 @@ export class MeetingRepository extends Repository<Meeting> {
 
     if (result === -1) {
       const apply = await Apply.createApply(user, content, meeting);
-      // meeting.appliedUser.push({
-      //   content,
-      //   appliedDate: nowDate,
-      //   user,
-      //   status: false,
-      // });
+
       meeting.appliedInfo.push(apply);
     } else {
       const targetApply = meeting.appliedInfo[result];
