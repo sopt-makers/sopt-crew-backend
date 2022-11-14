@@ -1,7 +1,19 @@
-import { IsNotEmpty, IsDate, IsString, IsOptional } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsDate,
+  IsString,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 import { ApiProperty } from '@nestjs/swagger';
+
+export enum ApplyStatus {
+  WAITING = 0,
+  APPROVE = 1,
+  REJECT = 2,
+}
 
 export class UpdateStatusApplyDto {
   @ApiProperty({
@@ -17,6 +29,7 @@ export class UpdateStatusApplyDto {
     description: '0: 대기, 1: 승인, 2: 거절',
     required: false,
   })
+  @IsEnum(ApplyStatus)
   @IsOptional()
-  readonly status: number;
+  readonly status: ApplyStatus;
 }

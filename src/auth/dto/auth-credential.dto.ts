@@ -1,9 +1,11 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class AuthCredentialsDTO {
   @IsString()
+  @IsNotEmpty()
   readonly name: string;
 
-  @IsString()
-  readonly password: string;
+  @IsNumber()
+  @IsNotEmpty()
+  readonly originId: number;
 }

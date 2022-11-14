@@ -35,8 +35,9 @@ export class MeetingRepository extends Repository<Meeting> {
 
     const meeting = await this.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'appliedInfo'],
     });
+
     if (!meeting) {
       throw new HttpException(
         { message: '모임이 없습니다' },
@@ -45,11 +46,32 @@ export class MeetingRepository extends Repository<Meeting> {
     }
 
     const cUser = meeting.user.id === user.id ? true : false;
-
-    if (cUser) {
-    } else {
-      new UnauthorizedException('수정 권한이 없습니다');
+    if (!cUser) {
+      throw new UnauthorizedException('수정 권한이 없습니다');
     }
+
+    const result = await Apply.findOne({ where: { id: applyId } });
+
+    if (!result) {
+      throw new HttpException(
+        { message: 'id에 맞는 지원자가 없습니다.' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (status === 1) {
+      const fliter = meeting.appliedInfo.filter((item) => item.status === 1);
+      const result = fliter.findIndex((target) => target.id === user.id);
+      if (fliter.length >= meeting.capacity && result == -1) {
+        throw new HttpException(
+          { message: '정원이 꽉찼습니다' },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    result.status = status;
+    await result.save();
     return null;
   }
 
@@ -165,17 +187,6 @@ export class MeetingRepository extends Repository<Meeting> {
       default:
         break;
     }
-
-    let querys;
-    if (categoryArr.length !== 0) {
-      querys = categoryArr.map((item) => ({
-        category: item,
-        title: query ? Like(`%${query}%`) : null,
-        ...test,
-      }));
-    } else {
-      querys = query ? [{ title: Like(`%${query}%`), ...test }] : null;
-    }
   }
 
   async createMeeting(
@@ -236,15 +247,28 @@ export class MeetingRepository extends Repository<Meeting> {
       );
     }
 
+    const fliter = meeting.appliedInfo.filter((item) => item.status === 1);
+
+    console.log(user.id);
+
     const result = meeting.appliedInfo.findIndex(
       (target) => target.user.id === user.id,
     );
 
-    if (result === -1) {
-      const apply = await Apply.createApply(user, content, meeting);
+    if (fliter.length >= meeting.capacity && result == -1) {
+      throw new HttpException(
+        { message: '정원이 꽉찼습니다' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
+    if (result === -1) {
+      // 첫 지원
+      const apply = await Apply.createApply(user, content, meeting);
       meeting.appliedInfo.push(apply);
     } else {
+      // 신청 취소
+      console.log(result);
       const targetApply = meeting.appliedInfo[result];
       meeting.appliedInfo.splice(result, 1);
       await Apply.delete({ id: targetApply.id });

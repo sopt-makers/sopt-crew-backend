@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/user.entity';
 import { UserRepository } from 'src/users/user.repository';
+import { AuthCredentialsDTO } from './dto/auth-credential.dto';
 
 @Injectable()
 export class AuthService {
@@ -12,29 +13,29 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async loginUser(accessToken: string) {
+  async loginUser(authCredentialsDTO: AuthCredentialsDTO) {
     // accessToken으로 유저 정보 받아서
-
-    const originId = '1';
-    const id = 3;
-    const name = 'lee';
-
-    const user = await this.userRepository.findOne({ where: { id } });
+    const { originId, name } = authCredentialsDTO;
+    let userId;
+    const user = await this.userRepository.findOne({
+      where: { originId },
+    });
 
     if (!user) {
       const newUser = this.userRepository.create({
         originId,
         name,
       });
-      await this.userRepository.save(newUser);
+      const savedUser = await this.userRepository.save(newUser);
+      userId = savedUser.id;
+    } else {
+      userId = user.id;
     }
 
-    const payload = { name, id };
-    const accessToken1 = await this.jwtService.sign(payload);
-    return { accessToken1 };
-    // else {
-    //   throw new UnauthorizedException('로그인 실패');
-    // }
-    return null;
+    console.log(userId);
+
+    const payload = { name, id: userId };
+    const accessToken = await this.jwtService.sign(payload);
+    return { accessToken: accessToken };
   }
 }
