@@ -10,6 +10,7 @@ import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { UserRepository } from 'src/users/user.repository';
 import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetListDto } from './dto/get-list.dto';
+import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 
 @Injectable()
 export class MeetingService {
@@ -20,6 +21,18 @@ export class MeetingService {
     private readonly userRepository: UserRepository,
   ) {}
 
+  async updateApplyStatusByMeeting(
+    id: number,
+    user: User,
+    updateStatusApplyDto: UpdateStatusApplyDto,
+  ) {
+    return this.meetingRepository.updateApplyStatusByMeeting(
+      id,
+      user,
+      updateStatusApplyDto,
+    );
+  }
+
   async getListByMeeting(id: number, user: User, getListDto: GetListDto) {
     return this.meetingRepository.getListByMeeting(id, user, getListDto);
   }
@@ -28,7 +41,7 @@ export class MeetingService {
     return this.meetingRepository.getMeetingById(id);
   }
 
-  async getAllMeeting(getMeetingDto: GetMeetingDto): Promise<Meeting[]> {
+  async getAllMeeting(getMeetingDto: GetMeetingDto) {
     return this.meetingRepository.getAllMeeting(getMeetingDto);
   }
 
@@ -56,22 +69,7 @@ export class MeetingService {
     return this.meetingRepository.deleteMeetingById(id);
   }
 
-  async searchMeeting(filterMeetingDto: FilterMeetingDto): Promise<Meeting[]> {
-    return this.meetingRepository.searchMeeting(filterMeetingDto);
-  }
-
-  async searchMeetingByFilter(
-    filterMeetingDTO: FilterMeetingDto,
-  ): Promise<Meeting[]> {
-    return this.meetingRepository.searchMeetingByFilter(filterMeetingDTO);
-  }
-
   async applyMeeting(applyMeetingDto: ApplyMeetingDto, user: User) {
-    // meeting에 user 있는지 저장
-    // meeting에 user id 저장
-    // meeting 상태 업데이트
-
-    // user 상태 업데이트
     return this.meetingRepository.applyMeeting(applyMeetingDto, user);
   }
 }

@@ -1,18 +1,58 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { User } from 'src/users/user.entity';
 import { CustomRepository } from 'src/db/typeorm-ex.decorator';
-import { LessThan, Like, MoreThan, Repository } from 'typeorm';
+import {
+  Brackets,
+  LessThan,
+  LessThanOrEqual,
+  Like,
+  MoreThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { FilterMeetingDto } from './dto/filter-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-metting-dto';
 import { Meeting, ImageURL } from './meeting.entity';
 import { Apply } from './apply.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
-import { GetMeetingDto } from './dto/get-meeting.dto';
+import { GetMeetingDto, MeetingStatus } from './dto/get-meeting.dto';
 import { GetListDto, ListStatus } from './dto/get-list.dto';
+import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
+  async updateApplyStatusByMeeting(
+    id: number,
+    user: User,
+    updateStatusApplyDto: UpdateStatusApplyDto,
+  ) {
+    const { applyId, status } = updateStatusApplyDto;
+
+    const meeting = await this.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+    if (!meeting) {
+      throw new HttpException(
+        { message: '모임이 없습니다' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const cUser = meeting.user.id === user.id ? true : false;
+
+    if (cUser) {
+    } else {
+      new UnauthorizedException('수정 권한이 없습니다');
+    }
+    return null;
+  }
+
   async getListByMeeting(id: number, user: User, getListDto: GetListDto) {
     const { date, limit, status } = getListDto;
 
@@ -63,34 +103,66 @@ export class MeetingRepository extends Repository<Meeting> {
 
   async getAllMeeting(getMeetingDto: GetMeetingDto) {
     const { category, status, query } = getMeetingDto;
-    const nowDate = new Date();
+    const nowDate = new Date('2022-03-01');
 
-    const categoryArr = category ? category.split(',') : [];
-    let statusDate;
+    const categoryArr = category
+      ? category.split(',')
+      : ['스터디', '번개', '강연'];
+    const moo = await this.createQueryBuilder('meeting').leftJoinAndSelect(
+      'meeting.appliedInfo',
+      'apply',
+      'apply.status = :status',
+      { status: 1 },
+    );
+
+    if (query) {
+      moo.where('meeting.title like :title', { title: `%${query}%` });
+    }
+
+    if (categoryArr.length !== 0) {
+      moo.andWhere('meeting.category IN (:...categoryArr)', {
+        categoryArr,
+      });
+    }
+
+    let test;
+    let result: Array<any>;
+
     switch (status) {
-      case 0:
-        statusDate = null;
-        break;
-      case 1:
-        // and
-        statusDate = {
-          startDate: LessThan(nowDate),
-          endDate: MoreThan(nowDate),
-        };
-        break;
-      case 2:
-        // or
-        statusDate = [
-          {
-            startDate: MoreThan(nowDate),
-          },
-          {
-            endDate: LessThan(nowDate),
-          },
-        ];
-        break;
+      case MeetingStatus.ALL:
+        result = await moo.getManyAndCount();
+        return { meetings: result[0], count: result[1] };
+      case MeetingStatus.BEFORE:
+        result = await moo
+          .andWhere('meeting.startDate > :nowDate', {
+            nowDate,
+          })
+          .getManyAndCount();
+        return { meetings: result[0], count: result[1] };
+      case MeetingStatus.OPEN:
+        result = await moo
+          .andWhere('meeting.startDate <= :nowDate', {
+            nowDate,
+          })
+          .andWhere('meeting.endDate >= :nowDate', {
+            nowDate,
+          })
+          .getManyAndCount();
+        const filter1 = result[0].filter((el) => {
+          return el.appliedInfo.length < el.capacity ? el : false;
+        });
+        return { meetings: filter1, count: filter1.length };
+      case MeetingStatus.CLOSE:
+        result = await moo
+          .andWhere('meeting.endDate < :nowDate', {
+            nowDate,
+          })
+          .getManyAndCount();
+        const filter2 = result[0].filter((el) => {
+          return el.appliedInfo.length >= el.capacity ? el : false;
+        });
+        return { meetings: filter2, count: filter2.length };
       default:
-        statusDate = null;
         break;
     }
 
@@ -99,16 +171,11 @@ export class MeetingRepository extends Repository<Meeting> {
       querys = categoryArr.map((item) => ({
         category: item,
         title: query ? Like(`%${query}%`) : null,
-        ...statusDate,
+        ...test,
       }));
     } else {
-      querys = query ? [{ title: Like(`%${query}%`), ...statusDate }] : null;
+      querys = query ? [{ title: Like(`%${query}%`), ...test }] : null;
     }
-
-    const result = await this.find({
-      where: statusDate,
-    });
-    return result;
   }
 
   async createMeeting(
@@ -155,76 +222,6 @@ export class MeetingRepository extends Repository<Meeting> {
     return null;
   }
 
-  async searchMeeting(filterMeetingDto: FilterMeetingDto): Promise<Meeting[]> {
-    const { category, status, query } = filterMeetingDto;
-    const nowDate = new Date();
-
-    let statusDate;
-    switch (status) {
-      case 0:
-        statusDate = null;
-      case 1:
-        statusDate = {
-          startDate: LessThan(nowDate),
-          endDate: MoreThan(nowDate),
-        };
-      case 2:
-        statusDate = {
-          startDate: MoreThan(nowDate),
-          endDate: LessThan(nowDate),
-        };
-      default:
-        statusDate = null;
-    }
-
-    let querys;
-    if (category) {
-      querys = category.map((item) => ({
-        category: item,
-        title: query ? Like(`%${query}%`) : null,
-        ...statusDate,
-      }));
-    } else {
-      querys = query ? [{ title: Like(`%${query}%`), ...statusDate }] : null;
-    }
-
-    const result = await this.find({
-      where: querys,
-    });
-    return result;
-  }
-
-  async searchMeetingByFilter(
-    filterMeetingDTO: FilterMeetingDto,
-  ): Promise<Meeting[]> {
-    const { category, status } = filterMeetingDTO;
-    const nowDate = new Date('2022-09-20');
-
-    const statusDate =
-      status === 0
-        ? null
-        : status === 1
-        ? {
-            startDate: LessThan(nowDate),
-            endDate: MoreThan(nowDate),
-          }
-        : {
-            startDate: MoreThan(nowDate),
-            endDate: LessThan(nowDate),
-          };
-
-    const query = category.map((item) => ({
-      category: item,
-      ...statusDate,
-    }));
-
-    const result = await this.find({
-      where: query,
-    });
-
-    return result;
-  }
-
   async applyMeeting(applyMeetingDto: ApplyMeetingDto, user: User) {
     const { id, content } = applyMeetingDto;
     const meeting = await this.findOne({
@@ -239,13 +236,9 @@ export class MeetingRepository extends Repository<Meeting> {
       );
     }
 
-    console.log(meeting.appliedInfo);
-
     const result = meeting.appliedInfo.findIndex(
       (target) => target.user.id === user.id,
     );
-
-    console.log('??');
 
     if (result === -1) {
       const apply = await Apply.createApply(user, content, meeting);

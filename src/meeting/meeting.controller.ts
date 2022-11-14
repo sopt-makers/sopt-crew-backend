@@ -36,10 +36,32 @@ import {
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetListDto } from './dto/get-list.dto';
+import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 
+@ApiTags('모임')
 @Controller('meeting')
 export class MeetingController {
   constructor(private meetingService: MeetingService) {}
+
+  @ApiOperation({
+    summary: '모임 지원자 상태 변경',
+    description: '모임 지원자 상태 변경',
+  })
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
+  @Put('/:id/apply/status')
+  @ApiParam({ name: 'id', required: true, description: '모임 id' })
+  updateApplyStatusByMeeting(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateStatusApplyDto: UpdateStatusApplyDto,
+    @GetUser() user: User,
+  ) {
+    return this.meetingService.updateApplyStatusByMeeting(
+      id,
+      user,
+      updateStatusApplyDto,
+    );
+  }
 
   @ApiOperation({
     summary: '모임 지원자 조회',
@@ -48,6 +70,7 @@ export class MeetingController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   @Get('/:id/list')
+  @ApiParam({ name: 'id', required: true, description: '모임 id' })
   getListByMeeting(
     @Query() getListDto: GetListDto,
     @Param('id', ParseIntPipe) id: number,
@@ -71,17 +94,6 @@ export class MeetingController {
   }
 
   @ApiOperation({
-    summary: '검색/필터링 기능',
-    description: '검색/필터링 기능',
-  })
-  @Post('/search')
-  searchMeeting(
-    @Body() filterMeetingDto: FilterMeetingDto,
-  ): Promise<Meeting[]> {
-    return this.meetingService.searchMeeting(filterMeetingDto);
-  }
-
-  @ApiOperation({
     summary: '모임 상세 조회',
     description: '모임 상세 조회',
   })
@@ -96,7 +108,7 @@ export class MeetingController {
     description: '모임 전체 조회/검색/필터링',
   })
   @Get('/')
-  getAllMeeting(@Query() getMeetingDto: GetMeetingDto): Promise<Meeting[]> {
+  getAllMeeting(@Query() getMeetingDto: GetMeetingDto) {
     return this.meetingService.getAllMeeting(getMeetingDto);
   }
 

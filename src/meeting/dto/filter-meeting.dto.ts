@@ -14,7 +14,7 @@ export class FilterMeetingDto {
 
   @ApiProperty({
     example: 0,
-    description: '0: 전체, 1: 모집중, 2: 모집마감',
+    description: '0: 전체, 1: 모집 전, 2: 모집 중, 3: 모집 마감',
     required: false,
   })
   @IsOptional()

@@ -12,7 +12,19 @@ import { AuthTokenDTO } from './dto/auth-token.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from './get-user.decorator';
 import { User } from '../users/user.entity';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiCreatedResponse,
+  ApiSecurity,
+  ApiExcludeEndpoint,
+  ApiConsumes,
+  ApiBody,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 
+@ApiTags('인증')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
