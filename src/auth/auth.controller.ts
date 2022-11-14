@@ -35,6 +35,14 @@ export class AuthController {
     summary: '로그인/회원가입',
     description: '로그인/회원가입',
   })
+  // @ApiBody({
+  //   schema: {
+  //     properties: {
+  //       userId: { type: 'string' },
+  //       password: { type: 'string' },
+  //     },
+  //   },
+  // })
   @Post('/')
   loginUser(@Body() authCredentialsDTO: AuthCredentialsDTO) {
     return this.authService.loginUser(authCredentialsDTO);
