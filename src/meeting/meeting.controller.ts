@@ -64,8 +64,9 @@ export class MeetingController {
   }
 
   @ApiOperation({
-    summary: '모임 지원자 조회',
-    description: '모임 지원자 조회',
+    summary: '모임 지원자/참여자 조회',
+    description:
+      '모임 지원자/참여자 조회(모임장이면 지원자, 아니면 참여자 조회)',
   })
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
