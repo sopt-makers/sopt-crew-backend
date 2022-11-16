@@ -130,12 +130,14 @@ export class MeetingRepository extends Repository<Meeting> {
     const categoryArr = category
       ? category.split(',')
       : ['스터디', '번개', '강연'];
-    const moo = await this.createQueryBuilder('meeting').leftJoinAndSelect(
-      'meeting.appliedInfo',
-      'apply',
-      'apply.status = :status',
-      { status: 1 },
-    );
+    const moo = await this.createQueryBuilder('meeting')
+      .leftJoinAndSelect(
+        'meeting.appliedInfo',
+        'apply',
+        'apply.status = :status',
+        { status: 1 },
+      )
+      .leftJoinAndSelect('meeting.user', 'user');
 
     if (query) {
       moo.where('meeting.title like :title', { title: `%${query}%` });
@@ -147,7 +149,6 @@ export class MeetingRepository extends Repository<Meeting> {
       });
     }
 
-    let test;
     let result: Array<any>;
 
     switch (status) {
@@ -185,7 +186,8 @@ export class MeetingRepository extends Repository<Meeting> {
         });
         return { meetings: filter2, count: filter2.length };
       default:
-        break;
+        result = await moo.getManyAndCount();
+        return { meetings: result[0], count: result[1] };
     }
   }
 
