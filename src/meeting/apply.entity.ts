@@ -36,6 +36,10 @@ export class Apply extends BaseEntity {
   })
   meeting: Meeting;
 
+  @RelationId((apply: Apply) => apply.user) // you need to specify target relation
+  @Column()
+  userId: number;
+
   @ManyToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',
     eager: true,

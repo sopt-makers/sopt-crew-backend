@@ -5,17 +5,8 @@ import {
 } from '@nestjs/common';
 import { User } from 'src/users/user.entity';
 import { CustomRepository } from 'src/db/typeorm-ex.decorator';
-import {
-  Brackets,
-  LessThan,
-  LessThanOrEqual,
-  Like,
-  MoreThan,
-  MoreThanOrEqual,
-  Repository,
-} from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
-import { FilterMeetingDto } from './dto/filter-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-metting-dto';
 import { Meeting, ImageURL } from './meeting.entity';
 import { Apply } from './apply.entity';
@@ -23,6 +14,7 @@ import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto, MeetingStatus } from './dto/get-meeting.dto';
 import { GetListDto, ListStatus } from './dto/get-list.dto';
 import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
+import { meetingStatus } from 'src/common/utils/meeting.status';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
@@ -120,6 +112,8 @@ export class MeetingRepository extends Repository<Meeting> {
         HttpStatus.BAD_REQUEST,
       );
     }
+    const status = await meetingStatus(meeting);
+    meeting.status = status;
     return meeting;
   }
 
@@ -161,6 +155,10 @@ export class MeetingRepository extends Repository<Meeting> {
             nowDate,
           })
           .getManyAndCount();
+        result[0].forEach(async (item) => {
+          const status = await meetingStatus(item);
+          item.status = status;
+        });
         return { meetings: result[0], count: result[1] };
       case MeetingStatus.OPEN:
         result = await moo
@@ -171,8 +169,16 @@ export class MeetingRepository extends Repository<Meeting> {
             nowDate,
           })
           .getManyAndCount();
+        result[0].forEach(async (item) => {
+          const status = await meetingStatus(item);
+          item.status = status;
+        });
         const filter1 = result[0].filter((el) => {
           return el.appliedInfo.length < el.capacity ? el : false;
+        });
+        filter1.forEach(async (item) => {
+          const status = await meetingStatus(item);
+          item.status = status;
         });
         return { meetings: filter1, count: filter1.length };
       case MeetingStatus.CLOSE:
@@ -181,12 +187,21 @@ export class MeetingRepository extends Repository<Meeting> {
             nowDate,
           })
           .getManyAndCount();
+
         const filter2 = result[0].filter((el) => {
           return el.appliedInfo.length >= el.capacity ? el : false;
+        });
+        filter2.forEach(async (item) => {
+          const status = await meetingStatus(item);
+          item.status = status;
         });
         return { meetings: filter2, count: filter2.length };
       default:
         result = await moo.getManyAndCount();
+        result[0].forEach(async (item) => {
+          const status = await meetingStatus(item);
+          item.status = status;
+        });
         return { meetings: result[0], count: result[1] };
     }
   }

@@ -8,6 +8,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  RelationId,
 } from 'typeorm';
 import { Apply } from './apply.entity';
 
@@ -31,6 +32,10 @@ export class Meeting extends BaseEntity {
     onDelete: 'CASCADE',
   })
   user: User;
+
+  @RelationId((meeting: Meeting) => meeting.user) // you need to specify target relation
+  @Column()
+  userId: number;
 
   @OneToMany(() => Apply, (apply) => apply.meeting, {
     onDelete: 'CASCADE',
@@ -77,4 +82,6 @@ export class Meeting extends BaseEntity {
 
   @Column({ nullable: true })
   note: string;
+
+  status: number;
 }
