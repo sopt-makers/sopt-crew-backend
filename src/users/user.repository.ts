@@ -35,6 +35,7 @@ export class UserRepository extends Repository<User> {
     const { id } = user;
     const result = await Apply.createQueryBuilder('apply')
       .leftJoinAndSelect('apply.meeting', 'meeting')
+      .leftJoinAndSelect('meeting.user', 'user')
       .leftJoinAndSelect(
         'meeting.appliedInfo',
         'appliedInfo',
