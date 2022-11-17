@@ -149,6 +149,10 @@ export class MeetingRepository extends Repository<Meeting> {
     switch (status) {
       case MeetingStatus.ALL:
         result = await moo.getManyAndCount();
+        result[0].forEach(async (item) => {
+          const status = await meetingStatus(item);
+          item.status = status;
+        });
         return { meetings: result[0], count: result[1] };
       case MeetingStatus.BEFORE:
         result = await moo
@@ -198,7 +202,6 @@ export class MeetingRepository extends Repository<Meeting> {
         });
         return { meetings: filter2, count: filter2.length };
       default:
-        console.log('//');
         result = await moo.getManyAndCount();
         result[0].forEach(async (item) => {
           const status = await meetingStatus(item);
