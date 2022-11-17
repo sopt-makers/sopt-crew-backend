@@ -24,6 +24,7 @@ export class UserRepository extends Repository<User> {
       .leftJoinAndSelect('meeting.user', 'user')
       .where('meeting.userId = :id', { id })
       .getManyAndCount();
+
     result[0].forEach(async (meeting) => {
       const status = await meetingStatus(meeting);
       meeting.status = status;

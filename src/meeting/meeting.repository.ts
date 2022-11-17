@@ -124,6 +124,7 @@ export class MeetingRepository extends Repository<Meeting> {
     const categoryArr = category
       ? category.split(',')
       : ['스터디', '번개', '강연'];
+
     const moo = await this.createQueryBuilder('meeting')
       .leftJoinAndSelect(
         'meeting.appliedInfo',
@@ -197,6 +198,7 @@ export class MeetingRepository extends Repository<Meeting> {
         });
         return { meetings: filter2, count: filter2.length };
       default:
+        console.log('//');
         result = await moo.getManyAndCount();
         result[0].forEach(async (item) => {
           const status = await meetingStatus(item);
@@ -265,8 +267,6 @@ export class MeetingRepository extends Repository<Meeting> {
     }
 
     const fliter = meeting.appliedInfo.filter((item) => item.status === 1);
-
-    console.log(user.id);
 
     const result = meeting.appliedInfo.findIndex(
       (target) => target.user.id === user.id,
