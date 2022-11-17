@@ -1,5 +1,6 @@
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class AuthCredentialsDTO {
   @ApiProperty({
@@ -16,7 +17,8 @@ export class AuthCredentialsDTO {
     description: 'Sopt.org 회원 고유 아이디',
     required: true,
   })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
-  readonly originId: number;
+  readonly orgId: number;
 }

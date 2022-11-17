@@ -50,7 +50,7 @@ export class Meeting extends BaseEntity {
   @Column()
   category: string;
 
-  @Column('text', { array: true })
+  @Column('jsonb')
   imageURL: ImageURL[];
 
   @Column()

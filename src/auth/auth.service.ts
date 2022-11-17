@@ -15,15 +15,15 @@ export class AuthService {
 
   async loginUser(authCredentialsDTO: AuthCredentialsDTO) {
     // accessToken으로 유저 정보 받아서
-    const { originId, name } = authCredentialsDTO;
+    const { orgId, name } = authCredentialsDTO;
     let userId;
     const user = await this.userRepository.findOne({
-      where: { originId },
+      where: { orgId },
     });
 
     if (!user) {
       const newUser = this.userRepository.create({
-        originId,
+        orgId,
         name,
       });
       const savedUser = await this.userRepository.save(newUser);

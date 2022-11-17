@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 
 @Entity('user')
-@Unique(['id', 'originId'])
+@Unique(['id'])
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -21,7 +21,7 @@ export class User {
   name: string;
 
   @Column()
-  originId: number;
+  orgId: number;
 
   @OneToMany(() => Meeting, (meeting) => meeting.user)
   meetings: Meeting[];
