@@ -214,12 +214,36 @@ export class MeetingRepository extends Repository<Meeting> {
     id: number,
     updateMeetingDto: UpdateMeetingDto,
     files: Array<Express.MulterS3.File>,
-  ): Promise<void> {
-    const imageURL = files.map((file) => file.location);
+    user: User,
+  ) {
+    if (files.length === 0) {
+      throw new HttpException(
+        { message: '이미지 파일이 없습니다.' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-    const meeting = await this.update(id, updateMeetingDto);
+    const imageURL: Array<ImageURL> = files.map((file, index) => ({
+      id: index,
+      url: file.location,
+    }));
 
-    return null;
+    const result = await this.update(
+      { id, userId: user.id },
+      {
+        ...updateMeetingDto,
+        imageURL,
+      },
+    );
+
+    if (result.affected === 1) {
+      return null;
+    } else {
+      throw new HttpException(
+        { message: '조건에 맞는 모임이 없습니다' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   async deleteMeetingById(id: number): Promise<void> {

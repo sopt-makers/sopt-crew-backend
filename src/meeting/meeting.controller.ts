@@ -18,7 +18,6 @@ import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { Meeting } from './meeting.entity';
 import { FilesInterceptor } from '@nestjs/platform-express/multer/interceptors/files.interceptor';
 import { UpdateMeetingDto } from './dto/update-metting-dto';
-import { FilterMeetingDto } from './dto/filter-meeting.dto';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { User } from 'src/users/user.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -137,14 +136,33 @@ export class MeetingController {
     return this.meetingService.createMeeting(createMeetingDto, files, user);
   }
 
+  @ApiOperation({
+    summary: '모임 수정',
+    description: '모임 수정',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiCreatedResponse({
+    description: '모임 수정',
+    schema: {
+      example: {},
+    },
+  })
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
   @Put('/:id')
   @UseInterceptors(FilesInterceptor('files', 6))
   updateMeetingById(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFiles() files: Array<Express.MulterS3.File>,
     @Body() updateMeetingDto: UpdateMeetingDto,
-  ): Promise<void> {
-    return this.meetingService.updateMeetingById(id, updateMeetingDto, files);
+    @GetUser() user: User,
+  ) {
+    return this.meetingService.updateMeetingById(
+      id,
+      updateMeetingDto,
+      files,
+      user,
+    );
   }
 
   @ApiOperation({

@@ -57,11 +57,13 @@ export class MeetingService {
     id: number,
     updateMeetingDto: UpdateMeetingDto,
     files: Array<Express.MulterS3.File>,
-  ): Promise<void> {
+    user: User,
+  ) {
     return this.meetingRepository.updateMeetingById(
       id,
       updateMeetingDto,
       files,
+      user,
     );
   }
 
