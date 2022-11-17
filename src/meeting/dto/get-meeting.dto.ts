@@ -26,14 +26,13 @@ export class GetMeetingDto {
   readonly category: string;
 
   @ApiProperty({
-    example: 0,
+    example: '1,2,3',
     description: '0: 전체, 1: 모집 전, 2: 모집 중, 3: 모집 마감',
     required: false,
   })
-  @Type(() => Number)
   @IsOptional()
-  @IsNumber()
-  readonly status: MeetingStatus;
+  @IsString()
+  readonly status: string;
 
   @ApiProperty({
     example: '스터디',

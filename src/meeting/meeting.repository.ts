@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { User } from 'src/users/user.entity';
 import { CustomRepository } from 'src/db/typeorm-ex.decorator';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-metting-dto';
 import { Meeting, ImageURL } from './meeting.entity';
@@ -125,6 +125,8 @@ export class MeetingRepository extends Repository<Meeting> {
       ? category.split(',')
       : ['스터디', '번개', '강연'];
 
+    const statusArr = status ? status.split(',') : ['0'];
+
     const moo = await this.createQueryBuilder('meeting')
       .leftJoinAndSelect(
         'meeting.appliedInfo',
@@ -144,71 +146,41 @@ export class MeetingRepository extends Repository<Meeting> {
       });
     }
 
-    let result: Array<any>;
+    statusArr.map(async (targetStatus) => {
+      if (targetStatus === '1') {
+        const query = new Brackets((qb) => {
+          qb.andWhere('meeting.startDate > :nowDate', {
+            nowDate,
+          });
+        });
+        statusArr.length !== 1 ? moo.orWhere(query) : moo.andWhere(query);
+      } else if (targetStatus === '2') {
+        const query = new Brackets((qb) => {
+          qb.andWhere('meeting.startDate <= :nowDate', {
+            nowDate,
+          }).andWhere('meeting.endDate >= :nowDate', {
+            nowDate,
+          });
+        });
+        statusArr.length !== 1 ? moo.orWhere(query) : moo.andWhere(query);
+      } else if (targetStatus === '3') {
+        const query = new Brackets((qb) => {
+          qb.andWhere('meeting.endDate < :nowDate', {
+            nowDate,
+          });
+        });
+        statusArr.length !== 1 ? moo.orWhere(query) : moo.andWhere(query);
+      } else {
+      }
+    });
 
-    switch (status) {
-      case MeetingStatus.ALL:
-        result = await moo.getManyAndCount();
-        result[0].forEach(async (item) => {
-          const status = await meetingStatus(item);
-          item.status = status;
-        });
-        return { meetings: result[0], count: result[1] };
-      case MeetingStatus.BEFORE:
-        result = await moo
-          .andWhere('meeting.startDate > :nowDate', {
-            nowDate,
-          })
-          .getManyAndCount();
-        result[0].forEach(async (item) => {
-          const status = await meetingStatus(item);
-          item.status = status;
-        });
-        return { meetings: result[0], count: result[1] };
-      case MeetingStatus.OPEN:
-        result = await moo
-          .andWhere('meeting.startDate <= :nowDate', {
-            nowDate,
-          })
-          .andWhere('meeting.endDate >= :nowDate', {
-            nowDate,
-          })
-          .getManyAndCount();
-        result[0].forEach(async (item) => {
-          const status = await meetingStatus(item);
-          item.status = status;
-        });
-        const filter1 = result[0].filter((el) => {
-          return el.appliedInfo.length < el.capacity ? el : false;
-        });
-        filter1.forEach(async (item) => {
-          const status = await meetingStatus(item);
-          item.status = status;
-        });
-        return { meetings: filter1, count: filter1.length };
-      case MeetingStatus.CLOSE:
-        result = await moo
-          .andWhere('meeting.endDate < :nowDate', {
-            nowDate,
-          })
-          .getManyAndCount();
+    const result = await moo.getManyAndCount();
+    result[0].forEach(async (item) => {
+      const status = await meetingStatus(item);
+      item.status = status;
+    });
 
-        const filter2 = result[0].filter((el) => {
-          return el.appliedInfo.length >= el.capacity ? el : false;
-        });
-        filter2.forEach(async (item) => {
-          const status = await meetingStatus(item);
-          item.status = status;
-        });
-        return { meetings: filter2, count: filter2.length };
-      default:
-        result = await moo.getManyAndCount();
-        result[0].forEach(async (item) => {
-          const status = await meetingStatus(item);
-          item.status = status;
-        });
-        return { meetings: result[0], count: result[1] };
-    }
+    return { meetings: result[0], count: result[1] };
   }
 
   async createMeeting(
