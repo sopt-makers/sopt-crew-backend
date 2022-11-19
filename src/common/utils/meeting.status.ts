@@ -6,6 +6,7 @@ export const meetingStatus = async (meeting: Meeting) => {
   const okInfo = appliedInfo.filter((apply) =>
     apply.status === 1 ? apply : false,
   );
+
   if (okInfo.length >= capacity) {
     return 2;
   }

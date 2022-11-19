@@ -119,13 +119,15 @@ export class MeetingRepository extends Repository<Meeting> {
 
   async getAllMeeting(getMeetingDto: GetMeetingDto) {
     const { category, status, query } = getMeetingDto;
-    const nowDate = new Date('2022-03-01');
+    const nowDate = new Date();
 
     const categoryArr = category
       ? category.split(',')
       : ['스터디', '번개', '강연'];
 
-    const statusArr = status ? status.split(',') : ['0'];
+    const statusArr = status ? status.split(',') : [];
+
+    console.log(categoryArr);
 
     const moo = await this.createQueryBuilder('meeting')
       .leftJoinAndSelect(
@@ -147,30 +149,31 @@ export class MeetingRepository extends Repository<Meeting> {
     }
 
     statusArr.map(async (targetStatus) => {
-      if (targetStatus === '1') {
+      if (targetStatus === '0') {
         const query = new Brackets((qb) => {
           qb.andWhere('meeting.startDate > :nowDate', {
             nowDate,
           });
         });
         statusArr.length !== 1 ? moo.orWhere(query) : moo.andWhere(query);
-      } else if (targetStatus === '2') {
+      } else if (targetStatus === '1') {
         const query = new Brackets((qb) => {
-          qb.andWhere('meeting.startDate <= :nowDate', {
+          qb.where('meeting.startDate <= :nowDate', {
             nowDate,
           }).andWhere('meeting.endDate >= :nowDate', {
             nowDate,
           });
         });
         statusArr.length !== 1 ? moo.orWhere(query) : moo.andWhere(query);
-      } else if (targetStatus === '3') {
+      } else if (targetStatus === '2') {
         const query = new Brackets((qb) => {
-          qb.andWhere('meeting.endDate < :nowDate', {
+          qb.where('meeting.endDate < :nowDate', {
             nowDate,
           });
         });
         statusArr.length !== 1 ? moo.orWhere(query) : moo.andWhere(query);
       } else {
+        console.log('??');
       }
     });
 

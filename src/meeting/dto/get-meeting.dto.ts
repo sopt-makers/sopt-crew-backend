@@ -26,8 +26,8 @@ export class GetMeetingDto {
   readonly category: string;
 
   @ApiProperty({
-    example: '1,2,3',
-    description: '0: 전체, 1: 모집 전, 2: 모집 중, 3: 모집 마감',
+    example: '0,1',
+    description: '0: 모집 전, 1: 모집 중, 2: 모집 마감',
     required: false,
   })
   @IsOptional()
