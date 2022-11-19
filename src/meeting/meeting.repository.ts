@@ -108,7 +108,7 @@ export class MeetingRepository extends Repository<Meeting> {
       pageOptionsDto,
     });
     // return new PageDto(result[0], pageMetaDto);
-    return { meetings: result[0], meta: pageMetaDto };
+    return { apply: result[0], meta: pageMetaDto };
   }
 
   async getMeetingById(id: number): Promise<Meeting> {
