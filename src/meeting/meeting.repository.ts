@@ -127,8 +127,6 @@ export class MeetingRepository extends Repository<Meeting> {
 
     const statusArr = status ? status.split(',') : [];
 
-    console.log(categoryArr);
-
     const moo = await this.createQueryBuilder('meeting')
       .leftJoinAndSelect(
         'meeting.appliedInfo',
@@ -136,7 +134,8 @@ export class MeetingRepository extends Repository<Meeting> {
         'apply.status = :status',
         { status: 1 },
       )
-      .leftJoinAndSelect('meeting.user', 'user');
+      .leftJoinAndSelect('meeting.user', 'user')
+      .where('1 = 1');
 
     if (query) {
       moo.where('meeting.title like :title', { title: `%${query}%` });
@@ -148,32 +147,36 @@ export class MeetingRepository extends Repository<Meeting> {
       });
     }
 
-    statusArr.map(async (targetStatus) => {
+    statusArr.map(async (targetStatus, index) => {
       if (targetStatus === '0') {
-        const query = new Brackets((qb) => {
-          qb.andWhere('meeting.startDate > :nowDate', {
+        const query1 = new Brackets((qb) => {
+          qb.where('meeting.startDate > :nowDate', {
             nowDate,
           });
         });
-        statusArr.length !== 1 ? moo.orWhere(query) : moo.andWhere(query);
+        statusArr.length !== 1 && index !== 0
+          ? moo.orWhere(query1)
+          : moo.andWhere(query1);
       } else if (targetStatus === '1') {
-        const query = new Brackets((qb) => {
+        const query2 = new Brackets((qb) => {
           qb.where('meeting.startDate <= :nowDate', {
             nowDate,
           }).andWhere('meeting.endDate >= :nowDate', {
             nowDate,
           });
         });
-        statusArr.length !== 1 ? moo.orWhere(query) : moo.andWhere(query);
+        statusArr.length !== 1 && index !== 0
+          ? moo.orWhere(query2)
+          : moo.andWhere(query2);
       } else if (targetStatus === '2') {
-        const query = new Brackets((qb) => {
+        const query3 = new Brackets((qb) => {
           qb.where('meeting.endDate < :nowDate', {
             nowDate,
           });
         });
-        statusArr.length !== 1 ? moo.orWhere(query) : moo.andWhere(query);
-      } else {
-        console.log('??');
+        statusArr.length !== 1 && index !== 0
+          ? moo.orWhere(query3)
+          : moo.andWhere(query3);
       }
     });
 
