@@ -36,6 +36,7 @@ import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetListDto } from './dto/get-list.dto';
 import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
+import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 
 @ApiTags('모임')
 @Controller('meeting')
@@ -108,7 +109,10 @@ export class MeetingController {
     description: '모임 전체 조회/검색/필터링',
   })
   @Get('/')
-  getAllMeeting(@Query() getMeetingDto: GetMeetingDto) {
+  getAllMeeting(
+    // @Query() pageOptionsDto: PageOptionsDto,
+    @Query() getMeetingDto: GetMeetingDto,
+  ) {
     return this.meetingService.getAllMeeting(getMeetingDto);
   }
 

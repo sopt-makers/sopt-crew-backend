@@ -11,6 +11,7 @@ import { UserRepository } from 'src/users/user.repository';
 import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetListDto } from './dto/get-list.dto';
 import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
+import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 
 @Injectable()
 export class MeetingService {

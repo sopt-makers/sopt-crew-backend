@@ -15,6 +15,9 @@ import { GetMeetingDto, MeetingStatus } from './dto/get-meeting.dto';
 import { GetListDto, ListStatus } from './dto/get-list.dto';
 import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { meetingStatus } from 'src/common/utils/meeting.status';
+import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
+import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
+import { PageDto } from 'src/pagination/dto/page.dto';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
@@ -118,7 +121,7 @@ export class MeetingRepository extends Repository<Meeting> {
   }
 
   async getAllMeeting(getMeetingDto: GetMeetingDto) {
-    const { category, status, query } = getMeetingDto;
+    const { category, status, query, skip, take, page } = getMeetingDto;
     const nowDate = new Date();
 
     const categoryArr = category
@@ -180,13 +183,25 @@ export class MeetingRepository extends Repository<Meeting> {
       }
     });
 
+    await moo
+      // .orderBy('user.createdAt', pageOptionsDto.order)
+      .skip(skip)
+      .take(take);
+
     const result = await moo.getManyAndCount();
+
     result[0].forEach(async (item) => {
       const status = await meetingStatus(item);
       item.status = status;
     });
 
-    return { meetings: result[0], count: result[1] };
+    const pageOptionsDto: PageOptionsDto = { page, skip, take };
+    const pageMetaDto = new PageMetaDto({
+      itemCount: result[1],
+      pageOptionsDto,
+    });
+    // return new PageDto(result[0], pageMetaDto);
+    return { meetings: result[0], meta: pageMetaDto };
   }
 
   async createMeeting(

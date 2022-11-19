@@ -8,6 +8,7 @@ import {
 
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 
 export enum MeetingStatus {
   ALL = 0,
@@ -16,14 +17,14 @@ export enum MeetingStatus {
   CLOSE = 3,
 }
 
-export class GetMeetingDto {
+export class GetMeetingDto extends PageOptionsDto {
   @ApiProperty({
     example: '스터디,번개',
     description: '카테고리',
     required: false,
   })
   @IsOptional()
-  readonly category: string;
+  readonly category?: string;
 
   @ApiProperty({
     example: '0,1',
@@ -32,7 +33,7 @@ export class GetMeetingDto {
   })
   @IsOptional()
   @IsString()
-  readonly status: string;
+  readonly status?: string;
 
   @ApiProperty({
     example: '스터디',
@@ -40,5 +41,5 @@ export class GetMeetingDto {
     required: false,
   })
   @IsOptional()
-  readonly query: string;
+  readonly query?: string;
 }
