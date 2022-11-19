@@ -71,12 +71,12 @@ export class MeetingRepository extends Repository<Meeting> {
   }
 
   async getListByMeeting(id: number, user: User, getListDto: GetListDto) {
-    const { date, limit, status } = getListDto;
-
+    const { date, status, take, skip, page } = getListDto;
     const meeting = await this.findOne({
       where: { id },
       relations: ['user'],
     });
+
     if (!meeting) {
       throw new HttpException(
         { message: '모임이 없습니다' },
@@ -86,7 +86,7 @@ export class MeetingRepository extends Repository<Meeting> {
 
     const cUser = meeting.user.id === user.id ? true : false;
 
-    const apply = await Apply.find({
+    const result = await Apply.findAndCount({
       where: {
         meetingId: id,
         status:
@@ -98,10 +98,17 @@ export class MeetingRepository extends Repository<Meeting> {
       },
       order: { appliedDate: date },
       select: ['appliedDate', 'content', 'id', cUser ? 'status' : 'id'],
-      take: limit,
+      take,
+      skip,
     });
 
-    return apply;
+    const pageOptionsDto: PageOptionsDto = { page, skip, take };
+    const pageMetaDto = new PageMetaDto({
+      itemCount: result[1],
+      pageOptionsDto,
+    });
+    // return new PageDto(result[0], pageMetaDto);
+    return { meetings: result[0], meta: pageMetaDto };
   }
 
   async getMeetingById(id: number): Promise<Meeting> {

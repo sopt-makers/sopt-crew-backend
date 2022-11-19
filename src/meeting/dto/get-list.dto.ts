@@ -2,6 +2,7 @@ import { IsNotEmpty, IsDate, IsString, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 import { ApiProperty } from '@nestjs/swagger';
+import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 
 export enum ListStatus {
   ALL = 0,
@@ -14,15 +15,7 @@ export enum ListDate {
   ASC = 'asc',
 }
 
-export class GetListDto {
-  @ApiProperty({
-    example: 10,
-    description: 'n명씩 보기',
-    required: false,
-  })
-  @IsOptional()
-  readonly limit: number;
-
+export class GetListDto extends PageOptionsDto {
   @ApiProperty({
     example: 0,
     description: '0: 전체, 1: 승인한 신청자, 2: 거절한 신청자',
