@@ -7,15 +7,18 @@ export const meetingStatus = async (meeting: Meeting) => {
     apply.status === 1 ? apply : false,
   );
 
+  let status;
+
   if (okInfo.length >= capacity) {
-    return 2;
+    status = 2;
+  }
+  if (startDate > nowDate) {
+    status = 0;
+  } else if (startDate <= nowDate && endDate >= nowDate) {
+    status = 1;
+  } else {
+    status = 2;
   }
 
-  if (startDate > nowDate) {
-    return 0;
-  } else if (startDate <= nowDate && endDate >= nowDate) {
-    return 1;
-  } else {
-    return 2;
-  }
+  return { status, confirmedApply: okInfo };
 };

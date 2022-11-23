@@ -26,7 +26,7 @@ export class UserRepository extends Repository<User> {
       .getManyAndCount();
 
     result[0].forEach(async (meeting) => {
-      const status = await meetingStatus(meeting);
+      const { status } = await meetingStatus(meeting);
       meeting.status = status;
     });
     return { meetings: result[0], count: result[1] };
@@ -47,7 +47,7 @@ export class UserRepository extends Repository<User> {
       .getManyAndCount();
 
     result[0].forEach(async (item) => {
-      const status = await meetingStatus(item.meeting);
+      const { status } = await meetingStatus(item.meeting);
       item.meeting.status = status;
     });
 

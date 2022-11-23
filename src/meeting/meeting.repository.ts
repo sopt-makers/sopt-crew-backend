@@ -85,7 +85,6 @@ export class MeetingRepository extends Repository<Meeting> {
     }
 
     const cUser = meeting.user.id === user.id ? true : false;
-
     const result = await Apply.findAndCount({
       where: {
         meetingId: id,
@@ -116,14 +115,17 @@ export class MeetingRepository extends Repository<Meeting> {
       where: { id },
       relations: ['user', 'appliedInfo'],
     });
+
     if (!meeting) {
       throw new HttpException(
         { message: '모임이 없습니다' },
         HttpStatus.BAD_REQUEST,
       );
     }
-    const status = await meetingStatus(meeting);
+
+    const { status, confirmedApply } = await meetingStatus(meeting);
     meeting.status = status;
+    meeting.confirmedApply = confirmedApply;
     return meeting;
   }
 
@@ -191,14 +193,14 @@ export class MeetingRepository extends Repository<Meeting> {
     });
 
     await moo
-      // .orderBy('user.createdAt', pageOptionsDto.order)
+      // .orderBy('user.createdAt', 'ASC')
       .skip(skip)
       .take(take);
 
     const result = await moo.getManyAndCount();
 
     result[0].forEach(async (item) => {
-      const status = await meetingStatus(item);
+      const { status } = await meetingStatus(item);
       item.status = status;
     });
 
@@ -292,9 +294,7 @@ export class MeetingRepository extends Repository<Meeting> {
         HttpStatus.BAD_REQUEST,
       );
     }
-
     const fliter = meeting.appliedInfo.filter((item) => item.status === 1);
-
     const result = meeting.appliedInfo.findIndex(
       (target) => target.user.id === user.id,
     );

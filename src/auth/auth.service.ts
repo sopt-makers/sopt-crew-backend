@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../users/user.entity';
 import { UserRepository } from 'src/users/user.repository';
 import { AuthCredentialsDTO } from './dto/auth-credential.dto';
 
@@ -20,6 +19,8 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: { orgId },
     });
+
+    // https://playground.dev.sopt.org/api/v1/members/profile
 
     if (!user) {
       const newUser = this.userRepository.create({
