@@ -124,11 +124,13 @@ export class MeetingRepository extends Repository<Meeting> {
     }
 
     const cUser = meeting.user.id === user.id ? true : false;
+    const aUser = meeting.appliedInfo.some((el) => el.userId === user.id);
 
     const { status, confirmedApply } = await meetingStatus(meeting);
     meeting.status = status;
     meeting.confirmedApply = confirmedApply;
     meeting.host = cUser;
+    meeting.apply = aUser;
     return meeting;
   }
 

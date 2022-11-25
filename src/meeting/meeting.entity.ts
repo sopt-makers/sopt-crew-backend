@@ -88,4 +88,5 @@ export class Meeting extends BaseEntity {
   confirmedApply: Apply[];
 
   host: boolean;
+  apply: boolean;
 }
