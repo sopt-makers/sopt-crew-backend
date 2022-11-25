@@ -38,8 +38,8 @@ export class MeetingService {
     return this.meetingRepository.getListByMeeting(id, user, getListDto);
   }
 
-  async getMeetingById(id: number): Promise<Meeting> {
-    return this.meetingRepository.getMeetingById(id);
+  async getMeetingById(id: number, user: User): Promise<Meeting> {
+    return this.meetingRepository.getMeetingById(id, user);
   }
 
   async getAllMeeting(getMeetingDto: GetMeetingDto) {

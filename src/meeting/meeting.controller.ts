@@ -98,10 +98,15 @@ export class MeetingController {
     summary: '모임 상세 조회',
     description: '모임 상세 조회',
   })
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Get('/:id')
-  getMeetingById(@Param('id', ParseIntPipe) id: number): Promise<Meeting> {
-    return this.meetingService.getMeetingById(id);
+  getMeetingById(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User,
+  ): Promise<Meeting> {
+    return this.meetingService.getMeetingById(id, user);
   }
 
   @ApiOperation({

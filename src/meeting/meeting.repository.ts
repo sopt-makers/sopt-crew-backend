@@ -110,7 +110,7 @@ export class MeetingRepository extends Repository<Meeting> {
     return { apply: result[0], meta: pageMetaDto };
   }
 
-  async getMeetingById(id: number): Promise<Meeting> {
+  async getMeetingById(id: number, user: User): Promise<Meeting> {
     const meeting = await this.findOne({
       where: { id },
       relations: ['user', 'appliedInfo'],
@@ -123,9 +123,12 @@ export class MeetingRepository extends Repository<Meeting> {
       );
     }
 
+    const cUser = meeting.user.id === user.id ? true : false;
+
     const { status, confirmedApply } = await meetingStatus(meeting);
     meeting.status = status;
     meeting.confirmedApply = confirmedApply;
+    meeting.host = cUser;
     return meeting;
   }
 

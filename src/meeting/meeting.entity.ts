@@ -86,4 +86,6 @@ export class Meeting extends BaseEntity {
   status: number;
 
   confirmedApply: Apply[];
+
+  host: boolean;
 }
