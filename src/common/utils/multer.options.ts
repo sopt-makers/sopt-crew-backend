@@ -14,10 +14,14 @@ export const multerOptionsFactory = (): MulterOptions => {
     storage: multerS3({
       s3,
       bucket: process.env.AWS_S3_BUCKET_NAME,
+      contentType: multerS3.AUTO_CONTENT_TYPE,
       key(_req, file, done) {
         // const ext = path.extname(file.originalname);
         // const basename = path.basename(file.originalname, ext);
-        done(null, `${Date.now()}-${file.originalname}`);
+        file.originalname = Buffer.from(file.originalname, 'latin1').toString(
+          'utf8',
+        );
+        done(null, `images/${Date.now()}-${file.originalname}`);
       },
     }),
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB

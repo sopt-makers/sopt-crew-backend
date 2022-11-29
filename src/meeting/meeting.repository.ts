@@ -11,13 +11,12 @@ import { UpdateMeetingDto } from './dto/update-metting-dto';
 import { Meeting, ImageURL } from './meeting.entity';
 import { Apply } from './apply.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
-import { GetMeetingDto, MeetingStatus } from './dto/get-meeting.dto';
+import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetListDto, ListStatus } from './dto/get-list.dto';
 import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { meetingStatus } from 'src/common/utils/meeting.status';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
-import { PageDto } from 'src/pagination/dto/page.dto';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
@@ -111,10 +110,16 @@ export class MeetingRepository extends Repository<Meeting> {
   }
 
   async getMeetingById(id: number, user: User): Promise<Meeting> {
-    const meeting = await this.findOne({
-      where: { id },
-      relations: ['user', 'appliedInfo'],
-    });
+    const meeting = await this.createQueryBuilder('meeting')
+      .leftJoinAndSelect(
+        'meeting.appliedInfo',
+        'apply',
+        'apply.status = :status',
+        { status: 1 },
+      )
+      .leftJoinAndSelect('meeting.user', 'user')
+      .where('meeting.id = :id', { id })
+      .getOne();
 
     if (!meeting) {
       throw new HttpException(
@@ -128,7 +133,7 @@ export class MeetingRepository extends Repository<Meeting> {
 
     const { status, confirmedApply } = await meetingStatus(meeting);
     meeting.status = status;
-    meeting.confirmedApply = confirmedApply;
+    // meeting.confirmedApply = confirmedApply;
     meeting.host = cUser;
     meeting.apply = aUser;
     return meeting;

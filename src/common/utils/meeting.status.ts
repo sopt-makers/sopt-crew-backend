@@ -12,6 +12,7 @@ export const meetingStatus = async (meeting: Meeting) => {
   if (okInfo.length >= capacity) {
     status = 2;
   }
+
   if (startDate > nowDate) {
     status = 0;
   } else if (startDate <= nowDate && endDate >= nowDate) {
