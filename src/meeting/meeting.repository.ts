@@ -118,6 +118,7 @@ export class MeetingRepository extends Repository<Meeting> {
         { status: 1 },
       )
       .leftJoinAndSelect('meeting.user', 'user')
+      .leftJoinAndSelect('apply.user', 'appliedUser')
       .where('meeting.id = :id', { id })
       .getOne();
 
@@ -157,6 +158,7 @@ export class MeetingRepository extends Repository<Meeting> {
         { status: 1 },
       )
       .leftJoinAndSelect('meeting.user', 'user')
+
       .where('1 = 1');
 
     if (query) {
