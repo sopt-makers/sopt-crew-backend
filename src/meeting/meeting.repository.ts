@@ -114,8 +114,8 @@ export class MeetingRepository extends Repository<Meeting> {
       .leftJoinAndSelect(
         'meeting.appliedInfo',
         'apply',
-        'apply.status = :status',
-        { status: 1 },
+        // 'apply.status = :status',
+        // { status: 1 },
       )
       .leftJoinAndSelect('meeting.user', 'user')
       .leftJoinAndSelect('apply.user', 'appliedUser')
@@ -134,7 +134,7 @@ export class MeetingRepository extends Repository<Meeting> {
 
     const { status, confirmedApply } = await meetingStatus(meeting);
     meeting.status = status;
-    // meeting.confirmedApply = confirmedApply;
+    meeting.appliedInfo = confirmedApply;
     meeting.host = cUser;
     meeting.apply = aUser;
     return meeting;
