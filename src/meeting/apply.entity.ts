@@ -32,8 +32,8 @@ export class Apply extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ default: ApplyType.APPLY })
-  type: ApplyType;
+  // @Column({ default: ApplyType.APPLY })
+  // type: ApplyType;
 
   @RelationId((apply: Apply) => apply.meeting) // you need to specify target relation
   @Column()
