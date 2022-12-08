@@ -12,6 +12,7 @@ import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetListDto } from './dto/get-list.dto';
 import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
+import { InviteMeetingDto } from './dto/invite-meeting.dto';
 
 @Injectable()
 export class MeetingService {
@@ -74,5 +75,9 @@ export class MeetingService {
 
   async applyMeeting(applyMeetingDto: ApplyMeetingDto, user: User) {
     return this.meetingRepository.applyMeeting(applyMeetingDto, user);
+  }
+
+  async inviteMeeting(inviteMeetingDto: InviteMeetingDto) {
+    return this.meetingRepository.inviteMeeting(inviteMeetingDto);
   }
 }

@@ -22,10 +22,18 @@ export interface AppliedInfo {
   content: string;
 }
 
+export enum ApplyType {
+  APPLY = 0,
+  INVITE = 1,
+}
+
 @Entity('apply')
 export class Apply extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ default: ApplyType.APPLY })
+  type: ApplyType;
 
   @RelationId((apply: Apply) => apply.meeting) // you need to specify target relation
   @Column()

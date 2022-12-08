@@ -37,6 +37,7 @@ import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetListDto } from './dto/get-list.dto';
 import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
+import { InviteMeetingDto } from './dto/invite-meeting.dto';
 
 @ApiTags('모임')
 @Controller('meeting')
@@ -184,5 +185,17 @@ export class MeetingController {
   @Delete('/:id')
   deleteMeetingById(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.meetingService.deleteMeetingById(id);
+  }
+
+  @ApiOperation({
+    summary: '모임 초대',
+    description: '모임 초대',
+  })
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
+  // @ApiParam({ name: 'id', required: true, description: '모임 id' })
+  @Post('/invite')
+  inviteMeeting(@Body() inviteMeetingDto: InviteMeetingDto): Promise<void> {
+    return this.meetingService.inviteMeeting(inviteMeetingDto);
   }
 }

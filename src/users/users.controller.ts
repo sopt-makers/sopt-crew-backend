@@ -3,6 +3,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -20,6 +21,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { User } from './user.entity';
+import { GetUsersDto } from './dto/get-users.dto';
 
 @ApiTags('사용자')
 @Controller('users')
@@ -56,5 +58,14 @@ export class UsersController {
   @Get('/:id')
   getUserById(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.getUserById(id);
+  }
+
+  @ApiOperation({
+    summary: '유저 조회',
+    description: '유저 조회',
+  })
+  @Get('/')
+  getUsers(@Query() getUsersDto: GetUsersDto) {
+    return this.usersService.getUsers(getUsersDto);
   }
 }

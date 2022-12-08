@@ -17,6 +17,7 @@ import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { meetingStatus } from 'src/common/utils/meeting.status';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
+import { InviteMeetingDto } from './dto/invite-meeting.dto';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
@@ -158,7 +159,6 @@ export class MeetingRepository extends Repository<Meeting> {
         { status: 1 },
       )
       .leftJoinAndSelect('meeting.user', 'user')
-
       .where('1 = 1');
 
     if (query) {
@@ -332,5 +332,51 @@ export class MeetingRepository extends Repository<Meeting> {
     await this.save(meeting);
 
     return null;
+  }
+
+  async inviteMeeting(inviteMeetingDto: InviteMeetingDto) {
+    const { id, message, userIdArr } = inviteMeetingDto;
+
+    const users = await User.createQueryBuilder('user')
+      .where('user.id IN (:...id)', {
+        id: userIdArr,
+      })
+      .getMany();
+
+    const meeting = await this.findOne({
+      where: { id },
+      relations: ['user', 'appliedInfo'],
+    });
+
+    // if (!meeting) {
+    //   throw new HttpException(
+    //     { message: '모임이 없습니다' },
+    //     HttpStatus.BAD_REQUEST,
+    //   );
+    // }
+
+    // const fliter = meeting.appliedInfo.filter((item) => item.status === 1);
+    // const result = meeting.appliedInfo.findIndex(
+    //   (target) => target.user.id === user.id,
+    // );
+
+    // if (fliter.length >= meeting.capacity && result == -1) {
+    //   throw new HttpException(
+    //     { message: '정원이 꽉찼습니다' },
+    //     HttpStatus.BAD_REQUEST,
+    //   );
+    // }
+
+    // if (result === -1) {
+    //   // 첫 지원
+    //   const apply = await Apply.createApply(user, null, meeting);
+    //   meeting.appliedInfo.push(apply);
+    // } else {
+    //   // 신청 취소
+    //   const targetApply = meeting.appliedInfo[result];
+    //   meeting.appliedInfo.splice(result, 1);
+    //   await Apply.delete({ id: targetApply.id });
+    // }
+    // await this.save(meeting);
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/user.entity';
+import { GetUsersDto } from './dto/get-users.dto';
 import { UserRepository } from './user.repository';
 
 @Injectable()
@@ -20,5 +21,9 @@ export class UsersService {
 
   async getUserById(id: number): Promise<User> {
     return this.userRepository.getUserById(id);
+  }
+
+  async getUsers(getUsersDto: GetUsersDto): Promise<User[]> {
+    return this.userRepository.getUsers(getUsersDto);
   }
 }

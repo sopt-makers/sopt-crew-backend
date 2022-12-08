@@ -9,6 +9,7 @@ import * as bcrypt from 'bcryptjs';
 import { Apply } from 'src/meeting/apply.entity';
 import { Meeting } from 'src/meeting/meeting.entity';
 import { meetingStatus } from 'src/common/utils/meeting.status';
+import { GetUsersDto } from './dto/get-users.dto';
 
 @CustomRepository(User)
 export class UserRepository extends Repository<User> {
@@ -59,5 +60,9 @@ export class UserRepository extends Repository<User> {
       where: { id },
       relations: ['apply'],
     });
+  }
+
+  async getUsers(getUsersDto: GetUsersDto): Promise<User[]> {
+    return await this.find();
   }
 }

@@ -13,7 +13,7 @@ import {
 
 @Entity('user')
 @Unique(['id'])
-export class User {
+export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
