@@ -1,5 +1,4 @@
 name: CI/CD Docker
-
 on:
   push:
     branches: [main, develop] # push할 때 동작할 branch를 입력해주세요.
