@@ -9,7 +9,7 @@ import { Brackets, Repository } from 'typeorm';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-metting-dto';
 import { Meeting, ImageURL } from './meeting.entity';
-import { Apply } from './apply.entity';
+import { Apply, ApplyType } from './apply.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetListDto, ListStatus } from './dto/get-list.dto';
@@ -18,6 +18,7 @@ import { meetingStatus } from 'src/common/utils/meeting.status';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
 import { InviteMeetingDto } from './dto/invite-meeting.dto';
+import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
@@ -295,6 +296,7 @@ export class MeetingRepository extends Repository<Meeting> {
 
   async applyMeeting(applyMeetingDto: ApplyMeetingDto, user: User) {
     const { id, content } = applyMeetingDto;
+
     const meeting = await this.findOne({
       where: { id },
       relations: ['user', 'appliedInfo'],
@@ -306,6 +308,7 @@ export class MeetingRepository extends Repository<Meeting> {
         HttpStatus.BAD_REQUEST,
       );
     }
+
     const fliter = meeting.appliedInfo.filter((item) => item.status === 1);
     const result = meeting.appliedInfo.findIndex(
       (target) => target.user.id === user.id,
@@ -320,7 +323,8 @@ export class MeetingRepository extends Repository<Meeting> {
 
     if (result === -1) {
       // 첫 지원
-      const apply = await Apply.createApply(user, content, meeting);
+      const type = ApplyType.APPLY;
+      const apply = await Apply.createApply(user, content, meeting, type);
       meeting.appliedInfo.push(apply);
     } else {
       // 신청 취소
@@ -378,5 +382,13 @@ export class MeetingRepository extends Repository<Meeting> {
     //   await Apply.delete({ id: targetApply.id });
     // }
     // await this.save(meeting);
+  }
+
+  async updateInviteStatusByMeeting(
+    id: number,
+    user: User,
+    updateStatusInviteDto: UpdateStatusInviteDto,
+  ) {
+    return null;
   }
 }

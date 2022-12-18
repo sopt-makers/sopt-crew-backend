@@ -38,11 +38,32 @@ import { GetListDto } from './dto/get-list.dto';
 import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 import { InviteMeetingDto } from './dto/invite-meeting.dto';
+import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
 
 @ApiTags('모임')
 @Controller('meeting')
 export class MeetingController {
   constructor(private meetingService: MeetingService) {}
+
+  @ApiOperation({
+    summary: '모임 지원자 초대 상태 변경',
+    description: '모임 지원자 초대 상태 변경',
+  })
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
+  @Put('/:id/invite/status')
+  @ApiParam({ name: 'id', required: true, description: '모임 id' })
+  updateInviteStatusByMeeting(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateStatusInviteDto: UpdateStatusInviteDto,
+    @GetUser() user: User,
+  ) {
+    return this.meetingService.updateInviteStatusByMeeting(
+      id,
+      user,
+      updateStatusInviteDto,
+    );
+  }
 
   @ApiOperation({
     summary: '모임 지원자 상태 변경',

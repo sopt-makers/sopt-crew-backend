@@ -10,7 +10,7 @@ import {
   PrimaryGeneratedColumn,
   RelationId,
 } from 'typeorm';
-import { Apply } from './apply.entity';
+import { Apply, ApplyType } from './apply.entity';
 
 export interface ImageURL {
   id: number;
@@ -21,6 +21,7 @@ export interface AppliedInfo {
   user: User;
   appliedDate: Date;
   content: string;
+  type: ApplyType;
 }
 
 @Entity('meeting')

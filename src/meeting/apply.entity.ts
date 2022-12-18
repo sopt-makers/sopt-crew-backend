@@ -32,8 +32,8 @@ export class Apply extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // @Column({ default: ApplyType.APPLY })
-  // type: ApplyType;
+  @Column({ default: ApplyType.APPLY })
+  type: ApplyType;
 
   @RelationId((apply: Apply) => apply.meeting) // you need to specify target relation
   @Column()
@@ -64,13 +64,19 @@ export class Apply extends BaseEntity {
   @Column({ default: 0 })
   status: number;
 
-  static async createApply(user: User, content: string, meeting: Meeting) {
+  static async createApply(
+    user: User,
+    content: string,
+    meeting: Meeting,
+    type: ApplyType = ApplyType.APPLY,
+  ) {
     const nowDate = new Date();
     return await this.create({
       user,
       content,
       appliedDate: nowDate,
       meeting,
+      type,
     }).save();
   }
 }
