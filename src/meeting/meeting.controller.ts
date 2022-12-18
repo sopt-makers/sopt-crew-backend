@@ -39,11 +39,27 @@ import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 import { InviteMeetingDto } from './dto/invite-meeting.dto';
 import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
+import { GetUsersDto } from './dto/get-users.dto';
 
 @ApiTags('모임')
 @Controller('meeting')
 export class MeetingController {
   constructor(private meetingService: MeetingService) {}
+
+  @ApiOperation({
+    summary: '모임 초대 사용자 리스트 조회',
+    description: '모임 초대 사용자 리스트 조회',
+  })
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(AuthGuard('jwt'))
+  @ApiParam({ name: 'id', required: true, description: '모임 id' })
+  @Get('/:id/users')
+  getInviteUsersByMeeting(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() getUsersDto: GetUsersDto,
+  ) {
+    return this.meetingService.getInviteUsersByMeeting(id, getUsersDto);
+  }
 
   @ApiOperation({
     summary: '모임 지원자 초대 상태 변경',
@@ -163,7 +179,7 @@ export class MeetingController {
     @UploadedFiles() files: Array<Express.MulterS3.File>,
     @Body() createMeetingDto: CreateMeetingDto,
     @GetUser() user: User,
-  ): Promise<void> {
+  ) {
     return this.meetingService.createMeeting(createMeetingDto, files, user);
   }
 

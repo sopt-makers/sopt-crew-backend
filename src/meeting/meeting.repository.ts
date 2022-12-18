@@ -19,6 +19,8 @@ import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
 import { InviteMeetingDto } from './dto/invite-meeting.dto';
 import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
+import { GetUsersDto } from './dto/get-users.dto';
+import axios from 'axios';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
@@ -230,7 +232,7 @@ export class MeetingRepository extends Repository<Meeting> {
     createMeetingDto: CreateMeetingDto,
     files: Array<Express.MulterS3.File>,
     user: User,
-  ): Promise<void> {
+  ) {
     if (files.length === 0) {
       throw new HttpException(
         { message: '이미지 파일이 없습니다.' },
@@ -249,8 +251,8 @@ export class MeetingRepository extends Repository<Meeting> {
       user,
       appliedInfo: [],
     });
-    await this.save(meeting);
-    return null;
+    const result = await this.save(meeting);
+    return result.id;
   }
 
   async updateMeetingById(
@@ -347,17 +349,19 @@ export class MeetingRepository extends Repository<Meeting> {
       })
       .getMany();
 
+    console.log(users);
+
     const meeting = await this.findOne({
       where: { id },
       relations: ['user', 'appliedInfo'],
     });
 
-    // if (!meeting) {
-    //   throw new HttpException(
-    //     { message: '모임이 없습니다' },
-    //     HttpStatus.BAD_REQUEST,
-    //   );
-    // }
+    if (!meeting) {
+      throw new HttpException(
+        { message: '모임이 없습니다' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     // const fliter = meeting.appliedInfo.filter((item) => item.status === 1);
     // const result = meeting.appliedInfo.findIndex(
@@ -390,5 +394,35 @@ export class MeetingRepository extends Repository<Meeting> {
     updateStatusInviteDto: UpdateStatusInviteDto,
   ) {
     return null;
+  }
+
+  async getInviteUsersByMeeting(id: number, getUsersDto: GetUsersDto) {
+    const { name, generation } = getUsersDto;
+
+    const invite = await Apply.createQueryBuilder('apply')
+      .leftJoinAndSelect('apply.user', 'user')
+      .where('apply.type = :type', { type: ApplyType.INVITE })
+      .andWhere('apply.meetingId = :meetingId', { meetingId: id })
+      .getMany();
+
+    const result = await axios.get<Array<any>>(
+      encodeURI(
+        name
+          ? `https://playground.api.sopt.org/api/v1/members/search?name=${name}`
+          : `https://playground.api.sopt.org/api/v1/members/search?name=`,
+      ),
+    );
+
+    const fin = result.data.filter((item) =>
+      generation
+        ? item.generation === generation &&
+          !invite.some((element) => {
+            if (element.user.orgId === item.id) {
+              return true;
+            }
+          })
+        : item,
+    );
+    return fin;
   }
 }

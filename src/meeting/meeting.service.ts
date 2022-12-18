@@ -14,6 +14,7 @@ import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 import { InviteMeetingDto } from './dto/invite-meeting.dto';
 import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
+import { GetUsersDto } from './dto/get-users.dto';
 
 @Injectable()
 export class MeetingService {
@@ -52,7 +53,7 @@ export class MeetingService {
     createMeetingDto: CreateMeetingDto,
     files: Array<Express.MulterS3.File>,
     user: User,
-  ): Promise<void> {
+  ) {
     return this.meetingRepository.createMeeting(createMeetingDto, files, user);
   }
 
@@ -92,5 +93,9 @@ export class MeetingService {
       user,
       updateStatusInviteDto,
     );
+  }
+
+  async getInviteUsersByMeeting(id: number, getUsersDto: GetUsersDto) {
+    return this.meetingRepository.getInviteUsersByMeeting(id, getUsersDto);
   }
 }
