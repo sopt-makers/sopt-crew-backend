@@ -2,9 +2,9 @@ name: CI/CD Docker
 
 on:
   push:
-    branches: [main, develop] # push할 때 동작할 branch를 입력해주세요.
+    branches: [main, develop]
 env:
-  DOCKER_IMAGE: ghcr.io/sopt-makers/sopt-web-product-backend # 예를 들면, ghcr.io/dolphago/github-follow-unfollow
+  DOCKER_IMAGE: ghcr.io/sopt-makers/sopt-web-product-backend
   VERSION: ${{ github.sha }}
 
 jobs:

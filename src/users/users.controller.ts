@@ -29,6 +29,15 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @ApiOperation({
+    summary: '유저 조회',
+    description: '유저 조회',
+  })
+  @Get('/')
+  getUsers(@Query() getUsersDto: GetUsersDto) {
+    return this.usersService.getUsers(getUsersDto);
+  }
+
+  @ApiOperation({
     summary: '내가 만든 모임 조회',
     description: '내가 만든 모임 조회',
   })
@@ -58,14 +67,5 @@ export class UsersController {
   @Get('/:id')
   getUserById(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.getUserById(id);
-  }
-
-  @ApiOperation({
-    summary: '유저 조회',
-    description: '유저 조회',
-  })
-  @Get('/')
-  getUsers(@Query() getUsersDto: GetUsersDto) {
-    return this.usersService.getUsers(getUsersDto);
   }
 }

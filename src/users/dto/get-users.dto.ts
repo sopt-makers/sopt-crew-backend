@@ -26,6 +26,7 @@ export class GetUsersDto {
     required: false,
   })
   @IsNumber()
+  @Type(() => Number)
   @IsOptional()
   readonly generation: number;
 }
