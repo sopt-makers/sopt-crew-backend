@@ -28,7 +28,9 @@ export class UsersService {
     const { name, generation } = getUsersDto;
     const result = await axios.get<Array<any>>(
       encodeURI(
-        `https://playground.api.sopt.org/api/v1/members/search?name=${name}`,
+        name
+          ? `https://playground.api.sopt.org/api/v1/members/search?name=${name}`
+          : `https://playground.api.sopt.org/api/v1/members/search?name=`,
       ),
     );
 
