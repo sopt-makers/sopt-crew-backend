@@ -44,7 +44,7 @@ export class AuthController {
   //   },
   // })
   @Post('/')
-  loginUser(@Body() authCredentialsDTO: AuthCredentialsDTO) {
-    return this.authService.loginUser(authCredentialsDTO);
+  loginUser(@Body() authTokenDTO: AuthTokenDTO) {
+    return this.authService.loginUser(authTokenDTO);
   }
 }

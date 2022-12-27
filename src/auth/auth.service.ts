@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from 'src/users/user.repository';
 import { AuthCredentialsDTO } from './dto/auth-credential.dto';
+import { AuthTokenDTO } from './dto/auth-token.dto';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -12,19 +14,26 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async loginUser(authCredentialsDTO: AuthCredentialsDTO) {
-    // accessToken으로 유저 정보 받아서
-    const { orgId, name } = authCredentialsDTO;
+  async loginUser(authTokenDTO: AuthTokenDTO) {
+    const { authToken } = authTokenDTO;
     let userId;
+    const result = await axios.get<{ id: number; name: string }>(
+      'https://playground.sopt.org/api/v1/members/profile/me',
+      {
+        headers: {
+          Authorization: `${authToken}`,
+        },
+      },
+    );
+
+    const { id, name } = result.data;
+
     const user = await this.userRepository.findOne({
-      where: { orgId },
+      where: { id },
     });
-
-    // https://playground.dev.sopt.org/api/v1/members/profile
-
     if (!user) {
-      const newUser = this.userRepository.create({
-        orgId,
+      const newUser = await this.userRepository.create({
+        id,
         name,
       });
       const savedUser = await this.userRepository.save(newUser);
