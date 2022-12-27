@@ -90,4 +90,6 @@ export class Meeting extends BaseEntity {
 
   host: boolean;
   apply: boolean;
+  invite: boolean;
+  approved: boolean;
 }

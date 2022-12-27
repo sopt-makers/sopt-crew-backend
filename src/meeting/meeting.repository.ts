@@ -13,7 +13,10 @@ import { Apply, ApplyType } from './apply.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetListDto, ListStatus } from './dto/get-list.dto';
-import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
+import {
+  ApplyStatus,
+  UpdateStatusApplyDto,
+} from './dto/update-status-apply.dto';
 import { meetingStatus } from 'src/common/utils/meeting.status';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
@@ -134,13 +137,35 @@ export class MeetingRepository extends Repository<Meeting> {
     }
 
     const cUser = meeting.user.id === user.id ? true : false;
-    const aUser = meeting.appliedInfo.some((el) => el.userId === user.id);
+    const aUser = meeting.appliedInfo.some(
+      (el) => el.userId === user.id && el.type === ApplyType.APPLY,
+    );
+
+    const inviteArr = meeting.appliedInfo.map(
+      (el) => el.type === ApplyType.INVITE && el,
+    );
+
+    // 초대되었는지 el.userId === user.i
+    // 초대 되었으면 승인을 했는지 el.status === 1
+    let approvedUser = false;
+    let inviteUser = false;
+
+    inviteArr.forEach((el) => {
+      if (el.userId === user.id) {
+        inviteUser = true;
+        if (el.status === ApplyStatus.APPROVE) {
+          approvedUser = true;
+        }
+      }
+    });
 
     const { status, confirmedApply } = await meetingStatus(meeting);
     meeting.status = status;
     meeting.appliedInfo = confirmedApply;
     meeting.host = cUser;
     meeting.apply = aUser;
+    meeting.approved = approvedUser;
+    meeting.invite = inviteUser;
     return meeting;
   }
 
@@ -344,12 +369,10 @@ export class MeetingRepository extends Repository<Meeting> {
     const { id, message, userIdArr } = inviteMeetingDto;
 
     const users = await User.createQueryBuilder('user')
-      .where('user.id IN (:...id)', {
+      .where('user.orgId IN (:...id)', {
         id: userIdArr,
       })
       .getMany();
-
-    console.log(users);
 
     const meeting = await this.findOne({
       where: { id },
@@ -363,29 +386,25 @@ export class MeetingRepository extends Repository<Meeting> {
       );
     }
 
-    // const fliter = meeting.appliedInfo.filter((item) => item.status === 1);
-    // const result = meeting.appliedInfo.findIndex(
-    //   (target) => target.user.id === user.id,
-    // );
+    const filter = meeting.appliedInfo.filter((item) => item.type === 1);
+    const result = users.filter(
+      (target) => !filter.some((tt) => tt.userId === target.id),
+    );
 
-    // if (fliter.length >= meeting.capacity && result == -1) {
+    // if (fliter.length + users.length >= meeting.capacity) {
     //   throw new HttpException(
     //     { message: '정원이 꽉찼습니다' },
     //     HttpStatus.BAD_REQUEST,
     //   );
     // }
 
-    // if (result === -1) {
-    //   // 첫 지원
-    //   const apply = await Apply.createApply(user, null, meeting);
-    //   meeting.appliedInfo.push(apply);
-    // } else {
-    //   // 신청 취소
-    //   const targetApply = meeting.appliedInfo[result];
-    //   meeting.appliedInfo.splice(result, 1);
-    //   await Apply.delete({ id: targetApply.id });
-    // }
-    // await this.save(meeting);
+    // 첫 지원
+    const type = ApplyType.INVITE;
+    const inviteArr = await Promise.all(
+      result.map((user) => Apply.createApply(user, message, meeting, type)),
+    );
+    meeting.appliedInfo.push(...inviteArr);
+    await this.save(meeting);
   }
 
   async updateInviteStatusByMeeting(

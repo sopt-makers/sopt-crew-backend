@@ -173,7 +173,7 @@ export class MeetingController {
   @Post('/')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
-  @HttpCode(200)
+  // @HttpCode(200)
   @UseInterceptors(FilesInterceptor('files', 6))
   createMeeting(
     @UploadedFiles() files: Array<Express.MulterS3.File>,
