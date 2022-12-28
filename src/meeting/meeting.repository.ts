@@ -141,9 +141,11 @@ export class MeetingRepository extends Repository<Meeting> {
       (el) => el.userId === user.id && el.type === ApplyType.APPLY,
     );
 
-    const inviteArr = meeting.appliedInfo.map(
-      (el) => el.type === ApplyType.INVITE && el,
-    );
+    const inviteArr = meeting.appliedInfo.filter((el) => {
+      if (el.type === ApplyType.INVITE) {
+        return el;
+      }
+    });
 
     // 초대되었는지 el.userId === user.i
     // 초대 되었으면 승인을 했는지 el.status === 1
