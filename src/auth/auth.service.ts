@@ -18,7 +18,7 @@ export class AuthService {
     const { authToken } = authTokenDTO;
     let userId;
     const result = await axios.get<{ id: number; name: string }>(
-      'https://playground.sopt.org/api/v1/members/profile/me',
+      'https://playground.api.sopt.org/api/v1/members/me',
       {
         headers: {
           Authorization: `${authToken}`,
