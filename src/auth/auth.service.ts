@@ -25,15 +25,15 @@ export class AuthService {
         },
       },
     );
-
+    console.log(result);
     const { id, name } = result.data;
 
     const user = await this.userRepository.findOne({
-      where: { id },
+      where: { orgId: id },
     });
     if (!user) {
       const newUser = await this.userRepository.create({
-        id,
+        orgId: id,
         name,
       });
       const savedUser = await this.userRepository.save(newUser);
