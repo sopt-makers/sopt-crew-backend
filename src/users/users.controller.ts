@@ -28,14 +28,14 @@ import { GetUsersDto } from './dto/get-users.dto';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @ApiOperation({
-    summary: '유저 조회',
-    description: '유저 조회',
-  })
-  @Get('/')
-  getUsers(@Query() getUsersDto: GetUsersDto) {
-    return this.usersService.getUsers(getUsersDto);
-  }
+  // @ApiOperation({
+  //   summary: '유저 조회',
+  //   description: '유저 조회',
+  // })
+  // @Get('/')
+  // getUsers(@Query() getUsersDto: GetUsersDto) {
+  //   return this.usersService.getUsers(getUsersDto);
+  // }
 
   @ApiOperation({
     summary: '내가 만든 모임 조회',
@@ -45,6 +45,7 @@ export class UsersController {
   @UseGuards(AuthGuard('jwt'))
   @Get('/meeting')
   getMeetingByUser(@GetUser() user: User) {
+    console.log('?');
     return this.usersService.getMeetingByUser(user);
   }
 

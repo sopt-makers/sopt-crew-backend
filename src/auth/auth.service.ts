@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from 'src/users/user.repository';
@@ -17,33 +22,41 @@ export class AuthService {
   async loginUser(authTokenDTO: AuthTokenDTO) {
     const { authToken } = authTokenDTO;
     let userId;
-    const result = await axios.get<{ id: number; name: string }>(
-      'https://playground.api.sopt.org/api/v1/members/me',
-      {
-        headers: {
-          Authorization: `${authToken}`,
+    try {
+      const result = await axios.get<{ id: number; name: string }>(
+        'https://playground.api.sopt.org/api/v1/members/me',
+        {
+          headers: {
+            Authorization: `${authToken}`,
+          },
         },
-      },
-    );
-    console.log(result);
-    const { id, name } = result.data;
+      );
 
-    const user = await this.userRepository.findOne({
-      where: { orgId: id },
-    });
-    if (!user) {
-      const newUser = await this.userRepository.create({
-        orgId: id,
-        name,
+      const { id, name } = result.data;
+
+      const user = await this.userRepository.findOne({
+        where: { orgId: id },
       });
-      const savedUser = await this.userRepository.save(newUser);
-      userId = savedUser.id;
-    } else {
-      userId = user.id;
-    }
+      if (!user) {
+        const newUser = await this.userRepository.create({
+          orgId: id,
+          name,
+        });
+        const savedUser = await this.userRepository.save(newUser);
+        userId = savedUser.id;
+      } else {
+        userId = user.id;
+      }
 
-    const payload = { name, id: userId };
-    const accessToken = await this.jwtService.sign(payload);
-    return { accessToken: accessToken };
+      const payload = { name, id: userId };
+      const accessToken = await this.jwtService.sign(payload);
+      return { accessToken: accessToken };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        { message: '로그인 서버 에러' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
