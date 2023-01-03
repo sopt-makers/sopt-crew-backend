@@ -8,12 +8,7 @@ import {
 import { Type } from 'class-transformer';
 
 import { ApiProperty } from '@nestjs/swagger';
-
-export enum ApplyStatus {
-  WAITING = 0,
-  APPROVE = 1,
-  REJECT = 2,
-}
+import { ApplyStatus } from '../apply.entity';
 
 export class UpdateStatusApplyDto {
   @ApiProperty({

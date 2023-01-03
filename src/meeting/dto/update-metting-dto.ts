@@ -15,7 +15,6 @@ export class UpdateMeetingDto {
   @ApiProperty({ type: 'string', format: 'binary' })
   @IsOptional()
   files: any;
-
   @IsString()
   @IsOptional()
   @ApiProperty({

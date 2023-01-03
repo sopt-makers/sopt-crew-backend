@@ -9,14 +9,11 @@ import { Brackets, Repository } from 'typeorm';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-metting-dto';
 import { Meeting, ImageURL } from './meeting.entity';
-import { Apply, ApplyType } from './apply.entity';
+import { Apply, ApplyStatus, ApplyType } from './apply.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto } from './dto/get-meeting.dto';
-import { GetListDto, ListStatus } from './dto/get-list.dto';
-import {
-  ApplyStatus,
-  UpdateStatusApplyDto,
-} from './dto/update-status-apply.dto';
+import { GetListDto } from './dto/get-list.dto';
+import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { meetingStatus } from 'src/common/utils/meeting.status';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
@@ -60,7 +57,7 @@ export class MeetingRepository extends Repository<Meeting> {
       );
     }
 
-    if (status === 1) {
+    if (status === ApplyStatus.APPROVE) {
       const fliter = meeting.appliedInfo.filter((item) => item.status === 1);
       const result = fliter.findIndex((target) => target.id === user.id);
       if (fliter.length >= meeting.capacity && result == -1) {
@@ -77,7 +74,7 @@ export class MeetingRepository extends Repository<Meeting> {
   }
 
   async getListByMeeting(id: number, user: User, getListDto: GetListDto) {
-    const { date, status, take, skip, page } = getListDto;
+    const { date, status, take, type, skip, page } = getListDto;
     const meeting = await this.findOne({
       where: { id },
       relations: ['user'],
@@ -94,15 +91,11 @@ export class MeetingRepository extends Repository<Meeting> {
     const result = await Apply.findAndCount({
       where: {
         meetingId: id,
-        status:
-          status == ListStatus.ALL
-            ? null
-            : status == ListStatus.APPROVE
-            ? 1
-            : 2,
+        type: type,
+        status: status,
       },
       order: { appliedDate: date },
-      select: ['appliedDate', 'content', 'id', cUser ? 'status' : 'id'],
+      select: ['appliedDate', 'content', 'id', 'type', cUser ? 'status' : 'id'],
       take,
       skip,
     });
@@ -251,7 +244,6 @@ export class MeetingRepository extends Repository<Meeting> {
       itemCount: result[1],
       pageOptionsDto,
     });
-    // return new PageDto(result[0], pageMetaDto);
     return { meetings: result[0], meta: pageMetaDto };
   }
 

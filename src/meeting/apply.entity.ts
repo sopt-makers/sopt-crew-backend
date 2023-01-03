@@ -27,6 +27,12 @@ export enum ApplyType {
   INVITE = 1,
 }
 
+export enum ApplyStatus {
+  WAITING = 0,
+  APPROVE = 1,
+  REJECT = 2,
+}
+
 @Entity('apply')
 export class Apply extends BaseEntity {
   @PrimaryGeneratedColumn()
@@ -61,8 +67,8 @@ export class Apply extends BaseEntity {
   @Column()
   appliedDate: Date;
 
-  @Column({ default: 0 })
-  status: number;
+  @Column({ default: ApplyStatus.WAITING })
+  status: ApplyStatus;
 
   static async createApply(
     user: User,
