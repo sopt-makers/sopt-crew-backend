@@ -5,7 +5,6 @@ import {
   Column,
   Entity,
   JoinTable,
-  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   Unique,
@@ -22,6 +21,12 @@ export class User extends BaseEntity {
 
   @Column()
   orgId: number;
+
+  @Column({
+    nullable: true,
+    default: '',
+  })
+  profileImage: string;
 
   @OneToMany(() => Meeting, (meeting) => meeting.user)
   meetings: Meeting[];

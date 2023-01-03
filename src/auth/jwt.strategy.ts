@@ -18,13 +18,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload) {
-    console.log('??');
     const { id } = payload;
     const user: User = await this.userRepository.findOne({
       where: { id },
     });
     if (!user) {
-      throw new UnauthorizedException('없다');
+      throw new UnauthorizedException();
     }
     return user;
   }

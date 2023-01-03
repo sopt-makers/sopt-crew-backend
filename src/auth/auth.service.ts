@@ -23,24 +23,27 @@ export class AuthService {
     const { authToken } = authTokenDTO;
     let userId;
     try {
-      const result = await axios.get<{ id: number; name: string }>(
-        'https://playground.api.sopt.org/api/v1/members/me',
-        {
-          headers: {
-            Authorization: `${authToken}`,
-          },
+      const result = await axios.get<{
+        id: number;
+        name: string;
+        profileImage: string;
+      }>('https://playground.api.sopt.org/api/v1/members/me', {
+        headers: {
+          Authorization: `${authToken}`,
         },
-      );
+      });
 
-      const { id, name } = result.data;
+      const { id, name, profileImage } = result.data;
 
       const user = await this.userRepository.findOne({
         where: { orgId: id },
       });
+
       if (!user) {
         const newUser = await this.userRepository.create({
           orgId: id,
           name,
+          profileImage,
         });
         const savedUser = await this.userRepository.save(newUser);
         userId = savedUser.id;

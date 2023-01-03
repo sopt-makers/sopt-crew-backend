@@ -24,6 +24,7 @@ import { UsersModule } from './users/users.module';
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity.{js,ts}'],
       schema: 'web_dev',
+      synchronize: false,
     }),
     MeetingModule,
     SearchModule,
