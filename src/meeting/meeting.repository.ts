@@ -419,7 +419,62 @@ export class MeetingRepository extends Repository<Meeting> {
     user: User,
     updateStatusInviteDto: UpdateStatusInviteDto,
   ) {
+    const { applyId, status } = updateStatusInviteDto;
+
+    const meeting = await this.findOne({
+      where: { id },
+      relations: ['user', 'appliedInfo'],
+    });
+
+    const apply = await Apply.findOne({
+      where: { id: applyId, type: ApplyType.INVITE },
+      relations: ['user'],
+    });
+
+    if (!apply) {
+      throw new HttpException(
+        { message: '초대 내용이 없습니다' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (user.id !== apply.user.id) {
+      throw new HttpException(
+        { message: '초대 승인 권한이 없습니다' },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    apply.status = status;
+    await apply.save();
     return null;
+
+    // const cUser = meeting.user.id === user.id ? true : false;
+    // if (!cUser) {
+    //   throw new UnauthorizedException('수정 권한이 없습니다');
+    // }
+
+    // const result = await Apply.findOne({ where: { id: applyId } });
+
+    // if (!result) {
+    //   throw new HttpException(
+    //     { message: 'id에 맞는 지원자가 없습니다.' },
+    //     HttpStatus.BAD_REQUEST,
+    //   );
+    // }
+
+    // if (status === ApplyStatus.APPROVE) {
+    //   const fliter = meeting.appliedInfo.filter((item) => item.status === 1);
+    //   const result = fliter.findIndex((target) => target.id === user.id);
+    //   if (fliter.length >= meeting.capacity && result == -1) {
+    //     throw new HttpException(
+    //       { message: '정원이 꽉찼습니다' },
+    //       HttpStatus.BAD_REQUEST,
+    //     );
+    //   }
+    // }
+
+    // return null;
   }
 
   async getInviteUsersByMeeting(id: number, getUsersDto: GetUsersDto) {
