@@ -23,9 +23,9 @@ export class GetListDto extends PageOptionsDto {
     required: false,
   })
   @IsOptional()
-  @Type(() => Number)
-  @IsEnum(ApplyStatus)
-  readonly status: ApplyStatus;
+  // @Type(() => Number)
+  // @IsEnum(ApplyStatus)
+  readonly status: string;
 
   @ApiProperty({
     example: 0,
@@ -33,9 +33,8 @@ export class GetListDto extends PageOptionsDto {
     required: false,
   })
   @IsOptional()
-  @Type(() => Number)
-  @IsEnum(ApplyType)
-  readonly type: ApplyType;
+  // @IsEnum(ApplyType)
+  readonly type: string;
 
   @ApiProperty({
     example: 'desc',

@@ -75,6 +75,10 @@ export class MeetingRepository extends Repository<Meeting> {
 
   async getListByMeeting(id: number, user: User, getListDto: GetListDto) {
     const { date, status, take, type, skip, page } = getListDto;
+
+    const typeArr = type.split(',');
+    const statusArr = status.split(',');
+
     const meeting = await this.findOne({
       where: { id },
       relations: ['user'],
@@ -88,25 +92,34 @@ export class MeetingRepository extends Repository<Meeting> {
     }
 
     const cUser = meeting.user.id === user.id ? true : false;
-    const result = await Apply.findAndCount({
-      where: {
-        meetingId: id,
-        type: type,
-        status: status,
-      },
-      order: { appliedDate: date },
-      select: ['appliedDate', 'content', 'id', 'type', cUser ? 'status' : 'id'],
-      take,
-      skip,
-    });
+
+    const apply = await Apply.createQueryBuilder('apply')
+      .select([
+        'apply.id',
+        'apply.type',
+        'apply.appliedDate',
+        'apply.content',
+        'apply.status',
+        // `${cUser ? 'apply.status' : 'apply.content'}`,
+      ])
+      .leftJoinAndSelect('apply.user', 'user')
+      .where('apply.meetingId = :id', { id })
+      .andWhere('apply.type IN(:...type)', { type: typeArr })
+      .andWhere('apply.status IN(:...status)', { status: statusArr });
+
+    await apply
+      // .orderBy('user.createdAt', 'ASC')
+      .skip(skip)
+      .take(take);
+
+    const result = await apply.getManyAndCount();
 
     const pageOptionsDto: PageOptionsDto = { page, skip, take };
     const pageMetaDto = new PageMetaDto({
       itemCount: result[1],
       pageOptionsDto,
     });
-    // return new PageDto(result[0], pageMetaDto);
-    return { apply: result[0], meta: pageMetaDto };
+    return { meetings: result[0], meta: pageMetaDto };
   }
 
   async getMeetingById(id: number, user: User): Promise<Meeting> {
