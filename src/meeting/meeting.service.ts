@@ -25,6 +25,10 @@ export class MeetingService {
     private readonly userRepository: UserRepository,
   ) {}
 
+  async cancelInvite(id: number, inviteId: number, user: User) {
+    return this.meetingRepository.cancelInvite(id, inviteId, user);
+  }
+
   async updateApplyStatusByMeeting(
     id: number,
     user: User,

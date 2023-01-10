@@ -235,4 +235,20 @@ export class MeetingController {
   inviteMeeting(@Body() inviteMeetingDto: InviteMeetingDto): Promise<void> {
     return this.meetingService.inviteMeeting(inviteMeetingDto);
   }
+
+  @ApiOperation({
+    summary: '모임 초대 취소',
+    description: '모임 초대 취소',
+  })
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiParam({ name: 'inviteId', required: true, description: '초대 id' })
+  @Delete('/:id/invite/:inviteId')
+  cancelInvite(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('inviteId', ParseIntPipe) inviteId: number,
+    @GetUser() user: User,
+  ) {
+    return this.meetingService.cancelInvite(id, inviteId, user);
+  }
 }

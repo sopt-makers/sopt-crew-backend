@@ -24,6 +24,32 @@ import axios from 'axios';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
+  async cancelInvite(id: number, inviteId: number, user: User) {
+    const meeting = await this.findOne({
+      where: { id },
+      relations: ['user', 'appliedInfo'],
+    });
+
+    if (!meeting) {
+      throw new HttpException(
+        { message: '모임이 없습니다' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const cUser = meeting.user.id === user.id ? true : false;
+    if (!cUser) {
+      throw new UnauthorizedException('수정 권한이 없습니다');
+    }
+
+    try {
+      await Apply.delete(inviteId);
+      return null;
+    } catch (error) {
+      return error;
+    }
+  }
+
   async updateApplyStatusByMeeting(
     id: number,
     user: User,
