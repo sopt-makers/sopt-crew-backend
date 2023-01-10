@@ -76,8 +76,12 @@ export class MeetingRepository extends Repository<Meeting> {
   async getListByMeeting(id: number, user: User, getListDto: GetListDto) {
     const { date, status, take, type, skip, page } = getListDto;
 
-    const typeArr = type.split(',');
-    const statusArr = status.split(',');
+    const typeArr = type
+      ? type.split(',')
+      : [ApplyType.APPLY, ApplyType.INVITE];
+    const statusArr = status
+      ? status.split(',')
+      : [ApplyStatus.WAITING, ApplyStatus.APPROVE, ApplyStatus.REJECT];
 
     const meeting = await this.findOne({
       where: { id },
@@ -119,7 +123,7 @@ export class MeetingRepository extends Repository<Meeting> {
       itemCount: result[1],
       pageOptionsDto,
     });
-    return { meetings: result[0], meta: pageMetaDto };
+    return { apply: result[0], meta: pageMetaDto };
   }
 
   async getMeetingById(id: number, user: User): Promise<Meeting> {
