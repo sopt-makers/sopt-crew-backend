@@ -390,7 +390,14 @@ export class MeetingRepository extends Repository<Meeting> {
     if (result === -1) {
       // 첫 지원
       const type = ApplyType.APPLY;
-      const apply = await Apply.createApply(user, content, meeting, type);
+      const appliedDate = dayjs().toDate();
+      const apply = await Apply.createApply(
+        user,
+        content,
+        meeting,
+        type,
+        appliedDate,
+      );
       meeting.appliedInfo.push(apply);
     } else {
       // 신청 취소
@@ -439,8 +446,12 @@ export class MeetingRepository extends Repository<Meeting> {
 
     // 첫 지원
     const type = ApplyType.INVITE;
+    const appliedDate = dayjs().toDate();
+
     const inviteArr = await Promise.all(
-      result.map((user) => Apply.createApply(user, message, meeting, type)),
+      result.map((user) =>
+        Apply.createApply(user, message, meeting, type, appliedDate),
+      ),
     );
     meeting.appliedInfo.push(...inviteArr);
     await this.save(meeting);

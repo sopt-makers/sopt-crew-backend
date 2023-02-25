@@ -77,12 +77,12 @@ export class Apply extends BaseEntity {
     content: string,
     meeting: Meeting,
     type: ApplyType = ApplyType.APPLY,
+    appliedDate: Date,
   ) {
-    const nowDate = dayjs().toDate();
     return await this.create({
       user,
       content,
-      appliedDate: nowDate,
+      appliedDate: appliedDate,
       meeting,
       type,
     }).save();
