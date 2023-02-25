@@ -1,24 +1,32 @@
-import { Meeting } from 'src/meeting/meeting.entity';
+import { Meeting, MeetingStatus } from 'src/meeting/meeting.entity';
+import { Apply, ApplyStatus } from 'src/meeting/apply.entity';
+import * as dayjs from 'dayjs';
 
 export const meetingStatus = async (meeting: Meeting) => {
   const { appliedInfo, capacity, startDate, endDate } = meeting;
-  const nowDate = new Date();
-  const okInfo = appliedInfo.filter((apply) =>
-    apply.status === 1 ? apply : false,
+  // const nowDate = new Date();
+  const nowDate = dayjs().toDate();
+
+  // 승인된 참가자 구하기
+  const okInfo: Apply[] = appliedInfo.filter((apply) =>
+    apply.status === ApplyStatus.APPROVE ? apply : false,
   );
 
-  let status;
+  let status: MeetingStatus;
 
   if (okInfo.length >= capacity) {
-    status = 2;
+    status = MeetingStatus.END;
   }
 
   if (startDate > nowDate) {
-    status = 0;
+    // 아직 모임 시작 전
+    status = MeetingStatus.PRE;
   } else if (startDate <= nowDate && endDate >= nowDate) {
-    status = 1;
+    // 모임 가능
+    status = MeetingStatus.POSSIBLE;
   } else {
-    status = 2;
+    // 모임 종료
+    status = MeetingStatus.END;
   }
 
   return { status, confirmedApply: okInfo };

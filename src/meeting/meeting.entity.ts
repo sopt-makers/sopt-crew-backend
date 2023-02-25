@@ -4,13 +4,19 @@ import {
   Column,
   Entity,
   JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   RelationId,
+  Unique,
 } from 'typeorm';
 import { Apply, ApplyType } from './apply.entity';
+
+export enum MeetingStatus {
+  PRE = 0,
+  POSSIBLE = 1,
+  END = 2,
+}
 
 export interface ImageURL {
   id: number;
@@ -25,6 +31,7 @@ export interface AppliedInfo {
 }
 
 @Entity('meeting')
+@Unique(['id'])
 export class Meeting extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -84,10 +91,8 @@ export class Meeting extends BaseEntity {
   @Column({ nullable: true })
   note: string;
 
-  status: number;
-
+  status: MeetingStatus;
   confirmedApply: Apply[];
-
   host: boolean;
   apply: boolean;
   invite: boolean;

@@ -1,7 +1,8 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import * as dayjs from 'dayjs';
 import { AppModule } from './app.module';
-import { setupSwagger } from './utils/swagger';
+import { setupSwagger } from './common/utils/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });

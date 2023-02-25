@@ -21,7 +21,6 @@ export class MeetingService {
   constructor(
     @InjectRepository(MeetingRepository)
     private readonly meetingRepository: MeetingRepository,
-
     private readonly userRepository: UserRepository,
   ) {}
 

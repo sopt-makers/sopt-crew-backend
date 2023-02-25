@@ -3,6 +3,8 @@ import { User } from 'src/users/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   InternalServerErrorException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
@@ -56,10 +58,19 @@ export class UserRepository extends Repository<User> {
   }
 
   async getUserById(id: number): Promise<User> {
-    return await this.findOne({
+    const users = await this.findOne({
       where: { id },
       relations: ['apply'],
     });
+
+    if (!users) {
+      throw new HttpException(
+        { message: '해당 사용자가 없습니다' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return users;
   }
 
   async getUsers(getUsersDto: GetUsersDto): Promise<User[]> {

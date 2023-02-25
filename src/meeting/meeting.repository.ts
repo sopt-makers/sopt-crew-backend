@@ -21,6 +21,7 @@ import { InviteMeetingDto } from './dto/invite-meeting.dto';
 import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
 import { GetUsersDto } from './dto/get-users.dto';
 import axios from 'axios';
+import * as dayjs from 'dayjs';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
@@ -209,7 +210,8 @@ export class MeetingRepository extends Repository<Meeting> {
 
   async getAllMeeting(getMeetingDto: GetMeetingDto) {
     const { category, status, query, skip, take, page } = getMeetingDto;
-    const nowDate = new Date();
+    const nowDate = dayjs().toDate();
+    // const nowDate = new Date();
 
     const categoryArr = category
       ? category.split(',')
@@ -478,44 +480,19 @@ export class MeetingRepository extends Repository<Meeting> {
     apply.status = status;
     await apply.save();
     return null;
-
-    // const cUser = meeting.user.id === user.id ? true : false;
-    // if (!cUser) {
-    //   throw new UnauthorizedException('수정 권한이 없습니다');
-    // }
-
-    // const result = await Apply.findOne({ where: { id: applyId } });
-
-    // if (!result) {
-    //   throw new HttpException(
-    //     { message: 'id에 맞는 지원자가 없습니다.' },
-    //     HttpStatus.BAD_REQUEST,
-    //   );
-    // }
-
-    // if (status === ApplyStatus.APPROVE) {
-    //   const fliter = meeting.appliedInfo.filter((item) => item.status === 1);
-    //   const result = fliter.findIndex((target) => target.id === user.id);
-    //   if (fliter.length >= meeting.capacity && result == -1) {
-    //     throw new HttpException(
-    //       { message: '정원이 꽉찼습니다' },
-    //       HttpStatus.BAD_REQUEST,
-    //     );
-    //   }
-    // }
-
-    // return null;
   }
 
   async getInviteUsersByMeeting(id: number, getUsersDto: GetUsersDto) {
     const { name, generation } = getUsersDto;
 
     const invite = await Apply.createQueryBuilder('apply')
-      .leftJoinAndSelect('apply.user', 'user')
+      .leftJoinAndSelect('apply.user', 'user') // user 정보를 받아온 후 join
       .where('apply.type = :type', { type: ApplyType.INVITE })
       .andWhere('apply.meetingId = :meetingId', { meetingId: id })
       .getMany();
 
+    // playground api에서 이름 조회
+    // 추후에 검색 api 제작 요청해야함
     const result = await axios.get<Array<any>>(
       encodeURI(
         name
@@ -524,6 +501,7 @@ export class MeetingRepository extends Repository<Meeting> {
       ),
     );
 
+    // response data 중 초대 이력이 없는 사람만 걸러내기
     const fin = result.data.filter((item) =>
       generation
         ? item.generation === generation &&
@@ -534,6 +512,7 @@ export class MeetingRepository extends Repository<Meeting> {
           })
         : item,
     );
+
     return fin;
   }
 }
