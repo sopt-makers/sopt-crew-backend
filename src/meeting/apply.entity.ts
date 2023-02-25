@@ -11,6 +11,8 @@ import {
   RelationId,
 } from 'typeorm';
 
+import * as dayjs from 'dayjs';
+
 export interface ImageURL {
   id: number;
   url: string;
@@ -76,7 +78,7 @@ export class Apply extends BaseEntity {
     meeting: Meeting,
     type: ApplyType = ApplyType.APPLY,
   ) {
-    const nowDate = new Date();
+    const nowDate = dayjs().toDate();
     return await this.create({
       user,
       content,
