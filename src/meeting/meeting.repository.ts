@@ -21,7 +21,7 @@ import { InviteMeetingDto } from './dto/invite-meeting.dto';
 import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
 import { GetUsersDto } from './dto/get-users.dto';
 import axios from 'axios';
-import * as dayjs from 'dayjs';
+import { todayDate } from 'src/common/utils/time';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
@@ -210,7 +210,7 @@ export class MeetingRepository extends Repository<Meeting> {
 
   async getAllMeeting(getMeetingDto: GetMeetingDto) {
     const { category, status, query, skip, take, page } = getMeetingDto;
-    const nowDate = dayjs().toDate();
+    const nowDate = todayDate();
     // const nowDate = new Date();
 
     const categoryArr = category
@@ -390,7 +390,7 @@ export class MeetingRepository extends Repository<Meeting> {
     if (result === -1) {
       // 첫 지원
       const type = ApplyType.APPLY;
-      const appliedDate = dayjs().toDate();
+      const appliedDate = todayDate();
       const apply = await Apply.createApply(
         user,
         content,
@@ -446,7 +446,7 @@ export class MeetingRepository extends Repository<Meeting> {
 
     // 첫 지원
     const type = ApplyType.INVITE;
-    const appliedDate = dayjs().toDate();
+    const appliedDate = todayDate();
 
     const inviteArr = await Promise.all(
       result.map((user) =>

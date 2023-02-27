@@ -20,7 +20,6 @@ export class HealthController {
   @Get()
   @HealthCheck()
   healthCheck() {
-    console.log(new Date());
     return this.health.check([
       () => this.http.pingCheck('crew-web', `http://localhost:3001`),
       () => this.db.pingCheck('database'),

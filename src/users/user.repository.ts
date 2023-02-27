@@ -1,13 +1,7 @@
 import { CustomRepository } from 'src/db/typeorm-ex.decorator';
 import { User } from 'src/users/user.entity';
 import { DataSource, Repository } from 'typeorm';
-import {
-  ConflictException,
-  HttpException,
-  HttpStatus,
-  InternalServerErrorException,
-} from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { Apply } from 'src/meeting/apply.entity';
 import { Meeting } from 'src/meeting/meeting.entity';
 import { meetingStatus } from 'src/common/utils/meeting.status';
