@@ -3,39 +3,23 @@ import {
   Get,
   Param,
   ParseIntPipe,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import {
   ApiTags,
   ApiOperation,
-  ApiCreatedResponse,
-  ApiSecurity,
-  ApiExcludeEndpoint,
-  ApiConsumes,
-  ApiBody,
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { User } from './user.entity';
-import { GetUsersDto } from './dto/get-users.dto';
 
 @ApiTags('사용자')
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
-
-  // @ApiOperation({
-  //   summary: '유저 조회',
-  //   description: '유저 조회',
-  // })
-  // @Get('/')
-  // getUsers(@Query() getUsersDto: GetUsersDto) {
-  //   return this.usersService.getUsers(getUsersDto);
-  // }
 
   @ApiOperation({
     summary: '내가 만든 모임 조회',

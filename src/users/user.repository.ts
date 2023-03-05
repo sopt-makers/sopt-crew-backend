@@ -3,7 +3,6 @@ import { User } from 'src/users/user.entity';
 import { Repository } from 'typeorm';
 import { Apply } from 'src/meeting/apply.entity';
 import { Meeting } from 'src/meeting/meeting.entity';
-import { GetUsersDto } from './dto/get-users.dto';
 
 @CustomRepository(User)
 export class UserRepository extends Repository<User> {
@@ -49,7 +48,12 @@ export class UserRepository extends Repository<User> {
     return users;
   }
 
-  async getUsers(getUsersDto: GetUsersDto): Promise<User[]> {
-    return await this.find();
+  async getUsersByIds(ids: Array<number>): Promise<User[]> {
+    const users = await User.createQueryBuilder('user')
+      .where('user.orgId IN (:...ids)', {
+        ids,
+      })
+      .getMany();
+    return users;
   }
 }
