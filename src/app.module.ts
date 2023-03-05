@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MeetingModule } from './meeting/meeting.module';
 import { ConfigModule } from '@nestjs/config';
-import { SearchModule } from './search/search.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './common/interfaces/transform.interceptor';
 import { AuthModule } from './auth/auth.module';
@@ -28,7 +27,6 @@ import { HealthModule } from './health/health.module';
       synchronize: false,
     }),
     MeetingModule,
-    SearchModule,
     AuthModule,
     UsersModule,
     HealthModule,
