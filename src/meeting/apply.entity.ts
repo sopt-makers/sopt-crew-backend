@@ -13,11 +13,6 @@ import {
 
 import * as dayjs from 'dayjs';
 
-export interface ImageURL {
-  id: number;
-  url: string;
-}
-
 export interface AppliedInfo {
   user: User;
   appliedDate: Date;
@@ -37,9 +32,11 @@ export enum ApplyStatus {
 
 @Entity('apply')
 export class Apply extends BaseEntity {
+  // primary key
   @PrimaryGeneratedColumn()
   id: number;
 
+  // 지원 or 초대
   @Column({ default: ApplyType.APPLY })
   type: ApplyType;
 
@@ -63,12 +60,15 @@ export class Apply extends BaseEntity {
   @JoinTable()
   user: User;
 
+  // 지원 동기
   @Column()
   content: string;
 
+  // 지원한 날짜
   @Column()
   appliedDate: Date;
 
+  // 지원 상태
   @Column({ default: ApplyStatus.WAITING })
   status: ApplyStatus;
 

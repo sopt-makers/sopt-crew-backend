@@ -1,6 +1,7 @@
-import { IsNotEmpty, IsDate, IsString, IsOptional } from 'class-validator';
+import { IsDate, IsString, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { MeetingCategory } from '../meeting.entity';
 
 export class UpdateMeetingDto {
   @ApiProperty({
@@ -23,7 +24,7 @@ export class UpdateMeetingDto {
     description: '모임 카테고리',
     required: true,
   })
-  readonly category: string;
+  readonly category: MeetingCategory;
 
   @ApiProperty({
     example: '2022-10-08',

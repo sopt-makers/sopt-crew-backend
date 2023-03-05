@@ -18,6 +18,12 @@ export enum MeetingStatus {
   END = 2,
 }
 
+export enum MeetingCategory {
+  STUDY = '스터디',
+  LECTURE = '강연',
+  LIGHTNING = '번개',
+}
+
 export interface ImageURL {
   id: number;
   url: string;
@@ -56,7 +62,7 @@ export class Meeting extends BaseEntity {
   title: string;
 
   @Column()
-  category: string;
+  category: MeetingCategory;
 
   @Column('jsonb')
   imageURL: ImageURL[];
