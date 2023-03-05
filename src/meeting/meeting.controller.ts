@@ -46,15 +46,13 @@ export class MeetingController {
     summary: '모임 초대 사용자 리스트 조회',
     description: '모임 초대 사용자 리스트 조회',
   })
-  // @ApiBearerAuth('access-token')
-  // @UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Get('/:id/users')
   getInviteUsersByMeeting(
     @Param('id', ParseIntPipe) id: number,
     @Query() getUsersDto: GetUsersDto,
   ) {
-    return this.meetingService.getInviteUsersByMeeting(id, getUsersDto);
+    return this.meetingService.getInvitableUsersByMeeting(id, getUsersDto);
   }
 
   @ApiOperation({

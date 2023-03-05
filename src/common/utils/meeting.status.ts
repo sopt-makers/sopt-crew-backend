@@ -1,20 +1,21 @@
 import { Meeting, MeetingStatus } from 'src/meeting/meeting.entity';
 import { Apply, ApplyStatus } from 'src/meeting/apply.entity';
 import * as dayjs from 'dayjs';
+import { todayDate } from './time';
 
 export const meetingStatus = async (meeting: Meeting) => {
   const { appliedInfo, capacity, startDate, endDate } = meeting;
   // const nowDate = new Date();
-  const nowDate = dayjs().toDate();
+  const nowDate = todayDate();
 
-  // 승인된 참가자 구하기
-  const okInfo: Apply[] = appliedInfo.filter((apply) =>
+  // 승인된 지원 정보
+  const approvedApplies: Apply[] = appliedInfo.filter((apply) =>
     apply.status === ApplyStatus.APPROVE ? apply : false,
   );
 
   let status: MeetingStatus;
 
-  if (okInfo.length >= capacity) {
+  if (approvedApplies.length >= capacity) {
     status = MeetingStatus.END;
   }
 
@@ -29,5 +30,5 @@ export const meetingStatus = async (meeting: Meeting) => {
     status = MeetingStatus.END;
   }
 
-  return { status, confirmedApply: okInfo };
+  return { status, approvedApplies };
 };

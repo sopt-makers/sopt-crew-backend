@@ -13,7 +13,6 @@ import { HealthModule } from './health/health.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === 'dev' ? '.dev.env' : '.prod.env',
-      // ignoreEnvFile: process.env.NODE_ENV === 'prod',
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -23,7 +22,7 @@ import { HealthModule } from './health/health.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity.{js,ts}'],
-      schema: 'web_dev',
+      schema: process.env.SCHEMA,
       synchronize: false,
     }),
     MeetingModule,

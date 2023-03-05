@@ -7,7 +7,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 
 @CustomRepository(User)
 export class UserRepository extends Repository<User> {
-  async getMeetingByUser(user: User) {
+  async getMeetingAndCount(user: User): Promise<[Meeting[], number]> {
     const { id } = user;
     const result = await Meeting.createQueryBuilder('meeting')
       .leftJoinAndSelect(
@@ -23,7 +23,7 @@ export class UserRepository extends Repository<User> {
     return result;
   }
 
-  async getApplyByUser(user: User) {
+  async getApplyAndCount(user: User): Promise<[Apply[], number]> {
     const { id } = user;
     const result = await Apply.createQueryBuilder('apply')
       .leftJoinAndSelect('apply.meeting', 'meeting')

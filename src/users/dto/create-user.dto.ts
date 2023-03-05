@@ -11,7 +11,7 @@ export class CreateUserDto {
   readonly orgId: number;
 
   @ApiProperty({
-    example: '이동이동',
+    example: '이동',
     description: '이름 검색',
     required: true,
   })

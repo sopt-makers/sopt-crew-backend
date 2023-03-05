@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, Max, Min } from 'class-validator';
 
 export enum Order {
   ASC = 'ASC',
@@ -8,16 +8,6 @@ export enum Order {
 }
 
 export class PageOptionsDto {
-  // @ApiPropertyOptional({
-  //   example: '스터디,번개',
-  //   description: '정렬 순서',
-  //   enum: Order,
-  //   default: Order.ASC,
-  // })
-  // @IsEnum(Order)
-  // @IsOptional()
-  // readonly order?: Order = Order.ASC;
-
   @ApiPropertyOptional({
     minimum: 1,
     default: 1,

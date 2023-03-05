@@ -12,15 +12,13 @@ import {
 import { Apply, ApplyStatus, ApplyType } from './apply.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto } from './dto/get-meeting.dto';
-import { meetingStatus } from 'src/common/utils/meeting.status';
-import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
-import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
 import { GetUsersDto } from './dto/get-users.dto';
 import axios from 'axios';
 import { todayDate } from 'src/common/utils/time';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
+  // id로 모임 조회
   async getMeeting(id: number): Promise<Meeting> {
     const result = await this.findOne({
       where: { id },
@@ -29,6 +27,7 @@ export class MeetingRepository extends Repository<Meeting> {
     return result;
   }
 
+  // id와 카테고리, 상태로 모임 정보 및 개수 조회
   async getMeetingsAndCount(
     getMeetingDto: GetMeetingDto,
     categoryArr: MeetingCategory[],
@@ -59,16 +58,16 @@ export class MeetingRepository extends Repository<Meeting> {
 
     statusArr.map(async (targetStatus, index) => {
       if (targetStatus === MeetingStatus.PRE) {
-        const query1 = new Brackets((qb) => {
+        const query = new Brackets((qb) => {
           qb.where('meeting.startDate > :nowDate', {
             nowDate,
           });
         });
         statusArr.length !== 1 && index !== 0
-          ? meetingQuery.orWhere(query1)
-          : meetingQuery.andWhere(query1);
+          ? meetingQuery.orWhere(query) // 모임 상태가 1개라면 or 조회
+          : meetingQuery.andWhere(query); // 모임 상태가 2개 이상이라면 and 조회
       } else if (targetStatus === MeetingStatus.POSSIBLE) {
-        const query2 = new Brackets((qb) => {
+        const query = new Brackets((qb) => {
           qb.where('meeting.startDate <= :nowDate', {
             nowDate,
           }).andWhere('meeting.endDate >= :nowDate', {
@@ -76,17 +75,17 @@ export class MeetingRepository extends Repository<Meeting> {
           });
         });
         statusArr.length !== 1 && index !== 0
-          ? meetingQuery.orWhere(query2)
-          : meetingQuery.andWhere(query2);
+          ? meetingQuery.orWhere(query)
+          : meetingQuery.andWhere(query);
       } else if (targetStatus === MeetingStatus.END) {
-        const query3 = new Brackets((qb) => {
+        const query = new Brackets((qb) => {
           qb.where('meeting.endDate < :nowDate', {
             nowDate,
           });
         });
         statusArr.length !== 1 && index !== 0
-          ? meetingQuery.orWhere(query3)
-          : meetingQuery.andWhere(query3);
+          ? meetingQuery.orWhere(query)
+          : meetingQuery.andWhere(query);
       }
     });
 
@@ -95,6 +94,7 @@ export class MeetingRepository extends Repository<Meeting> {
     return await meetingQuery.getManyAndCount();
   }
 
+  // 모임 생성
   async createMeeting(
     createMeetingDto: CreateMeetingDto,
     imageURL: Array<ImageURL>,
@@ -109,7 +109,8 @@ export class MeetingRepository extends Repository<Meeting> {
     return result;
   }
 
-  async updateMeetingById(
+  // 모임 업데이트
+  async updateMeeting(
     id: number,
     updateMeetingDto: UpdateMeetingDto,
     imageURL: Array<ImageURL>,
@@ -126,11 +127,13 @@ export class MeetingRepository extends Repository<Meeting> {
     return result;
   }
 
+  // 모임 삭제
   async deleteMeeting(id: number): Promise<DeleteResult> {
     const result = await this.delete(id);
     return result;
   }
 
+  // 지원 조회
   async getApply(id: number, type = ApplyType.APPLY): Promise<Apply> {
     const apply = await Apply.findOne({
       where: { id: id, type },
@@ -140,6 +143,7 @@ export class MeetingRepository extends Repository<Meeting> {
     return apply;
   }
 
+  // 조건에 맞는 지원들 and 개수 조회
   async getAppliesAndCount(
     meetingId: number,
     typeArr: ApplyType[],
@@ -164,6 +168,7 @@ export class MeetingRepository extends Repository<Meeting> {
     return await applyQuery.getManyAndCount();
   }
 
+  // 지원 생성
   async createApply(
     applyMeetingDto: ApplyMeetingDto,
     meeting: Meeting,
@@ -184,12 +189,14 @@ export class MeetingRepository extends Repository<Meeting> {
     return apply;
   }
 
+  // 지원 삭제
   async deleteApply(id: number): Promise<DeleteResult> {
     const result = await Apply.delete({ id });
     return result;
   }
 
-  async getInviteUsersByMeeting(id: number, getUsersDto: GetUsersDto) {
+  // 해당 api 수정해야 함
+  async getInvitableUsersByMeeting(id: number, getUsersDto: GetUsersDto) {
     const { name, generation } = getUsersDto;
     const invite = await Apply.createQueryBuilder('apply')
       .leftJoinAndSelect('apply.user', 'user') // user 정보를 받아온 후 join

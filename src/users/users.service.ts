@@ -11,26 +11,34 @@ export class UsersService {
     private userRepository: UserRepository,
   ) {}
 
+  // 내가 생성한 모임 조회
   async getMeetingByUser(user: User) {
-    const result = await this.userRepository.getMeetingByUser(user);
+    const [meetings, itemCount] = await this.userRepository.getMeetingAndCount(
+      user,
+    );
 
-    result[0].forEach(async (meeting) => {
+    meetings.forEach(async (meeting) => {
       const { status } = await meetingStatus(meeting);
       meeting.status = status;
     });
-    return { meetings: result[0], count: result[1] };
+    return { meetings, count: itemCount };
   }
 
+  // 내가 지원한 내역 조회
   async getApplyByUser(user: User) {
-    const result = await this.userRepository.getApplyByUser(user);
-    result[0].forEach(async (item) => {
-      const { status } = await meetingStatus(item.meeting);
-      item.meeting.status = status;
+    const [applies, itemCount] = await this.userRepository.getApplyAndCount(
+      user,
+    );
+
+    applies.forEach(async (apply) => {
+      const { status } = await meetingStatus(apply.meeting);
+      apply.meeting.status = status;
     });
 
-    return { apply: result[0], count: result[1] };
+    return { apply: applies, count: itemCount };
   }
 
+  // 유저 정보 조회
   async getUserById(id: number): Promise<User> {
     const users = this.userRepository.getUser(id);
 

@@ -162,10 +162,10 @@ export class MeetingService {
       }
     });
 
-    const { status, confirmedApply } = await meetingStatus(meeting);
+    const { status, approvedApplies } = await meetingStatus(meeting);
 
     meeting.status = status;
-    meeting.appliedInfo = confirmedApply;
+    meeting.appliedInfo = approvedApplies;
     meeting.host = isHost;
     meeting.apply = isApply;
     meeting.approved = approvedUser;
@@ -253,7 +253,7 @@ export class MeetingService {
       url: file.location,
     }));
 
-    const result = await this.meetingRepository.updateMeetingById(
+    const result = await this.meetingRepository.updateMeeting(
       id,
       updateMeetingDto,
       imageURL,
@@ -296,11 +296,11 @@ export class MeetingService {
     }
 
     const approvedApplies = meeting.appliedInfo.filter(
-      (item) => item.status === 1,
+      (apply) => apply.status === ApplyStatus.APPROVE,
     );
 
     const applyIndex = meeting.appliedInfo.findIndex(
-      (target) => target.user.id === user.id,
+      (apply) => apply.user.id === user.id,
     );
 
     if (approvedApplies.length >= meeting.capacity && applyIndex == -1) {
@@ -311,11 +311,12 @@ export class MeetingService {
     }
 
     if (applyIndex === -1) {
-      // 첫 지원
+      // 지원 이력이 없을 경우 지원 생성
       await this.meetingRepository.createApply(applyMeetingDto, meeting, user);
       return null;
     } else {
-      // 신청 취소
+      // 지원 이력이 있을 경우 지원 삭제
+      // 해당 로직은 초대쪽이랑 합쳐서 분리시키면 좋을 듯
       const targetApply = meeting.appliedInfo[applyIndex];
       meeting.appliedInfo.splice(applyIndex, 1);
       await this.meetingRepository.deleteApply(targetApply.id);
@@ -340,11 +341,13 @@ export class MeetingService {
     const invitedApplies = meeting.appliedInfo.filter(
       (item) => item.type === ApplyType.INVITE,
     );
+
     const invitables = users.filter(
       (user: User) =>
         !invitedApplies.some((apply: Apply) => apply.userId === user.id),
     );
 
+    // 초대 생성 및 초대 배열 return
     const inviteArr = await Promise.all(
       invitables.map((user: User) =>
         this.meetingRepository.createApply(
@@ -358,7 +361,6 @@ export class MeetingService {
 
     meeting.appliedInfo.push(...inviteArr);
     await meeting.save();
-
     return null;
   }
 
@@ -405,15 +407,15 @@ export class MeetingService {
 
     const isHost = meeting.user.id === user.id ? true : false;
     if (!isHost) {
-      throw new UnauthorizedException('수정 권한이 없습니다');
+      throw new UnauthorizedException('초대 취소 권한이 없습니다');
     }
 
     await this.meetingRepository.deleteApply(inviteId);
     return null;
   }
 
-  // invitable
-  async getInviteUsersByMeeting(id: number, getUsersDto: GetUsersDto) {
-    return this.meetingRepository.getInviteUsersByMeeting(id, getUsersDto);
+  // 해당 api 수정해야 함
+  async getInvitableUsersByMeeting(id: number, getUsersDto: GetUsersDto) {
+    return this.meetingRepository.getInvitableUsersByMeeting(id, getUsersDto);
   }
 }

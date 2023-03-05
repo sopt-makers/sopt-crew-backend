@@ -34,7 +34,6 @@ export class AuthService {
       });
 
       const { id, name, profileImage } = result.data;
-
       const user = await this.userRepository.getUser(id);
 
       if (!user) {
@@ -43,7 +42,6 @@ export class AuthService {
           name,
           profileImage,
         });
-
         userId = newUser.id;
       } else {
         userId = user.id;
