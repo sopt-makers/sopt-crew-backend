@@ -55,7 +55,6 @@ export class AuthService {
       const accessToken = await this.jwtService.sign(payload);
       return { accessToken: accessToken };
     } catch (error) {
-      console.log(error);
       throw new HttpException(
         { message: '로그인 서버 에러' },
         HttpStatus.INTERNAL_SERVER_ERROR,

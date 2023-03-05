@@ -12,6 +12,7 @@ import {
 
 @Entity('user')
 @Unique(['id'])
+// 주석 추가해놓기
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;

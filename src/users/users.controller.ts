@@ -45,7 +45,6 @@ export class UsersController {
   @UseGuards(AuthGuard('jwt'))
   @Get('/meeting')
   getMeetingByUser(@GetUser() user: User) {
-    console.log('?');
     return this.usersService.getMeetingByUser(user);
   }
 

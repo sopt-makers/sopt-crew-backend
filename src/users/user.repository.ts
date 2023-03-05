@@ -1,10 +1,8 @@
 import { CustomRepository } from 'src/db/typeorm-ex.decorator';
 import { User } from 'src/users/user.entity';
-import { DataSource, Repository } from 'typeorm';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { Repository } from 'typeorm';
 import { Apply } from 'src/meeting/apply.entity';
 import { Meeting } from 'src/meeting/meeting.entity';
-import { meetingStatus } from 'src/common/utils/meeting.status';
 import { GetUsersDto } from './dto/get-users.dto';
 
 @CustomRepository(User)
@@ -22,11 +20,7 @@ export class UserRepository extends Repository<User> {
       .where('meeting.userId = :id', { id })
       .getManyAndCount();
 
-    result[0].forEach(async (meeting) => {
-      const { status } = await meetingStatus(meeting);
-      meeting.status = status;
-    });
-    return { meetings: result[0], count: result[1] };
+    return result;
   }
 
   async getApplyByUser(user: User) {
@@ -43,12 +37,7 @@ export class UserRepository extends Repository<User> {
       .where('apply.userId = :id', { id })
       .getManyAndCount();
 
-    result[0].forEach(async (item) => {
-      const { status } = await meetingStatus(item.meeting);
-      item.meeting.status = status;
-    });
-
-    return { apply: result[0], count: result[1] };
+    return result;
   }
 
   async getUserById(id: number): Promise<User> {
@@ -56,13 +45,6 @@ export class UserRepository extends Repository<User> {
       where: { id },
       relations: ['apply'],
     });
-
-    if (!users) {
-      throw new HttpException(
-        { message: '해당 사용자가 없습니다' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
 
     return users;
   }
