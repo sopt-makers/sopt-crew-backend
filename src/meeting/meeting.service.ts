@@ -14,10 +14,9 @@ import {
 } from './meeting.entity';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting-dto';
-import { FilterMeetingDto } from './dto/filter-meeting.dto';
 import { User } from 'src/users/user.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
-import { UserRepository } from 'src/users/user.repository';
+import { UserRepository } from 'src/users/users.repository';
 import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetListDto } from './dto/get-list.dto';
 import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
@@ -26,7 +25,6 @@ import { InviteMeetingDto } from './dto/invite-meeting.dto';
 import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
 import { GetUsersDto } from './dto/get-users.dto';
 import { Apply, ApplyStatus, ApplyType } from './apply.entity';
-import { todayDate } from 'src/common/utils/time';
 import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
 import { meetingStatus } from 'src/common/utils/meeting.status';
 
@@ -337,7 +335,7 @@ export class MeetingService {
       );
     }
 
-    const users = await this.userRepository.getUsersByIds(userIdArr);
+    const users = await this.userRepository.getUsers(userIdArr);
 
     const invitedApplies = meeting.appliedInfo.filter(
       (item) => item.type === ApplyType.INVITE,
