@@ -12,26 +12,31 @@ import {
 
 @Entity('user')
 @Unique(['id'])
-// 주석 추가해놓기
 export class User extends BaseEntity {
+  // Primary Key
   @PrimaryGeneratedColumn()
   id: number;
 
+  // 사용자 이름
   @Column()
   name: string;
 
+  // sopt org unique id
   @Column()
   orgId: number;
 
+  // 프로필 이미지
   @Column({
     nullable: true,
-    default: '',
+    default: null,
   })
   profileImage: string;
 
+  // 내가 생성한 모임
   @OneToMany(() => Meeting, (meeting) => meeting.user)
   meetings: Meeting[];
 
+  // 내가 지원한 내역
   @OneToMany(() => Apply, (apply) => apply.user)
   @JoinTable()
   apply: Apply[];
