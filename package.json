@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "TZ=Asia/Seoul nest build",
+    "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "TZ=Asia/Seoul nest start",
     "start:dev": "TZ=Asia/Seoul cross-env NODE_ENV=dev nest start --watch",
@@ -36,8 +36,6 @@
     "@nestjs/typeorm": "^9.0.1",
     "@types/passport-jwt": "^3.0.7",
     "axios": "^1.2.1",
-    "bcrypt": "^5.1.0",
-    "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
     "config": "^3.3.8",
@@ -46,7 +44,6 @@
     "dayjs": "^1.11.7",
     "multer": "^1.4.5-lts.1",
     "multer-s3": "^3.0.1",
-    "nestjs-typeorm-paginate": "^4.0.2",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
     "path": "^0.12.7",
@@ -55,8 +52,7 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "swagger-ui-express": "^4.5.0",
-    "typeorm": "^0.3.10",
-    "uuidv4": "^6.2.13"
+    "typeorm": "^0.3.10"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
