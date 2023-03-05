@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/user.entity';
-import { UserRepository } from './user.repository';
+import { UserRepository } from './users.repository';
 import { meetingStatus } from 'src/common/utils/meeting.status';
 
 @Injectable()
@@ -32,7 +32,7 @@ export class UsersService {
   }
 
   async getUserById(id: number): Promise<User> {
-    const users = this.userRepository.getUserById(id);
+    const users = this.userRepository.getUser(id);
 
     if (!users) {
       throw new HttpException(
