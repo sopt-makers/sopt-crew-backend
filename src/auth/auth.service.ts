@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { UserRepository } from 'src/users/user.repository';
+import { UserRepository } from 'src/users/users.repository';
 import { AuthCredentialsDTO } from './dto/auth-credential.dto';
 import { AuthTokenDTO } from './dto/auth-token.dto';
 import axios from 'axios';
@@ -35,18 +35,16 @@ export class AuthService {
 
       const { id, name, profileImage } = result.data;
 
-      const user = await this.userRepository.findOne({
-        where: { orgId: id },
-      });
+      const user = await this.userRepository.getUser(id);
 
       if (!user) {
-        const newUser = await this.userRepository.create({
+        const newUser = await this.userRepository.createUser({
           orgId: id,
           name,
           profileImage,
         });
-        const savedUser = await this.userRepository.save(newUser);
-        userId = savedUser.id;
+
+        userId = newUser.id;
       } else {
         userId = user.id;
       }
