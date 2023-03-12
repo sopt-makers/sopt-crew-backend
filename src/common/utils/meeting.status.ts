@@ -1,6 +1,5 @@
 import { Meeting, MeetingStatus } from 'src/meeting/meeting.entity';
 import { Apply, ApplyStatus } from 'src/meeting/apply.entity';
-import * as dayjs from 'dayjs';
 import { todayDate } from './time';
 
 export const meetingStatus = async (meeting: Meeting) => {

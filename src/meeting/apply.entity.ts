@@ -11,8 +11,6 @@ import {
   RelationId,
 } from 'typeorm';
 
-import * as dayjs from 'dayjs';
-
 export interface AppliedInfo {
   user: User;
   appliedDate: Date;

@@ -1,13 +1,6 @@
-import {
-  IsNotEmpty,
-  IsDate,
-  IsString,
-  IsOptional,
-  IsNumber,
-} from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 
 export enum MeetingStatus {

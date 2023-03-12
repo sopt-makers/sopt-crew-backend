@@ -1,30 +1,8 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  UseGuards,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthTokenDTO } from './dto/auth-token.dto';
-import { AuthGuard } from '@nestjs/passport';
-import { GetUser } from './get-user.decorator';
-import { User } from '../users/user.entity';
-import { AuthCredentialsDTO } from './dto/auth-credential.dto';
 
-import {
-  ApiTags,
-  ApiOperation,
-  ApiCreatedResponse,
-  ApiSecurity,
-  ApiExcludeEndpoint,
-  ApiConsumes,
-  ApiBody,
-  ApiBearerAuth,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('인증')
 @Controller('auth')

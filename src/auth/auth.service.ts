@@ -1,13 +1,7 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from 'src/users/users.repository';
-import { AuthCredentialsDTO } from './dto/auth-credential.dto';
 import { AuthTokenDTO } from './dto/auth-token.dto';
 import axios from 'axios';
 

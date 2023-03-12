@@ -1,14 +1,7 @@
-import {
-  IsNotEmpty,
-  IsDate,
-  IsString,
-  IsOptional,
-  IsNumber,
-} from 'class-validator';
+import { IsString, IsOptional, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
 import { ApiProperty } from '@nestjs/swagger';
-import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 
 export class GetUsersDto {
   @ApiProperty({
