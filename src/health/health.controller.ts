@@ -19,7 +19,7 @@ export class HealthController {
   // healthcheck를 위한 Router
   @Get()
   @HealthCheck()
-  healthCheck() {
+  async healthCheck() {
     return this.health.check([
       () => this.http.pingCheck('crew-web', `http://localhost:3001`),
       () => this.db.pingCheck('database'),

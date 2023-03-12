@@ -36,7 +36,7 @@ export class AuthController {
     description: '로그인/회원가입',
   })
   @Post('/')
-  loginUser(@Body() authTokenDTO: AuthTokenDTO) {
+  async loginUser(@Body() authTokenDTO: AuthTokenDTO) {
     return this.authService.loginUser(authTokenDTO);
   }
 }

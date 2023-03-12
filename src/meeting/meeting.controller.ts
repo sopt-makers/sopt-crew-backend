@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpCode,
   Param,
   ParseIntPipe,
   Post,
@@ -48,7 +47,7 @@ export class MeetingController {
   })
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Get('/:id/users')
-  getInviteUsersByMeeting(
+  async getInviteUsersByMeeting(
     @Param('id', ParseIntPipe) id: number,
     @Query() getUsersDto: GetUsersDto,
   ) {
@@ -63,7 +62,7 @@ export class MeetingController {
   @UseGuards(AuthGuard('jwt'))
   @Put('/:id/invite/status')
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
-  updateInviteStatusByMeeting(
+  async updateInviteStatusByMeeting(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateStatusInviteDto: UpdateStatusInviteDto,
     @GetUser() user: User,
@@ -83,7 +82,7 @@ export class MeetingController {
   @UseGuards(AuthGuard('jwt'))
   @Put('/:id/apply/status')
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
-  updateApplyStatusByMeeting(
+  async updateApplyStatusByMeeting(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateStatusApplyDto: UpdateStatusApplyDto,
     @GetUser() user: User,
@@ -104,7 +103,7 @@ export class MeetingController {
   @UseGuards(AuthGuard('jwt'))
   @Get('/:id/list')
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
-  getListByMeeting(
+  async getListByMeeting(
     @Query() getListDto: GetListDto,
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
@@ -119,7 +118,7 @@ export class MeetingController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   @Post('/apply')
-  applyMeeting(
+  async applyMeeting(
     @Body() applyMeetingDto: ApplyMeetingDto,
     @GetUser() user: User,
   ) {
@@ -134,7 +133,7 @@ export class MeetingController {
   @UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Get('/:id')
-  getMeetingById(
+  async getMeetingById(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
   ): Promise<Meeting> {
@@ -146,7 +145,7 @@ export class MeetingController {
     description: '모임 전체 조회/검색/필터링',
   })
   @Get('/')
-  getAllMeeting(
+  async getAllMeeting(
     // @Query() pageOptionsDto: PageOptionsDto,
     @Query() getMeetingDto: GetMeetingDto,
   ) {
@@ -169,7 +168,7 @@ export class MeetingController {
   @UseGuards(AuthGuard('jwt'))
   // @HttpCode(200)
   @UseInterceptors(FilesInterceptor('files', 6))
-  createMeeting(
+  async createMeeting(
     @UploadedFiles() files: Array<Express.MulterS3.File>,
     @Body() createMeetingDto: CreateMeetingDto,
     @GetUser() user: User,
@@ -192,7 +191,7 @@ export class MeetingController {
   @UseGuards(AuthGuard('jwt'))
   @Put('/:id')
   @UseInterceptors(FilesInterceptor('files', 6))
-  updateMeetingById(
+  async updateMeetingById(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFiles() files: Array<Express.MulterS3.File>,
     @Body() updateMeetingDto: UpdateMeetingDto,
@@ -214,7 +213,9 @@ export class MeetingController {
   @UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Delete('/:id')
-  deleteMeetingById(@Param('id', ParseIntPipe) id: number): Promise<void> {
+  async deleteMeetingById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<void> {
     return this.meetingService.deleteMeetingById(id);
   }
 
@@ -226,7 +227,9 @@ export class MeetingController {
   @UseGuards(AuthGuard('jwt'))
   // @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Post('/invite')
-  inviteMeeting(@Body() inviteMeetingDto: InviteMeetingDto): Promise<void> {
+  async inviteMeeting(
+    @Body() inviteMeetingDto: InviteMeetingDto,
+  ): Promise<void> {
     return this.meetingService.inviteMeeting(inviteMeetingDto);
   }
 
@@ -238,7 +241,7 @@ export class MeetingController {
   @UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'inviteId', required: true, description: '초대 id' })
   @Delete('/:id/invite/:inviteId')
-  cancelInvite(
+  async cancelInvite(
     @Param('id', ParseIntPipe) id: number,
     @Param('inviteId', ParseIntPipe) inviteId: number,
     @GetUser() user: User,

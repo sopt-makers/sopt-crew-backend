@@ -28,7 +28,7 @@ export class UsersController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   @Get('/meeting')
-  getMeetingByUser(@GetUser() user: User) {
+  async getMeetingByUser(@GetUser() user: User) {
     return this.usersService.getMeetingByUser(user);
   }
 
@@ -39,7 +39,7 @@ export class UsersController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   @Get('/apply')
-  getApplyByUser(@GetUser() user: User) {
+  async getApplyByUser(@GetUser() user: User) {
     return this.usersService.getApplyByUser(user);
   }
 
@@ -49,7 +49,7 @@ export class UsersController {
   })
   @ApiParam({ name: 'id', required: true, description: '유저 id' })
   @Get('/:id')
-  getUserById(@Param('id', ParseIntPipe) id: number) {
+  async getUserById(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.getUserById(id);
   }
 }
