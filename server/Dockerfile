@@ -40,7 +40,8 @@ COPY --chown=node:node . .
 RUN npm run build
 
 # Set NODE_ENV environment variable
-ENV NODE_ENV production
+# docker-compose에서 설정함
+# ENV NODE_ENV production
 
 # Running `npm ci` removes the existing node_modules directory and passing in --only=production ensures that only the production dependencies are installed. This ensures that the node_modules directory is as optimized as possible
 RUN npm ci --omit=dev && npm cache clean --force
