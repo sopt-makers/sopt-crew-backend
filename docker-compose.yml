@@ -36,7 +36,4 @@ services:
     container_name: server2
     expose:
       - "3000"
-    volumes:
-      - ./src/server2:/src
-      - /src/node_modules
     restart: "unless-stopped"
