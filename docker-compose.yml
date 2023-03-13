@@ -21,23 +21,23 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-  express1:
+  server1:
     build:
       context: ./server
-    container_name: express1
+    container_name: server1
     expose:
       - "3000"
     volumes:
-      - ./src/express1:/src
+      - ./src/server1:/src
       - /src/node_modules
     restart: "unless-stopped"
-  # express2:
-  #   build:
-  #     context: ./server
-  #   container_name: express2
-  #   expose:
-  #     - "3000"
-  #   volumes:
-  #     - ./src/express2:/src
-  #     - /src/node_modules
-  #   restart: "unless-stopped"
+  server2:
+    build:
+      context: ./server
+    container_name: server2
+    expose:
+      - "3000"
+    volumes:
+      - ./src/server2:/src
+      - /src/node_modules
+    restart: "unless-stopped"
