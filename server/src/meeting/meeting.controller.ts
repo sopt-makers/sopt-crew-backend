@@ -58,7 +58,7 @@ export class MeetingController {
     summary: '모임 지원자 초대 상태 변경',
     description: '모임 지원자 초대 상태 변경',
   })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Put('/:id/invite/status')
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
@@ -78,7 +78,7 @@ export class MeetingController {
     summary: '모임 지원자 상태 변경',
     description: '모임 지원자 상태 변경',
   })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Put('/:id/apply/status')
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
@@ -99,7 +99,7 @@ export class MeetingController {
     description:
       '모임 지원자/참여자 조회 (모임장이면 지원자, 아니면 참여자 조회)',
   })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Get('/:id/list')
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
@@ -115,7 +115,7 @@ export class MeetingController {
     summary: '모임 지원/취소',
     description: '모임 지원/취소',
   })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Post('/apply')
   async applyMeeting(
@@ -129,7 +129,7 @@ export class MeetingController {
     summary: '모임 상세 조회',
     description: '모임 상세 조회',
   })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Get('/:id')
@@ -164,7 +164,7 @@ export class MeetingController {
     },
   })
   @Post('/')
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   // @HttpCode(200)
   @UseInterceptors(FilesInterceptor('files', 6))
@@ -187,7 +187,7 @@ export class MeetingController {
       example: {},
     },
   })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Put('/:id')
   @UseInterceptors(FilesInterceptor('files', 6))
@@ -209,7 +209,7 @@ export class MeetingController {
     summary: '모임 삭제',
     description: '모임 삭제',
   })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Delete('/:id')
@@ -223,7 +223,7 @@ export class MeetingController {
     summary: '모임 초대',
     description: '모임 초대',
   })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   // @ApiParam({ name: 'id', required: true, description: '모임 id' })
   @Post('/invite')
@@ -237,7 +237,7 @@ export class MeetingController {
     summary: '모임 초대 취소',
     description: '모임 초대 취소',
   })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'inviteId', required: true, description: '초대 id' })
   @Delete('/:id/invite/:inviteId')

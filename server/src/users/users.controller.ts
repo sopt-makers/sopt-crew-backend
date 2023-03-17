@@ -25,7 +25,7 @@ export class UsersController {
     summary: '내가 만든 모임 조회',
     description: '내가 만든 모임 조회',
   })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Get('/meeting')
   async getMeetingByUser(@GetUser() user: User) {
@@ -36,7 +36,7 @@ export class UsersController {
     summary: '내가 신청한 모임 조회',
     description: '내가 신청한 모임 조회',
   })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Get('/apply')
   async getApplyByUser(@GetUser() user: User) {
