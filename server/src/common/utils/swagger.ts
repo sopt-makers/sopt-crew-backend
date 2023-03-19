@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { BaseExceptionDto } from '../dto/base-exception.dto';
 
 /**
  * Swagger 세팅
@@ -14,7 +15,9 @@ export function setupSwagger(app: INestApplication): void {
     .addBearerAuth()
     .build();
 
-  const document = SwaggerModule.createDocument(app, options);
+  const document = SwaggerModule.createDocument(app, options, {
+    extraModels: [BaseExceptionDto],
+  });
   SwaggerModule.setup('api-docs', app, document, {
     swaggerOptions: {
       tagsSorter: 'alpha',

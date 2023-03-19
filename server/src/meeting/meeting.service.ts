@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -27,6 +28,9 @@ import { GetUsersDto } from './dto/get-users.dto';
 import { Apply, ApplyStatus, ApplyType } from './apply.entity';
 import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
 import { meetingStatus } from 'src/common/utils/meeting.status';
+import { Part } from 'src/common/enum/part.enum';
+import { MeetingJoinablePart } from './enum/meeting-joinable-part.enum';
+import { ACTIVE_GENERATION } from 'src/common/constant/active-generation.const';
 
 @Injectable()
 export class MeetingService {
@@ -88,7 +92,7 @@ export class MeetingService {
     return null;
   }
 
-  async getListByMeeting(id: number, user: User, getListDto: GetListDto) {
+  async getAppliesByMeeting(id: number, user: User, getListDto: GetListDto) {
     const { status, take, type, skip, page } = getListDto;
 
     const typeArr: ApplyType[] = type
@@ -170,12 +174,22 @@ export class MeetingService {
     meeting.apply = isApply;
     meeting.approved = approvedUser;
     meeting.invite = inviteUser;
+    meeting.canJoinOnlyActiveGeneration =
+      meeting.targetActiveGeneration === ACTIVE_GENERATION;
 
     return meeting;
   }
 
   async getAllMeeting(getMeetingDto: GetMeetingDto) {
-    const { category, status, skip, take, page } = getMeetingDto;
+    const {
+      category,
+      status,
+      skip,
+      take,
+      page,
+      isOnlyActiveGeneration,
+      joinableParts,
+    } = getMeetingDto;
 
     const categoryArr: MeetingCategory[] = category
       ? (category.split(',') as MeetingCategory[])
@@ -189,24 +203,43 @@ export class MeetingService {
       ? status.split(',').map(Number)
       : [];
 
+    const joinablePartArr = Array.isArray(joinableParts)
+      ? joinableParts
+      : [joinableParts];
+
     const [meetings, itemCount] =
       await this.meetingRepository.getMeetingsAndCount(
         getMeetingDto,
         categoryArr,
         statusArr,
+        joinablePartArr,
+        isOnlyActiveGeneration,
       );
 
-    meetings.forEach(async (meeting) => {
+    const meetingPromises = meetings.map(async (meeting) => {
       const { status } = await meetingStatus(meeting);
       meeting.status = status;
     });
+    await Promise.all(meetingPromises);
 
     const pageOptionsDto: PageOptionsDto = { page, skip, take };
     const pageMetaDto = new PageMetaDto({
       itemCount,
       pageOptionsDto,
     });
-    return { meetings: meetings, meta: pageMetaDto };
+
+    const serializedMeetings = meetings.map((meeting) => {
+      const canJoinOnlyActiveGeneration =
+        meeting.targetActiveGeneration === ACTIVE_GENERATION &&
+        meeting.canJoinOnlyActiveGeneration === true;
+
+      return {
+        ...meeting,
+        canJoinOnlyActiveGeneration,
+      };
+    });
+
+    return { meetings: serializedMeetings, meta: pageMetaDto };
   }
 
   async createMeeting(
@@ -221,13 +254,33 @@ export class MeetingService {
       );
     }
 
+    if (createMeetingDto.joinableParts.length === 0) {
+      throw new HttpException(
+        { message: '한 개 이상의 파트를 입력해주세요' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (user.activities === null) {
+      throw new HttpException(
+        { message: '프로필을 입력해주세요' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const { canJoinOnlyActiveGeneration, ...meeting } = createMeetingDto;
+
+    const targetActiveGeneration = this.getTargetActiveGeneration(
+      canJoinOnlyActiveGeneration,
+    );
+
     const imageURL: Array<ImageURL> = files.map((file, index) => ({
       id: index,
       url: file.location,
     }));
 
     const result = await this.meetingRepository.createMeeting(
-      createMeetingDto,
+      { ...meeting, targetActiveGeneration },
       imageURL,
       user,
     );
@@ -241,12 +294,24 @@ export class MeetingService {
     files: Array<Express.MulterS3.File>,
     user: User,
   ) {
+    if (updateMeetingDto.joinableParts.length === 0) {
+      throw new HttpException(
+        { message: '한 개 이상의 파트를 입력해주세요' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     if (files.length === 0) {
       throw new HttpException(
         { message: '이미지 파일이 없습니다.' },
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const { canJoinOnlyActiveGeneration, ...meeting } = updateMeetingDto;
+
+    const targetActiveGeneration = this.getTargetActiveGeneration(
+      canJoinOnlyActiveGeneration,
+    );
 
     const imageURL: Array<ImageURL> = files.map((file, index) => ({
       id: index,
@@ -255,7 +320,7 @@ export class MeetingService {
 
     const result = await this.meetingRepository.updateMeeting(
       id,
-      updateMeetingDto,
+      { ...meeting, targetActiveGeneration },
       imageURL,
       user,
     );
@@ -283,9 +348,9 @@ export class MeetingService {
     }
   }
 
+  /** 미팅 지원/취소 */
   async applyMeeting(applyMeetingDto: ApplyMeetingDto, user: User) {
     const { id } = applyMeetingDto;
-
     const meeting = await this.meetingRepository.getMeeting(id);
 
     if (!meeting) {
@@ -303,25 +368,63 @@ export class MeetingService {
       (apply) => apply.user.id === user.id,
     );
 
-    if (approvedApplies.length >= meeting.capacity && applyIndex == -1) {
+    if (approvedApplies.length >= meeting.capacity && applyIndex === -1) {
       throw new HttpException(
         { message: '정원이 꽉찼습니다' },
         HttpStatus.BAD_REQUEST,
       );
     }
 
+    // 지원 이력이 없을 경우 지원 생성
     if (applyIndex === -1) {
-      // 지원 이력이 없을 경우 지원 생성
+      const userActivities = (() => {
+        // 현재 기수 제한이 있는 경우
+        if (
+          meeting.targetActiveGeneration === ACTIVE_GENERATION &&
+          meeting.canJoinOnlyActiveGeneration === true
+        ) {
+          const userActiveGeneration = user.activities.find((activity) => {
+            return activity.generation === ACTIVE_GENERATION;
+          });
+
+          if (userActiveGeneration === undefined) {
+            throw new BadRequestException({ message: '최근 기수가 아닙니다.' });
+          }
+
+          return [userActiveGeneration];
+        }
+
+        return user.activities;
+      })();
+
+      // 유저 파트 검사
+      const userJoinableParts = userActivities
+        .map((activity) => activity.part)
+        .filter((part) => {
+          const userRole = this.mappingPart(part);
+
+          // 직책이라면 무조건 패스
+          if (userRole === null) {
+            return true;
+          }
+
+          return meeting.joinableParts.includes(userRole);
+        });
+
+      if (userJoinableParts.length === 0) {
+        throw new BadRequestException({ message: '지원가능 파트가 아닙니다.' });
+      }
+
       await this.meetingRepository.createApply(applyMeetingDto, meeting, user);
       return null;
-    } else {
-      // 지원 이력이 있을 경우 지원 삭제
-      // 해당 로직은 초대쪽이랑 합쳐서 분리시키면 좋을 듯
-      const targetApply = meeting.appliedInfo[applyIndex];
-      meeting.appliedInfo.splice(applyIndex, 1);
-      await this.meetingRepository.deleteApply(targetApply.id);
-      return null;
     }
+
+    // 지원 이력이 있을 경우 지원 삭제
+    // 해당 로직은 초대쪽이랑 합쳐서 분리시키면 좋을 듯
+    const targetApply = meeting.appliedInfo[applyIndex];
+    meeting.appliedInfo.splice(applyIndex, 1);
+    await this.meetingRepository.deleteApply(targetApply.id);
+    return null;
   }
 
   async inviteMeeting(inviteMeetingDto: InviteMeetingDto) {
@@ -417,5 +520,44 @@ export class MeetingService {
   // 해당 api 수정해야 함
   async getInvitableUsersByMeeting(id: number, getUsersDto: GetUsersDto) {
     return this.meetingRepository.getInvitableUsersByMeeting(id, getUsersDto);
+  }
+
+  /**
+   * 유저 파트를 미팅 파트로 매핑시켜주는 함수
+   * @param userPart 유저 데이터의 파트 정보
+   * @returns 유저 파트에 해당하는 미팅 파트
+   */
+  private mappingPart(userPart: Part): MeetingJoinablePart | null {
+    switch (userPart) {
+      case Part.ANDROID:
+      case Part.ANDROID_LEADER:
+        return MeetingJoinablePart.ANDROID;
+      case Part.IOS:
+      case Part.IOS_LEADER:
+        return MeetingJoinablePart.IOS;
+      case Part.PM:
+      case Part.PM_LEADER:
+        return MeetingJoinablePart.PM;
+      case Part.SERVER:
+      case Part.SERVER_LEADER:
+        return MeetingJoinablePart.SERVER;
+      case Part.WEB:
+      case Part.WEB_LEADER:
+        return MeetingJoinablePart.WEB;
+      case Part.DESIGN:
+      case Part.DESIGN_LEADER:
+        return MeetingJoinablePart.DESIGN;
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * 현재 활동 기수를 구하는 함수
+   * @param canJoinOnlyActiveGeneration 생성시 활동 기수만 지원 가능 여부
+   * @returns 활동기수만 지원 가능한 경우 현재 활동기수, 아니면 null
+   */
+  private getTargetActiveGeneration(canJoinOnlyActiveGeneration: boolean) {
+    return canJoinOnlyActiveGeneration ? ACTIVE_GENERATION : null;
   }
 }

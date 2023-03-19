@@ -1,7 +1,15 @@
-import { IsDate, IsString, IsOptional } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsDate,
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { MeetingCategory } from '../meeting.entity';
+import { MeetingJoinablePart } from '../enum/meeting-joinable-part.enum';
 
 export class UpdateMeetingDto {
   @ApiProperty({
@@ -119,4 +127,37 @@ export class UpdateMeetingDto {
   @IsString()
   @IsOptional()
   readonly note: string;
+
+  @ApiProperty({
+    example: false,
+    description: '멘토 필요 여부',
+    required: true,
+  })
+  @IsNotEmpty()
+  @Type(() => Boolean)
+  @IsBoolean()
+  readonly isMentorNeeded: boolean;
+
+  @ApiProperty({
+    example: false,
+    description: '활동기수만 지원 가능 여부',
+    required: true,
+  })
+  @IsNotEmpty()
+  @Type(() => Boolean)
+  @IsBoolean()
+  readonly canJoinOnlyActiveGeneration: boolean;
+
+  @ApiProperty({
+    example: [MeetingJoinablePart.ANDROID, MeetingJoinablePart.IOS],
+    description: '대상 파트 목록',
+    enum: MeetingJoinablePart,
+    isArray: true,
+    required: true,
+  })
+  @Transform((property) => {
+    return property.value.split(',');
+  })
+  @IsEnum(MeetingJoinablePart, { each: true })
+  readonly joinableParts: MeetingJoinablePart[];
 }

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -23,10 +24,11 @@ import { AuthGuard } from '@nestjs/passport';
 import {
   ApiTags,
   ApiOperation,
-  ApiCreatedResponse,
   ApiConsumes,
   ApiBearerAuth,
   ApiParam,
+  ApiResponse,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto } from './dto/get-meeting.dto';
@@ -35,6 +37,7 @@ import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { InviteMeetingDto } from './dto/invite-meeting.dto';
 import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
 import { GetUsersDto } from './dto/get-users.dto';
+import { BaseExceptionDto } from 'src/common/dto/base-exception.dto';
 
 @ApiTags('모임')
 @Controller('meeting')
@@ -108,12 +111,36 @@ export class MeetingController {
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
   ) {
-    return this.meetingService.getListByMeeting(id, user, getListDto);
+    return this.meetingService.getAppliesByMeeting(id, user, getListDto);
   }
 
   @ApiOperation({
     summary: '모임 지원/취소',
     description: '모임 지원/취소',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: '지원/취소 완료',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '모임이 없습니다',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '정원이 꽉찼습니다',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '최근 기수가 아닙니다.',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '지원가능 파트가 아닙니다.',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
@@ -129,9 +156,19 @@ export class MeetingController {
     summary: '모임 상세 조회',
     description: '모임 상세 조회',
   })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '노출할 정보가 있는 경우',
+    schema: { $ref: getSchemaPath(Meeting) },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '모임이 없습니다',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
+  @UseGuards(AuthGuard('jwt'))
   @Get('/:id')
   async getMeetingById(
     @Param('id', ParseIntPipe) id: number,
@@ -145,10 +182,7 @@ export class MeetingController {
     description: '모임 전체 조회/검색/필터링',
   })
   @Get('/')
-  async getAllMeeting(
-    // @Query() pageOptionsDto: PageOptionsDto,
-    @Query() getMeetingDto: GetMeetingDto,
-  ) {
+  async getAllMeeting(@Query() getMeetingDto: GetMeetingDto) {
     return this.meetingService.getAllMeeting(getMeetingDto);
   }
 
@@ -157,16 +191,28 @@ export class MeetingController {
     description: '모임 생성',
   })
   @ApiConsumes('multipart/form-data')
-  @ApiCreatedResponse({
-    description: '모임 생성',
-    schema: {
-      example: {},
-    },
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: '생성완료',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '이미지 파일이 없습니다.',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '한 개 이상의 파트를 입력해주세요',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '프로필을 입력해주세요',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
   @Post('/')
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
-  // @HttpCode(200)
   @UseInterceptors(FilesInterceptor('files', 6))
   async createMeeting(
     @UploadedFiles() files: Array<Express.MulterS3.File>,
@@ -181,11 +227,24 @@ export class MeetingController {
     description: '모임 수정',
   })
   @ApiConsumes('multipart/form-data')
-  @ApiCreatedResponse({
-    description: '모임 수정',
-    schema: {
-      example: {},
-    },
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '수정완료',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '이미지 파일이 없습니다.',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '한 개 이상의 파트를 입력해주세요',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '조건에 맞는 모임이 없습니다.',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
@@ -208,6 +267,15 @@ export class MeetingController {
   @ApiOperation({
     summary: '모임 삭제',
     description: '모임 삭제',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '삭제완료',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '조건에 맞는 모임이 없습니다.',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))

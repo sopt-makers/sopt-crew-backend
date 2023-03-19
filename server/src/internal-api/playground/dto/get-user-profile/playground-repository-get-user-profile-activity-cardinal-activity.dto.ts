@@ -1,4 +1,11 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+} from 'class-validator';
+import { Part } from 'src/common/enum/part.enum';
 
 export class PlaygroundRepositoryGetUserProfileActivityCardinalActivityDto {
   /** 활동 식별자 */
@@ -17,9 +24,8 @@ export class PlaygroundRepositoryGetUserProfileActivityCardinalActivityDto {
   team: string;
 
   /** 활동 파트 */
-  @IsNotEmpty()
-  @IsString()
-  part: string;
+  @IsEnum(Part)
+  part: Part;
 
   /** 프로젝트 여부 */
   @IsNotEmpty()
