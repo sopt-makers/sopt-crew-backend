@@ -392,13 +392,6 @@ export class MeetingService {
 
     // 지원 이력이 없을 경우 지원 생성
     if (applyIndex === -1) {
-      if (approvedApplies.length >= meeting.capacity && applyIndex === -1) {
-        throw new HttpException(
-          { message: '정원이 꽉찼습니다' },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
       const userActivities = (() => {
         // 현재 기수 제한이 있는 경우
         if (
@@ -439,6 +432,13 @@ export class MeetingService {
             message: '지원가능 파트가 아닙니다.',
           });
         }
+      }
+
+      if (approvedApplies.length >= meeting.capacity && applyIndex === -1) {
+        throw new HttpException(
+          { message: '정원이 꽉찼습니다' },
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       await this.meetingRepository.createApply(applyMeetingDto, meeting, user);
