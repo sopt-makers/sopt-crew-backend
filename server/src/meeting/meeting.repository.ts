@@ -32,8 +32,8 @@ export class MeetingRepository extends Repository<Meeting> {
     getMeetingDto: GetMeetingDto,
     categoryArr: MeetingCategory[],
     statusArr: MeetingStatus[],
-    joinableParts: MeetingJoinablePart[],
     canJoinOnlyActiveGeneration: boolean,
+    joinableParts?: MeetingJoinablePart | MeetingJoinablePart[],
   ): Promise<[Meeting[], number]> {
     const { query, skip, take } = getMeetingDto;
     const nowDate = todayDate();
@@ -71,13 +71,22 @@ export class MeetingRepository extends Repository<Meeting> {
       );
     }
 
-    if (joinableParts.length >= 1) {
-      meetingQuery.andWhere(
-        `meeting.joinableParts @> ARRAY[:...joinableParts]::web_dev.meeting_joinableParts_enum[]`,
-        {
-          joinableParts,
-        },
-      );
+    if (joinableParts !== undefined) {
+      if (Array.isArray(joinableParts)) {
+        meetingQuery.andWhere(
+          `meeting.joinableParts && ARRAY[:...joinableParts]::web_dev.meeting_joinableParts_enum[]`,
+          {
+            joinableParts,
+          },
+        );
+      } else {
+        meetingQuery.andWhere(
+          `meeting.joinableParts && ARRAY[:joinableParts]::web_dev.meeting_joinableParts_enum[]`,
+          {
+            joinableParts,
+          },
+        );
+      }
     }
 
     meetingQuery.andWhere(
