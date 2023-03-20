@@ -5,16 +5,18 @@ import { PlaygroundRepositoryGetUserDto } from './dto/get-user/playground-reposi
 
 @Injectable()
 export class PlaygroundRepository {
+  private URL: string =
+    process.env.NODE_ENV === 'dev'
+      ? 'https://playground.dev.sopt.org'
+      : 'https://playground.sopt.org';
+
   async getUser(authToken: string): Promise<PlaygroundRepositoryGetUserDto> {
     try {
-      const result = await axios.get(
-        'https://playground.dev.sopt.org/api/v1/members/me',
-        {
-          headers: {
-            Authorization: authToken,
-          },
+      const result = await axios.get(`${this.URL}/api/v1/members/me`, {
+        headers: {
+          Authorization: authToken,
         },
-      );
+      });
 
       return result.data;
     } catch (error) {
@@ -26,14 +28,11 @@ export class PlaygroundRepository {
     authToken: string,
   ): Promise<PlaygroundRepositoryGetUserProfileDto> {
     try {
-      const result = await axios.get(
-        'https://playground.dev.sopt.org/api/v1/members/profile/me',
-        {
-          headers: {
-            Authorization: authToken,
-          },
+      const result = await axios.get(`${this.URL}/api/v1/members/profile/me`, {
+        headers: {
+          Authorization: authToken,
         },
-      );
+      });
 
       return result.data;
     } catch (error) {
