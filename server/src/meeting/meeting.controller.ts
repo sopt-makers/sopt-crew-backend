@@ -36,7 +36,7 @@ import { GetListDto } from './dto/get-list.dto';
 import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { InviteMeetingDto } from './dto/invite-meeting.dto';
 import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
-import { GetUsersDto } from './dto/get-users.dto';
+import { GetUsersResponseDto } from './dto/get-users-response.dto';
 import { BaseExceptionDto } from 'src/common/dto/base-exception.dto';
 import { GetMeetingByIdResponseDto } from './dto/get-meeting-by-id-response.dto';
 import { GetAllMeetingsResponseDto } from './dto/get-all-meetings-response.dto';
@@ -55,7 +55,7 @@ export class MeetingController {
   @Get('/:id/users')
   async getInviteUsersByMeeting(
     @Param('id', ParseIntPipe) id: number,
-    @Query() getUsersDto: GetUsersDto,
+    @Query() getUsersDto: GetUsersResponseDto,
   ) {
     return this.meetingService.getInvitableUsersByMeeting(id, getUsersDto);
   }

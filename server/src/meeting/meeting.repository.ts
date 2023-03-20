@@ -10,7 +10,7 @@ import {
 import { Apply, ApplyStatus, ApplyType } from './apply.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto } from './dto/get-meeting.dto';
-import { GetUsersDto } from './dto/get-users.dto';
+import { GetUsersResponseDto } from './dto/get-users-response.dto';
 import axios from 'axios';
 import { todayDate } from 'src/common/utils/time';
 import { MeetingJoinablePart } from './enum/meeting-joinable-part.enum';
@@ -227,7 +227,10 @@ export class MeetingRepository extends Repository<Meeting> {
   }
 
   // 해당 api 수정해야 함
-  async getInvitableUsersByMeeting(id: number, getUsersDto: GetUsersDto) {
+  async getInvitableUsersByMeeting(
+    id: number,
+    getUsersDto: GetUsersResponseDto,
+  ) {
     const { name, generation } = getUsersDto;
     const invite = await Apply.createQueryBuilder('apply')
       .leftJoinAndSelect('apply.user', 'user') // user 정보를 받아온 후 join

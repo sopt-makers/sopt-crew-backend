@@ -3,23 +3,23 @@ import { Type } from 'class-transformer';
 
 import { ApiProperty } from '@nestjs/swagger';
 
-export class GetUsersDto {
+export class GetUsersResponseDto {
   @ApiProperty({
     example: '이동이동',
     description: '이름 검색',
     required: false,
   })
-  @IsString()
   @IsOptional()
-  readonly name: string;
+  @IsString()
+  readonly name?: string;
 
   @ApiProperty({
     example: 30,
     description: '기수',
     required: false,
   })
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  @IsOptional()
-  readonly generation: number;
+  readonly generation?: number;
 }

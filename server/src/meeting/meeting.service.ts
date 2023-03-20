@@ -19,7 +19,7 @@ import { UpdateStatusApplyDto } from './dto/update-status-apply.dto';
 import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
 import { InviteMeetingDto } from './dto/invite-meeting.dto';
 import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
-import { GetUsersDto } from './dto/get-users.dto';
+import { GetUsersResponseDto } from './dto/get-users-response.dto';
 import { Apply, ApplyStatus, ApplyType } from './apply.entity';
 import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
 import { meetingStatus } from 'src/common/utils/meeting.status';
@@ -228,7 +228,7 @@ export class MeetingService {
       ? joinableParts
       : [joinableParts];
 
-    const [meetings, itemCount] =
+    const [meetingResponse, itemCount] =
       await this.meetingRepository.getMeetingsAndCount(
         getMeetingDto,
         categoryArr,
@@ -237,7 +237,7 @@ export class MeetingService {
         isOnlyActiveGeneration,
       );
 
-    const meetingPromises = meetings.map(async (meeting) => {
+    const meetingPromises = meetingResponse.map(async (meeting) => {
       const { status } = await meetingStatus(meeting);
 
       return {
@@ -245,7 +245,7 @@ export class MeetingService {
         status,
       };
     });
-    await Promise.all(meetingPromises);
+    const meetings = await Promise.all(meetingPromises);
 
     const pageOptionsDto: PageOptionsDto = { page, skip, take };
     const pageMetaDto = new PageMetaDto({
@@ -477,7 +477,7 @@ export class MeetingService {
 
     // 초대 생성 및 초대 배열 return
     const inviteArr = await Promise.all(
-      invitables.map((user: User) =>
+      invitables.map(async (user: User) =>
         this.meetingRepository.createApply(
           { content: message, id },
           meeting,
@@ -543,7 +543,10 @@ export class MeetingService {
   }
 
   // 해당 api 수정해야 함
-  async getInvitableUsersByMeeting(id: number, getUsersDto: GetUsersDto) {
+  async getInvitableUsersByMeeting(
+    id: number,
+    getUsersDto: GetUsersResponseDto,
+  ) {
     return this.meetingRepository.getInvitableUsersByMeeting(id, getUsersDto);
   }
 
