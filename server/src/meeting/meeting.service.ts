@@ -382,6 +382,10 @@ export class MeetingService {
       );
     }
 
+    if (user.activities === null) {
+      throw new BadRequestException('기수/파트를 설정해주세요');
+    }
+
     const approvedApplies = meeting.appliedInfo.filter(
       (apply) => apply.status === ApplyStatus.APPROVE,
     );

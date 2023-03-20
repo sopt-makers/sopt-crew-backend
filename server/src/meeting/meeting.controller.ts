@@ -137,6 +137,11 @@ export class MeetingController {
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
+    description: '기수/파트를 설정해주세요',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
     description: '정원이 꽉찼습니다',
     schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
