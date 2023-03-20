@@ -28,6 +28,7 @@ import { MeetingJoinablePart } from './enum/meeting-joinable-part.enum';
 import { ACTIVE_GENERATION } from 'src/common/constant/active-generation.const';
 import { GetMeetingByIdResponseDto } from './dto/get-meeting-by-id-response.dto';
 import { GetAllMeetingsResponseDto } from './dto/get-all-meetings-response.dto';
+import { GetApplyListByMeetingResponseDto } from './dto/get-apply-list-by-meeting/get-apply-list-by-meeting-response.dto';
 
 @Injectable()
 export class MeetingService {
@@ -89,7 +90,11 @@ export class MeetingService {
     return null;
   }
 
-  async getAppliesByMeeting(id: number, user: User, getListDto: GetListDto) {
+  async getApplyListByMeeting(
+    id: number,
+    user: User,
+    getListDto: GetListDto,
+  ): Promise<GetApplyListByMeetingResponseDto> {
     const { status, take, type, skip, page } = getListDto;
 
     const typeArr: ApplyType[] = type
@@ -109,7 +114,7 @@ export class MeetingService {
       );
     }
 
-    const [applies, itemCount] =
+    const [applyResponse, itemCount] =
       await this.meetingRepository.getAppliesAndCount(
         id,
         typeArr,
@@ -123,6 +128,19 @@ export class MeetingService {
       itemCount: itemCount,
       pageOptionsDto,
     });
+
+    const applies = (() => {
+      // 일반 참여자가 조회 시
+      if (meeting.userId !== user.id) {
+        return applyResponse.map((apply) => {
+          delete apply.content;
+
+          return apply;
+        });
+      }
+
+      return applyResponse;
+    })();
 
     return { apply: applies, meta: pageMetaDto };
   }

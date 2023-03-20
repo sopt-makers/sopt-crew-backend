@@ -40,6 +40,7 @@ import { GetUsersDto } from './dto/get-users.dto';
 import { BaseExceptionDto } from 'src/common/dto/base-exception.dto';
 import { GetMeetingByIdResponseDto } from './dto/get-meeting-by-id-response.dto';
 import { GetAllMeetingsResponseDto } from './dto/get-all-meetings-response.dto';
+import { GetApplyListByMeetingResponseDto } from './dto/get-apply-list-by-meeting/get-apply-list-by-meeting-response.dto';
 
 @ApiTags('모임')
 @Controller('meeting')
@@ -104,16 +105,21 @@ export class MeetingController {
     description:
       '모임 지원자/참여자 조회 (모임장이면 지원자, 아니면 참여자 조회)',
   })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '모임이 없습니다',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Get('/:id/list')
   @ApiParam({ name: 'id', required: true, description: '모임 id' })
-  async getListByMeeting(
+  async getApplyListByMeeting(
     @Query() getListDto: GetListDto,
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
-  ) {
-    return this.meetingService.getAppliesByMeeting(id, user, getListDto);
+  ): Promise<GetApplyListByMeetingResponseDto> {
+    return this.meetingService.getApplyListByMeeting(id, user, getListDto);
   }
 
   @ApiOperation({
