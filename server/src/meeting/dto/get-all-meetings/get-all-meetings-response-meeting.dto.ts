@@ -1,9 +1,9 @@
 import { User } from 'src/users/user.entity';
-import { Apply } from '../apply.entity';
-import { MeetingJoinablePart } from '../enum/meeting-joinable-part.enum';
-import { MeetingCategory, ImageURL, MeetingStatus } from '../meeting.entity';
+import { Apply } from '../../apply.entity';
+import { MeetingJoinablePart } from '../../enum/meeting-joinable-part.enum';
+import { MeetingCategory, ImageURL, MeetingStatus } from '../../meeting.entity';
 
-export class GetMeetingByIdResponseDto {
+export class GetAllMeetingResponseMeetingDto {
   id: number;
 
   // 개설한 유저
@@ -67,8 +67,6 @@ export class GetMeetingByIdResponseDto {
    * null인 경우 모든 기수 허용
    * */
   targetActiveGeneration: number | null;
-
-  approvedApplyCount: number;
 
   joinableParts: MeetingJoinablePart[];
   // 칼럼이 아닌 response할 때 meeting 객체에 넣어줄 값

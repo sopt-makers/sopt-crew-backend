@@ -27,8 +27,8 @@ import { Part } from 'src/common/enum/part.enum';
 import { MeetingJoinablePart } from './enum/meeting-joinable-part.enum';
 import { ACTIVE_GENERATION } from 'src/common/constant/active-generation.const';
 import { GetMeetingByIdResponseDto } from './dto/get-meeting-by-id-response.dto';
-import { GetAllMeetingsResponseDto } from './dto/get-all-meetings-response.dto';
 import { GetApplyListByMeetingResponseDto } from './dto/get-apply-list-by-meeting/get-apply-list-by-meeting-response.dto';
+import { GetAllMeetingsResponseDto } from './dto/get-all-meetings/get-all-meetings-response.dto';
 
 @Injectable()
 export class MeetingService {
@@ -189,7 +189,8 @@ export class MeetingService {
     return {
       ...meeting,
       status: status,
-      appliedInfo: approvedApplies,
+      appliedInfo: meeting.appliedInfo,
+      approvedApplyCount: approvedApplies.length,
       host: isHost,
       apply: isApply,
       approved: approvedUser,
