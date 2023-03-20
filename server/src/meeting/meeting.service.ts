@@ -287,7 +287,7 @@ export class MeetingService {
     }));
 
     const result = await this.meetingRepository.createMeeting(
-      { ...meeting, targetActiveGeneration },
+      { ...meeting, targetActiveGeneration, canJoinOnlyActiveGeneration },
       imageURL,
       user,
     );
