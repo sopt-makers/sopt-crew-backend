@@ -12,9 +12,9 @@ import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetUsersResponseDto } from './dto/get-users-response.dto';
 import axios from 'axios';
-import { todayDate } from 'src/common/utils/time';
 import { MeetingJoinablePart } from './enum/meeting-joinable-part.enum';
 import { ACTIVE_GENERATION } from 'src/common/constant/active-generation.const';
+import dayjs from 'dayjs';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
@@ -36,7 +36,7 @@ export class MeetingRepository extends Repository<Meeting> {
     joinableParts?: MeetingJoinablePart | MeetingJoinablePart[],
   ): Promise<[Meeting[], number]> {
     const { query, skip, take } = getMeetingDto;
-    const nowDate = todayDate();
+    const nowDate = dayjs().toDate();
 
     const meetingQuery = this.createQueryBuilder('meeting')
       .leftJoinAndSelect(
@@ -218,8 +218,7 @@ export class MeetingRepository extends Repository<Meeting> {
   ): Promise<Apply> {
     const { content } = applyMeetingDto;
 
-    // today 고쳐지면 수정해야함
-    const appliedDate = todayDate();
+    const appliedDate = dayjs().toDate();
     const apply = await Apply.createApply(
       user,
       content,

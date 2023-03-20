@@ -1,11 +1,11 @@
 import { Meeting, MeetingStatus } from 'src/meeting/meeting.entity';
 import { Apply, ApplyStatus } from 'src/meeting/apply.entity';
-import { todayDate } from './time';
+import dayjs from 'dayjs';
 
 export const meetingStatus = async (meeting: Meeting) => {
   const { appliedInfo, capacity, startDate, endDate } = meeting;
   // const nowDate = new Date();
-  const nowDate = todayDate();
+  const nowDate = dayjs().toDate();
 
   // 승인된 지원 정보
   const approvedApplies: Apply[] = appliedInfo.filter((apply) =>
