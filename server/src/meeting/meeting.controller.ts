@@ -38,6 +38,8 @@ import { InviteMeetingDto } from './dto/invite-meeting.dto';
 import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
 import { GetUsersDto } from './dto/get-users.dto';
 import { BaseExceptionDto } from 'src/common/dto/base-exception.dto';
+import { GetMeetingByIdResponseDto } from './dto/get-meeting-by-id-response.dto';
+import { GetAllMeetingsResponseDto } from './dto/get-all-meetings-response.dto';
 
 @ApiTags('모임')
 @Controller('meeting')
@@ -173,7 +175,7 @@ export class MeetingController {
   async getMeetingById(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
-  ): Promise<Meeting> {
+  ): Promise<GetMeetingByIdResponseDto> {
     return this.meetingService.getMeetingById(id, user);
   }
 
@@ -182,7 +184,9 @@ export class MeetingController {
     description: '모임 전체 조회/검색/필터링',
   })
   @Get('/')
-  async getAllMeeting(@Query() getMeetingDto: GetMeetingDto) {
+  async getAllMeeting(
+    @Query() getMeetingDto: GetMeetingDto,
+  ): Promise<GetAllMeetingsResponseDto> {
     return this.meetingService.getAllMeeting(getMeetingDto);
   }
 

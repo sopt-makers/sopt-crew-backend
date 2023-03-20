@@ -141,12 +141,4 @@ export class Meeting extends BaseEntity {
     nullable: true,
   })
   joinableParts: MeetingJoinablePart[];
-
-  // 칼럼이 아닌 response할 때 meeting 객체에 넣어줄 값
-  status: MeetingStatus; // 모임 상태
-  confirmedApply: Apply[]; // 승인된 모임
-  host: boolean; // 해당 모임의 호스트인지
-  apply: boolean; // 해당 모임을 지원 했는지
-  invite: boolean; // 해당 모임에 초대 받았는지
-  approved: boolean; // 초대를 받았다면 승인을 했는지
 }
