@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MeetingRepository } from './meeting.repository';
 import { ImageURL, MeetingCategory, MeetingStatus } from './meeting.entity';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
-import { UpdateMeetingDto } from './dto/update-meeting-dto';
+import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { User } from 'src/users/user.entity';
 import { ApplyMeetingDto } from './dto/apply-meeting.dto';
 import { UserRepository } from 'src/users/users.repository';

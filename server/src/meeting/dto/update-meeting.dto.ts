@@ -6,7 +6,7 @@ import {
   IsEnum,
   IsNotEmpty,
 } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { MeetingCategory } from '../meeting.entity';
 import { MeetingJoinablePart } from '../enum/meeting-joinable-part.enum';
@@ -15,109 +15,104 @@ export class UpdateMeetingDto {
   @ApiProperty({
     example: '알고보면 쓸데있는 개발 프로세스',
     description: '모임 제목',
-    required: true,
+    required: false,
   })
   @IsString()
   @IsOptional()
-  readonly title: string;
+  readonly title?: string;
 
-  @ApiProperty({ type: 'string', format: 'binary' })
+  @ApiProperty({ type: 'string', format: 'binary', required: false })
   @IsOptional()
-  readonly files: any;
+  readonly files?: any;
 
   @IsString()
   @IsOptional()
   @ApiProperty({
     example: '스터디',
     description: '모임 카테고리',
-    required: true,
+    required: false,
   })
-  readonly category: MeetingCategory;
+  readonly category?: MeetingCategory;
 
   @ApiProperty({
-    example: '2022-10-08',
+    example: '2022.10.08',
     description: '모집 기간 시작 날짜',
-    required: true,
+    required: false,
   })
-  @Type(() => Date)
   @IsDate()
   @IsOptional()
-  readonly startDate: Date;
+  readonly startDate?: Date;
 
   @ApiProperty({
-    example: '2022-10-09',
+    example: '2022.10.09',
     description: '모집 기간 끝 날짜',
-    required: true,
+    required: false,
   })
-  @Type(() => Date)
   @IsDate()
   @IsOptional()
-  readonly endDate: Date;
+  readonly endDate?: Date;
 
   @ApiProperty({
     example: 5,
     description: '모집 인원',
-    required: true,
+    required: false,
   })
-  @Type(() => Number) // number 변환
   @IsOptional()
-  readonly capacity: number;
+  readonly capacity?: number;
 
   @ApiProperty({
     example: 'api 가 터졌다고? 깃이 터졌다고?',
     description: '모임 정보',
-    required: true,
+    required: false,
   })
   @IsOptional()
   @IsString()
-  readonly desc: string;
+  readonly desc?: string;
 
   @ApiProperty({
     example: '소요 시간 : 1시간 예상',
     description: '진행 방식 소개',
-    required: true,
+    required: false,
   })
   @IsString()
   @IsOptional()
-  readonly processDesc: string;
+  readonly processDesc?: string;
 
   @ApiProperty({
     example: '2022.10.29',
     description: '모임 기간 첫 날짜',
-    required: true,
+    required: false,
   })
-  @Type(() => Date)
   @IsDate()
   @IsOptional()
-  readonly mStartDate: Date;
+  readonly mStartDate?: Date;
 
   @ApiProperty({
     example: '2022.10.30',
     description: '모임 기간 끝 날짜',
-    required: true,
+    required: false,
   })
-  @Type(() => Date)
   @IsDate()
   @IsOptional()
-  readonly mEndDate: Date;
+  readonly mEndDate?: Date;
 
   @ApiProperty({
     example: '안녕하세요 기획 파트 000입니다',
     description: '개설자 소개',
-    required: true,
+    required: false,
   })
   @IsString()
   @IsOptional()
-  readonly leaderDesc: string;
+  readonly leaderDesc?: string;
 
   @ApiProperty({
     example: '개발 모르는 사람도 환영',
     description: '모집 대상',
-    required: true,
+    required: false,
   })
   @IsString()
   @IsOptional()
-  readonly targetDesc: string;
+  readonly targetDesc?: string;
 
   @ApiProperty({
     example: '유의할 사항',
@@ -126,34 +121,32 @@ export class UpdateMeetingDto {
   })
   @IsString()
   @IsOptional()
-  readonly note: string;
+  readonly note?: string;
 
   @ApiProperty({
     example: false,
     description: '멘토 필요 여부',
-    required: true,
+    required: false,
   })
   @IsNotEmpty()
-  @Type(() => Boolean)
   @IsBoolean()
-  readonly isMentorNeeded: boolean;
+  readonly isMentorNeeded?: boolean;
 
   @ApiProperty({
     example: false,
     description: '활동기수만 지원 가능 여부',
-    required: true,
+    required: false,
   })
   @IsNotEmpty()
-  @Type(() => Boolean)
   @IsBoolean()
-  readonly canJoinOnlyActiveGeneration: boolean;
+  readonly canJoinOnlyActiveGeneration?: boolean;
 
   @ApiProperty({
     example: [MeetingJoinablePart.ANDROID, MeetingJoinablePart.IOS],
     description: '대상 파트 목록',
     enum: MeetingJoinablePart,
     isArray: true,
-    required: true,
+    required: false,
   })
   @Transform((property) => {
     return property.value.split(',');

@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsBoolean,
   IsEnum,
+  IsNumber,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -34,21 +35,19 @@ export class CreateMeetingDto {
   readonly category: MeetingCategory;
 
   @ApiProperty({
-    example: '2022-10-08',
+    example: '2022.10.08',
     description: '모집 기간 시작 날짜',
     required: true,
   })
-  @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   readonly startDate: Date;
 
   @ApiProperty({
-    example: '2022-10-09',
+    example: '2022.10.09',
     description: '모집 기간 끝 날짜',
     required: true,
   })
-  @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   readonly endDate: Date;
@@ -58,8 +57,8 @@ export class CreateMeetingDto {
     description: '모집 인원',
     required: true,
   })
-  @Type(() => Number) // number 변환
   @IsNotEmpty()
+  @IsNumber()
   readonly capacity: number;
 
   @ApiProperty({
@@ -85,7 +84,6 @@ export class CreateMeetingDto {
     description: '모임 기간 첫 날짜',
     required: true,
   })
-  @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   readonly mStartDate: Date;
@@ -95,7 +93,6 @@ export class CreateMeetingDto {
     description: '모임 기간 날짜',
     required: true,
   })
-  @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   readonly mEndDate: Date;
