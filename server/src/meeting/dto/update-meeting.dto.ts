@@ -1,152 +1,130 @@
-import {
-  IsDate,
-  IsString,
-  IsOptional,
-  IsBoolean,
-  IsEnum,
-  IsNotEmpty,
-} from 'class-validator';
+import { IsDate, IsString, IsEnum, IsNotEmpty } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { MeetingCategory } from '../meeting.entity';
 import { MeetingJoinablePart } from '../enum/meeting-joinable-part.enum';
+import { IsBoolean } from 'src/common/decorator/is-boolean.decorator';
 
 export class UpdateMeetingDto {
   @ApiProperty({
     example: '알고보면 쓸데있는 개발 프로세스',
     description: '모임 제목',
-    required: false,
   })
   @IsString()
-  @IsOptional()
-  readonly title?: string;
+  @IsNotEmpty()
+  readonly title: string;
 
-  @ApiProperty({ type: 'string', format: 'binary', required: false })
-  @IsOptional()
-  readonly files?: any;
+  @ApiProperty({ type: 'string', format: 'binary' })
+  readonly files: any;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   @ApiProperty({
     example: '스터디',
     description: '모임 카테고리',
-    required: false,
   })
-  readonly category?: MeetingCategory;
+  readonly category: MeetingCategory;
 
   @ApiProperty({
     example: '2022.10.08',
     description: '모집 기간 시작 날짜',
-    required: false,
   })
   @IsDate()
-  @IsOptional()
-  readonly startDate?: Date;
+  @IsNotEmpty()
+  readonly startDate: Date;
 
   @ApiProperty({
     example: '2022.10.09',
     description: '모집 기간 끝 날짜',
-    required: false,
   })
   @IsDate()
-  @IsOptional()
-  readonly endDate?: Date;
+  @IsNotEmpty()
+  readonly endDate: Date;
 
   @ApiProperty({
     example: 5,
     description: '모집 인원',
-    required: false,
   })
-  @IsOptional()
-  readonly capacity?: number;
+  @IsNotEmpty()
+  readonly capacity: number;
 
   @ApiProperty({
     example: 'api 가 터졌다고? 깃이 터졌다고?',
     description: '모임 정보',
-    required: false,
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  readonly desc?: string;
+  readonly desc: string;
 
   @ApiProperty({
     example: '소요 시간 : 1시간 예상',
     description: '진행 방식 소개',
-    required: false,
   })
   @IsString()
-  @IsOptional()
-  readonly processDesc?: string;
+  @IsNotEmpty()
+  readonly processDesc: string;
 
   @ApiProperty({
     example: '2022.10.29',
     description: '모임 기간 첫 날짜',
-    required: false,
   })
   @IsDate()
-  @IsOptional()
-  readonly mStartDate?: Date;
+  @IsNotEmpty()
+  readonly mStartDate: Date;
 
   @ApiProperty({
     example: '2022.10.30',
     description: '모임 기간 끝 날짜',
-    required: false,
   })
   @IsDate()
-  @IsOptional()
-  readonly mEndDate?: Date;
+  @IsNotEmpty()
+  readonly mEndDate: Date;
 
   @ApiProperty({
     example: '안녕하세요 기획 파트 000입니다',
     description: '개설자 소개',
-    required: false,
   })
   @IsString()
-  @IsOptional()
-  readonly leaderDesc?: string;
+  @IsNotEmpty()
+  readonly leaderDesc: string;
 
   @ApiProperty({
     example: '개발 모르는 사람도 환영',
     description: '모집 대상',
-    required: false,
   })
   @IsString()
-  @IsOptional()
-  readonly targetDesc?: string;
+  @IsNotEmpty()
+  readonly targetDesc: string;
 
   @ApiProperty({
     example: '유의할 사항',
     description: '유의 사항',
-    required: false,
   })
   @IsString()
-  @IsOptional()
-  readonly note?: string;
+  @IsNotEmpty()
+  readonly note: string;
 
   @ApiProperty({
     example: false,
     description: '멘토 필요 여부',
-    required: false,
   })
   @IsNotEmpty()
   @IsBoolean()
-  readonly isMentorNeeded?: boolean;
+  readonly isMentorNeeded: boolean;
 
   @ApiProperty({
     example: false,
     description: '활동기수만 지원 가능 여부',
-    required: false,
   })
   @IsNotEmpty()
   @IsBoolean()
-  readonly canJoinOnlyActiveGeneration?: boolean;
+  readonly canJoinOnlyActiveGeneration: boolean;
 
   @ApiProperty({
     example: [MeetingJoinablePart.ANDROID, MeetingJoinablePart.IOS],
     description: '대상 파트 목록',
     enum: MeetingJoinablePart,
     isArray: true,
-    required: false,
   })
   @Transform((property) => {
     return property.value.split(',');
