@@ -219,10 +219,6 @@ export class MeetingRepository extends Repository<Meeting> {
     const { content } = applyMeetingDto;
 
     const appliedDate = dayjs().toDate();
-    console.log(dayjs());
-    console.log(appliedDate);
-    console.log(new Date());
-    console.log(process.env.TZ);
     const apply = await Apply.createApply(
       user,
       content,
@@ -230,7 +226,7 @@ export class MeetingRepository extends Repository<Meeting> {
       type,
       appliedDate,
     );
-    console.log(apply);
+
     return apply;
   }
 
