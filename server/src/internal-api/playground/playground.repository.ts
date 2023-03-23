@@ -8,7 +8,7 @@ export class PlaygroundRepository {
   private URL: string =
     process.env.NODE_ENV === 'dev'
       ? 'https://playground.dev.sopt.org'
-      : 'https://playground.sopt.org';
+      : 'https://playground.api.sopt.org';
 
   async getUser(authToken: string): Promise<PlaygroundRepositoryGetUserDto> {
     try {
