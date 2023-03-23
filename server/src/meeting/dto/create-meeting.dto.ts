@@ -3,7 +3,6 @@ import {
   IsDate,
   IsString,
   IsOptional,
-  IsBoolean,
   IsEnum,
   IsNumber,
 } from 'class-validator';
@@ -11,6 +10,7 @@ import { Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { MeetingCategory } from '../meeting.entity';
 import { MeetingJoinablePart } from '../enum/meeting-joinable-part.enum';
+import { IsBoolean } from 'src/common/decorator/is-boolean.decorator';
 
 export class CreateMeetingDto {
   @ApiProperty({
