@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 
 export const meetingStatus = async (meeting: Meeting) => {
   const { appliedInfo, capacity, startDate, endDate } = meeting;
-  // const nowDate = new Date();
   const nowDate = dayjs().toDate();
 
   // 승인된 지원 정보

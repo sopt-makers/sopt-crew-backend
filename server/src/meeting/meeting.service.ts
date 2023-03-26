@@ -29,6 +29,7 @@ import { ACTIVE_GENERATION } from 'src/common/constant/active-generation.const';
 import { GetMeetingByIdResponseDto } from './dto/get-meeting-by-id-response.dto';
 import { GetApplyListByMeetingResponseDto } from './dto/get-apply-list-by-meeting/get-apply-list-by-meeting-response.dto';
 import { GetAllMeetingsResponseDto } from './dto/get-all-meetings/get-all-meetings-response.dto';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class MeetingService {
@@ -301,8 +302,15 @@ export class MeetingService {
       url: file.location,
     }));
 
+    const endDate = dayjs(meeting.endDate).endOf('date').toDate();
+
     const result = await this.meetingRepository.createMeeting(
-      { ...meeting, targetActiveGeneration, canJoinOnlyActiveGeneration },
+      {
+        ...meeting,
+        targetActiveGeneration,
+        canJoinOnlyActiveGeneration,
+        endDate,
+      },
       imageURL,
       user,
     );
@@ -340,9 +348,16 @@ export class MeetingService {
       url: file.location,
     }));
 
+    const endDate = dayjs(meeting.endDate).endOf('date').toDate();
+
     const result = await this.meetingRepository.updateMeeting(
       id,
-      { ...meeting, targetActiveGeneration, canJoinOnlyActiveGeneration },
+      {
+        ...meeting,
+        targetActiveGeneration,
+        canJoinOnlyActiveGeneration,
+        endDate,
+      },
       imageURL,
       user,
     );
