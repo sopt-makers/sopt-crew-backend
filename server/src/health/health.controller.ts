@@ -20,8 +20,15 @@ export class HealthController {
   @Get()
   @HealthCheck()
   async healthCheck() {
+    const webKey =
+      process.env.NODE_ENV === 'prod' ? 'crew-web' : 'crew-web-dev';
+    const webUrl =
+      process.env.NODE_ENV === 'prod'
+        ? 'https://playground.sopt.org/group'
+        : 'https://sopt-internal-dev.pages.dev/group';
+
     return this.health.check([
-      () => this.http.pingCheck('crew-web', `http://localhost:3001`),
+      () => this.http.pingCheck(webKey, webUrl),
       () => this.db.pingCheck('database'),
     ]);
   }
