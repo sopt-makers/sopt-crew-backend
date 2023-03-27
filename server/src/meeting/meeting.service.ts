@@ -422,7 +422,7 @@ export class MeetingService {
           });
 
           if (userActiveGeneration === undefined) {
-            throw new BadRequestException({ message: '최근 기수가 아닙니다.' });
+            throw new BadRequestException({ message: '활동 기수가 아닙니다.' });
           }
 
           return [userActiveGeneration];
