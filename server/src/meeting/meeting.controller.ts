@@ -17,7 +17,7 @@ import { MeetingService } from './meeting.service';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { Meeting } from './meeting.entity';
 import { FilesInterceptor } from '@nestjs/platform-express/multer/interceptors/files.interceptor';
-import { UpdateMeetingDto } from './dto/update-meeting-dto';
+import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { User } from 'src/users/user.entity';
 import { AuthGuard } from '@nestjs/passport';
