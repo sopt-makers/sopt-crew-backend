@@ -17,11 +17,15 @@ export class UsersService {
       user,
     );
 
-    meetings.forEach(async (meeting) => {
+    const result = meetings.map(async (meeting) => {
       const { status } = await meetingStatus(meeting);
-      meeting.status = status;
+
+      return {
+        ...meeting,
+        status,
+      };
     });
-    return { meetings, count: itemCount };
+    return { meetings: result, count: itemCount };
   }
 
   // 내가 지원한 내역 조회
@@ -30,12 +34,19 @@ export class UsersService {
       user,
     );
 
-    applies.forEach(async (apply) => {
+    const result = applies.map(async (apply) => {
       const { status } = await meetingStatus(apply.meeting);
-      apply.meeting.status = status;
+
+      return {
+        ...apply,
+        meeting: {
+          ...apply.meeting,
+          status: status,
+        },
+      };
     });
 
-    return { apply: applies, count: itemCount };
+    return { apply: result, count: itemCount };
   }
 
   // 유저 정보 조회

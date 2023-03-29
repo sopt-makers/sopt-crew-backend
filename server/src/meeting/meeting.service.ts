@@ -7,12 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MeetingRepository } from './meeting.repository';
-import {
-  ImageURL,
-  Meeting,
-  MeetingCategory,
-  MeetingStatus,
-} from './meeting.entity';
+import { ImageURL, MeetingCategory, MeetingStatus } from './meeting.entity';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting-dto';
 import { User } from 'src/users/user.entity';
@@ -31,6 +26,8 @@ import { meetingStatus } from 'src/common/utils/meeting.status';
 import { Part } from 'src/common/enum/part.enum';
 import { MeetingJoinablePart } from './enum/meeting-joinable-part.enum';
 import { ACTIVE_GENERATION } from 'src/common/constant/active-generation.const';
+import { GetMeetingByIdResponseDto } from './dto/get-meeting-by-id-response.dto';
+import { GetAllMeetingsResponseDto } from './dto/get-all-meetings-response.dto';
 
 @Injectable()
 export class MeetingService {
@@ -130,7 +127,10 @@ export class MeetingService {
     return { apply: applies, meta: pageMetaDto };
   }
 
-  async getMeetingById(id: number, user: User): Promise<Meeting> {
+  async getMeetingById(
+    id: number,
+    user: User,
+  ): Promise<GetMeetingByIdResponseDto> {
     const meeting = await this.meetingRepository.getMeeting(id);
 
     if (!meeting) {
@@ -168,19 +168,22 @@ export class MeetingService {
 
     const { status, approvedApplies } = await meetingStatus(meeting);
 
-    meeting.status = status;
-    meeting.appliedInfo = approvedApplies;
-    meeting.host = isHost;
-    meeting.apply = isApply;
-    meeting.approved = approvedUser;
-    meeting.invite = inviteUser;
-    meeting.canJoinOnlyActiveGeneration =
-      meeting.targetActiveGeneration === ACTIVE_GENERATION;
-
-    return meeting;
+    return {
+      ...meeting,
+      status: status,
+      appliedInfo: approvedApplies,
+      host: isHost,
+      apply: isApply,
+      approved: approvedUser,
+      invite: inviteUser,
+      canJoinOnlyActiveGeneration:
+        meeting.targetActiveGeneration === ACTIVE_GENERATION,
+    };
   }
 
-  async getAllMeeting(getMeetingDto: GetMeetingDto) {
+  async getAllMeeting(
+    getMeetingDto: GetMeetingDto,
+  ): Promise<GetAllMeetingsResponseDto> {
     const {
       category,
       status,
@@ -218,7 +221,11 @@ export class MeetingService {
 
     const meetingPromises = meetings.map(async (meeting) => {
       const { status } = await meetingStatus(meeting);
-      meeting.status = status;
+
+      return {
+        ...meeting,
+        status,
+      };
     });
     await Promise.all(meetingPromises);
 
