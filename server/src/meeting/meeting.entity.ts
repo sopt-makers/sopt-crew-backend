@@ -11,6 +11,7 @@ import {
   Unique,
 } from 'typeorm';
 import { Apply, ApplyType } from './apply.entity';
+import { MeetingJoinablePart } from './enum/meeting-joinable-part.enum';
 
 export enum MeetingStatus {
   PRE = 0,
@@ -111,7 +112,35 @@ export class Meeting extends BaseEntity {
 
   // 유의 사항
   @Column({ nullable: true })
-  note: string;
+  note: string | null;
+
+  /** 멘토 필요 여부 */
+  @Column()
+  isMentorNeeded: boolean;
+
+  /**
+   * 활동 기수만 참여 가능한지 여부
+   * */
+  @Column()
+  canJoinOnlyActiveGeneration: boolean;
+
+  /**
+   * 대상 활동 기수
+   * null인 경우 모든 기수 허용
+   * */
+  @Column({
+    nullable: true,
+    default: null,
+  })
+  targetActiveGeneration: number | null;
+
+  @Column({
+    type: 'enum',
+    enum: MeetingJoinablePart,
+    array: true,
+    nullable: true,
+  })
+  joinableParts: MeetingJoinablePart[];
 
   // 칼럼이 아닌 response할 때 meeting 객체에 넣어줄 값
   status: MeetingStatus; // 모임 상태

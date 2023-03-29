@@ -1,8 +1,6 @@
 import { User } from 'src/users/user.entity';
 import { CustomRepository } from 'src/db/typeorm-ex.decorator';
 import { Brackets, DeleteResult, Repository, UpdateResult } from 'typeorm';
-import { CreateMeetingDto } from './dto/create-meeting.dto';
-import { UpdateMeetingDto } from './dto/update-meeting-dto';
 import {
   Meeting,
   ImageURL,
@@ -15,6 +13,8 @@ import { GetMeetingDto } from './dto/get-meeting.dto';
 import { GetUsersDto } from './dto/get-users.dto';
 import axios from 'axios';
 import { todayDate } from 'src/common/utils/time';
+import { MeetingJoinablePart } from './enum/meeting-joinable-part.enum';
+import { ACTIVE_GENERATION } from 'src/common/constant/active-generation.const';
 
 @CustomRepository(Meeting)
 export class MeetingRepository extends Repository<Meeting> {
@@ -32,11 +32,13 @@ export class MeetingRepository extends Repository<Meeting> {
     getMeetingDto: GetMeetingDto,
     categoryArr: MeetingCategory[],
     statusArr: MeetingStatus[],
+    joinableParts: MeetingJoinablePart[],
+    canJoinOnlyActiveGeneration: boolean,
   ): Promise<[Meeting[], number]> {
     const { query, skip, take } = getMeetingDto;
     const nowDate = todayDate();
 
-    const meetingQuery = await this.createQueryBuilder('meeting')
+    const meetingQuery = this.createQueryBuilder('meeting')
       .leftJoinAndSelect(
         'meeting.appliedInfo',
         'apply',
@@ -47,7 +49,9 @@ export class MeetingRepository extends Repository<Meeting> {
       .where('1 = 1');
 
     if (query) {
-      meetingQuery.where('meeting.title like :title', { title: `%${query}%` });
+      meetingQuery.andWhere('meeting.title like :title', {
+        title: `%${query}%`,
+      });
     }
 
     if (categoryArr.length !== 0) {
@@ -56,38 +60,65 @@ export class MeetingRepository extends Repository<Meeting> {
       });
     }
 
-    statusArr.map(async (targetStatus, index) => {
-      if (targetStatus === MeetingStatus.PRE) {
-        const query = new Brackets((qb) => {
-          qb.where('meeting.startDate > :nowDate', {
-            nowDate,
-          });
+    if (canJoinOnlyActiveGeneration === true) {
+      meetingQuery.andWhere(
+        'meeting.canJoinOnlyActiveGeneration = :canJoinOnlyActiveGeneration',
+        { canJoinOnlyActiveGeneration },
+      );
+      meetingQuery.andWhere(
+        'meeting.targetActiveGeneration = :activeGeneration',
+        { activeGeneration: ACTIVE_GENERATION },
+      );
+    }
+
+    if (joinableParts.length >= 1) {
+      meetingQuery.andWhere(
+        `meeting.joinableParts @> ARRAY[:...joinableParts]::web_dev.meeting_joinableParts_enum[]`,
+        {
+          joinableParts,
+        },
+      );
+    }
+
+    meetingQuery.andWhere(
+      new Brackets((qb) => {
+        statusArr.map((targetStatus, index) => {
+          if (targetStatus === MeetingStatus.PRE) {
+            index !== 0
+              ? qb.orWhere('meeting.startDate > :nowDate', {
+                  nowDate,
+                }) // 모임 상태가 1개라면 or 조회
+              : qb.andWhere('meeting.startDate > :nowDate', {
+                  nowDate,
+                }); // 모임 상태가 2개 이상이라면 and 조회
+          } else if (targetStatus === MeetingStatus.POSSIBLE) {
+            index !== 0
+              ? qb
+                  .orWhere('meeting.startDate <= :nowDate', {
+                    nowDate,
+                  })
+                  .andWhere('meeting.endDate >= :nowDate', {
+                    nowDate,
+                  })
+              : qb
+                  .andWhere('meeting.startDate <= :nowDate', {
+                    nowDate,
+                  })
+                  .andWhere('meeting.endDate >= :nowDate', {
+                    nowDate,
+                  });
+          } else if (targetStatus === MeetingStatus.END) {
+            index !== 0
+              ? qb.orWhere('meeting.endDate < :nowDate', {
+                  nowDate,
+                })
+              : qb.andWhere('meeting.endDate < :nowDate', {
+                  nowDate,
+                });
+          }
         });
-        statusArr.length !== 1 && index !== 0
-          ? meetingQuery.orWhere(query) // 모임 상태가 1개라면 or 조회
-          : meetingQuery.andWhere(query); // 모임 상태가 2개 이상이라면 and 조회
-      } else if (targetStatus === MeetingStatus.POSSIBLE) {
-        const query = new Brackets((qb) => {
-          qb.where('meeting.startDate <= :nowDate', {
-            nowDate,
-          }).andWhere('meeting.endDate >= :nowDate', {
-            nowDate,
-          });
-        });
-        statusArr.length !== 1 && index !== 0
-          ? meetingQuery.orWhere(query)
-          : meetingQuery.andWhere(query);
-      } else if (targetStatus === MeetingStatus.END) {
-        const query = new Brackets((qb) => {
-          qb.where('meeting.endDate < :nowDate', {
-            nowDate,
-          });
-        });
-        statusArr.length !== 1 && index !== 0
-          ? meetingQuery.orWhere(query)
-          : meetingQuery.andWhere(query);
-      }
-    });
+      }),
+    );
 
     meetingQuery.skip(skip).take(take);
 
@@ -96,12 +127,12 @@ export class MeetingRepository extends Repository<Meeting> {
 
   // 모임 생성
   async createMeeting(
-    createMeetingDto: CreateMeetingDto,
+    meeting: Partial<Meeting>,
     imageURL: Array<ImageURL>,
     user: User,
   ): Promise<Meeting> {
     const result = await this.save({
-      ...createMeetingDto,
+      ...meeting,
       imageURL,
       user,
       appliedInfo: [],
@@ -112,14 +143,14 @@ export class MeetingRepository extends Repository<Meeting> {
   // 모임 업데이트
   async updateMeeting(
     id: number,
-    updateMeetingDto: UpdateMeetingDto,
+    meeting: Partial<Meeting>,
     imageURL: Array<ImageURL>,
     user: User,
   ): Promise<UpdateResult> {
     const result = await this.update(
       { id, userId: user.id },
       {
-        ...updateMeetingDto,
+        ...meeting,
         imageURL,
       },
     );

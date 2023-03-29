@@ -1,7 +1,15 @@
-import { IsNotEmpty, IsDate, IsString, IsOptional } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsDate,
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { MeetingCategory } from '../meeting.entity';
+import { MeetingJoinablePart } from '../enum/meeting-joinable-part.enum';
 
 export class CreateMeetingDto {
   @ApiProperty({
@@ -60,6 +68,7 @@ export class CreateMeetingDto {
     required: true,
   })
   @IsString()
+  @IsNotEmpty()
   readonly desc: string;
 
   @ApiProperty({
@@ -68,6 +77,7 @@ export class CreateMeetingDto {
     required: true,
   })
   @IsString()
+  @IsNotEmpty()
   readonly processDesc: string;
 
   @ApiProperty({
@@ -82,7 +92,7 @@ export class CreateMeetingDto {
 
   @ApiProperty({
     example: '2022.10.30',
-    description: '모임 기간  날짜',
+    description: '모임 기간 날짜',
     required: true,
   })
   @Type(() => Date)
@@ -115,5 +125,35 @@ export class CreateMeetingDto {
   })
   @IsString()
   @IsOptional()
-  readonly note: string;
+  readonly note?: string | null;
+
+  @ApiProperty({
+    example: false,
+    description: '멘토 필요 여부',
+    required: true,
+  })
+  @IsNotEmpty()
+  @Type(() => Boolean)
+  @IsBoolean()
+  readonly isMentorNeeded: boolean;
+
+  @ApiProperty({
+    example: false,
+    description: '활동기수만 지원 가능 여부',
+    required: true,
+  })
+  @IsNotEmpty()
+  @Type(() => Boolean)
+  @IsBoolean()
+  readonly canJoinOnlyActiveGeneration: boolean;
+
+  @ApiProperty({
+    example: [MeetingJoinablePart.ANDROID, MeetingJoinablePart.IOS],
+    description: '대상 파트 목록',
+    enum: MeetingJoinablePart,
+    isArray: true,
+    required: true,
+  })
+  @IsEnum(MeetingJoinablePart, { each: true })
+  readonly joinableParts: MeetingJoinablePart[];
 }

@@ -6,7 +6,11 @@
     "tsConfigPath": "tsconfig.build.json",
     "plugins": [
       {
-        "name": "@nestjs/swagger"
+        "name": "@nestjs/swagger",
+        "options": {
+          "dtoFileNameSuffix": ["*.dto.ts", "*.entity.ts"],
+          "introspectComments": true
+        }
       }
     ]
   }
