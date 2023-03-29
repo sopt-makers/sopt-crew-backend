@@ -40,9 +40,18 @@ export class UserRepository extends Repository<User> {
     return result;
   }
 
-  async getUser(id: number): Promise<User> {
+  async getUserById(id: number): Promise<User> {
     const users = await this.findOne({
       where: { id },
+      relations: ['apply'],
+    });
+
+    return users;
+  }
+
+  async getUserByOrgId(orgId: number): Promise<User> {
+    const users = await this.findOne({
+      where: { orgId },
       relations: ['apply'],
     });
 
@@ -59,6 +68,6 @@ export class UserRepository extends Repository<User> {
   }
 
   async createUser(createUserDTO: CreateUserDto) {
-    return await this.create(createUserDTO);
+    return this.create(createUserDTO);
   }
 }

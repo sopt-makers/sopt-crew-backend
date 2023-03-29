@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
+import { UserActivity } from './interface/user-activity.interface';
 
 @Entity('user')
 @Unique(['id'])
@@ -24,6 +25,9 @@ export class User extends BaseEntity {
   // sopt org unique id
   @Column()
   orgId: number;
+
+  @Column({ type: 'jsonb', nullable: true, default: null })
+  activities: UserActivity[];
 
   // 프로필 이미지
   @Column({

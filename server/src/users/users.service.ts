@@ -40,7 +40,7 @@ export class UsersService {
 
   // 유저 정보 조회
   async getUserById(id: number): Promise<User> {
-    const users = this.userRepository.getUser(id);
+    const users = this.userRepository.getUserById(id);
 
     if (!users) {
       throw new HttpException(
