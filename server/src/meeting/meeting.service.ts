@@ -225,17 +225,13 @@ export class MeetingService {
       ? status.split(',').map(Number)
       : [];
 
-    const joinablePartArr = Array.isArray(joinableParts)
-      ? joinableParts
-      : [joinableParts];
-
     const [meetingResponse, itemCount] =
       await this.meetingRepository.getMeetingsAndCount(
         getMeetingDto,
         categoryArr,
         statusArr,
-        joinablePartArr,
         isOnlyActiveGeneration,
+        joinableParts,
       );
 
     const meetingPromises = meetingResponse.map(async (meeting) => {
