@@ -17,7 +17,7 @@ export class UsersService {
       user,
     );
 
-    const result = meetings.map(async (meeting) => {
+    const resultPromises = meetings.map(async (meeting) => {
       const { status } = await meetingStatus(meeting);
 
       return {
@@ -25,6 +25,8 @@ export class UsersService {
         status,
       };
     });
+
+    const result = await Promise.all(resultPromises);
     return { meetings: result, count: itemCount };
   }
 
@@ -34,7 +36,7 @@ export class UsersService {
       user,
     );
 
-    const result = applies.map(async (apply) => {
+    const resultPromises = applies.map(async (apply) => {
       const { status } = await meetingStatus(apply.meeting);
 
       return {
@@ -45,6 +47,8 @@ export class UsersService {
         },
       };
     });
+
+    const result = await Promise.all(resultPromises);
 
     return { apply: result, count: itemCount };
   }
