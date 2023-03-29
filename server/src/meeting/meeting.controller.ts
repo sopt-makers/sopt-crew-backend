@@ -133,7 +133,7 @@ export class MeetingController {
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description:
-      '"모임이 없습니다" or "기수/파트를 설정해주세요" or "정원이 꽉찼습니다" or "최근 기수가 아닙니다." or "지원가능 파트가 아닙니다."',
+      '"모임이 없습니다" or "기수/파트를 설정해주세요" or "정원이 꽉찼습니다" or "활동 기수가 아닙니다." or "지원가능 파트가 아닙니다."',
     schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
   @ApiBearerAuth()
