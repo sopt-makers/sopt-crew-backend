@@ -75,7 +75,7 @@ export class MeetingRepository extends Repository<Meeting> {
       if (Array.isArray(joinableParts)) {
         meetingQuery.andWhere(
           `meeting.joinableParts && ARRAY[:...joinableParts]::web${
-            process.env.NODE_ENV === 'dev' && '_dev'
+            process.env.NODE_ENV === 'dev' ? '_dev' : ''
           }.meeting_joinableParts_enum[]`,
           {
             joinableParts,
@@ -84,7 +84,7 @@ export class MeetingRepository extends Repository<Meeting> {
       } else {
         meetingQuery.andWhere(
           `meeting.joinableParts && ARRAY[:joinableParts]::web${
-            process.env.NODE_ENV === 'dev' && '_dev'
+            process.env.NODE_ENV === 'dev' ? '_dev' : ''
           }.meeting_joinableParts_enum[]`,
           {
             joinableParts,
