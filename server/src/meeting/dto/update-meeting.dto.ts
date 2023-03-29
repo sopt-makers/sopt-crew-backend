@@ -1,4 +1,10 @@
-import { IsDate, IsString, IsEnum, IsNotEmpty } from 'class-validator';
+import {
+  IsDate,
+  IsString,
+  IsEnum,
+  IsNotEmpty,
+  IsDefined,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { MeetingCategory } from '../meeting.entity';
@@ -100,8 +106,8 @@ export class UpdateMeetingDto {
     example: '유의할 사항',
     description: '유의 사항',
   })
+  @IsDefined()
   @IsString()
-  @IsNotEmpty()
   readonly note: string;
 
   @ApiProperty({
