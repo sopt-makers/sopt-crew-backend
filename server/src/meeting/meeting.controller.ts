@@ -39,8 +39,8 @@ import { UpdateStatusInviteDto } from './dto/update-status-invite.dto';
 import { GetUsersResponseDto } from './dto/get-users-response.dto';
 import { BaseExceptionDto } from 'src/common/dto/base-exception.dto';
 import { GetMeetingByIdResponseDto } from './dto/get-meeting-by-id-response.dto';
-import { GetAllMeetingsResponseDto } from './dto/get-all-meetings-response.dto';
 import { GetApplyListByMeetingResponseDto } from './dto/get-apply-list-by-meeting/get-apply-list-by-meeting-response.dto';
+import { GetAllMeetingsResponseDto } from './dto/get-all-meetings/get-all-meetings-response.dto';
 
 @ApiTags('모임')
 @Controller('meeting')
