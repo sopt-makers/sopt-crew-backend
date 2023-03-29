@@ -8,10 +8,10 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
  */
 export function setupSwagger(app: INestApplication): void {
   const options = new DocumentBuilder()
-    .setTitle('OMELET Main API Server Docs')
-    .setDescription('OMELET Main API Server Docs')
-    .setVersion('1.0.0')
-    .addApiKey({ type: 'apiKey', name: 'X-API-KEY', in: 'header' }, 'X-API-KEY')
+    .setTitle('Crew API 문서')
+    .setDescription('Crew API 문서')
+    .setVersion('0.0.1')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
