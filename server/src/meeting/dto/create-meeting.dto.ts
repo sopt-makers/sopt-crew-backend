@@ -6,7 +6,7 @@ import {
   IsBoolean,
   IsEnum,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { MeetingCategory } from '../meeting.entity';
 import { MeetingJoinablePart } from '../enum/meeting-joinable-part.enum';
@@ -154,6 +154,7 @@ export class CreateMeetingDto {
     isArray: true,
     required: true,
   })
+  @Transform(({ value }) => value.split(','))
   @IsEnum(MeetingJoinablePart, { each: true })
   readonly joinableParts: MeetingJoinablePart[];
 }
