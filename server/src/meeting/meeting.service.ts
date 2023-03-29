@@ -342,7 +342,7 @@ export class MeetingService {
 
     const result = await this.meetingRepository.updateMeeting(
       id,
-      { ...meeting, targetActiveGeneration },
+      { ...meeting, targetActiveGeneration, canJoinOnlyActiveGeneration },
       imageURL,
       user,
     );
