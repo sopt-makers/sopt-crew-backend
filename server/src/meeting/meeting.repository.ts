@@ -72,20 +72,34 @@ export class MeetingRepository extends Repository<Meeting> {
     }
 
     if (joinableParts !== undefined) {
+      const enumNameInDatabase =
+        process.env.NODE_ENV === 'dev'
+          ? 'web_dev.meeting_joinableParts_enum[]'
+          : 'web.meeting_joinableParts_enum[]';
+
+      /**
+       * postgresql에서 배열의 값이 일치하는지 확인하는 방법
+       */
       if (Array.isArray(joinableParts)) {
         meetingQuery.andWhere(
-          `meeting.joinableParts && ARRAY[:...joinableParts]::web${
-            process.env.NODE_ENV === 'dev' ? '_dev' : ''
-          }.meeting_joinableParts_enum[]`,
-          {
-            joinableParts,
-          },
+          new Brackets((qb) => {
+            qb.andWhere(
+              `meeting.joinableParts <@ ARRAY[:...joinableParts]::${enumNameInDatabase}`,
+              {
+                joinableParts,
+              },
+            );
+            qb.andWhere(
+              `meeting.joinableParts @> ARRAY[:...joinableParts]::${enumNameInDatabase}`,
+              {
+                joinableParts,
+              },
+            );
+          }),
         );
       } else {
         meetingQuery.andWhere(
-          `meeting.joinableParts && ARRAY[:joinableParts]::web${
-            process.env.NODE_ENV === 'dev' ? '_dev' : ''
-          }.meeting_joinableParts_enum[]`,
+          `meeting.joinableParts = ARRAY[:joinableParts]::${enumNameInDatabase}`,
           {
             joinableParts,
           },
