@@ -132,27 +132,8 @@ export class MeetingController {
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: '모임이 없습니다',
-    schema: { $ref: getSchemaPath(BaseExceptionDto) },
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: '기수/파트를 설정해주세요',
-    schema: { $ref: getSchemaPath(BaseExceptionDto) },
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: '정원이 꽉찼습니다',
-    schema: { $ref: getSchemaPath(BaseExceptionDto) },
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: '최근 기수가 아닙니다.',
-    schema: { $ref: getSchemaPath(BaseExceptionDto) },
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: '지원가능 파트가 아닙니다.',
+    description:
+      '"모임이 없습니다" or "기수/파트를 설정해주세요" or "정원이 꽉찼습니다" or "최근 기수가 아닙니다." or "지원가능 파트가 아닙니다."',
     schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
   @ApiBearerAuth()
@@ -212,17 +193,8 @@ export class MeetingController {
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: '이미지 파일이 없습니다.',
-    schema: { $ref: getSchemaPath(BaseExceptionDto) },
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: '한 개 이상의 파트를 입력해주세요',
-    schema: { $ref: getSchemaPath(BaseExceptionDto) },
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: '프로필을 입력해주세요',
+    description:
+      '"이미지 파일이 없습니다." or "한 개 이상의 파트를 입력해주세요" or "프로필을 입력해주세요"',
     schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
   @Post('/')
@@ -248,17 +220,8 @@ export class MeetingController {
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: '이미지 파일이 없습니다.',
-    schema: { $ref: getSchemaPath(BaseExceptionDto) },
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: '한 개 이상의 파트를 입력해주세요',
-    schema: { $ref: getSchemaPath(BaseExceptionDto) },
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: '조건에 맞는 모임이 없습니다.',
+    description:
+      '"이미지 파일이 없습니다." or "한 개 이상의 파트를 입력해주세요" or "조건에 맞는 모임이 없습니다."',
     schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
   @ApiBearerAuth()
