@@ -390,15 +390,15 @@ export class MeetingService {
       (apply) => apply.user.id === user.id,
     );
 
-    if (approvedApplies.length >= meeting.capacity && applyIndex === -1) {
-      throw new HttpException(
-        { message: '정원이 꽉찼습니다' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
     // 지원 이력이 없을 경우 지원 생성
     if (applyIndex === -1) {
+      if (approvedApplies.length >= meeting.capacity && applyIndex === -1) {
+        throw new HttpException(
+          { message: '정원이 꽉찼습니다' },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       const userActivities = (() => {
         // 현재 기수 제한이 있는 경우
         if (
