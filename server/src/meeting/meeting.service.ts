@@ -387,6 +387,18 @@ export class MeetingService {
 
   /** 미팅 지원/취소 */
   async applyMeeting(applyMeetingDto: ApplyMeetingDto, user: User) {
+    const referenceTime = dayjs('2023-03-31');
+    const blockedStartTime = referenceTime.startOf('date');
+    const blockedEndTime = referenceTime.add(1, 'd').subtract(1, 'hour');
+    const now = dayjs();
+
+    if (now.isAfter(blockedStartTime) && now.isBefore(blockedEndTime)) {
+      throw new HttpException(
+        { message: '32기 스터디는 23:00부터 신청할 수 있어요.' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const { id } = applyMeetingDto;
     const meeting = await this.meetingRepository.getMeeting(id);
 
