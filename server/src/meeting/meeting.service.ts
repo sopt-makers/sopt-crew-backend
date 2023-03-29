@@ -422,22 +422,26 @@ export class MeetingService {
         return user.activities;
       })();
 
-      // 유저 파트 검사
-      const userJoinableParts = userActivities
-        .map((activity) => activity.part)
-        .filter((part) => {
-          const userRole = this.mappingPart(part);
+      // 파트 제한 있는 경우 유저 파트 검사
+      if (meeting.joinableParts !== null && meeting.joinableParts.length > 0) {
+        const userJoinableParts = userActivities
+          .map((activity) => activity.part)
+          .filter((part) => {
+            const userRole = this.mappingPart(part);
 
-          // 직책이라면 무조건 패스
-          if (userRole === null) {
-            return true;
-          }
+            // 직책이라면 무조건 패스
+            if (userRole === null) {
+              return true;
+            }
 
-          return meeting.joinableParts.includes(userRole);
-        });
+            return meeting.joinableParts.includes(userRole);
+          });
 
-      if (userJoinableParts.length === 0) {
-        throw new BadRequestException({ message: '지원가능 파트가 아닙니다.' });
+        if (userJoinableParts.length === 0) {
+          throw new BadRequestException({
+            message: '지원가능 파트가 아닙니다.',
+          });
+        }
       }
 
       await this.meetingRepository.createApply(applyMeetingDto, meeting, user);

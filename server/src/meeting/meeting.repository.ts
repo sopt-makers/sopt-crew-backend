@@ -193,7 +193,8 @@ export class MeetingRepository extends Repository<Meeting> {
       .leftJoinAndSelect('apply.user', 'user')
       .where('apply.meetingId = :id', { id: meetingId })
       .andWhere('apply.type IN(:...type)', { type: typeArr })
-      .andWhere('apply.status IN(:...status)', { status: statusArr });
+      .andWhere('apply.status IN(:...status)', { status: statusArr })
+      .orderBy('apply.appliedDate', 'ASC');
 
     applyQuery.skip(skip).take(take);
     return await applyQuery.getManyAndCount();
