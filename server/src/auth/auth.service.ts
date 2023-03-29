@@ -19,8 +19,9 @@ export class AuthService {
     const { authToken } = authTokenDTO;
 
     try {
-      const { id, name, profileImage, hasProfile } =
-        await this.playgroundService.getUser(authToken);
+      const { id, name, profileImage } = await this.playgroundService.getUser(
+        authToken,
+      );
       const user = await this.userRepository.getUserByOrgId(id);
       const userId: number = await (async () => {
         if (!user) {
@@ -36,18 +37,20 @@ export class AuthService {
         return user.id;
       })();
 
-      if (hasProfile === true) {
-        const playgroundUserProfile =
-          await this.playgroundService.getUserProfile(authToken);
-        const activities: UserActivity[] =
-          playgroundUserProfile.activities.flatMap((activity) => {
-            return activity.cardinalActivities.map((cardinalActivity) => ({
-              generation: cardinalActivity.generation,
-              part: cardinalActivity.part,
-            }));
-          });
-        await this.userRepository.update({ id: userId }, { activities });
-      }
+      const playgroundUserProfile = await this.playgroundService.getUserProfile(
+        authToken,
+      );
+      const activities: UserActivity[] =
+        playgroundUserProfile.activities.flatMap((activity) => {
+          return activity.cardinalActivities.map((cardinalActivity) => ({
+            generation: cardinalActivity.generation,
+            part: cardinalActivity.part,
+          }));
+        });
+      await this.userRepository.update(
+        { id: userId },
+        { activities, profileImage, name },
+      );
 
       const payload = { name, id: userId };
       const accessToken = this.jwtService.sign(payload);
