@@ -100,7 +100,7 @@ export class MeetingRepository extends Repository<Meeting> {
     imageURL: Array<ImageURL>,
     user: User,
   ): Promise<Meeting> {
-    const result = await this.create({
+    const result = await this.save({
       ...createMeetingDto,
       imageURL,
       user,
