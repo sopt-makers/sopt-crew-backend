@@ -12,7 +12,7 @@ export class PlaygroundRepository {
 
   async getUser(authToken: string): Promise<PlaygroundRepositoryGetUserDto> {
     try {
-      const result = await axios.get(`${this.URL}/api/v1/members/me`, {
+      const result = await axios.get(`${this.URL}/internal/api/v1/members/me`, {
         headers: {
           Authorization: authToken,
         },
@@ -28,11 +28,14 @@ export class PlaygroundRepository {
     authToken: string,
   ): Promise<PlaygroundRepositoryGetUserProfileDto> {
     try {
-      const result = await axios.get(`${this.URL}/api/v1/members/profile/me`, {
-        headers: {
-          Authorization: authToken,
+      const result = await axios.get(
+        `${this.URL}/internal/api/v1/members/profile/me`,
+        {
+          headers: {
+            Authorization: authToken,
+          },
         },
-      });
+      );
 
       return result.data;
     } catch (error) {
