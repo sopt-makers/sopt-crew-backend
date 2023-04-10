@@ -9,6 +9,7 @@
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "find-deadcode": "ts-prune -p tsconfig.build.json",
     "start": "nest start",
     "start:dev": "cross-env NODE_ENV=dev nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -79,6 +80,7 @@
     "ts-jest": "28.0.5",
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
+    "ts-prune": "^0.10.3",
     "tsconfig-paths": "4.0.0",
     "typescript": "^4.3.5"
   },

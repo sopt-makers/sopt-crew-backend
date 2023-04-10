@@ -3,10 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MeetingModule } from './meeting/meeting.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { TransformInterceptor } from './common/interfaces/transform.interceptor';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
 import { HealthModule } from './health/health.module';
+import { UserModule } from './user/user.module';
+import { TransformInterceptor } from './common/interceptor/transform.interceptor';
 
 @Module({
   imports: [
@@ -30,7 +30,7 @@ import { HealthModule } from './health/health.module';
     }),
     MeetingModule,
     AuthModule,
-    UsersModule,
+    UserModule,
     HealthModule,
   ],
   providers: [

@@ -5,7 +5,7 @@ import {
   IsNumber,
   IsString,
 } from 'class-validator';
-import { Part } from 'src/common/enum/part.enum';
+import { UserPart } from 'src/entity/user/enum/user-part.enum';
 
 export class PlaygroundRepositoryGetUserProfileActivityCardinalActivityDto {
   /** 활동 식별자 */
@@ -24,8 +24,8 @@ export class PlaygroundRepositoryGetUserProfileActivityCardinalActivityDto {
   team: string;
 
   /** 활동 파트 */
-  @IsEnum(Part)
-  part: Part;
+  @IsEnum(UserPart)
+  part: UserPart;
 
   /** 프로젝트 여부 */
   @IsNotEmpty()
