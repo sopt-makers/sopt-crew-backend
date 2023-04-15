@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   HttpStatus,
   Param,
   ParseIntPipe,
@@ -22,9 +23,11 @@ import {
 } from '@nestjs/swagger';
 import { BaseExceptionDto } from 'src/common/dto/base-exception.dto';
 import { GetUser } from 'src/common/decorator/get-user.decorator';
-import { MeetingV1CreateMeetingBodyDto } from './dto/meeting-v1-create-meeting-body.dto';
 import { MeetingV1UpdateMeetingBodyDto } from './dto/meeting-v1-update-meeting-body.dto';
-import { MeetingV1GetPresignedUrlResponseDto } from './dto/meeting-v1-get-presigned-url-response.dto';
+import { MeetingV1GetPresignedUrlResponseDto } from './dto/get-presigned-url/meeting-v1-get-presigned-url-response.dto';
+import { MeetingV1GetPresignedUrlQueryDto } from './dto/get-presigned-url/meeting-v1-get-presigned-url-query.dto';
+import { MeetingV1CreateMeetingResponseDto } from './dto/create-meeting/meeting-v1-create-meeting-response.dto';
+import { MeetingV1CreateMeetingBodyDto } from './dto/create-meeting/meeting-v1-create-meeting-body.dto';
 
 @ApiTags('모임')
 @Controller('meeting/v1')
@@ -37,6 +40,7 @@ export class MeetingV1Controller {
   @ApiResponse({
     status: HttpStatus.OK,
     description: '발급 완료',
+    type: MeetingV1GetPresignedUrlResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -47,9 +51,9 @@ export class MeetingV1Controller {
   @Get('/presigned-url')
   @UseGuards(AuthGuard('jwt'))
   async getPresignedURL(
-    @Query('contentType') contentType: 'jpg' | 'jpeg' | 'png',
+    @Query() query: MeetingV1GetPresignedUrlQueryDto,
   ): Promise<MeetingV1GetPresignedUrlResponseDto> {
-    return this.meetingV1Service.getPresignedUrl(contentType);
+    return this.meetingV1Service.getPresignedUrl(query.contentType);
   }
 
   @ApiOperation({
@@ -59,6 +63,7 @@ export class MeetingV1Controller {
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: '생성완료',
+    type: MeetingV1CreateMeetingResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -72,7 +77,7 @@ export class MeetingV1Controller {
   async createMeeting(
     @Body() body: MeetingV1CreateMeetingBodyDto,
     @GetUser() user: User,
-  ): Promise<number> {
+  ): Promise<MeetingV1CreateMeetingResponseDto> {
     return this.meetingV1Service.createMeeting(body, user);
   }
 
@@ -81,7 +86,7 @@ export class MeetingV1Controller {
     description: '모임 수정',
   })
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.NO_CONTENT,
     description: '수정완료',
   })
   @ApiResponse({
@@ -90,6 +95,7 @@ export class MeetingV1Controller {
       '"이미지 파일이 없습니다." or "한 개 이상의 파트를 입력해주세요" or "조건에 맞는 모임이 없습니다."',
     schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Put('/:id')

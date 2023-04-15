@@ -7,8 +7,7 @@ import {
   IsOptional,
   IsBoolean,
   IsEnum,
-  IsUrl,
-  MaxLength,
+  ArrayMaxSize,
 } from 'class-validator';
 import { MeetingCategory } from 'src/entity/meeting/enum/meeting-category.enum';
 import { MeetingJoinablePart } from 'src/entity/meeting/enum/meeting-joinable-part.enum';
@@ -36,8 +35,8 @@ export class MeetingV1CreateMeetingBodyDto {
     maxLength: 6,
   })
   @IsNotEmpty()
-  @MaxLength(6)
-  @IsUrl({ each: true })
+  @ArrayMaxSize(6)
+  @IsString({ each: true })
   files: string[];
 
   @ApiProperty({

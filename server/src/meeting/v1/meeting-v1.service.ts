@@ -5,10 +5,12 @@ import { User } from 'src/entity/user/user.entity';
 import { ACTIVE_GENERATION } from 'src/common/constant/active-generation.const';
 import dayjs from 'dayjs';
 import { ImageURL } from '../../entity/meeting/interface/image-url.interface';
-import { MeetingV1CreateMeetingBodyDto } from './dto/meeting-v1-create-meeting-body.dto';
 import { MeetingV1UpdateMeetingBodyDto } from './dto/meeting-v1-update-meeting-body.dto';
 import { S3Repository } from 'src/shared/s3/s3.repository';
-import { MeetingV1GetPresignedUrlResponseDto } from './dto/meeting-v1-get-presigned-url-response.dto';
+import { MeetingV1GetPresignedUrlResponseDto } from './dto/get-presigned-url/meeting-v1-get-presigned-url-response.dto';
+import { FileExtensionType } from 'src/common/enum/file-extension-type.enum';
+import { MeetingV1CreateMeetingResponseDto } from './dto/create-meeting/meeting-v1-create-meeting-response.dto';
+import { MeetingV1CreateMeetingBodyDto } from './dto/create-meeting/meeting-v1-create-meeting-body.dto';
 
 @Injectable()
 export class MeetingV1Service {
@@ -25,7 +27,7 @@ export class MeetingV1Service {
    * @returns presignedUrl
    */
   async getPresignedUrl(
-    contentType: 'jpg' | 'jpeg' | 'png',
+    contentType: FileExtensionType,
   ): Promise<MeetingV1GetPresignedUrlResponseDto> {
     const presignedUrlData = await this.s3Repository.getPresignedUrl(
       'meeting',
@@ -42,7 +44,10 @@ export class MeetingV1Service {
    * @param user 유저정보
    * @returns 생성된 미팅 id
    */
-  async createMeeting(body: MeetingV1CreateMeetingBodyDto, user: User) {
+  async createMeeting(
+    body: MeetingV1CreateMeetingBodyDto,
+    user: User,
+  ): Promise<MeetingV1CreateMeetingResponseDto> {
     if (body.files.length === 0) {
       throw new HttpException(
         { message: '이미지 파일이 없습니다.' },
@@ -85,7 +90,7 @@ export class MeetingV1Service {
       user,
     );
 
-    return result.id;
+    return { meetingId: result.id };
   }
 
   /**
@@ -114,11 +119,11 @@ export class MeetingV1Service {
       );
     }
 
-    const { canJoinOnlyActiveGeneration, ...meeting } = body;
+    const { canJoinOnlyActiveGeneration, files, ...meeting } = body;
     const targetActiveGeneration = this.getTargetActiveGeneration(
       canJoinOnlyActiveGeneration,
     );
-    const imageURL: Array<ImageURL> = body.files.map((file, index) => ({
+    const imageURL: Array<ImageURL> = files.map((file, index) => ({
       id: index,
       url: file,
     }));

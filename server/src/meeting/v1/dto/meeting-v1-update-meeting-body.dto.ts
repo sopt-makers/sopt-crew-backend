@@ -2,13 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
-  MaxLength,
-  IsUrl,
   IsDate,
   IsNumber,
   IsBoolean,
   IsEnum,
   IsDefined,
+  ArrayMaxSize,
 } from 'class-validator';
 import { MeetingCategory } from 'src/entity/meeting/enum/meeting-category.enum';
 import { MeetingJoinablePart } from 'src/entity/meeting/enum/meeting-joinable-part.enum';
@@ -30,15 +29,14 @@ export class MeetingV1UpdateMeetingBodyDto {
   @ApiProperty({
     example:
       'https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df',
-
     description: '모임 이미지 리스트, 최대 6개',
     required: true,
     isArray: true,
     maxLength: 6,
   })
   @IsNotEmpty()
-  @MaxLength(6)
-  @IsUrl({ each: true })
+  @ArrayMaxSize(6)
+  @IsString({ each: true })
   files: string[];
 
   @ApiProperty({
