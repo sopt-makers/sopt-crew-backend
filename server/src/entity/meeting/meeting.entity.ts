@@ -120,4 +120,3 @@ export class Meeting extends BaseEntity {
   })
   joinableParts: MeetingJoinablePart[];
 }
-export { MeetingCategory };

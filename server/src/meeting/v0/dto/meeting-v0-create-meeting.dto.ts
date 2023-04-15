@@ -12,6 +12,11 @@ import { MeetingJoinablePart } from '../../../entity/meeting/enum/meeting-joinab
 import { IsBoolean } from 'src/common/decorator/is-boolean.decorator';
 import { MeetingCategory } from '../../../entity/meeting/enum/meeting-category.enum';
 
+/**
+ * 미팅 생성 body Dto
+ * @author @donghunee
+ * @deprecated v0에서 사용되는 Dto이며, v1에서는 사용되지 않습니다.
+ * */
 export class MeetingV0CreateMeetingDto {
   @ApiProperty({
     example: '알고보면 쓸데있는 개발 프로세스',

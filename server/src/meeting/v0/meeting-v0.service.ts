@@ -24,12 +24,12 @@ import { MeetingV0GetMeetingByIdResponseDto } from './dto/meeting-v0-get-meeting
 import { MeetingV0GetApplyListByMeetingResponseDto } from './dto/get-apply-list-by-meeting/meeting-v0-get-apply-list-by-meeting-response.dto';
 import { MeetingV0GetAllMeetingsResponseDto } from './dto/get-all-meetings/meeting-v0-get-all-meetings-response.dto';
 import dayjs from 'dayjs';
-import { MeetingCategory } from '../../entity/meeting/meeting.entity';
 import { MeetingV0MeetingStatus } from './enum/meeting-v0-meeting-status.enum';
 import { ImageURL } from '../../entity/meeting/interface/image-url.interface';
 import { ApplyStatus } from 'src/entity/apply/enum/apply-status.enum';
 import { ApplyType } from 'src/entity/apply/enum/apply-type.enum';
 import { ApplyRepository } from 'src/entity/apply/apply.repository';
+import { MeetingCategory } from 'src/entity/meeting/enum/meeting-category.enum';
 
 @Injectable()
 export class MeetingV0Service {
