@@ -278,18 +278,6 @@ export class MeetingV0Service {
 
   /** 미팅 지원/취소 */
   async applyMeeting(applyMeetingDto: MeetingV0ApplyMeetingDto, user: User) {
-    const referenceTime = dayjs('2023-03-31');
-    const blockedStartTime = referenceTime.startOf('date');
-    const blockedEndTime = referenceTime.add(1, 'd').subtract(1, 'hour');
-    const now = dayjs();
-
-    if (now.isAfter(blockedStartTime) && now.isBefore(blockedEndTime)) {
-      throw new HttpException(
-        { message: '32기 스터디는 23:00부터 신청할 수 있어요.' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
     const { id } = applyMeetingDto;
     const meeting = await this.meetingRepository.getMeeting(id);
 
@@ -298,10 +286,6 @@ export class MeetingV0Service {
         { message: '모임이 없습니다' },
         HttpStatus.BAD_REQUEST,
       );
-    }
-
-    if (user.activities === null) {
-      throw new BadRequestException('기수/파트를 설정해주세요');
     }
 
     const approvedApplies = meeting.appliedInfo.filter(
@@ -314,6 +298,22 @@ export class MeetingV0Service {
 
     // 지원 이력이 없을 경우 지원 생성
     if (applyIndex === -1) {
+      const referenceTime = dayjs('2023-04-17');
+      const blockedStartTime = referenceTime.startOf('date');
+      const blockedEndTime = referenceTime.add(1, 'd').subtract(2, 'hour');
+      const now = dayjs();
+
+      if (now.isAfter(blockedStartTime) && now.isBefore(blockedEndTime)) {
+        throw new HttpException(
+          { message: '1차 행사는 22:00부터 신청할 수 있어요.' },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (user.activities === null) {
+        throw new BadRequestException('기수/파트를 설정해주세요');
+      }
+
       const userActivities = (() => {
         // 현재 기수 제한이 있는 경우
         if (
