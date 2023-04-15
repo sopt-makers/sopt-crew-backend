@@ -157,7 +157,7 @@ export class MeetingRepository extends Repository<Meeting> {
       }),
     );
 
-    meetingQuery.skip(skip).take(take);
+    meetingQuery.orderBy('meeting.id', 'DESC').skip(skip).take(take);
 
     return await meetingQuery.getManyAndCount();
   }
