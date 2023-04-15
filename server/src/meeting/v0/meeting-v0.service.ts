@@ -267,113 +267,6 @@ export class MeetingV0Service {
     return { meetings: serializedMeetings, meta: pageMetaDto };
   }
 
-  async createMeeting(
-    createMeetingDto: MeetingV0CreateMeetingDto,
-    files: Array<Express.MulterS3.File>,
-    user: User,
-  ) {
-    if (files.length === 0) {
-      throw new HttpException(
-        { message: '이미지 파일이 없습니다.' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    if (createMeetingDto.joinableParts.length === 0) {
-      throw new HttpException(
-        { message: '한 개 이상의 파트를 입력해주세요' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    if (user.activities === null) {
-      throw new HttpException(
-        { message: '프로필을 입력해주세요' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const { canJoinOnlyActiveGeneration, ...meeting } = createMeetingDto;
-
-    const targetActiveGeneration = this.getTargetActiveGeneration(
-      canJoinOnlyActiveGeneration,
-    );
-
-    const imageURL: Array<ImageURL> = files.map((file, index) => ({
-      id: index,
-      url: file.location,
-    }));
-
-    const endDate = dayjs(meeting.endDate).endOf('date').toDate();
-
-    const result = await this.meetingRepository.createMeeting(
-      {
-        ...meeting,
-        targetActiveGeneration,
-        canJoinOnlyActiveGeneration,
-        endDate,
-      },
-      imageURL,
-      user,
-    );
-
-    return result.id;
-  }
-
-  async updateMeetingById(
-    id: number,
-    updateMeetingDto: MeetingV0UpdateMeetingDto,
-    files: Array<Express.MulterS3.File>,
-    user: User,
-  ) {
-    if (updateMeetingDto.joinableParts.length === 0) {
-      throw new HttpException(
-        { message: '한 개 이상의 파트를 입력해주세요' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    if (files.length === 0) {
-      throw new HttpException(
-        { message: '이미지 파일이 없습니다.' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const { canJoinOnlyActiveGeneration, ...meeting } = updateMeetingDto;
-
-    const targetActiveGeneration = this.getTargetActiveGeneration(
-      canJoinOnlyActiveGeneration,
-    );
-
-    const imageURL: Array<ImageURL> = files.map((file, index) => ({
-      id: index,
-      url: file.location,
-    }));
-
-    const endDate = dayjs(meeting.endDate).endOf('date').toDate();
-
-    const result = await this.meetingRepository.updateMeeting(
-      id,
-      {
-        ...meeting,
-        targetActiveGeneration,
-        canJoinOnlyActiveGeneration,
-        endDate,
-      },
-      imageURL,
-      user,
-    );
-
-    if (result.affected === 1) {
-      return null;
-    } else {
-      throw new HttpException(
-        { message: '조건에 맞는 모임이 없습니다' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-
   async deleteMeetingById(id: number): Promise<void> {
     const result = await this.meetingRepository.deleteMeeting(id);
 
@@ -484,6 +377,123 @@ export class MeetingV0Service {
     meeting.appliedInfo.splice(applyIndex, 1);
     await this.applyRepository.deleteApply(targetApply.id);
     return null;
+  }
+
+  /**
+   * 미팅 생성
+   * @donghunee
+   * @deprecated v0.1.0
+   */
+  async createMeeting(
+    createMeetingDto: MeetingV0CreateMeetingDto,
+    files: Array<Express.MulterS3.File>,
+    user: User,
+  ) {
+    if (files.length === 0) {
+      throw new HttpException(
+        { message: '이미지 파일이 없습니다.' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (createMeetingDto.joinableParts.length === 0) {
+      throw new HttpException(
+        { message: '한 개 이상의 파트를 입력해주세요' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (user.activities === null) {
+      throw new HttpException(
+        { message: '프로필을 입력해주세요' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const { canJoinOnlyActiveGeneration, ...meeting } = createMeetingDto;
+
+    const targetActiveGeneration = this.getTargetActiveGeneration(
+      canJoinOnlyActiveGeneration,
+    );
+
+    const imageURL: Array<ImageURL> = files.map((file, index) => ({
+      id: index,
+      url: file.location,
+    }));
+
+    const endDate = dayjs(meeting.endDate).endOf('date').toDate();
+
+    const result = await this.meetingRepository.createMeeting(
+      {
+        ...meeting,
+        targetActiveGeneration,
+        canJoinOnlyActiveGeneration,
+        endDate,
+      },
+      imageURL,
+      user,
+    );
+
+    return result.id;
+  }
+
+  /**
+   * 모임 수정
+   * @donghunee
+   * @deprecated v0.1.0
+   */
+  async updateMeetingById(
+    id: number,
+    updateMeetingDto: MeetingV0UpdateMeetingDto,
+    files: Array<Express.MulterS3.File>,
+    user: User,
+  ) {
+    if (updateMeetingDto.joinableParts.length === 0) {
+      throw new HttpException(
+        { message: '한 개 이상의 파트를 입력해주세요' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (files.length === 0) {
+      throw new HttpException(
+        { message: '이미지 파일이 없습니다.' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const { canJoinOnlyActiveGeneration, ...meeting } = updateMeetingDto;
+
+    const targetActiveGeneration = this.getTargetActiveGeneration(
+      canJoinOnlyActiveGeneration,
+    );
+
+    const imageURL: Array<ImageURL> = files.map((file, index) => ({
+      id: index,
+      url: file.location,
+    }));
+
+    const endDate = dayjs(meeting.endDate).endOf('date').toDate();
+
+    const result = await this.meetingRepository.updateMeeting(
+      id,
+      {
+        ...meeting,
+        targetActiveGeneration,
+        canJoinOnlyActiveGeneration,
+        endDate,
+      },
+      imageURL,
+      user,
+    );
+
+    if (result.affected === 1) {
+      return null;
+    } else {
+      throw new HttpException(
+        { message: '조건에 맞는 모임이 없습니다' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   /**
