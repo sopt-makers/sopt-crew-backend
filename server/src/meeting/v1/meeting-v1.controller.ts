@@ -38,11 +38,6 @@ export class MeetingV1Controller {
     summary: 'Meeting 썸네일 업로드용 Pre-Signed URL 발급',
   })
   @ApiResponse({
-    status: HttpStatus.OK,
-    description: '발급 완료',
-    type: MeetingV1GetPresignedUrlResponseDto,
-  })
-  @ApiResponse({
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: '발급 실패',
     schema: { $ref: getSchemaPath(BaseExceptionDto) },
@@ -59,11 +54,6 @@ export class MeetingV1Controller {
   @ApiOperation({
     summary: '모임 생성',
     description: '모임 생성',
-  })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: '생성완료',
-    type: MeetingV1CreateMeetingResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -86,10 +76,6 @@ export class MeetingV1Controller {
     description: '모임 수정',
   })
   @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
-    description: '수정완료',
-  })
-  @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description:
       '"이미지 파일이 없습니다." or "한 개 이상의 파트를 입력해주세요" or "조건에 맞는 모임이 없습니다."',
@@ -103,7 +89,7 @@ export class MeetingV1Controller {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: MeetingV1UpdateMeetingBodyDto,
     @GetUser() user: User,
-  ) {
+  ): Promise<void> {
     return this.meetingV1Service.updateMeetingById(id, body, user);
   }
 }

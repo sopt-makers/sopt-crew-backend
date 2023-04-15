@@ -147,8 +147,36 @@ export class MeetingV0Controller {
   }
 
   @ApiOperation({
+    summary: '모임 삭제',
+    description: '모임 삭제',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '삭제완료',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '조건에 맞는 모임이 없습니다.',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiParam({ name: 'id', required: true, description: '모임 id' })
+  @Delete('/:id')
+  async deleteMeetingById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<void> {
+    return this.meetingV0Service.deleteMeetingById(id);
+  }
+
+  /**
+   * @author @donghunee
+   * @deprecated v0.1.0
+   */
+  @ApiOperation({
     summary: '모임 생성',
     description: '모임 생성',
+    deprecated: true,
   })
   @ApiConsumes('multipart/form-data')
   @ApiResponse({
@@ -173,9 +201,14 @@ export class MeetingV0Controller {
     return this.meetingV0Service.createMeeting(createMeetingDto, files, user);
   }
 
+  /**
+   * @author @donghunee
+   * @deprecated v0.1.0
+   */
   @ApiOperation({
     summary: '모임 수정',
     description: '모임 수정',
+    deprecated: true,
   })
   @ApiConsumes('multipart/form-data')
   @ApiResponse({
@@ -204,28 +237,5 @@ export class MeetingV0Controller {
       files,
       user,
     );
-  }
-
-  @ApiOperation({
-    summary: '모임 삭제',
-    description: '모임 삭제',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: '삭제완료',
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: '조건에 맞는 모임이 없습니다.',
-    schema: { $ref: getSchemaPath(BaseExceptionDto) },
-  })
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @ApiParam({ name: 'id', required: true, description: '모임 id' })
-  @Delete('/:id')
-  async deleteMeetingById(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<void> {
-    return this.meetingV0Service.deleteMeetingById(id);
   }
 }
