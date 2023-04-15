@@ -218,11 +218,7 @@ export class MeetingV0Service {
 
     const categoryArr: MeetingCategory[] = category
       ? (category.split(',') as MeetingCategory[])
-      : [
-          MeetingCategory.LECTURE,
-          MeetingCategory.STUDY,
-          MeetingCategory.LIGHTNING,
-        ];
+      : Object.keys(MeetingCategory).map((key) => MeetingCategory[key]);
 
     const statusArr: MeetingV0MeetingStatus[] = status
       ? status.split(',').map(Number)
