@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDate,
+  IsDefined,
   IsInstance,
   IsNotEmpty,
   IsString,
@@ -28,8 +29,11 @@ export class PlaygroundRepositoryGetUserProfileDto {
   @IsDate()
   birthday: Date;
 
-  /** 핸드폰 번호 */
-  @IsNotEmpty()
+  /**
+   * 핸드폰 번호
+   * - 빈문자열로 넘어오는 경우가 있음
+   * */
+  @IsDefined()
   @IsString()
   phone: string;
 

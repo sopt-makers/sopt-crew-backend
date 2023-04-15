@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { PlaygroundRepositoryGetUserProfileDto } from './dto/get-user-profile/playground-repository-get-user-profile.dto';
 import { PlaygroundRepositoryGetUserDto } from './dto/get-user/playground-repository-get-user.dto';
@@ -20,7 +20,7 @@ export class PlaygroundRepository {
 
       return result.data;
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
@@ -39,7 +39,7 @@ export class PlaygroundRepository {
 
       return result.data;
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 }

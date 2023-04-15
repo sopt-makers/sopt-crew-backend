@@ -14,34 +14,39 @@ import { Apply } from 'src/entity/apply/apply.entity';
 @Entity('user')
 @Unique(['id'])
 export class User extends BaseEntity {
-  // Primary Key
+  /** Primary Key */
   @PrimaryGeneratedColumn()
   id: number;
 
-  // 사용자 이름
+  /** 사용자 이름 */
   @Column()
   name: string;
 
-  // sopt org unique id
+  /** sopt org unique id */
   @Column()
   orgId: number;
 
+  /** 활동 목록 */
   @Column({ type: 'jsonb', nullable: true, default: null })
   activities: UserActivity[];
 
-  // 프로필 이미지
+  /** 프로필 이미지 */
   @Column({
     nullable: true,
     default: null,
   })
   profileImage: string;
 
-  // 내가 생성한 모임
+  /** 내가 생성한 모임 */
   @OneToMany(() => Meeting, (meeting) => meeting.user)
   meetings: Meeting[];
 
-  // 내가 지원한 내역
+  /** 내가 지원한 내역 */
   @OneToMany(() => Apply, (apply) => apply.user)
   @JoinTable()
   apply: Apply[];
+
+  /** 핸드폰 번호 */
+  @Column({ nullable: true, default: null })
+  phone: string;
 }
