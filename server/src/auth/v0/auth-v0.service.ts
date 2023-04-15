@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { PlaygroundService } from 'src/internal-api/playground/playground.service';
@@ -48,9 +53,13 @@ export class AuthV0Service {
             part: cardinalActivity.part,
           }));
         });
+      const phone = playgroundUserProfile.phone
+        ? playgroundUserProfile.phone
+        : null;
+
       await this.userRepository.update(
         { id: userId },
-        { activities, profileImage, name },
+        { activities, profileImage, name, phone },
       );
 
       const payload = { name, id: userId };
@@ -58,7 +67,9 @@ export class AuthV0Service {
 
       return { accessToken };
     } catch (error) {
-      console.log(error);
+      if (error.response.status === HttpStatus.UNAUTHORIZED) {
+        throw new UnauthorizedException({ message: '유효하지 않은 토큰' });
+      }
 
       throw new HttpException(
         { message: '로그인 서버 에러' },
