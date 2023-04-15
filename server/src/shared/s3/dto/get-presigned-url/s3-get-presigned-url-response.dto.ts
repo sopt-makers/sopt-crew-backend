@@ -4,7 +4,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { S3GetPresignedUrlResponseFieldsDto } from './s3-get-presigned-url-response.fields.dto';
+import { S3GetPresignedUrlResponseFieldsDto } from './s3-get-presigned-url-response-fields.dto';
 import { Type } from 'class-transformer';
 
 /** presigned url 응답 결과 */
