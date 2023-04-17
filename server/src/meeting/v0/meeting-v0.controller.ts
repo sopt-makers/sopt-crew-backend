@@ -29,7 +29,7 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { MeetingV0ApplyMeetingDto } from './dto/meeting-v0-apply-meeting.dto';
-import { MeetingV0GetMeetingDto } from './dto/meeting-v0-get-meeting.dto';
+import { MeetingV0GetAllMeetingsQueryDto } from './dto/get-all-meetings/meeting-v0-get-all-meetings-query.dto';
 import { MeetingV0GetListDto } from './dto/meeting-v0-get-list.dto';
 import { MeetingV0UpdateStatusApplyDto } from './dto/meeting-v0-update-status-apply.dto';
 import { BaseExceptionDto } from 'src/common/dto/base-exception.dto';
@@ -141,7 +141,7 @@ export class MeetingV0Controller {
   })
   @Get('/')
   async getAllMeeting(
-    @Query() getMeetingDto: MeetingV0GetMeetingDto,
+    @Query() getMeetingDto: MeetingV0GetAllMeetingsQueryDto,
   ): Promise<MeetingV0GetAllMeetingsResponseDto> {
     return this.meetingV0Service.getAllMeeting(getMeetingDto);
   }

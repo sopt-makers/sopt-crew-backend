@@ -1,7 +1,7 @@
 import { User } from 'src/entity/user/user.entity';
 import { CustomRepository } from 'src/db/typeorm-ex.decorator';
 import { Brackets, DeleteResult, Repository, UpdateResult } from 'typeorm';
-import { MeetingV0GetMeetingDto } from '../../meeting/v0/dto/meeting-v0-get-meeting.dto';
+import { MeetingV0GetAllMeetingsQueryDto } from '../../meeting/v0/dto/get-all-meetings/meeting-v0-get-all-meetings-query.dto';
 import { MeetingJoinablePart } from './enum/meeting-joinable-part.enum';
 import { ACTIVE_GENERATION } from 'src/common/constant/active-generation.const';
 import dayjs from 'dayjs';
@@ -39,7 +39,7 @@ export class MeetingRepository extends Repository<Meeting> {
 
   // id와 카테고리, 상태로 모임 정보 및 개수 조회
   async getMeetingsAndCount(
-    getMeetingDto: MeetingV0GetMeetingDto,
+    getMeetingDto: MeetingV0GetAllMeetingsQueryDto,
     categoryArr: MeetingCategory[],
     statusArr: MeetingV0MeetingStatus[],
     canJoinOnlyActiveGeneration: boolean,

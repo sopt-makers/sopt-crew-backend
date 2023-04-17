@@ -2,10 +2,10 @@ import { IsString, IsOptional, IsNotEmpty, IsEnum } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
 import { PageOptionsDto } from 'src/common/pagination/dto/page-options.dto';
-import { MeetingJoinablePart } from '../../../entity/meeting/enum/meeting-joinable-part.enum';
+import { MeetingJoinablePart } from '../../../../entity/meeting/enum/meeting-joinable-part.enum';
 import { IsBoolean } from 'src/common/decorator/is-boolean.decorator';
 
-export class MeetingV0GetMeetingDto extends PageOptionsDto {
+export class MeetingV0GetAllMeetingsQueryDto extends PageOptionsDto {
   @ApiProperty({
     example: '스터디,번개',
     description: '카테고리',
