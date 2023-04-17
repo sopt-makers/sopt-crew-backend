@@ -11,7 +11,7 @@ import { MeetingV0CreateMeetingDto } from './dto/meeting-v0-create-meeting.dto';
 import { MeetingV0UpdateMeetingDto } from './dto/meeting-v0-update-meeting.dto';
 import { User } from 'src/entity/user/user.entity';
 import { MeetingV0ApplyMeetingDto } from './dto/meeting-v0-apply-meeting.dto';
-import { MeetingV0GetMeetingDto } from './dto/meeting-v0-get-meeting.dto';
+import { MeetingV0GetAllMeetingsQueryDto } from './dto/get-all-meetings/meeting-v0-get-all-meetings-query.dto';
 import { MeetingV0GetListDto } from './dto/meeting-v0-get-list.dto';
 import { MeetingV0UpdateStatusApplyDto } from './dto/meeting-v0-update-status-apply.dto';
 import { PageOptionsDto } from 'src/common/pagination/dto/page-options.dto';
@@ -204,7 +204,7 @@ export class MeetingV0Service {
   }
 
   async getAllMeeting(
-    getMeetingDto: MeetingV0GetMeetingDto,
+    getMeetingDto: MeetingV0GetAllMeetingsQueryDto,
   ): Promise<MeetingV0GetAllMeetingsResponseDto> {
     const {
       category,
