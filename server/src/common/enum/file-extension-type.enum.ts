@@ -6,4 +6,5 @@ export enum FileExtensionType {
   JPG = 'jpg',
   JPEG = 'jpeg',
   PNG = 'png',
+  CSV = 'csv',
 }

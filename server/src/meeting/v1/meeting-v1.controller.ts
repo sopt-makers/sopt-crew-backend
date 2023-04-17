@@ -20,6 +20,7 @@ import {
   ApiBearerAuth,
   ApiResponse,
   getSchemaPath,
+  ApiParam,
 } from '@nestjs/swagger';
 import { BaseExceptionDto } from 'src/common/dto/base-exception.dto';
 import { GetUser } from 'src/common/decorator/get-user.decorator';
@@ -28,11 +29,38 @@ import { MeetingV1GetPresignedUrlResponseDto } from './dto/get-presigned-url/mee
 import { MeetingV1GetPresignedUrlQueryDto } from './dto/get-presigned-url/meeting-v1-get-presigned-url-query.dto';
 import { MeetingV1CreateMeetingResponseDto } from './dto/create-meeting/meeting-v1-create-meeting-response.dto';
 import { MeetingV1CreateMeetingBodyDto } from './dto/create-meeting/meeting-v1-create-meeting-body.dto';
+import { MeetingV1GetApplyListByMeetingCsvFileUrlQueryDto } from './dto/get-apply-list-by-meeting-csv-file-url/meeting-v1-get-apply-list-by-meeting-csv-file-url-query.dto';
+import { MeetingV1GetApplyListByMeetingCsvFileUrlResponseDto } from './dto/get-apply-list-by-meeting-csv-file-url/meeting-v1-get-apply-list-by-meeting-csv-file-url-response.dto';
 
 @ApiTags('모임')
 @Controller('meeting/v1')
 export class MeetingV1Controller {
   constructor(private meetingV1Service: MeetingV1Service) {}
+
+  @ApiOperation({
+    summary: '모임 지원자 목록 csv 파일 다운로드',
+    description: '모임장일때만 지원자 목록 csv 파일 다운로드 가능',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '"모임이 없습니다." or "권한이 없습니다."',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/:id/list/csv')
+  @ApiParam({ name: 'id', required: true, description: '모임 id' })
+  async getApplyListByMeetingCsvFileUrl(
+    @Query() query: MeetingV1GetApplyListByMeetingCsvFileUrlQueryDto,
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User,
+  ): Promise<MeetingV1GetApplyListByMeetingCsvFileUrlResponseDto> {
+    return this.meetingV1Service.getApplyListByMeetingCsvFileUrl(
+      id,
+      user,
+      query,
+    );
+  }
 
   @ApiOperation({
     summary: 'Meeting 썸네일 업로드용 Pre-Signed URL 발급',

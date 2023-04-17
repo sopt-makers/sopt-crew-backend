@@ -4,6 +4,7 @@ import * as AWS from 'aws-sdk';
 import dayjs from 'dayjs';
 import { v4 } from 'uuid';
 import { S3GetPresignedUrlResponseDto } from './dto/get-presigned-url/s3-get-presigned-url-response.dto';
+import { FileExtensionType } from 'src/common/enum/file-extension-type.enum';
 
 @Injectable()
 export class S3Repository {
@@ -25,7 +26,7 @@ export class S3Repository {
    */
   async getPresignedUrl(
     path: 'meeting',
-    contentType: string,
+    contentType: FileExtensionType,
   ): Promise<S3GetPresignedUrlResponseDto> {
     try {
       const params = {
@@ -53,13 +54,41 @@ export class S3Repository {
   }
 
   /**
+   * 파일을 S3에 업로드
+   * @param file 파일 정보
+   * @returns 파일 S3 링크
+   */
+  async uploadFile({
+    buffer,
+    path,
+    contentType,
+  }: {
+    buffer: Buffer;
+    path: 'meeting';
+    contentType: FileExtensionType;
+  }): Promise<string> {
+    try {
+      const params = {
+        Bucket: this.configService.get('AWS_S3_BUCKET_NAME'),
+        Key: this.getRandomUrl(path, contentType),
+        Body: buffer,
+      };
+      const data = await this.s3.upload(params).promise();
+
+      return data.Location;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  /**
    * 파일의 경로명을 랜덤으로 생성
    * @author @rdd9223
    * @param path 구분 폴더 명
    * @param contentType 파일의 컨텐츠 타입
    * @returns 파일의 경로명
    */
-  private getRandomUrl(path: 'meeting', contentType: string) {
+  private getRandomUrl(path: 'meeting', contentType: FileExtensionType) {
     const uuid = v4();
     const date = dayjs().format('YYYY/MM/DD');
 

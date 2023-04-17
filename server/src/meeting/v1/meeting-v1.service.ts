@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MeetingRepository } from '../../entity/meeting/meeting.repository';
 import { User } from 'src/entity/user/user.entity';
@@ -11,6 +16,10 @@ import { MeetingV1GetPresignedUrlResponseDto } from './dto/get-presigned-url/mee
 import { FileExtensionType } from 'src/common/enum/file-extension-type.enum';
 import { MeetingV1CreateMeetingResponseDto } from './dto/create-meeting/meeting-v1-create-meeting-response.dto';
 import { MeetingV1CreateMeetingBodyDto } from './dto/create-meeting/meeting-v1-create-meeting-body.dto';
+import { MeetingV1GetApplyListByMeetingCsvFileUrlQueryDto } from './dto/get-apply-list-by-meeting-csv-file-url/meeting-v1-get-apply-list-by-meeting-csv-file-url-query.dto';
+import { ApplyRepository } from 'src/entity/apply/apply.repository';
+import * as json2csv from 'json2csv';
+import { MeetingV1GetApplyListByMeetingCsvFileUrlResponseDto } from './dto/get-apply-list-by-meeting-csv-file-url/meeting-v1-get-apply-list-by-meeting-csv-file-url-response.dto';
 
 @Injectable()
 export class MeetingV1Service {
@@ -18,8 +27,73 @@ export class MeetingV1Service {
     @InjectRepository(MeetingRepository)
     private readonly meetingRepository: MeetingRepository,
 
+    @InjectRepository(ApplyRepository)
+    private readonly applyRepository: ApplyRepository,
+
     private readonly s3Repository: S3Repository,
   ) {}
+
+  /**
+   * 모임 지원자 목록 csv 파일 url을 가져옴
+   * @param id meeting id
+   * @param user 유저 정보
+   * @param query query 값
+   * @returns csv url 정보
+   */
+  async getApplyListByMeetingCsvFileUrl(
+    id: number,
+    user: User,
+    query: MeetingV1GetApplyListByMeetingCsvFileUrlQueryDto,
+  ): Promise<MeetingV1GetApplyListByMeetingCsvFileUrlResponseDto> {
+    const meeting = await this.meetingRepository.getMeeting(id);
+
+    if (!meeting) {
+      throw new BadRequestException('모임이 없습니다.');
+    }
+
+    if (meeting.user.id !== user.id) {
+      throw new BadRequestException('권한이 없습니다.');
+    }
+
+    const applyList = await this.applyRepository.getAppliesAndCount(
+      id,
+      query.type,
+      query.status,
+      0,
+    );
+    const csvData = applyList[0].map((apply) => {
+      const { user, appliedDate } = apply;
+      const { name, activities, phone } = user;
+      const recentActiveGeneration = activities
+        ?.map((activity) => activity.generation)
+        .sort((a, b) => b - a)[0];
+      const formattedAppliedDate = dayjs(appliedDate).format(
+        'YYYY-MM-DD HH:mm:ss',
+      );
+
+      return {
+        name,
+        recentActiveGeneration,
+        phone,
+        appliedDate: formattedAppliedDate,
+      };
+    });
+    const csvColumns = [
+      { value: 'name', label: '이름' },
+      { value: 'recentActiveGeneration', label: '활동기수' },
+      { value: 'phone', label: '전화번호' },
+      { value: 'appliedDate', label: '신청시간' },
+    ];
+    const csv = json2csv.parse(csvData, { fields: csvColumns });
+    const csvBuffer = Buffer.from(csv, 'utf-8');
+    const csvUrl = await this.s3Repository.uploadFile({
+      path: 'meeting',
+      buffer: csvBuffer,
+      contentType: FileExtensionType.CSV,
+    });
+
+    return { url: csvUrl };
+  }
 
   /**
    * 미리 서명한 url 생성

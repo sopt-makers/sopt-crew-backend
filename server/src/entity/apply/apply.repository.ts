@@ -43,7 +43,7 @@ export class ApplyRepository extends Repository<Apply> {
     typeArr: ApplyType[],
     statusArr: ApplyStatus[],
     skip: number,
-    take: number,
+    take?: number,
   ) {
     const applyQuery = this.createQueryBuilder('apply')
       .select([
