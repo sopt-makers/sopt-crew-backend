@@ -62,7 +62,7 @@ export class MeetingV1Service {
       0,
     );
     const csvData = applyList[0].map((apply) => {
-      const { user, appliedDate } = apply;
+      const { user, appliedDate, content } = apply;
       const { name, activities, phone } = user;
       const recentActiveGeneration = activities
         ?.map((activity) => activity.generation)
@@ -75,6 +75,7 @@ export class MeetingV1Service {
         name,
         recentActiveGeneration,
         phone,
+        content,
         appliedDate: formattedAppliedDate,
       };
     });
@@ -83,6 +84,7 @@ export class MeetingV1Service {
       { value: 'recentActiveGeneration', label: '활동기수' },
       { value: 'phone', label: '전화번호' },
       { value: 'appliedDate', label: '신청시간' },
+      { value: 'content', label: '신청내용' },
     ];
     const csv = json2csv.parse(csvData, { fields: csvColumns });
     const csvBuffer = Buffer.from(csv, 'utf-8');
