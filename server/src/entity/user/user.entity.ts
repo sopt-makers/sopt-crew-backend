@@ -35,7 +35,7 @@ export class User extends BaseEntity {
     nullable: true,
     default: null,
   })
-  profileImage: string;
+  profileImage: string | null;
 
   /** 내가 생성한 모임 */
   @OneToMany(() => Meeting, (meeting) => meeting.user)
