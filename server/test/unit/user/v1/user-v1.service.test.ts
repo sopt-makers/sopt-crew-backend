@@ -15,7 +15,7 @@ describe('UserV1Service', () => {
         name: 1,
         orgId: 1,
         profileImage: 1,
-        activities: null,
+        activities: [{ test: 'test' }],
         phone: null,
       } as unknown as User;
 
@@ -26,7 +26,26 @@ describe('UserV1Service', () => {
         name: mockInput.name,
         orgId: mockInput.orgId,
         profileImage: mockInput.profileImage,
+        hasActivities: true,
       });
     });
+
+    it.each([[[]], [null]])(
+      '유저 정보의 activities가 %s로 들어오면 hasActivities가 false로 나와야한다.',
+      (activities) => {
+        const mockInput = {
+          id: 1,
+          name: 1,
+          orgId: 1,
+          profileImage: 1,
+          activities,
+          phone: null,
+        } as unknown as User;
+
+        const result = service.getUserOwnProfile(mockInput);
+
+        expect(result.hasActivities).toEqual(false);
+      },
+    );
   });
 });

@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Allow, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  Allow,
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 
 export class UserV1GetUserOwnProfileResponseDto {
   @ApiProperty({
@@ -33,4 +39,11 @@ export class UserV1GetUserOwnProfileResponseDto {
   @Allow(null)
   @IsString()
   profileImage: string | null;
+
+  @ApiProperty({
+    description: '유저 활동 가지고 있는지 여부, 유저 활동이 없으면 false',
+  })
+  @IsNotEmpty()
+  @IsBoolean()
+  hasActivities: boolean;
 }
