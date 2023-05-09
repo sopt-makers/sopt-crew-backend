@@ -28,7 +28,7 @@ export class User extends BaseEntity {
 
   /** 활동 목록 */
   @Column({ type: 'jsonb', nullable: true, default: null })
-  activities: UserActivity[];
+  activities: UserActivity[] | null;
 
   /** 프로필 이미지 */
   @Column({

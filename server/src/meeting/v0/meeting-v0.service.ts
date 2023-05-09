@@ -310,7 +310,7 @@ export class MeetingV0Service {
         );
       }
 
-      if (user.activities === null) {
+      if (user.activities === null || user.activities.length === 0) {
         throw new BadRequestException('기수/파트를 설정해주세요');
       }
 

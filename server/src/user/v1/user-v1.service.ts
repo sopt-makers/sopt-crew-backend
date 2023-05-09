@@ -5,11 +5,15 @@ import { UserV1GetUserOwnProfileResponseDto } from './dto/user-v1-get-user-own-p
 @Injectable()
 export class UserV1Service {
   getUserOwnProfile(user: User): UserV1GetUserOwnProfileResponseDto {
+    const hasActivities =
+      user.activities !== null && user.activities.length > 0;
+
     return {
       id: user.id,
       name: user.name,
       orgId: user.orgId,
       profileImage: user.profileImage,
+      hasActivities,
     };
   }
 }
