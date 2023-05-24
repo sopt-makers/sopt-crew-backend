@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { UserModule } from './user/user.module';
 import { TransformInterceptor } from './common/interceptor/transform.interceptor';
+import { NoticeModule } from './notice/notice.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { TransformInterceptor } from './common/interceptor/transform.interceptor
     AuthModule,
     UserModule,
     HealthModule,
+    NoticeModule,
   ],
   providers: [
     {
