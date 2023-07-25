@@ -62,6 +62,6 @@ export class User extends BaseEntity {
   likes: Like[];
 
   /** 신고 내역 */
-  @OneToMany(() => Report, (report) => report.reporter)
+  @OneToMany(() => Report, (report) => report.user)
   reports: Report[];
 }

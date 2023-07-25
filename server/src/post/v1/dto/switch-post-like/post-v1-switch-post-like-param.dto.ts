@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 
-/** 게시글 좋아요 토글 body DTO */
+/** 댓글 좋아요 토글 param DTO */
 export class PostV1SwitchPostLikeParamDto {
   @ApiProperty({
     example: 1,

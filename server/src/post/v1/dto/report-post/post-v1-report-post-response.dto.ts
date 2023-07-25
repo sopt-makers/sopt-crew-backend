@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsNumber } from 'class-validator';
 
-export class CommentV1CreateCommentReportResponseDto {
+export class PostV1ReportPostResponseDto {
   /** 생성된 신고 id */
   @IsNotEmpty()
   @IsNumber()

@@ -18,15 +18,16 @@ import {
 import { CommentV1Service } from './comment-v1.service';
 import { AuthGuard } from '@nestjs/passport';
 import { BaseExceptionDto } from 'src/common/dto/base-exception.dto';
-import { CommentV1GetCommentResponseDto } from './dto/get-comments/comment-v1-get-comments-response.dto';
+import { CommentV1GetCommentsResponseDto } from './dto/get-comments/comment-v1-get-comments-response.dto';
 import { CommentV1CreateCommentResponseDto } from './dto/create-comment/comment-v1-create-comment-response.dto';
 import { GetUser } from 'src/common/decorator/get-user.decorator';
 import { User } from 'src/entity/user/user.entity';
 import { CommentV1CreateCommentBodyDto } from './dto/create-comment/comment-v1-create-comment-body.dto';
-import { CommentV1GetCommentQueryDto } from './dto/get-comments/comment-v1-get-comments-query.dto';
-import { CommentV1CreateCommentReportParamDto } from './dto/create-comment-report/report-v1-create-comment-report-param.dto';
-import { CommentV1CreateCommentReportResponseDto } from './dto/create-comment-report/report-v1-create-comment-report-response.dto';
-import { CommentV1SwitchCommentLikeParamDto } from 'src/comment/v1/dto/switch-comment-like/like-v1-switch-comment-like-body.dto';
+import { CommentV1GetCommentsQueryDto } from './dto/get-comments/comment-v1-get-comments-query.dto';
+import { CommentV1ReportCommentParamDto } from './dto/report-comment/comment-v1-report-comment-param.dto';
+import { CommentV1ReportCommentResponseDto } from './dto/report-comment/comment-v1-report-comment-response.dto';
+import { CommentV1SwitchCommentLikeParamDto } from 'src/comment/v1/dto/switch-comment-like/comment-v1-switch-comment-like-param.dto';
+import { CommentV1SwitchCommentLikeResponseDto } from './dto/switch-comment-like/comment-v1-switch-comment-like-response.dto';
 
 @ApiTags('댓글/대댓글')
 @Controller('comment/v1')
@@ -43,74 +44,22 @@ export class CommentV1Controller {
   })
   @Get()
   async getComments(
-    @Query() query: CommentV1GetCommentQueryDto,
-  ): Promise<CommentV1GetCommentResponseDto> {
-    return {
-      meta: {
-        page: 1,
-        take: 10,
-        itemCount: 3,
-        pageCount: 1,
-        hasPreviousPage: false,
-        hasNextPage: false,
-      },
-      comments: [
-        {
-          id: 1,
-          contents: '댓글 내용',
-          updatedDate: new Date(),
-          likeCount: 10,
-          isLiked: true,
-          user: {
-            id: 1,
-            name: '닉네임',
-            profileImage: 'https://picsum.photos/200/300',
-          },
-        },
-        {
-          id: 2,
-          contents: '댓글 내용',
-          updatedDate: new Date(),
-          likeCount: 10,
-          isLiked: true,
-          user: {
-            id: 1,
-            name: '닉네임',
-            profileImage: 'https://picsum.photos/200/300',
-          },
-        },
-        {
-          id: 3,
-          contents: '댓글 내용',
-          updatedDate: new Date(),
-          likeCount: 10,
-          isLiked: true,
-          user: {
-            id: 1,
-            name: '닉네임',
-            profileImage: 'https://picsum.photos/200/300',
-          },
-        },
-      ],
-    };
+    @Query() query: CommentV1GetCommentsQueryDto,
+  ): Promise<CommentV1GetCommentsResponseDto | null> {
+    return this.commentV1Service.getComments(query);
   }
 
   @ApiOperation({
     summary: '댓글 좋아요 토글',
   })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: '',
-    schema: { $ref: getSchemaPath(BaseExceptionDto) },
-  })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Post('/:commentId/like')
   async switchCommentLike(
-    @Param() body: CommentV1SwitchCommentLikeParamDto,
+    @Param() param: CommentV1SwitchCommentLikeParamDto,
     @GetUser() user: User,
-  ): Promise<null> {
-    return null;
+  ): Promise<CommentV1SwitchCommentLikeResponseDto> {
+    return this.commentV1Service.switchCommentLike({ param, user });
   }
 
   @ApiOperation({
@@ -124,13 +73,11 @@ export class CommentV1Controller {
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Post('/:commentId/report')
-  async createCommentReport(
-    @Param() param: CommentV1CreateCommentReportParamDto,
+  async reportComment(
+    @Param() param: CommentV1ReportCommentParamDto,
     @GetUser() user: User,
-  ): Promise<CommentV1CreateCommentReportResponseDto> {
-    return {
-      reportId: 1,
-    };
+  ): Promise<CommentV1ReportCommentResponseDto> {
+    return this.commentV1Service.reportComment({ param, user });
   }
 
   @ApiOperation({
@@ -148,8 +95,6 @@ export class CommentV1Controller {
     @Body() body: CommentV1CreateCommentBodyDto,
     @GetUser() user: User,
   ): Promise<CommentV1CreateCommentResponseDto> {
-    return {
-      commentId: 1,
-    };
+    return this.commentV1Service.createPostComment({ body, user });
   }
 }

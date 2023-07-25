@@ -5,12 +5,14 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  RelationId,
   Unique,
 } from 'typeorm';
 import { User } from '../user/user.entity';
 import { Meeting } from '../meeting/meeting.entity';
 import { Like } from '../like/like.entity';
 import { Comment } from '../comment/comment.entity';
+import { Report } from '../report/report.entity';
 
 @Entity('post')
 @Unique(['id'])
@@ -47,9 +49,19 @@ export class Post extends BaseEntity {
   @ManyToOne(() => User, (user) => user.posts)
   user: User;
 
+  /** 유저 id */
+  @RelationId((post: Post) => post.user)
+  @Column()
+  userId: number;
+
   /** 미팅 */
   @ManyToOne(() => Meeting, (meeting) => meeting.posts)
   meeting: Meeting;
+
+  /** 미팅 id */
+  @RelationId((post: Post) => post.meeting)
+  @Column()
+  meetingId: number;
 
   /** 좋아요 */
   @OneToMany(() => Comment, (comment) => comment.post)
@@ -66,4 +78,8 @@ export class Post extends BaseEntity {
   /** 좋아요 수 */
   @Column({ default: 0 })
   likeCount: number;
+
+  /** 신고 */
+  @OneToMany(() => Report, (report) => report.post)
+  reports: Report[];
 }

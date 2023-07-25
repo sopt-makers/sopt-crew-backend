@@ -5,12 +5,13 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  RelationId,
   Unique,
 } from 'typeorm';
 import { User } from '../user/user.entity';
-import { Meeting } from '../meeting/meeting.entity';
 import { Like } from '../like/like.entity';
 import { Post } from '../post/post.entity';
+import { Report } from '../report/report.entity';
 
 @Entity('comment')
 @Unique(['id'])
@@ -43,13 +44,19 @@ export class Comment extends BaseEntity {
   @ManyToOne(() => User, (user) => user.posts)
   user: User;
 
-  /** 미팅 */
-  @ManyToOne(() => Meeting, (meeting) => meeting.posts)
-  meeting: Meeting;
+  /** 유저 id */
+  @RelationId((comment: Comment) => comment.user)
+  @Column()
+  userId: number;
 
-  /** 미팅 */
+  /** 게시글 */
   @ManyToOne(() => Post, (post) => post.comments)
   post: Post;
+
+  /** 게시글 id */
+  @RelationId((comment: Comment) => comment.post)
+  @Column()
+  postId: number;
 
   /** 좋아요 */
   @OneToMany(() => Like, (like) => like.post)
@@ -63,7 +70,16 @@ export class Comment extends BaseEntity {
   @ManyToOne(() => Comment, (comment) => comment.children)
   parent: Comment;
 
+  /** 부모 댓글 id */
+  @RelationId((comment: Comment) => comment.parent)
+  @Column({ nullable: true })
+  parentId: number | null;
+
   /** 자식 댓글 */
   @OneToMany(() => Comment, (comment) => comment.parent)
   children: Comment[];
+
+  /** 신고 */
+  @OneToMany(() => Report, (report) => report.comment)
+  reports: Report[];
 }

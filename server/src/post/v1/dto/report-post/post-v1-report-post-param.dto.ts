@@ -2,15 +2,15 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 
 /**
- * 댓글 신고 생성 param Dto
+ * 게시글 신고 생성 body Dto
  * @author @rdd9223
  */
-export class CommentV1CreateCommentReportParamDto {
+export class PostV1ReportPostParamDto {
   @ApiProperty({
     example: 1,
-    description: '댓글 ID',
+    description: '게시글 ID',
   })
   @IsNotEmpty()
   @IsNumber()
-  commentId: number;
+  postId: number;
 }

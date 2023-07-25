@@ -15,27 +15,31 @@ import { ApplyStatus } from './enum/apply-status.enum';
 
 @Entity('apply')
 export class Apply extends BaseEntity {
-  // primary key
+  /** Primary Key */
   @PrimaryGeneratedColumn()
   id: number;
 
-  // 지원 or 초대
+  /** 지원 타입 */
   @Column({ default: ApplyType.APPLY })
   type: ApplyType;
 
+  /** 지원한 모임 ID */
   @RelationId((apply: Apply) => apply.meeting) // you need to specify target relation
   @Column()
   meetingId: number;
 
+  /** 지원한 모임 */
   @ManyToOne(() => Meeting, (meeting) => meeting.id, {
     onDelete: 'CASCADE',
   })
   meeting: Meeting;
 
+  /** 지원자 ID */
   @RelationId((apply: Apply) => apply.user) // you need to specify target relation
   @Column()
   userId: number;
 
+  /** 지원자 */
   @ManyToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',
     eager: true,
@@ -43,15 +47,15 @@ export class Apply extends BaseEntity {
   @JoinTable()
   user: User;
 
-  // 지원 동기
+  /** 지원 동기 */
   @Column()
   content: string;
 
-  // 지원한 날짜
+  /** 지원한 날짜 */
   @Column()
   appliedDate: Date;
 
-  // 지원 상태
+  /** 지원 상태 */
   @Column({ default: ApplyStatus.WAITING })
   status: ApplyStatus;
 

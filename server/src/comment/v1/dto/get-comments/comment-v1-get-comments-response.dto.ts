@@ -69,7 +69,7 @@ class CommentV1GetCommentsResponseCommentDto {
 /**
  * 댓글 목록 조회 응답 DTO
  */
-export class CommentV1GetCommentResponseDto {
+export class CommentV1GetCommentsResponseDto {
   /** 댓글 목록 */
   @IsInstance(CommentV1GetCommentsResponseCommentDto, { each: true })
   @ValidateNested({ each: true })
