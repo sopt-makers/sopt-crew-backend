@@ -50,7 +50,7 @@ export class PostV1Controller {
   async getPostCount(
     @Query() query: PostV1GetPostCountQueryDto,
   ): Promise<PostV1GetPostCountResponseDto> {
-    return { postCount: 10 };
+    return this.postV1Service.getPostCount(query);
   }
 
   @ApiOperation({

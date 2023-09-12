@@ -22,6 +22,8 @@ import { LikeRepository } from 'src/entity/like/like.repository';
 import { ReportRepository } from 'src/entity/report/report.repository';
 import { PostV1ReportPostParamDto } from './dto/report-post/post-v1-report-post-param.dto';
 import { PostV1ReportPostResponseDto } from './dto/report-post/post-v1-report-post-response.dto';
+import { PostV1GetPostCountQueryDto } from './dto/get-meeting-post-count/post-v1-get-post-count-query.dto';
+import { PostV1GetPostCountResponseDto } from './dto/get-meeting-post-count/post-v1-get-post-count-response.dto';
 
 @Injectable()
 export class PostV1Service {
@@ -276,6 +278,24 @@ export class PostV1Service {
 
     return {
       reportId: report.id,
+    };
+  }
+
+  /**
+   * 모임에 생성된 게시글 개수 조회
+   * - 모든 유저가 조회 가능
+   */
+  async getPostCount(
+    query : PostV1GetPostCountQueryDto 
+  ) : Promise<PostV1GetPostCountResponseDto> {
+    const postCount = await this.postRepository.count({
+      where : {
+        meetingId : query.meetingId
+      }
+    });
+
+    return {
+      postCount
     };
   }
 }
