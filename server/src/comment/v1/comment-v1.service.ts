@@ -1,5 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Query } from '@nestjs/common';
 import { CommentRepository } from 'src/entity/comment/comment.repository';
 import dayjs from 'dayjs';
 import { CommentV1CreateCommentResponseDto } from './dto/create-comment/comment-v1-create-comment-response.dto';
@@ -38,18 +38,21 @@ export class CommentV1Service {
    * - 모든 유저가 조회 가능
    */
   async getComments({
-    postId,
-    page,
-    take,
-    skip,
-  }: CommentV1GetCommentsQueryDto): Promise<CommentV1GetCommentsResponseDto | null> {
+    query,
+    user
+  }: {
+    query : CommentV1GetCommentsQueryDto;
+    user : User;
+  }): Promise<CommentV1GetCommentsResponseDto | null> {
     const [comments, commentAmount] = await this.commentRepository.findAndCount(
       {
-        where: { postId },
+        where: { 
+          postId: query.postId 
+        },
         relations: ['user'],
         order: { id: 'ASC' },
-        skip,
-        take,
+        skip : query.skip,
+        take : query.take,
       },
     );
 
@@ -58,9 +61,9 @@ export class CommentV1Service {
     }
 
     const pageOptions: PageOptionsDto = {
-      page,
-      skip,
-      take,
+      page : query.page,
+      skip : query.skip,
+      take : query.take,
     };
     const pageMeta: PageMetaDto = new PageMetaDto({
       pageOptionsDto: pageOptions,
@@ -69,21 +72,29 @@ export class CommentV1Service {
 
     return {
       meta: pageMeta,
-      comments: comments.map((comment) => {
-        return {
-          id: comment.id,
-          contents: comment.contents,
-          updatedDate: comment.updatedDate,
-          likeCount: comment.likeCount,
-          // TODO: 좋아요 여부 확인
-          isLiked: false,
-          user: {
-            id: comment.user.id,
-            name: comment.user.name,
-            profileImage: comment.user.profileImage,
-          },
-        };
-      }),
+      comments: await Promise.all(
+        comments.map(async (comment) => {
+          const isLiked = await this.likeRepository.findOne({
+            where : {
+              commentId : comment.id,
+              userId : user.id
+            }
+          });
+
+          return {
+            id: comment.id,
+            contents: comment.contents,
+            updatedDate: comment.updatedDate,
+            likeCount: comment.likeCount,
+            isLiked: isLiked === null ? false : true,
+            user: {
+              id: comment.user.id,
+              name: comment.user.name,
+              profileImage: comment.user.profileImage,
+            },
+          };
+        }),
+      )
     };
   }
 

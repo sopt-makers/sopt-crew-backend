@@ -42,11 +42,14 @@ export class CommentV1Controller {
     description: '"모임이 없습니다." or "권한이 없습니다."',
     schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   async getComments(
     @Query() query: CommentV1GetCommentsQueryDto,
+    @GetUser() user: User,
   ): Promise<CommentV1GetCommentsResponseDto | null> {
-    return this.commentV1Service.getComments(query);
+    return this.commentV1Service.getComments({ query, user });
   }
 
   @ApiOperation({

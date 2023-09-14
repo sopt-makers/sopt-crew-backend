@@ -45,9 +45,13 @@ export class PostV1Service {
    * 모임 게시글 목록 조회
    * - 모든 유저가 조회 가능
    */
-  async getPosts(
-    query: PostV1GetPostsQueryDto,
-  ): Promise<PostV1GetPostsResponseDto | null> {
+  async getPosts({
+    query,
+    user
+  }: {
+    query : PostV1GetPostsQueryDto;
+    user : User;
+  }): Promise<PostV1GetPostsResponseDto | null> {
     const [posts, postAmount] = await this.postRepository.findAndCount({
       where: { meetingId: query.meetingId },
       relations: ['meeting', 'user', 'comments', 'comments.user'],
@@ -71,7 +75,8 @@ export class PostV1Service {
     });
 
     return {
-      posts: posts.map((post) => {
+      posts: await Promise.all(
+        posts.map(async (post) => {
         /** 중복제거 후 앞 3개만 추림 */
         const commenterThumbnails = post.comments
           .filter((item, index, self) => {
@@ -79,6 +84,13 @@ export class PostV1Service {
           })
           .map((comment) => comment.user.profileImage)
           .slice(0, 3);
+
+        const isLiked = await this.likeRepository.findOne({
+          where : {
+            postId : post.id,
+            userId : user.id
+          }
+        });
 
         return {
           id: post.id,
@@ -92,13 +104,13 @@ export class PostV1Service {
             profileImage: post.user.profileImage,
           },
           likeCount: post.likeCount,
-          // TODO: 좋아요 여부 조건 나중에 수정
-          isLiked: false,
+          isLiked: isLiked === null ? false : true,
           viewCount: post.viewCount,
           commentCount: post.commentCount,
           commenterThumbnails,
         };
-      }),
+      })
+      ),
       meta: pageMeta,
     };
   }
@@ -107,11 +119,14 @@ export class PostV1Service {
    * 모임 게시글 단일 조회
    * - 모든 유저가 조회 가능
    * @param postId 게시글 ID
+   * @param user 유저 정보
    */
   async getPost({
     postId,
+    user
   }: {
     postId: number;
+    user: User;
   }): Promise<PostV1GetPostResponseDto> {
     const post = await this.postRepository.findOne({
       where: { id: postId },
@@ -123,6 +138,13 @@ export class PostV1Service {
     }
 
     await this.postRepository.increment({ id: postId }, 'viewCount', 1);
+
+    const isLiked = await this.likeRepository.findOne({
+      where : {
+        postId : post.id,
+        userId : user.id
+      }
+    });
 
     return {
       id: post.id,
@@ -137,8 +159,7 @@ export class PostV1Service {
       },
       viewCount: post.viewCount,
       likeCount: post.likeCount,
-      // TODO: 좋아요 여부 어떻게 처리할건지 확인하기
-      isLiked: false,
+      isLiked: isLiked === null ? false : true,
     };
   }
 
@@ -167,10 +188,12 @@ export class PostV1Service {
     }
 
     const isInMeeting = meeting.appliedInfo.some((apply) => {
-      return apply.userId === user.id && apply.status === ApplyStatus.APPROVE;
+      return (apply.userId === user.id && apply.status === ApplyStatus.APPROVE);
     });
 
-    if (isInMeeting === false) {
+    const isMeetingCreator = user.id === meeting.userId;
+
+    if (isInMeeting === false && isMeetingCreator === false) {
       throw new ForbiddenException('권한이 없습니다.');
     }
 

@@ -61,11 +61,14 @@ export class PostV1Controller {
     description: '"모임이 없습니다." or "권한이 없습니다."',
     schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   async getPosts(
     @Query() query: PostV1GetPostsQueryDto,
+    @GetUser() user: User,
   ): Promise<PostV1GetPostsResponseDto> {
-    return this.postV1Service.getPosts(query);
+    return this.postV1Service.getPosts({ query, user });
   }
 
   @ApiOperation({
@@ -76,11 +79,14 @@ export class PostV1Controller {
     description: '"모임이 없습니다." or "권한이 없습니다."',
     schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Get('/:postId')
   async getMeetingPost(
     @Param('postId', ParseIntPipe) postId: number,
+    @GetUser() user: User,
   ): Promise<PostV1GetPostResponseDto> {
-    return this.postV1Service.getPost({ postId });
+    return this.postV1Service.getPost({ postId, user });
   }
 
   @ApiOperation({
