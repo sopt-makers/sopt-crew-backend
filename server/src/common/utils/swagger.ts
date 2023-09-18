@@ -11,7 +11,7 @@ export function setupSwagger(app: INestApplication): void {
   const options = new DocumentBuilder()
     .setTitle('Crew API 문서')
     .setDescription('Crew API 문서')
-    .setVersion('0.4.0')
+    .setVersion('0.4.1')
     .addBearerAuth()
     .build();
 
