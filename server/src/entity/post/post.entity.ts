@@ -63,11 +63,11 @@ export class Post extends BaseEntity {
   @Column()
   meetingId: number;
 
-  /** 좋아요 */
+  /** 댓글 */
   @OneToMany(() => Comment, (comment) => comment.post)
   comments: Comment[];
 
-  /** 좋아요 수 */
+  /** 댓글 수 */
   @Column({ default: 0 })
   commentCount: number;
 

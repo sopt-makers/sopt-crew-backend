@@ -59,7 +59,7 @@ export class Comment extends BaseEntity {
   postId: number;
 
   /** 좋아요 */
-  @OneToMany(() => Like, (like) => like.post)
+  @OneToMany(() => Like, (like) => like.comment)
   likes: Like[];
 
   /** 좋아요 수 */

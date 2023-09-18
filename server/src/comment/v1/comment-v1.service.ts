@@ -39,20 +39,20 @@ export class CommentV1Service {
    */
   async getComments({
     query,
-    user
+    user,
   }: {
-    query : CommentV1GetCommentsQueryDto;
-    user : User;
+    query: CommentV1GetCommentsQueryDto;
+    user: User;
   }): Promise<CommentV1GetCommentsResponseDto | null> {
     const [comments, commentAmount] = await this.commentRepository.findAndCount(
       {
-        where: { 
-          postId: query.postId 
+        where: {
+          postId: query.postId,
         },
-        relations: ['user'],
+        relations: ['user', 'likes'],
         order: { id: 'ASC' },
-        skip : query.skip,
-        take : query.take,
+        skip: query.skip,
+        take: query.take,
       },
     );
 
@@ -61,9 +61,9 @@ export class CommentV1Service {
     }
 
     const pageOptions: PageOptionsDto = {
-      page : query.page,
-      skip : query.skip,
-      take : query.take,
+      page: query.page,
+      skip: query.skip,
+      take: query.take,
     };
     const pageMeta: PageMetaDto = new PageMetaDto({
       pageOptionsDto: pageOptions,
@@ -72,29 +72,22 @@ export class CommentV1Service {
 
     return {
       meta: pageMeta,
-      comments: await Promise.all(
-        comments.map(async (comment) => {
-          const isLiked = await this.likeRepository.findOne({
-            where : {
-              commentId : comment.id,
-              userId : user.id
-            }
-          });
+      comments: comments.map((comment) => {
+        const isLiked = comment.likes.some((like) => like.userId === user.id);
 
-          return {
-            id: comment.id,
-            contents: comment.contents,
-            updatedDate: comment.updatedDate,
-            likeCount: comment.likeCount,
-            isLiked: isLiked === null ? false : true,
-            user: {
-              id: comment.user.id,
-              name: comment.user.name,
-              profileImage: comment.user.profileImage,
-            },
-          };
-        }),
-      )
+        return {
+          id: comment.id,
+          contents: comment.contents,
+          updatedDate: comment.updatedDate,
+          likeCount: comment.likeCount,
+          isLiked,
+          user: {
+            id: comment.user.id,
+            name: comment.user.name,
+            profileImage: comment.user.profileImage,
+          },
+        };
+      }),
     };
   }
 

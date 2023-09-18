@@ -47,14 +47,14 @@ export class PostV1Service {
    */
   async getPosts({
     query,
-    user
+    user,
   }: {
-    query : PostV1GetPostsQueryDto;
-    user : User;
+    query: PostV1GetPostsQueryDto;
+    user: User;
   }): Promise<PostV1GetPostsResponseDto | null> {
     const [posts, postAmount] = await this.postRepository.findAndCount({
       where: { meetingId: query.meetingId },
-      relations: ['meeting', 'user', 'comments', 'comments.user'],
+      relations: ['meeting', 'user', 'comments', 'comments.user', 'likes'],
       order: { id: 'DESC' },
       skip: query.skip,
       take: query.take,
@@ -75,8 +75,7 @@ export class PostV1Service {
     });
 
     return {
-      posts: await Promise.all(
-        posts.map(async (post) => {
+      posts: posts.map((post) => {
         /** 중복제거 후 앞 3개만 추림 */
         const commenterThumbnails = post.comments
           .filter((item, index, self) => {
@@ -85,12 +84,7 @@ export class PostV1Service {
           .map((comment) => comment.user.profileImage)
           .slice(0, 3);
 
-        const isLiked = await this.likeRepository.findOne({
-          where : {
-            postId : post.id,
-            userId : user.id
-          }
-        });
+        const isLiked = post.likes.some((like) => like.userId === user.id);
 
         return {
           id: post.id,
@@ -104,13 +98,12 @@ export class PostV1Service {
             profileImage: post.user.profileImage,
           },
           likeCount: post.likeCount,
-          isLiked: isLiked === null ? false : true,
+          isLiked,
           viewCount: post.viewCount,
           commentCount: post.commentCount,
           commenterThumbnails,
         };
-      })
-      ),
+      }),
       meta: pageMeta,
     };
   }
@@ -123,7 +116,7 @@ export class PostV1Service {
    */
   async getPost({
     postId,
-    user
+    user,
   }: {
     postId: number;
     user: User;
@@ -140,10 +133,10 @@ export class PostV1Service {
     await this.postRepository.increment({ id: postId }, 'viewCount', 1);
 
     const isLiked = await this.likeRepository.findOne({
-      where : {
-        postId : post.id,
-        userId : user.id
-      }
+      where: {
+        postId: post.id,
+        userId: user.id,
+      },
     });
 
     return {
@@ -188,7 +181,7 @@ export class PostV1Service {
     }
 
     const isInMeeting = meeting.appliedInfo.some((apply) => {
-      return (apply.userId === user.id && apply.status === ApplyStatus.APPROVE);
+      return apply.userId === user.id && apply.status === ApplyStatus.APPROVE;
     });
 
     const isMeetingCreator = user.id === meeting.userId;
@@ -309,16 +302,16 @@ export class PostV1Service {
    * - 모든 유저가 조회 가능
    */
   async getPostCount(
-    query : PostV1GetPostCountQueryDto 
-  ) : Promise<PostV1GetPostCountResponseDto> {
+    query: PostV1GetPostCountQueryDto,
+  ): Promise<PostV1GetPostCountResponseDto> {
     const postCount = await this.postRepository.count({
-      where : {
-        meetingId : query.meetingId
-      }
+      where: {
+        meetingId: query.meetingId,
+      },
     });
 
     return {
-      postCount
+      postCount,
     };
   }
 }
