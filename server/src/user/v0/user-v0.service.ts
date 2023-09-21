@@ -59,6 +59,8 @@ export class UserV0Service {
 
     const result = await Promise.all(resultPromises);
 
+    result.sort((a, b) => b.appliedDate.getTime() - a.appliedDate.getTime());
+
     return { apply: result, count: itemCount };
   }
 
