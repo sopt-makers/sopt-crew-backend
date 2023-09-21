@@ -14,6 +14,7 @@ import { Apply } from '../apply/apply.entity';
 import { MeetingJoinablePart } from './enum/meeting-joinable-part.enum';
 import { MeetingCategory } from './enum/meeting-category.enum';
 import { ImageURL } from './interface/image-url.interface';
+import { Post } from '../post/post.entity';
 
 @Entity('meeting')
 @Unique(['id'])
@@ -119,4 +120,8 @@ export class Meeting extends BaseEntity {
     nullable: true,
   })
   joinableParts: MeetingJoinablePart[];
+
+  /** 게시글 리스트 */
+  @OneToMany(() => Post, (post) => post.meeting)
+  posts: Post[];
 }

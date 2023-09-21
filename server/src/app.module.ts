@@ -8,6 +8,8 @@ import { HealthModule } from './health/health.module';
 import { UserModule } from './user/user.module';
 import { TransformInterceptor } from './common/interceptor/transform.interceptor';
 import { NoticeModule } from './notice/notice.module';
+import { PostModule } from './post/post.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { NoticeModule } from './notice/notice.module';
     UserModule,
     HealthModule,
     NoticeModule,
+    PostModule,
+    CommentModule,
   ],
   providers: [
     {
