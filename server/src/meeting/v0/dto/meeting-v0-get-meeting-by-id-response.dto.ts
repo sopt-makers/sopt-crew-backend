@@ -72,6 +72,8 @@ export class MeetingV0GetMeetingByIdResponseDto {
 
   approvedApplyCount: number;
 
+  createdGeneration: number;
+
   joinableParts: MeetingJoinablePart[];
   // 칼럼이 아닌 response할 때 meeting 객체에 넣어줄 값
   status?: MeetingV0MeetingStatus; // 모임 상태

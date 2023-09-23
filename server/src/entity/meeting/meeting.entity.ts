@@ -104,6 +104,13 @@ export class Meeting extends BaseEntity {
   canJoinOnlyActiveGeneration: boolean;
 
   /**
+   * 모임 기수
+   * @description 생성 시점의 기수
+   */
+  @Column()
+  createdGeneration: number;
+
+  /**
    * 대상 활동 기수
    * null인 경우 모든 기수 허용
    * */

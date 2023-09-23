@@ -159,6 +159,7 @@ export class MeetingV1Service {
       {
         ...meeting,
         targetActiveGeneration,
+        createdGeneration: ACTIVE_GENERATION,
         canJoinOnlyActiveGeneration,
         endDate,
       },
