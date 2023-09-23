@@ -214,6 +214,7 @@ export class MeetingV0Service {
       page,
       isOnlyActiveGeneration,
       joinableParts,
+      createdGenerations,
     } = getMeetingDto;
 
     const categoryArr: MeetingCategory[] = category
@@ -225,13 +226,14 @@ export class MeetingV0Service {
       : [];
 
     const [meetingResponse, itemCount] =
-      await this.meetingRepository.getMeetingsAndCount(
+      await this.meetingRepository.getMeetingsAndCount({
         getMeetingDto,
         categoryArr,
         statusArr,
-        isOnlyActiveGeneration,
+        canJoinOnlyActiveGeneration: isOnlyActiveGeneration,
         joinableParts,
-      );
+        createdGenerations,
+      });
 
     const meetingPromises = meetingResponse.map(async (meeting) => {
       const { status } = await getMeetingStatus(meeting);

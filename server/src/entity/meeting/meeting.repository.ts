@@ -38,13 +38,21 @@ export class MeetingRepository extends Repository<Meeting> {
   }
 
   // id와 카테고리, 상태로 모임 정보 및 개수 조회
-  async getMeetingsAndCount(
-    getMeetingDto: MeetingV0GetAllMeetingsQueryDto,
-    categoryArr: MeetingCategory[],
-    statusArr: MeetingV0MeetingStatus[],
-    canJoinOnlyActiveGeneration: boolean,
-    joinableParts?: MeetingJoinablePart | MeetingJoinablePart[],
-  ): Promise<[Meeting[], number]> {
+  async getMeetingsAndCount({
+    getMeetingDto,
+    categoryArr,
+    statusArr,
+    canJoinOnlyActiveGeneration,
+    joinableParts,
+    createdGenerations,
+  }: {
+    getMeetingDto: MeetingV0GetAllMeetingsQueryDto;
+    categoryArr: MeetingCategory[];
+    statusArr: MeetingV0MeetingStatus[];
+    canJoinOnlyActiveGeneration: boolean;
+    joinableParts?: MeetingJoinablePart | MeetingJoinablePart[];
+    createdGenerations?: number[];
+  }): Promise<[Meeting[], number]> {
     const { query, skip, take } = getMeetingDto;
     const nowDate = dayjs().toDate();
 
@@ -55,8 +63,7 @@ export class MeetingRepository extends Repository<Meeting> {
         'apply.status = :status',
         { status: 1 },
       )
-      .leftJoinAndSelect('meeting.user', 'user')
-      .where('1 = 1');
+      .leftJoinAndSelect('meeting.user', 'user');
 
     if (query) {
       meetingQuery.andWhere('meeting.title like :title', {
@@ -68,6 +75,15 @@ export class MeetingRepository extends Repository<Meeting> {
       meetingQuery.andWhere('meeting.category IN (:...categoryArr)', {
         categoryArr,
       });
+    }
+
+    if (createdGenerations !== undefined) {
+      meetingQuery.andWhere(
+        'meeting.createdGeneration IN (:...createdGenerations)',
+        {
+          createdGenerations,
+        },
+      );
     }
 
     if (canJoinOnlyActiveGeneration === true) {

@@ -1,9 +1,16 @@
-import { IsString, IsOptional, IsNotEmpty, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsEnum,
+  IsNumber,
+} from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
 import { PageOptionsDto } from 'src/common/pagination/dto/page-options.dto';
 import { MeetingJoinablePart } from '../../../../entity/meeting/enum/meeting-joinable-part.enum';
 import { IsBoolean } from 'src/common/decorator/is-boolean.decorator';
+import { Transform } from 'class-transformer';
 
 export class MeetingV0GetAllMeetingsQueryDto extends PageOptionsDto {
   @ApiProperty({
@@ -51,4 +58,16 @@ export class MeetingV0GetAllMeetingsQueryDto extends PageOptionsDto {
   @IsOptional()
   @IsString()
   readonly query?: string;
+
+  @ApiProperty({
+    example: '32,33',
+    description: '모임 기수',
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @Transform(({ value }) => value.split(',').map(Number))
+  @IsNotEmpty({ each: true })
+  @IsNumber({}, { each: true })
+  readonly createdGenerations?: number[];
 }
