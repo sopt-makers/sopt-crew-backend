@@ -109,7 +109,7 @@ export class MeetingRepository extends Repository<Meeting> {
         );
       } else {
         meetingQuery.andWhere(
-          `meeting.joinableParts = ARRAY[:joinableParts]::${enumNameInDatabase}`,
+          `meeting.joinableParts @> ARRAY[:joinableParts]::${enumNameInDatabase}`,
           {
             joinableParts,
           },
