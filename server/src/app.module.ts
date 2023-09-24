@@ -27,7 +27,7 @@ import { CommentModule } from './comment/comment.module';
         database: config.get('DB_NAME'),
         entities: [__dirname + '/**/*.entity.{js,ts}'],
         schema: config.get('DB_SCHEMA'),
-        synchronize: process.env.NODE_ENV === 'dev' ? true : false,
+        synchronize: false,
       }),
       inject: [ConfigService],
     }),
