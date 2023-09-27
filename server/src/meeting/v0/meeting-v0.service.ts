@@ -161,31 +161,15 @@ export class MeetingV0Service {
       );
     }
 
-    const isHost = meeting.user.id === user.id ? true : false;
+    const isHost = meeting.user.id === user.id;
 
     const isApply = meeting.appliedInfo.some(
       (el) => el.userId === user.id && el.type === ApplyType.APPLY,
     );
 
-    const inviteArr = meeting.appliedInfo.filter((el) => {
-      if (el.type === ApplyType.INVITE) {
-        return el;
-      }
-    });
-
-    // 초대되었는지 el.userId === user.i
-    // 초대 되었으면 승인을 했는지 el.status === 1
-    let approvedUser = false;
-    let inviteUser = false;
-
-    inviteArr.forEach((el) => {
-      if (el.userId === user.id) {
-        inviteUser = true;
-        if (el.status === ApplyStatus.APPROVE) {
-          approvedUser = true;
-        }
-      }
-    });
+    const isApproved = meeting.appliedInfo.some(
+      (el) => el.userId === user.id && el.status === ApplyStatus.APPROVE,
+    );
 
     const { status, approvedApplies } = await getMeetingStatus(meeting);
 
@@ -196,8 +180,7 @@ export class MeetingV0Service {
       approvedApplyCount: approvedApplies.length,
       host: isHost,
       apply: isApply,
-      approved: approvedUser,
-      invite: inviteUser,
+      approved: isApproved,
       canJoinOnlyActiveGeneration:
         meeting.targetActiveGeneration === ACTIVE_GENERATION,
     };
