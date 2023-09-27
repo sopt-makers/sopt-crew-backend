@@ -151,6 +151,12 @@ export class PostV1Service {
         name: post.user.name,
         profileImage: post.user.profileImage,
       },
+      meeting: {
+        id: post.meeting.id,
+        title: post.meeting.title,
+        imageURL: post.meeting.imageURL,
+        category: post.meeting.category,
+      },
       viewCount: post.viewCount,
       likeCount: post.likeCount,
       isLiked: isLiked === null ? false : true,
