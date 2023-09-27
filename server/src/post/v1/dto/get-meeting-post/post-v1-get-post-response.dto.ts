@@ -47,7 +47,6 @@ class PostV1GetPostResponseMeetingDto {
 
   /** 모임 이미지 */
   @IsNotEmpty()
-  @IsString()
   imageURL: ImageURL[];
 
   /** 모임 카테고리 */
