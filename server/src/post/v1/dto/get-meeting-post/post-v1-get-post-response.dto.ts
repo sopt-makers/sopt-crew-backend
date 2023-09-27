@@ -9,6 +9,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { ImageURL } from 'src/entity/meeting/interface/image-url.interface';
 
 /**
  * 작성자 정보
@@ -28,6 +29,31 @@ class PostV1GetPostResponseUserDto {
   @IsOptional()
   @IsString()
   profileImage: string | null;
+}
+
+/**
+ * 모임 정보
+ */
+class PostV1GetPostResponseMeetingDto {
+  /** 모임 고유 ID */
+  @IsNotEmpty()
+  @IsNumber()
+  id: number;
+
+  /** 모임 제목 */
+  @IsNotEmpty()
+  @IsString()
+  title: string;
+
+  /** 모임 이미지 */
+  @IsNotEmpty()
+  @IsString()
+  imageURL: ImageURL[];
+
+  /** 모임 카테고리 */
+  @IsNotEmpty()
+  @IsString()
+  category: string;
 }
 
 export class PostV1GetPostResponseDto {
@@ -61,6 +87,12 @@ export class PostV1GetPostResponseDto {
   @ValidateNested()
   @Type(() => PostV1GetPostResponseUserDto)
   user: PostV1GetPostResponseUserDto;
+
+  /** 미팅 정보 */
+  @IsInstance(PostV1GetPostResponseMeetingDto)
+  @ValidateNested()
+  @Type(() => PostV1GetPostResponseMeetingDto)
+  meeting: PostV1GetPostResponseMeetingDto;
 
   /** 조회수 */
   @IsNotEmpty()
