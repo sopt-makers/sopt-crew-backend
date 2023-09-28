@@ -59,9 +59,11 @@ export class UserV0Service {
 
     const result = await Promise.all(resultPromises);
 
-    result.sort((a, b) => b.appliedDate.getTime() - a.appliedDate.getTime());
+    const sortedResult = result.sort(
+      (a, b) => b.appliedDate.getTime() - a.appliedDate.getTime(),
+    );
 
-    return { apply: result, count: itemCount };
+    return { apply: sortedResult, count: itemCount };
   }
 
   // 유저 정보 조회
