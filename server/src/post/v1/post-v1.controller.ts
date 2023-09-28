@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -33,6 +35,10 @@ import { PostV1ReportPostResponseDto } from './dto/report-post/post-v1-report-po
 import { PostV1SwitchPostLikeParamDto } from './dto/switch-post-like/post-v1-switch-post-like-param.dto';
 import { PostV1SwitchPostLikeResponseDto } from './dto/switch-post-like/post-v1-switch-post-like-response.dto';
 import { ApiOkResponseCommon } from 'src/common/decorator/api-ok-response-common.decorator';
+import { PostV1DeletePostParamDto } from './dto/delete-meeting-post/post-v1-delete-post-param.dto';
+import { PostV1UpdatePostResponseDto } from './dto/update-meeting-post/post-v1-update-post-response.dto';
+import { PostV1UpdatePostParamDto } from './dto/update-meeting-post/post-v1-update-post-param.dto';
+import { PostV1UpdatePostBodyDto } from './dto/update-meeting-post/post-v1-update-post-body.dto';
 
 @ApiTags('게시글')
 @Controller('post/v1')
@@ -143,5 +149,46 @@ export class PostV1Controller {
     @GetUser() user: User,
   ): Promise<PostV1ReportPostResponseDto> {
     return this.postV1Service.reportPost({ param, user });
+  }
+
+  @ApiOperation({
+    summary: '모임 게시글 수정',
+  })
+  @ApiOkResponseCommon(PostV1UpdatePostResponseDto)
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description:
+      '"게시글이 없습니다." or "권한이 없습니다." or "이미지는 최대 10개까지만 업로드 가능합니다."',
+    schema: { $ref: getSchemaPath(BaseExceptionDto) },
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Put('/:postId')
+  async updatePost(
+    @Param() param: PostV1UpdatePostParamDto,
+    @Body() body: PostV1UpdatePostBodyDto,
+    @GetUser() user: User,
+  ): Promise<PostV1UpdatePostResponseDto> {
+    return this.postV1Service.updatePost({
+      postId: param.postId,
+      body,
+      userId: user.id,
+    });
+  }
+
+  @ApiOperation({
+    summary: '모임 게시글 삭제',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('/:postId')
+  async deletePost(
+    @Param() param: PostV1DeletePostParamDto,
+    @GetUser() user: User,
+  ): Promise<void> {
+    return this.postV1Service.deletePost({
+      userId: user.id,
+      postId: param.postId,
+    });
   }
 }

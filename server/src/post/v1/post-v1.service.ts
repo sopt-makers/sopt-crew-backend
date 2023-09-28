@@ -24,6 +24,7 @@ import { PostV1ReportPostParamDto } from './dto/report-post/post-v1-report-post-
 import { PostV1ReportPostResponseDto } from './dto/report-post/post-v1-report-post-response.dto';
 import { PostV1GetPostCountQueryDto } from './dto/get-meeting-post-count/post-v1-get-post-count-query.dto';
 import { PostV1GetPostCountResponseDto } from './dto/get-meeting-post-count/post-v1-get-post-count-response.dto';
+import { PostV1UpdatePostBodyDto } from './dto/update-meeting-post/post-v1-update-post-body.dto';
 
 @Injectable()
 export class PostV1Service {
@@ -313,5 +314,85 @@ export class PostV1Service {
     return {
       postCount,
     };
+  }
+
+  /**
+   * 모임 게시글 수정
+   */
+  async updatePost({
+    userId,
+    postId,
+    body,
+  }: {
+    userId: number;
+    postId: number;
+    body: PostV1UpdatePostBodyDto;
+  }) {
+    const post = await this.postRepository.findOne({
+      where: { id: postId },
+    });
+    console.log(post);
+    const isValidPost = post !== null;
+    if (!isValidPost) {
+      throw new BadRequestException('게시글이 없습니다.');
+    }
+
+    const isPostOwner = post.userId === userId;
+    if (!isPostOwner) {
+      throw new ForbiddenException('권한이 없습니다.');
+    }
+
+    const isImageCountInvalid = body.images.length > 10;
+    if (isImageCountInvalid) {
+      throw new BadRequestException(
+        '이미지는 최대 10개까지만 업로드 가능합니다.',
+      );
+    }
+
+    await this.postRepository.update(
+      { id: postId },
+      {
+        title: body.title,
+        contents: body.contents,
+        images: body.images,
+      },
+    );
+
+    const updatedPost = await this.postRepository.findOne({
+      where: { id: postId },
+    });
+
+    return {
+      id: updatedPost.id,
+      title: updatedPost.title,
+      contents: updatedPost.contents,
+      updatedDate: updatedPost.updatedDate,
+      images: updatedPost.images,
+    };
+  }
+
+  /**
+   * 모임 게시글 삭제
+   */
+  async deletePost({
+    userId,
+    postId,
+  }: {
+    userId: number;
+    postId: number;
+  }): Promise<void> {
+    const post = await this.postRepository.findOne({
+      where: { id: postId },
+    });
+
+    if (post === null) {
+      throw new BadRequestException('게시글이 없습니다.');
+    }
+
+    if (post.userId !== userId) {
+      throw new ForbiddenException('권한이 없습니다.');
+    }
+
+    await this.postRepository.delete({ id: postId });
   }
 }
