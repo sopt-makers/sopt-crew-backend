@@ -28,6 +28,7 @@ import { CommentV1ReportCommentParamDto } from './dto/report-comment/comment-v1-
 import { CommentV1ReportCommentResponseDto } from './dto/report-comment/comment-v1-report-comment-response.dto';
 import { CommentV1SwitchCommentLikeParamDto } from 'src/comment/v1/dto/switch-comment-like/comment-v1-switch-comment-like-param.dto';
 import { CommentV1SwitchCommentLikeResponseDto } from './dto/switch-comment-like/comment-v1-switch-comment-like-response.dto';
+import { ApiOkResponseCommon } from 'src/common/decorator/api-ok-response-common.decorator';
 
 @ApiTags('댓글/대댓글')
 @Controller('comment/v1')
@@ -37,6 +38,7 @@ export class CommentV1Controller {
   @ApiOperation({
     summary: '모임 게시글 댓글 리스트 조회',
   })
+  @ApiOkResponseCommon(CommentV1GetCommentsResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: '"모임이 없습니다." or "권한이 없습니다."',
@@ -55,6 +57,7 @@ export class CommentV1Controller {
   @ApiOperation({
     summary: '댓글 좋아요 토글',
   })
+  @ApiOkResponseCommon(CommentV1SwitchCommentLikeResponseDto)
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Post('/:commentId/like')
@@ -68,6 +71,7 @@ export class CommentV1Controller {
   @ApiOperation({
     summary: '댓글 신고',
   })
+  @ApiOkResponseCommon(CommentV1ReportCommentResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: '',
@@ -86,6 +90,7 @@ export class CommentV1Controller {
   @ApiOperation({
     summary: '모임 게시글 댓글 작성',
   })
+  @ApiOkResponseCommon(CommentV1CreateCommentResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: '',

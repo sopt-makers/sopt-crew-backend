@@ -32,6 +32,7 @@ import { PostV1ReportPostParamDto } from './dto/report-post/post-v1-report-post-
 import { PostV1ReportPostResponseDto } from './dto/report-post/post-v1-report-post-response.dto';
 import { PostV1SwitchPostLikeParamDto } from './dto/switch-post-like/post-v1-switch-post-like-param.dto';
 import { PostV1SwitchPostLikeResponseDto } from './dto/switch-post-like/post-v1-switch-post-like-response.dto';
+import { ApiOkResponseCommon } from 'src/common/decorator/api-ok-response-common.decorator';
 
 @ApiTags('게시글')
 @Controller('post/v1')
@@ -41,6 +42,7 @@ export class PostV1Controller {
   @ApiOperation({
     summary: '모임 게시글 개수 조회',
   })
+  @ApiOkResponseCommon(PostV1GetPostCountResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: '"모임이 없습니다." or "권한이 없습니다."',
@@ -56,6 +58,7 @@ export class PostV1Controller {
   @ApiOperation({
     summary: '모임 게시글 목록 조회',
   })
+  @ApiOkResponseCommon(PostV1GetPostsResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: '"모임이 없습니다." or "권한이 없습니다."',
@@ -74,6 +77,7 @@ export class PostV1Controller {
   @ApiOperation({
     summary: '모임 게시글 조회',
   })
+  @ApiOkResponseCommon(PostV1GetPostResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: '"모임이 없습니다." or "권한이 없습니다."',
@@ -92,6 +96,7 @@ export class PostV1Controller {
   @ApiOperation({
     summary: '모임 게시글 작성',
   })
+  @ApiOkResponseCommon(PostV1CreatePostResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: '모임이 없습니다.',
@@ -110,6 +115,7 @@ export class PostV1Controller {
   @ApiOperation({
     summary: '게시글 좋아요 토글',
   })
+  @ApiOkResponseCommon(PostV1SwitchPostLikeResponseDto)
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Post('/:postId/like')
@@ -123,6 +129,7 @@ export class PostV1Controller {
   @ApiOperation({
     summary: '모임 게시글 신고',
   })
+  @ApiOkResponseCommon(PostV1ReportPostResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: '"모임이 없습니다." or "권한이 없습니다."',

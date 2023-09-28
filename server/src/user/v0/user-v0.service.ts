@@ -5,6 +5,8 @@ import { UserRepository } from '../../entity/user/user.repository';
 import { getMeetingStatus } from 'src/common/utils/get-meeting-status.function';
 import { ApplyRepository } from 'src/entity/apply/apply.repository';
 import { MeetingRepository } from 'src/entity/meeting/meeting.repository';
+import { UserV0GetApplyByUserDto } from './dto/get-apply-by-user/user-v0-get-apply-by-user.dto';
+import { UserV0GetMeetingByUserDto } from './dto/get-meeting-by-user/user-v0-get-meeting-by-user.dto';
 
 @Injectable()
 export class UserV0Service {
@@ -20,7 +22,7 @@ export class UserV0Service {
   ) {}
 
   // 내가 생성한 모임 조회
-  async getMeetingByUser(user: User) {
+  async getMeetingByUser(user: User): Promise<UserV0GetMeetingByUserDto> {
     const [meetings, itemCount] =
       await this.meetingRepository.getMeetingAndCount(user);
 
@@ -38,7 +40,7 @@ export class UserV0Service {
   }
 
   // 내가 지원한 내역 조회
-  async getApplyByUser(user: User) {
+  async getApplyByUser(user: User): Promise<UserV0GetApplyByUserDto> {
     const [applies, itemCount] = await this.applyRepository.getApplyAndCount(
       user,
     );

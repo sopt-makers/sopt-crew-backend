@@ -31,6 +31,7 @@ import { MeetingV1CreateMeetingResponseDto } from './dto/create-meeting/meeting-
 import { MeetingV1CreateMeetingBodyDto } from './dto/create-meeting/meeting-v1-create-meeting-body.dto';
 import { MeetingV1GetApplyListByMeetingCsvFileUrlQueryDto } from './dto/get-apply-list-by-meeting-csv-file-url/meeting-v1-get-apply-list-by-meeting-csv-file-url-query.dto';
 import { MeetingV1GetApplyListByMeetingCsvFileUrlResponseDto } from './dto/get-apply-list-by-meeting-csv-file-url/meeting-v1-get-apply-list-by-meeting-csv-file-url-response.dto';
+import { ApiOkResponseCommon } from 'src/common/decorator/api-ok-response-common.decorator';
 
 @ApiTags('모임')
 @Controller('meeting/v1')
@@ -41,6 +42,7 @@ export class MeetingV1Controller {
     summary: '모임 지원자 목록 csv 파일 다운로드',
     description: '모임장일때만 지원자 목록 csv 파일 다운로드 가능',
   })
+  @ApiOkResponseCommon(MeetingV1GetApplyListByMeetingCsvFileUrlResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: '"모임이 없습니다." or "권한이 없습니다."',
@@ -65,6 +67,7 @@ export class MeetingV1Controller {
   @ApiOperation({
     summary: 'Meeting 썸네일 업로드용 Pre-Signed URL 발급',
   })
+  @ApiOkResponseCommon(MeetingV1GetPresignedUrlResponseDto)
   @ApiResponse({
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: '발급 실패',
@@ -83,6 +86,7 @@ export class MeetingV1Controller {
     summary: '모임 생성',
     description: '모임 생성',
   })
+  @ApiOkResponseCommon(MeetingV1CreateMeetingResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description:

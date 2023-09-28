@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { BaseExceptionDto } from '../dto/base-exception.dto';
+import { CommonResponseDto } from '../dto/common-response.dto';
 
 /**
  * Swagger 세팅
@@ -16,7 +17,7 @@ export function setupSwagger(app: INestApplication): void {
     .build();
 
   const document = SwaggerModule.createDocument(app, options, {
-    extraModels: [BaseExceptionDto],
+    extraModels: [BaseExceptionDto, CommonResponseDto],
   });
   SwaggerModule.setup('api-docs', app, document, {
     swaggerOptions: {

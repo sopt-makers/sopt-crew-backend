@@ -5,6 +5,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { NoticeV1GetNoticesQueryDto } from './dto/notice-v1-get-notices-query.dto';
 import { NoticeV1CreateNoticeBodyDto } from './dto/notice-v1-create-notice-body.dto';
 import { NoticeV1GetNoticesResponseDto } from './dto/notice-v1-get-notices-response.dto';
+import { ApiOkResponseCommon } from 'src/common/decorator/api-ok-response-common.decorator';
 
 @ApiTags('공지사항')
 @Controller('notice/v1')
@@ -12,6 +13,7 @@ export class NoticeV1Controller {
   constructor(private readonly noticeV1Service: NoticeV1Service) {}
 
   @ApiOperation({ summary: '공지사항 조회' })
+  @ApiOkResponseCommon(NoticeV1GetNoticesResponseDto)
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Get()

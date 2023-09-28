@@ -37,7 +37,7 @@ import { MeetingV0GetMeetingByIdResponseDto } from './dto/meeting-v0-get-meeting
 import { MeetingV0GetApplyListByMeetingResponseDto } from './dto/get-apply-list-by-meeting/meeting-v0-get-apply-list-by-meeting-response.dto';
 import { MeetingV0GetAllMeetingsResponseDto } from './dto/get-all-meetings/meeting-v0-get-all-meetings-response.dto';
 import { GetUser } from 'src/common/decorator/get-user.decorator';
-import { Meeting } from '../../entity/meeting/meeting.entity';
+import { ApiOkResponseCommon } from 'src/common/decorator/api-ok-response-common.decorator';
 
 @ApiTags('모임')
 @Controller('meeting')
@@ -56,7 +56,7 @@ export class MeetingV0Controller {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateStatusApplyDto: MeetingV0UpdateStatusApplyDto,
     @GetUser() user: User,
-  ) {
+  ): Promise<null> {
     return this.meetingV0Service.updateApplyStatusByMeeting(
       id,
       user,
@@ -69,6 +69,7 @@ export class MeetingV0Controller {
     description:
       '모임 지원자/참여자 조회 (모임장이면 지원자, 아니면 참여자 조회)',
   })
+  @ApiOkResponseCommon(MeetingV0GetApplyListByMeetingResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: '모임이 없습니다',
@@ -106,7 +107,7 @@ export class MeetingV0Controller {
   async applyMeeting(
     @Body() applyMeetingDto: MeetingV0ApplyMeetingDto,
     @GetUser() user: User,
-  ) {
+  ): Promise<null> {
     return this.meetingV0Service.applyMeeting(applyMeetingDto, user);
   }
 
@@ -114,11 +115,7 @@ export class MeetingV0Controller {
     summary: '모임 상세 조회',
     description: '모임 상세 조회',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: '노출할 정보가 있는 경우',
-    schema: { $ref: getSchemaPath(Meeting) },
-  })
+  @ApiOkResponseCommon(MeetingV0GetMeetingByIdResponseDto)
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: '모임이 없습니다',
@@ -139,6 +136,7 @@ export class MeetingV0Controller {
     summary: '모임 전체 조회/검색/필터링',
     description: '모임 전체 조회/검색/필터링',
   })
+  @ApiOkResponseCommon(MeetingV0GetAllMeetingsResponseDto)
   @Get('/')
   async getAllMeeting(
     @Query() getMeetingDto: MeetingV0GetAllMeetingsQueryDto,
