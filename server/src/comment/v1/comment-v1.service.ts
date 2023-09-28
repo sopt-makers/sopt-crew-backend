@@ -1,5 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { BadRequestException, Injectable, Query } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CommentRepository } from 'src/entity/comment/comment.repository';
 import dayjs from 'dayjs';
 import { CommentV1CreateCommentResponseDto } from './dto/create-comment/comment-v1-create-comment-response.dto';
@@ -16,6 +16,8 @@ import { CommentV1SwitchCommentLikeResponseDto } from './dto/switch-comment-like
 import { CommentV1ReportCommentParamDto } from './dto/report-comment/comment-v1-report-comment-param.dto';
 import { CommentV1ReportCommentResponseDto } from './dto/report-comment/comment-v1-report-comment-response.dto';
 import { ReportRepository } from 'src/entity/report/report.repository';
+import { CommentV1UpdateCommentResponseDto } from './dto/update-comment/comment-v1-update-comment-response.dto';
+import { CommentV1UpdateCommentBodyDto } from './dto/update-comment/comment-v1-update-comment-body.dto';
 
 @Injectable()
 export class CommentV1Service {
@@ -217,5 +219,60 @@ export class CommentV1Service {
     return {
       commentId: comment.id,
     };
+  }
+
+  /** 댓글 수정 */
+  async updatePostComment({
+    body,
+    userId,
+    commentId,
+  }: {
+    body: CommentV1UpdateCommentBodyDto;
+    userId: number;
+    commentId: number;
+  }): Promise<CommentV1UpdateCommentResponseDto> {
+    const comment = await this.commentRepository.findOne({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new BadRequestException('존재하지 않는 댓글입니다.');
+    }
+
+    if (comment.userId !== userId) {
+      throw new BadRequestException('권한이 없습니다.');
+    }
+
+    const nowDate = dayjs().toDate();
+    const input = {
+      contents: body.contents,
+      updatedDate: nowDate,
+    };
+
+    await this.commentRepository.update({ id: commentId }, input);
+
+    const updatedComment = await this.commentRepository.findOne({
+      where: { id: commentId },
+    });
+
+    return {
+      id: updatedComment.id,
+      contents: updatedComment.contents,
+      updatedDate: updatedComment.updatedDate,
+    };
+  }
+
+  /** 댓글 삭제 */
+  async deletePostComment({
+    userId,
+    commentId,
+  }: {
+    userId: number;
+    commentId: number;
+  }): Promise<void> {
+    await this.commentRepository.delete({
+      id: commentId,
+      userId,
+    });
   }
 }
