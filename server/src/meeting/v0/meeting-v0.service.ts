@@ -90,7 +90,7 @@ export class MeetingV0Service {
 
     apply.status = status;
     await apply.save();
-    return null;
+    return;
   }
 
   async getApplyListByMeeting(
@@ -349,7 +349,7 @@ export class MeetingV0Service {
       }
 
       await this.applyRepository.createApply(applyMeetingDto, meeting, user);
-      return null;
+      return;
     }
 
     // 지원 이력이 있을 경우 지원 삭제
@@ -357,7 +357,6 @@ export class MeetingV0Service {
     const targetApply = meeting.appliedInfo[applyIndex];
     meeting.appliedInfo.splice(applyIndex, 1);
     await this.applyRepository.deleteApply(targetApply.id);
-    return null;
   }
 
   /**

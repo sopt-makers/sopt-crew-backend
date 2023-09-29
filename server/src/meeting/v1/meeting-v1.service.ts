@@ -176,7 +176,7 @@ export class MeetingV1Service {
    * @param id meeting id
    * @param body MeetingV1UpdateMeetingBodyDto
    * @param user 유저정보
-   * @returns null
+   * @returns void
    */
   async updateMeetingById(
     id: number,
@@ -219,7 +219,7 @@ export class MeetingV1Service {
     );
 
     if (result.affected === 1) {
-      return null;
+      return;
     } else {
       throw new HttpException(
         { message: '조건에 맞는 모임이 없습니다' },

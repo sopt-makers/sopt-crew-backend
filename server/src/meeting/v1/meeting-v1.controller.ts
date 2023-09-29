@@ -113,7 +113,6 @@ export class MeetingV1Controller {
       '"이미지 파일이 없습니다." or "한 개 이상의 파트를 입력해주세요" or "조건에 맞는 모임이 없습니다."',
     schema: { $ref: getSchemaPath(BaseExceptionDto) },
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Put('/:id')

@@ -56,7 +56,7 @@ export class CommentV1Controller {
   async getComments(
     @Query() query: CommentV1GetCommentsQueryDto,
     @GetUser() user: User,
-  ): Promise<CommentV1GetCommentsResponseDto | null> {
+  ): Promise<CommentV1GetCommentsResponseDto> {
     return this.commentV1Service.getComments({ query, user });
   }
 
