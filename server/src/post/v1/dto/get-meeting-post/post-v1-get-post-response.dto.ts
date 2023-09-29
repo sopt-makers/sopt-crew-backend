@@ -12,6 +12,19 @@ import {
 import { ImageURL } from 'src/entity/meeting/interface/image-url.interface';
 
 /**
+ * ImageURL 정보
+ */
+class PostV1GetPostResponseImageUrlDto implements ImageURL {
+  @IsNotEmpty()
+  @IsNumber()
+  id: number;
+
+  @IsNotEmpty()
+  @IsString()
+  url: string;
+}
+
+/**
  * 작성자 정보
  */
 class PostV1GetPostResponseUserDto {
@@ -46,8 +59,10 @@ class PostV1GetPostResponseMeetingDto {
   title: string;
 
   /** 모임 이미지 */
-  @IsNotEmpty()
-  imageURL: ImageURL[];
+  @IsInstance(PostV1GetPostResponseImageUrlDto)
+  @ValidateNested({ each: true })
+  @Type(() => PostV1GetPostResponseImageUrlDto)
+  imageURL: PostV1GetPostResponseImageUrlDto[];
 
   /** 모임 카테고리 */
   @IsNotEmpty()
