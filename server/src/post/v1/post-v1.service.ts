@@ -52,7 +52,7 @@ export class PostV1Service {
   }: {
     query: PostV1GetPostsQueryDto;
     user: User;
-  }): Promise<PostV1GetPostsResponseDto | null> {
+  }): Promise<PostV1GetPostsResponseDto> {
     const [posts, postAmount] = await this.postRepository.findAndCount({
       where: { meetingId: query.meetingId },
       relations: ['meeting', 'user', 'comments', 'comments.user', 'likes'],
@@ -60,10 +60,6 @@ export class PostV1Service {
       skip: query.skip,
       take: query.take,
     });
-
-    if (postAmount === 0) {
-      return null;
-    }
 
     const pageOptions: PageOptionsDto = {
       page: query.page,

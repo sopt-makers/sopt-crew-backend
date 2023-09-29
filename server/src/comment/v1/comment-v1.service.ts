@@ -45,7 +45,7 @@ export class CommentV1Service {
   }: {
     query: CommentV1GetCommentsQueryDto;
     user: User;
-  }): Promise<CommentV1GetCommentsResponseDto | null> {
+  }): Promise<CommentV1GetCommentsResponseDto> {
     const [comments, commentAmount] = await this.commentRepository.findAndCount(
       {
         where: {
@@ -57,10 +57,6 @@ export class CommentV1Service {
         take: query.take,
       },
     );
-
-    if (commentAmount === 0) {
-      return null;
-    }
 
     const pageOptions: PageOptionsDto = {
       page: query.page,
