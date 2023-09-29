@@ -59,7 +59,7 @@ export class UserV0Service {
 
     const result = await Promise.all(resultPromises);
 
-    const sortedResult = result.sort(
+    const sortedResult = [...result].sort(
       (a, b) => b.appliedDate.getTime() - a.appliedDate.getTime(),
     );
 
