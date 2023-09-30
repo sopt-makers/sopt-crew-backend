@@ -20,6 +20,11 @@ class CommentV1GetCommentsResponseCommentUserDto {
   @IsNumber()
   id: number;
 
+  /** 작성자 playground 고유 ID */
+  @IsNotEmpty()
+  @IsNumber()
+  orgId: number;
+
   /** 작성자 명 */
   @IsNotEmpty()
   @IsString()

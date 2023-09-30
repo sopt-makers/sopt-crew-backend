@@ -81,6 +81,7 @@ export class CommentV1Service {
           isLiked,
           user: {
             id: comment.user.id,
+            orgId: comment.user.orgId,
             name: comment.user.name,
             profileImage: comment.user.profileImage,
           },

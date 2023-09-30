@@ -91,6 +91,7 @@ export class PostV1Service {
           images: post.images,
           user: {
             id: post.user.id,
+            orgId: post.user.orgId,
             name: post.user.name,
             profileImage: post.user.profileImage,
           },
@@ -144,6 +145,7 @@ export class PostV1Service {
       images: post.images,
       user: {
         id: post.user.id,
+        orgId: post.user.orgId,
         name: post.user.name,
         profileImage: post.user.profileImage,
       },
