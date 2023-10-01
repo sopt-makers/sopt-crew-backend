@@ -334,7 +334,7 @@ export class PostV1Service {
     const post = await this.postRepository.findOne({
       where: { id: postId },
     });
-    console.log(post);
+
     const isValidPost = post !== null;
     if (!isValidPost) {
       throw new BadRequestException('게시글이 없습니다.');
