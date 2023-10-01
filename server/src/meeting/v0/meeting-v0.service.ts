@@ -98,7 +98,7 @@ export class MeetingV0Service {
     user: User,
     getListDto: MeetingV0GetListDto,
   ): Promise<MeetingV0GetApplyListByMeetingResponseDto> {
-    const { status, take, type, skip, page } = getListDto;
+    const { status, take, type, skip, page, date } = getListDto;
 
     const typeArr: ApplyType[] = type
       ? type.split(',').map(Number)
@@ -132,17 +132,24 @@ export class MeetingV0Service {
       pageOptionsDto,
     });
 
+    const sortedApplies = applyResponse.slice(0).sort((a, b) => {
+      if (date === 'desc') {
+        return b.appliedDate.getTime() - a.appliedDate.getTime();
+      }
+      return a.appliedDate.getTime() - b.appliedDate.getTime();
+    });
+
     const applies = (() => {
       // 일반 참여자가 조회 시
       if (meeting.userId !== user.id) {
-        return applyResponse.map((apply) => {
+        return sortedApplies.map((apply) => {
           delete apply.content;
 
           return apply;
         });
       }
 
-      return applyResponse;
+      return sortedApplies;
     })();
 
     return { apply: applies, meta: pageMetaDto };
