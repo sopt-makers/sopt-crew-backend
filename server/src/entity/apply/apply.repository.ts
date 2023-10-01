@@ -7,6 +7,7 @@ import { ApplyStatus } from './enum/apply-status.enum';
 import dayjs from 'dayjs';
 import { MeetingV0ApplyMeetingDto } from 'src/meeting/v0/dto/meeting-v0-apply-meeting.dto';
 import { Meeting } from '../meeting/meeting.entity';
+import { MeetingV0ListDate } from 'src/meeting/v0/enum/meeting-v0-list-date.enum';
 
 @CustomRepository(Apply)
 export class ApplyRepository extends Repository<Apply> {
@@ -44,6 +45,7 @@ export class ApplyRepository extends Repository<Apply> {
     statusArr: ApplyStatus[],
     skip: number,
     take?: number,
+    date?: MeetingV0ListDate,
   ) {
     const applyQuery = this.createQueryBuilder('apply')
       .select([
@@ -57,7 +59,11 @@ export class ApplyRepository extends Repository<Apply> {
       .where('apply.meetingId = :id', { id: meetingId })
       .andWhere('apply.type IN(:...type)', { type: typeArr })
       .andWhere('apply.status IN(:...status)', { status: statusArr })
-      .orderBy('apply.appliedDate', 'ASC');
+      .orderBy(
+        'apply.appliedDate',
+        date ? (date.toUpperCase() as 'ASC' | 'DESC') : 'ASC',
+      );
+
     applyQuery.skip(skip).take(take);
 
     return await applyQuery.getManyAndCount();

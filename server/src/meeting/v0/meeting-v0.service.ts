@@ -124,6 +124,7 @@ export class MeetingV0Service {
         statusArr,
         skip,
         take,
+        date,
       );
 
     const pageOptionsDto: PageOptionsDto = { page, skip, take };
@@ -132,24 +133,17 @@ export class MeetingV0Service {
       pageOptionsDto,
     });
 
-    const sortedApplies = applyResponse.slice(0).sort((a, b) => {
-      if (date === 'desc') {
-        return b.appliedDate.getTime() - a.appliedDate.getTime();
-      }
-      return a.appliedDate.getTime() - b.appliedDate.getTime();
-    });
-
     const applies = (() => {
       // 일반 참여자가 조회 시
       if (meeting.userId !== user.id) {
-        return sortedApplies.map((apply) => {
+        return applyResponse.map((apply) => {
           delete apply.content;
 
           return apply;
         });
       }
 
-      return sortedApplies;
+      return applyResponse;
     })();
 
     return { apply: applies, meta: pageMetaDto };
