@@ -47,6 +47,16 @@ export class ApplyRepository extends Repository<Apply> {
     take?: number,
     date?: MeetingV0ListDate,
   ) {
+    const orderByAppliedDate = (() => {
+      switch (date) {
+        case MeetingV0ListDate.DESC:
+          return 'DESC';
+        case MeetingV0ListDate.ASC:
+        default:
+          return 'ASC';
+      }
+    })();
+
     const applyQuery = this.createQueryBuilder('apply')
       .select([
         'apply.id',
@@ -59,10 +69,7 @@ export class ApplyRepository extends Repository<Apply> {
       .where('apply.meetingId = :id', { id: meetingId })
       .andWhere('apply.type IN(:...type)', { type: typeArr })
       .andWhere('apply.status IN(:...status)', { status: statusArr })
-      .orderBy(
-        'apply.appliedDate',
-        date ? (date.toUpperCase() as 'ASC' | 'DESC') : 'ASC',
-      );
+      .orderBy('apply.id', orderByAppliedDate);
 
     applyQuery.skip(skip).take(take);
 
