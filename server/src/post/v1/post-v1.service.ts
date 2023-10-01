@@ -78,8 +78,7 @@ export class PostV1Service {
           .filter((item, index, self) => {
             return self.findIndex((t) => t.user.id === item.user.id) === index;
           })
-          .map((comment) => comment.user.profileImage)
-          .slice(0, 3);
+          .map((comment) => comment.user.profileImage);
 
         const isLiked = post.likes.some((like) => like.userId === user.id);
 
