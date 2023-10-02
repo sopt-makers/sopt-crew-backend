@@ -396,6 +396,15 @@ export class PostV1Service {
       throw new ForbiddenException('권한이 없습니다.');
     }
 
-    await this.postRepository.delete({ id: postId });
+    const transaction = await this.postRepository.getTransaction();
+    await transaction.transaction(async (manager) => {
+      await manager.delete('Like', { postId });
+      await manager.decrement(
+        'Meeting',
+        { id: post.meetingId },
+        'postCount',
+        1,
+      );
+    });
   }
 }
