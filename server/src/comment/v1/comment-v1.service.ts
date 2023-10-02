@@ -267,9 +267,24 @@ export class CommentV1Service {
     userId: number;
     commentId: number;
   }): Promise<void> {
-    await this.commentRepository.delete({
-      id: commentId,
-      userId,
+    const comment = await this.commentRepository.findOne({
+      where: { id: commentId },
+    });
+
+    const transaction = await this.commentRepository.getTransaction();
+
+    await transaction.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.delete('Comment', {
+        id: commentId,
+        userId,
+      });
+
+      await transactionalEntityManager.decrement(
+        'Post',
+        { id: comment.postId },
+        'commentCount',
+        1,
+      );
     });
   }
 }
