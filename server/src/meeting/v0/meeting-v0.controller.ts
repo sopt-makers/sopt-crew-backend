@@ -38,7 +38,6 @@ import { MeetingV0GetApplyListByMeetingResponseDto } from './dto/get-apply-list-
 import { MeetingV0GetAllMeetingsResponseDto } from './dto/get-all-meetings/meeting-v0-get-all-meetings-response.dto';
 import { GetUser } from 'src/common/decorator/get-user.decorator';
 import { ApiOkResponseCommon } from 'src/common/decorator/api-ok-response-common.decorator';
-import { Apply } from 'src/entity/apply/apply.entity';
 
 @ApiTags('모임')
 @Controller('meeting')
