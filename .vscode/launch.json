@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-MainApplication<main>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "org.sopt.makers.crew.main.MainApplication",
+      "projectName": "main",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}
