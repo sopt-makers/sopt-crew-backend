@@ -32,6 +32,7 @@ export class MeetingRepository extends Repository<Meeting> {
       )
       .leftJoinAndSelect('meeting.user', 'user')
       .where('meeting.userId = :id', { id })
+      .orderBy('meeting.id', 'DESC')
       .getManyAndCount();
 
     return result;
