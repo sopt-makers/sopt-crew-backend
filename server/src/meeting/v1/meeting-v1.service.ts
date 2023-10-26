@@ -64,13 +64,13 @@ export class MeetingV1Service {
     const csvData = applyList[0].map((apply) => {
       const { user, appliedDate, content } = apply;
       const { name, activities, phone } = user;
-      const recentActiveGeneration = activities
-        ?.map((activity) => activity.generation)
-        .sort((a, b) => b - a)[0];
-      const recentActivePart = activities
+
+      const recentActive = activities
         ?.slice()
-        .sort((a, b) => b.generation - a.generation)
-        .map((activity) => activity.part)[0];
+        .sort((a, b) => b.generation - a.generation)[0];
+      const recentActiveGeneration = recentActive.generation;
+      const recentActivePart = recentActive.part;
+
       const formattedAppliedDate = dayjs(appliedDate).format(
         'YYYY-MM-DD HH:mm:ss',
       );
