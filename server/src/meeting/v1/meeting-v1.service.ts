@@ -67,6 +67,10 @@ export class MeetingV1Service {
       const recentActiveGeneration = activities
         ?.map((activity) => activity.generation)
         .sort((a, b) => b - a)[0];
+      const recentActivePart = activities
+        ?.slice()
+        .sort((a, b) => b.generation - a.generation)
+        .map((activity) => activity.part)[0];
       const formattedAppliedDate = dayjs(appliedDate).format(
         'YYYY-MM-DD HH:mm:ss',
       );
@@ -74,6 +78,7 @@ export class MeetingV1Service {
       return {
         name,
         recentActiveGeneration,
+        recentActivePart,
         phone,
         content,
         appliedDate: formattedAppliedDate,
@@ -82,6 +87,7 @@ export class MeetingV1Service {
     const csvColumns = [
       { value: 'name', label: '이름' },
       { value: 'recentActiveGeneration', label: '활동기수' },
+      { value: 'recentActivePart', label: '활동파트' },
       { value: 'phone', label: '전화번호' },
       { value: 'appliedDate', label: '신청시간' },
       { value: 'content', label: '신청내용' },
