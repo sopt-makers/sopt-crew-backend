@@ -12,6 +12,12 @@ import lombok.Setter;
 @Setter
 @Schema(description = "services의 key는 EnHealthV1ServiceType, value는 서비스 상태")
 public class HealthServiceGetHealthResponseDataInfoDto {
+  /**
+   * key는 서비스 타입, value는 서비스 상태
+   * - Key로는 EnHealthV1ServiceType을 사용한다.
+   * 
+   * @see EnHealthV1ServiceType
+   */
   private Map<EnHealthV1ServiceType, HealthServiceGetHealthResponseDataStatusDto> services;
   private HealthServiceGetHealthResponseDataStatusDto database;
 

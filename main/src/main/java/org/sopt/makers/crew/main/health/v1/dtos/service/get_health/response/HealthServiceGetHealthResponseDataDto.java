@@ -8,8 +8,6 @@ import lombok.Setter;
 public class HealthServiceGetHealthResponseDataDto {
   private String status;
   private HealthServiceGetHealthResponseDataInfoDto info;
-  private HealthServiceGetHealthResponseDataErrorDto error;
-  private HealthServiceGetHealthResponseDataDetailsDto details;
-
-  // getters and setters
+  private HealthServiceGetHealthResponseDataInfoDto error;
+  private HealthServiceGetHealthResponseDataInfoDto details;
 }
