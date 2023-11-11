@@ -11,7 +11,7 @@ public class HealthService {
   private final WebClient webClient;
 
   public HealthService(WebClient.Builder webClientBuilder) {
-    this.webClient = webClientBuilder.baseUrl("http://localhost:3000").build();
+    this.webClient = webClientBuilder.baseUrl("http://nestjs:3000").build();
   }
 
   public ResponseEntity<HealthServiceGetHealthResponseDto> getHealth() {
