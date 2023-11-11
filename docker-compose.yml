@@ -1,0 +1,32 @@
+version: "3.7"
+
+services:
+  spring:
+    build:
+      context: ./main
+      dockerfile: Dockerfile
+    container_name: spring
+    ports:
+      - 80:8080
+    expose:
+      - 8080
+    restart: unless-stopped
+    depends_on:
+      - nestjs
+    networks:
+      - default
+
+  nestjs:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: nestjs
+    expose:
+      - 3000
+    restart: unless-stopped
+    networks:
+      - default
+
+networks:
+  default:
+    name: my-network
