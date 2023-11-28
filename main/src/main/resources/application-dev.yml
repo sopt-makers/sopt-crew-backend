@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+    import: application-secret.properties
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_DB_NAME}?currentSchema=${DEV_DB_SCHEMA}
+    username: ${DEV_DB_USERNAME}
+    password: ${DEV_DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        storage_engine: innodb
+
+jwt:
+  header: Authorization
+  secret: ${JWT_SECRET}
+  access-token:
+    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
+
+aws-property:
+  aws-region: ${AWS_REGION}
+  s3-bucket-name: ${AWS_S3_BUCKET_NAME}
+  access-key: ${AWS_ACCESS_KEY_ID}
+  secret-key: ${AWS_SECRET_ACCESS_KEY}
+
+springdoc:
+  packages-to-scan: org.sopt.makers.crew
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  swagger-ui:
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /api-docs/json
+    groups:
+      enabled: true
