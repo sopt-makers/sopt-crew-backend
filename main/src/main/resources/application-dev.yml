@@ -23,11 +23,6 @@ spring:
       dialect: org.hibernate.dialect.PostgreSQLDialect
       storage_engine: innodb
 
-
-
-
-
-
 jwt:
   header: Authorization
   secret: ${JWT_SECRET}
