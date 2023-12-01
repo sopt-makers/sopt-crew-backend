@@ -9,21 +9,21 @@ import org.springframework.http.HttpStatus;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BaseException extends RuntimeException {
 
-    HttpStatus statusCode;
-    String responseMessage;
+    HttpStatus httpStatus;
+    String errorCode;
 
-    public BaseException(HttpStatus statusCode) {
+    public BaseException(HttpStatus httpStatus) {
         super();
-        this.statusCode = statusCode;
+        this.httpStatus = httpStatus;
     }
 
-    public BaseException(HttpStatus statusCode, String responseMessage) {
-        super(responseMessage);
-        this.statusCode = statusCode;
-        this.responseMessage = responseMessage;
+    public BaseException(HttpStatus httpStatus, String errorCode) {
+        super(errorCode);
+        this.httpStatus = httpStatus;
+        this.errorCode = errorCode;
     }
 
     public int getStatusCode() {
-        return this.statusCode.value();
+        return this.httpStatus.value();
     }
 }
