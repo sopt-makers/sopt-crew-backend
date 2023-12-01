@@ -11,15 +11,14 @@ public enum ErrorStatus {
     /**
      * 400 BAD_REQUEST
      */
-    VALIDATION_EXCEPTION("잘못된 요청입니다."),
+    VALIDATION_EXCEPTION("CR-001"), // errorCode는 예시, 추후 변경 예정 -> 잘못된 요청입니다.
     VALIDATION_REQUEST_MISSING_EXCEPTION("요청값이 입력되지 않았습니다."),
 
     /**
      * 500 SERVER_ERROR
      */
-    INTERNAL_SERVER_ERROR("예상치 못한 서버 에러가 발생했습니다."),
-    BAD_GATEWAY_EXCEPTION("일시적인 에러가 발생하였습니다.\n잠시 후 다시 시도해주세요!");
+    INTERNAL_SERVER_ERROR("예상치 못한 서버 에러가 발생했습니다.");
 
-    private final String message;
+    private final String errorCode;
 
 }

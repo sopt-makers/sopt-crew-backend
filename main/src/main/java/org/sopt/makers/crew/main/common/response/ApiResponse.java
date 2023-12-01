@@ -10,25 +10,19 @@ import org.springframework.http.HttpStatus;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
 
-    private final int status;
-    private final boolean success;
-    private final String message;
+    private final String errorCode;
     private T data;
 
-    public static ApiResponse success(HttpStatus status, Object data) {
+    public static ApiResponse success(Object data) {
             return ApiResponse.builder()
-            .status(status.value())
-            .success(true)
             .data(data)
             .build();
             }
 
 
-    public static ApiResponse fail(int status, String message) {
+    public static ApiResponse fail(String errorCode) {
             return ApiResponse.builder()
-            .status(status)
-            .success(false)
-            .message(message)
+            .errorCode(errorCode)
             .build();
             }
 }
