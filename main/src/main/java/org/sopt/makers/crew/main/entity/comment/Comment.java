@@ -12,16 +12,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import lombok.*;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.sopt.makers.crew.main.entity.like.Like;
-import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.post.Post;
+import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -138,8 +138,8 @@ public class Comment {
 
     @Builder
     public Comment(String contents, int depth, int order,
-            User user, int userId, Post post, int postId, int likeCount, Comment parent,
-            int parentId, List<Comment> children, List<Report> reports) {
+                   User user, int userId, Post post, int postId, int likeCount, Comment parent,
+                   int parentId, List<Comment> children, List<Report> reports) {
         this.contents = contents;
         this.depth = depth;
         this.order = order;
