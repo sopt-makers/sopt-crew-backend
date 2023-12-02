@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import lombok.*;
 import java.util.List;
 import org.sopt.makers.crew.main.entity.like.Like;
-import org.sopt.makers.crew.main.entity.like.Report;
+import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.springframework.data.annotation.CreatedDate;
@@ -138,8 +138,8 @@ public class Comment {
 
     @Builder
     public Comment(String contents, int depth, int order,
-                   User user, int userId, Post post, int postId, int likeCount, Comment parent,
-                   int parentId, List<Comment> children, List<Report> reports) {
+            User user, int userId, Post post, int postId, int likeCount, Comment parent,
+            int parentId, List<Comment> children, List<Report> reports) {
         this.contents = contents;
         this.depth = depth;
         this.order = order;
@@ -153,14 +153,14 @@ public class Comment {
     }
 
     public void addLike(Like like) {
-        likes.add(like);
+        this.likes.add(like);
     }
 
     public void addChildrenComment(Comment comment) {
-        children.add(comment);
+        this.children.add(comment);
     }
 
     public void addReport(Report report) {
-        reports.add(report);
+        this.reports.add(report);
     }
 }
