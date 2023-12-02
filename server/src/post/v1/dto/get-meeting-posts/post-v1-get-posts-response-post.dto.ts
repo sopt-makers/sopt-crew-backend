@@ -3,6 +3,7 @@ import {
   IsArray,
   IsBoolean,
   IsDate,
+  IsEnum,
   IsInstance,
   IsNotEmpty,
   IsNumber,
@@ -10,6 +11,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { MeetingCategory } from 'src/entity/meeting/enum/meeting-category.enum';
 
 /**
  * 작성자 정보
@@ -34,6 +36,20 @@ class PostV1GetPostsResponsePostUserDto {
   @IsOptional()
   @IsString()
   profileImage: string | null;
+}
+
+/** 게시글이 속한 모임 정보 */
+class PostV1GetPostsResponsePostMeetingDto {
+  @IsNotEmpty()
+  @IsNumber()
+  id: number;
+
+  @IsNotEmpty()
+  @IsString()
+  title: string;
+
+  @IsEnum(MeetingCategory)
+  category: MeetingCategory;
 }
 
 export class PostV1GetPostsResponsePostDto {
@@ -88,4 +104,10 @@ export class PostV1GetPostsResponsePostDto {
   @IsNotEmpty({ each: true })
   @IsString({ each: true })
   commenterThumbnails: string[];
+
+  @IsNotEmpty()
+  @IsInstance(PostV1GetPostsResponsePostMeetingDto)
+  @ValidateNested()
+  @Type(() => PostV1GetPostsResponsePostMeetingDto)
+  meeting: PostV1GetPostsResponsePostMeetingDto;
 }
