@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNumber, IsOptional } from 'class-validator';
 import { PageOptionsDto } from 'src/common/pagination/dto/page-options.dto';
 
 /**
@@ -7,7 +7,7 @@ import { PageOptionsDto } from 'src/common/pagination/dto/page-options.dto';
  */
 export class PostV1GetPostsQueryDto extends PageOptionsDto {
   /** 모임 id */
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
-  meetingId: number;
+  meetingId?: number | null;
 }
