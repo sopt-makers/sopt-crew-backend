@@ -25,6 +25,8 @@ import { PostV1ReportPostResponseDto } from './dto/report-post/post-v1-report-po
 import { PostV1GetPostCountQueryDto } from './dto/get-meeting-post-count/post-v1-get-post-count-query.dto';
 import { PostV1GetPostCountResponseDto } from './dto/get-meeting-post-count/post-v1-get-post-count-response.dto';
 import { PostV1UpdatePostBodyDto } from './dto/update-meeting-post/post-v1-update-post-body.dto';
+import { FindManyOptions } from 'typeorm';
+import { Post } from 'src/entity/post/post.entity';
 
 @Injectable()
 export class PostV1Service {
@@ -53,13 +55,27 @@ export class PostV1Service {
     query: PostV1GetPostsQueryDto;
     user: User;
   }): Promise<PostV1GetPostsResponseDto> {
-    const [posts, postAmount] = await this.postRepository.findAndCount({
-      where: { meetingId: query.meetingId },
-      relations: ['meeting', 'user', 'comments', 'comments.user', 'likes'],
-      order: { id: 'DESC' },
-      skip: query.skip,
-      take: query.take,
-    });
+    const queryOptions: FindManyOptions<Post> = (() => {
+      const baseOptions: FindManyOptions<Post> = {
+        relations: ['meeting', 'user', 'comments', 'comments.user', 'likes'],
+        order: { id: 'DESC' },
+        skip: query.skip,
+        take: query.take,
+      };
+
+      if (query.meetingId === undefined) {
+        return baseOptions;
+      }
+
+      return {
+        ...baseOptions,
+        where: { meetingId: query.meetingId },
+      };
+    })();
+
+    const [posts, postAmount] = await this.postRepository.findAndCount(
+      queryOptions,
+    );
 
     const pageOptions: PageOptionsDto = {
       page: query.page,
@@ -99,6 +115,11 @@ export class PostV1Service {
           viewCount: post.viewCount,
           commentCount: post.commentCount,
           commenterThumbnails,
+          meeting: {
+            id: post.meeting.id,
+            title: post.meeting.title,
+            category: post.meeting.category,
+          },
         };
       }),
       meta: pageMeta,
