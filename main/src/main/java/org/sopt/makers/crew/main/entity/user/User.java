@@ -18,7 +18,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.like.Like;
-import org.sopt.makers.crew.main.entity.like.Report;
+import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
@@ -106,18 +106,18 @@ public class User {
     }
 
     public void addMeeting(Meeting meeting) {
-        meetings.add(meeting);
+        this.meetings.add(meeting);
     }
 
     public void addApply(Apply apply) {
-        applies.add(apply);
+        this.applies.add(apply);
     }
 
     public void addLike(Like like) {
-        likes.add(like);
+        this.likes.add(like);
     }
 
     public void addReport(Report report) {
-        reports.add(report);
+        this.reports.add(report);
     }
 }

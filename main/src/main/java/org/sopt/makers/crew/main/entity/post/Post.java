@@ -12,19 +12,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 
-
 import java.util.List;
 import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.like.Like;
-import org.sopt.makers.crew.main.entity.like.Report;
+import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.springframework.data.annotation.CreatedDate;
@@ -142,7 +139,7 @@ public class Post {
 
     @Builder
     public Post(String title, String contents,
-                String[] images, User user, int userId, Meeting meeting, int meetingId) {
+            String[] images, User user, int userId, Meeting meeting, int meetingId) {
         this.title = title;
         this.contents = contents;
         this.viewCount = 0;
@@ -156,14 +153,14 @@ public class Post {
     }
 
     public void addLike(Like like) {
-        likes.add(like);
+        this.likes.add(like);
     }
 
     public void addComment(Comment comment) {
-        comments.add(comment);
+        this.comments.add(comment);
     }
 
     public void addReport(Report report) {
-        reports.add(report);
+        this.reports.add(report);
     }
 }

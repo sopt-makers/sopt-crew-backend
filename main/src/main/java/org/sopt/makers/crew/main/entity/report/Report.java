@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.entity.like;
+package org.sopt.makers.crew.main.entity.report;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,8 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -84,7 +82,7 @@ public class Report {
 
     @Builder
     public Report(User user, int userId, Post post, int postId, Comment comment,
-                  int commentId) {
+            int commentId) {
         this.user = user;
         this.userId = userId;
         this.post = post;
