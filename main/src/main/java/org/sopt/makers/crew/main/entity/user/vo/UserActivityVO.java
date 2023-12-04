@@ -2,11 +2,14 @@ package org.sopt.makers.crew.main.entity.user.vo;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.sopt.makers.crew.main.entity.user.enums.UserPart;
+import lombok.ToString;
 
 @Getter
 @RequiredArgsConstructor
+@ToString
 public class UserActivityVO {
-    private final int generation;
-    private final UserPart part;
+
+  private final String part;
+  private final int generation;
+
 }
