@@ -10,14 +10,6 @@ import lombok.Getter;
 public class CommonResponseDto<T> {
 
   private final String errorCode;
-  private T data;
-
-  public static CommonResponseDto success(Object data) {
-    return CommonResponseDto.builder()
-        .data(data)
-        .build();
-  }
-
 
   public static CommonResponseDto fail(String errorCode) {
     return CommonResponseDto.builder()
