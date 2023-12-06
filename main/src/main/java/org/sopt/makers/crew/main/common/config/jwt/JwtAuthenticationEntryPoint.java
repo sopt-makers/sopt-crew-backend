@@ -1,10 +1,8 @@
 package org.sopt.makers.crew.main.common.config.jwt;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import org.sopt.makers.crew.main.common.response.ErrorStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -12,16 +10,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-  private final ObjectMapper mapper = new ObjectMapper();
-
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response,
       AuthenticationException authException) throws IOException {
-    setResponse(response, ErrorStatus.UNAUTHORIZED_TOKEN);
+    setResponse(response);
   }
 
 
-  public void setResponse(HttpServletResponse response, ErrorStatus status) throws IOException {
+  public void setResponse(HttpServletResponse response) throws IOException {
     response.setContentType("application/json;charset=UTF-8");
     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
   }

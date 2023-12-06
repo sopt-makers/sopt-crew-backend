@@ -14,7 +14,6 @@ import java.util.Date;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -24,12 +23,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-  private final UserRepository userRepository;
-
-  @Value("${JWT_SECRET}")
+  @Value("${jwt.secret}")
   private String secretKey;
 
-  @Value("${ACCESS_TOKEN_EXPIRED_TIME}")
+  @Value("${jwt.access-token.expire-length}")
   private Long accessTokenExpireLength;
 
   private static final String AUTHORIZATION_HEADER = "Authorization";
