@@ -25,7 +25,7 @@ spring:
 
 jwt:
   header: Authorization
-  secret: ${JWT_SECRET}
+  secret: ${DEV_JWT_SECRET}
   access-token:
     expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
 
