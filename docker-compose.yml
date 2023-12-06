@@ -1,20 +1,36 @@
 version: "3.7"
 
 services:
+  reverse-proxy:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - default
+
   spring:
     build:
       context: ./main
       dockerfile: Dockerfile
     container_name: spring
-    ports:
-      - 80:8080
     expose:
       - 8080
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
     restart: unless-stopped
     depends_on:
       - nestjs
     networks:
       - default
+    labels:
+      - "traefik.http.routers.nestjs.rule=Host(`localhost`)"
 
   nestjs:
     build:
