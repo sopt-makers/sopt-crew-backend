@@ -10,6 +10,6 @@ public class UserV2GetAllMeetingByUserMeetingDto {
   private int id;
   private String title;
   private String contents;
-  private String thumbnail;
+  private String imageUrl;
   private String category;
 }
