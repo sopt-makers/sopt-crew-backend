@@ -73,6 +73,11 @@ class PostV1GetPostResponseMeetingDto {
   @IsNotEmpty()
   @IsString()
   category: string;
+
+  /** 모임 소개 */
+  @IsNotEmpty()
+  @IsString()
+  desc: string;
 }
 
 export class PostV1GetPostResponseDto {
