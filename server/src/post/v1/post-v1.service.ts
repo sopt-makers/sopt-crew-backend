@@ -174,6 +174,7 @@ export class PostV1Service {
         title: post.meeting.title,
         imageURL: post.meeting.imageURL,
         category: post.meeting.category,
+        desc: post.meeting.desc,
       },
       viewCount: post.viewCount,
       likeCount: post.likeCount,
