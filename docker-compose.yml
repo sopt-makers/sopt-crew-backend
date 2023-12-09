@@ -1,48 +1,106 @@
 version: "3.7"
 
 services:
-  reverse-proxy:
-    image: traefik:v2.10
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker"
+  caddy:
+    container_name: caddy
+    image: lucaslorentz/caddy-docker-proxy:ci-alpine
     ports:
       - 80:80
       - 443:443
-      - 8080:8080
+    environment:
+      - CADDY_INGRESS_NETWORKS=caddy
+    networks:
+      - caddy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  swagger:
+    image: swaggerapi/swagger-ui
+    container_name: swagger
+    environment:
+      - URLS=
+        [
+        {url:'/api-docs/json', name:'spring'},
+        {url:'/api-docs-json', name:'nestjs'},
+        ]
+      - BASE_URL=/docs
+    depends_on:
+      - nestjs
+      - spring
     networks:
-      - default
+      - caddy
+    labels:
+      caddy: localhost
+      caddy.route: /docs*
+      caddy.route.reverse_proxy: "{{ upstreams 8080 }}"
 
   spring:
     build:
       context: ./main
       dockerfile: Dockerfile
     container_name: spring
-    expose:
-      - 8080
     environment:
       - SPRING_PROFILES_ACTIVE=dev
     restart: unless-stopped
     depends_on:
       - nestjs
     networks:
-      - default
+      - caddy
     labels:
-      - "traefik.http.routers.nestjs.rule=Host(`localhost`)"
+      caddy: localhost
+      # for Swagger spec
+      caddy.route_0: /api-docs/json
+      caddy.route_0.reverse_proxy: "{{ upstreams 4000 }}"
+      # for health check
+      caddy.route_1: /health
+      caddy.route_1.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_2: /user/v2
+      caddy.route_2.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_3: /user/v2/*
+      caddy.route_3.reverse_proxy: "{{ upstreams 4000 }}"
 
   nestjs:
     build:
       context: ./server
       dockerfile: Dockerfile
     container_name: nestjs
-    expose:
-      - 3000
     restart: unless-stopped
+    environment:
+      - NODE_ENV=dev
     networks:
-      - default
+      - caddy
+    labels:
+      caddy: localhost
+      # for Swagger spec
+      caddy.route_0: /api-docs-json
+      caddy.route_0.reverse_proxy: "{{ upstreams 3000 }}"
+      # for health check
+      caddy.route_1: /
+      caddy.route_1.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_2: /auth
+      caddy.route_2.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_3: /comment/v1
+      caddy.route_3.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_4: /comment/v1/*
+      caddy.route_4.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_5: /meeting
+      caddy.route_5.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_6: /meeting/*
+      caddy.route_6.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_7: /notice/v1
+      caddy.route_7.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_8: /notice/v1/*
+      caddy.route_8.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_9: /post/v1
+      caddy.route_9.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_10: /post/v1/*
+      caddy.route_10.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_11: /users
+      caddy.route_11.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_12: /users/*
+      caddy.route_12.reverse_proxy: "{{ upstreams 3000 }}"
 
 networks:
-  default:
-    name: my-network
+  caddy:
+    external: true
