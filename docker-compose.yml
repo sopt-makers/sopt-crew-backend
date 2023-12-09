@@ -18,6 +18,8 @@ services:
   swagger:
     image: swaggerapi/swagger-ui
     container_name: swagger
+    ports:
+      - 8080:8080
     environment:
       - URLS=
         [
@@ -31,7 +33,7 @@ services:
     networks:
       - caddy
     labels:
-      caddy: localhost crew.api.dev.sopt.org www.crew.api.dev.sopt.org
+      caddy: localhost
       caddy.route: /docs*
       caddy.route.reverse_proxy: "{{ upstreams 8080 }}"
 
@@ -40,6 +42,8 @@ services:
       context: ./main
       dockerfile: Dockerfile
     container_name: spring
+    ports:
+      - 4000:4000
     environment:
       - SPRING_PROFILES_ACTIVE=dev
     restart: unless-stopped
@@ -48,7 +52,7 @@ services:
     networks:
       - caddy
     labels:
-      caddy: localhost crew.api.dev.sopt.org www.crew.api.dev.sopt.org
+      caddy: localhost
       # for Swagger spec
       caddy.route_0: /api-docs/json
       caddy.route_0.reverse_proxy: "{{ upstreams 4000 }}"
@@ -65,13 +69,15 @@ services:
       context: ./server
       dockerfile: Dockerfile
     container_name: nestjs
+    ports:
+      - 3000:3000
     restart: unless-stopped
     environment:
       - NODE_ENV=dev
     networks:
       - caddy
     labels:
-      caddy: localhost crew.api.dev.sopt.org www.crew.api.dev.sopt.org
+      caddy: localhost
       # for Swagger spec
       caddy.route_0: /api-docs-json
       caddy.route_0.reverse_proxy: "{{ upstreams 3000 }}"
