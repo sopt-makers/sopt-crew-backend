@@ -31,7 +31,7 @@ services:
     networks:
       - caddy
     labels:
-      caddy: localhost
+      caddy: localhost crew.api.dev.sopt.org www.crew.api.dev.sopt.org
       caddy.route: /docs*
       caddy.route.reverse_proxy: "{{ upstreams 8080 }}"
 
@@ -48,7 +48,7 @@ services:
     networks:
       - caddy
     labels:
-      caddy: localhost
+      caddy: localhost crew.api.dev.sopt.org www.crew.api.dev.sopt.org
       # for Swagger spec
       caddy.route_0: /api-docs/json
       caddy.route_0.reverse_proxy: "{{ upstreams 4000 }}"
@@ -71,7 +71,7 @@ services:
     networks:
       - caddy
     labels:
-      caddy: localhost
+      caddy: localhost crew.api.dev.sopt.org www.crew.api.dev.sopt.org
       # for Swagger spec
       caddy.route_0: /api-docs-json
       caddy.route_0.reverse_proxy: "{{ upstreams 3000 }}"
