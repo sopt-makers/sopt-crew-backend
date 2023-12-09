@@ -37,7 +37,7 @@ COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modul
 COPY --chown=node:node . .
 
 # Run the build command which creates the production bundle
-RUN npm run build --max-old-space-size=2048
+RUN NODE_OPTIONS=--max-old-space-size=2048 npm run build
 
 # Set NODE_ENV environment variable
 # docker-compose에서 설정함
