@@ -13,6 +13,11 @@ services:
       - caddy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
     restart: unless-stopped
 
   swagger:
@@ -30,6 +35,11 @@ services:
       - spring
     networks:
       - caddy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
     labels:
       caddy.route: /docs*
       caddy.route.reverse_proxy: "{{ upstreams 8080 }}"
@@ -42,6 +52,11 @@ services:
     restart: unless-stopped
     depends_on:
       - nestjs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
     networks:
       - caddy
     labels:
@@ -64,6 +79,11 @@ services:
     restart: unless-stopped
     networks:
       - caddy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
     labels:
       # for Swagger spec
       caddy.route_0: /api-docs-json
