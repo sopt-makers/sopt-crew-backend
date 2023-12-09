@@ -1,0 +1,18 @@
+version: "3.7"
+
+services:
+  swagger:
+    labels:
+      caddy: localhost crew.api.prod.sopt.org www.crew.api.prod.sopt.org
+
+  spring:
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    labels:
+      caddy: localhost crew.api.prod.sopt.org www.crew.api.prod.sopt.org
+
+  nestjs:
+    environment:
+      - NODE_ENV=prod
+    labels:
+      caddy: localhost crew.api.prod.sopt.org www.crew.api.prod.sopt.org
