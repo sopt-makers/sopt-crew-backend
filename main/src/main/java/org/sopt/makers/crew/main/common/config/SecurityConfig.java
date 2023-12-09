@@ -23,61 +23,75 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class SecurityConfig {
 
-  private final JwtTokenProvider jwtTokenProvider;
-  private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-  private static final String[] SWAGGER_URL = {
-      "/swagger-resources/**",
-      "/favicon.ico",
-      "/api-docs/**",
-      "/swagger-ui/**",
-      "/swagger-ui.html",
-      "/swagger-ui/index.html",
-      "/docs/swagger-ui/index.html",
-      "/swagger-ui/swagger-ui.css",
-  };
+    private static final String[] SWAGGER_URL = {
+            "/swagger-resources/**",
+            "/favicon.ico",
+            "/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-ui/index.html",
+            "/docs/swagger-ui/index.html",
+            "/swagger-ui/swagger-ui.css",
+    };
 
-  private static final String[] AUTH_WHITELIST = {
-      "/health"
-  };
+    private static final String[] AUTH_WHITELIST = {
+            "/health"
+    };
 
-  @Bean
-  @Profile("dev")
-  SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf((csrfConfig) ->
-            csrfConfig.disable()
-        )
-        .cors(Customizer.withDefaults())
-        .sessionManagement((sessionManagement) ->
-            sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        )
-        .authorizeHttpRequests(
-            authorize -> authorize.requestMatchers(AUTH_WHITELIST).permitAll()
-                .requestMatchers(SWAGGER_URL).permitAll()
-                .anyRequest().authenticated()
-        )
-        .addFilterBefore(
-            new JwtAuthenticationFilter(jwtTokenProvider, jwtAuthenticationEntryPoint),
-            UsernamePasswordAuthenticationFilter.class)
-        .exceptionHandling(exceptionHandling ->
-            exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint)
-        );
-    return http.build();
-  }
+    @Bean
+    @Profile("dev")
+    SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf((csrfConfig) -> csrfConfig.disable())
+                .cors(Customizer.withDefaults())
+                .sessionManagement(
+                        (sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(
+                        authorize -> authorize.requestMatchers(AUTH_WHITELIST).permitAll()
+                                .requestMatchers(SWAGGER_URL).permitAll()
+                                .anyRequest().authenticated())
+                .addFilterBefore(
+                        new JwtAuthenticationFilter(this.jwtTokenProvider, this.jwtAuthenticationEntryPoint),
+                        UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
+        return http.build();
+    }
 
-  @Bean
-  CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(
-        Arrays.asList("https://playground.sopt.org/", "http://localhost:3000/",
-            "https://sopt-internal-dev.pages.dev/"));
-    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
-    configuration.addAllowedHeader("*");
-    configuration.setAllowCredentials(false);
+    @Bean
+    @Profile("prod")
+    SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf((csrfConfig) -> csrfConfig.disable())
+                .cors(Customizer.withDefaults())
+                .sessionManagement(
+                        (sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(
+                        authorize -> authorize.requestMatchers(AUTH_WHITELIST).permitAll()
+                                .requestMatchers(SWAGGER_URL).permitAll()
+                                .anyRequest().authenticated())
+                .addFilterBefore(
+                        new JwtAuthenticationFilter(this.jwtTokenProvider, this.jwtAuthenticationEntryPoint),
+                        UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
+        return http.build();
+    }
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-  }
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(
+                Arrays.asList("https://playground.sopt.org/", "http://localhost:3000/",
+                        "https://sopt-internal-dev.pages.dev/"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(false);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
 }
