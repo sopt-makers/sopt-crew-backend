@@ -48,20 +48,20 @@ $ npm run test:cov
 - DB GUI tool: pgAdmin4
 - ORM: TypeORM
 - API 문서: Swagger
-- 배포: AWS EC2, PM2
+- 배포: AWS EC2, Docker Compose
 - 인증: JWT
-- 테스트: Jest
-- 서버 프레임워크: NestJS
-- 웹서버 프레임워크: Nginx
-- 언어: typescript
+- 테스트: Jest, Unit5
+- 서버 프레임워크: NestJS, Spring
+- 웹서버 프레임워크: Caddy
+- 언어: typescript, Java
 
 # 아키텍처
 
 ## flow
 
-1. Nginx를 통해 HTTPS를 적용하고, HTTP로 들어오는 요청을 HTTPS로 리다이렉트한다.
-2. HTTPS로 들어온 요청을 Nginx가 받아서, Nginx는 요청을 받은 후에 해당 요청을 NodeJS 서버로 프록시한다.
-3. NodeJS 서버는 요청을 받아서, 요청에 맞는 Controller를 찾아서 해당 Controller에서 Service를 호출한다.
+1. Caddy를 통해 HTTPS를 적용하고, HTTP로 들어오는 요청을 HTTPS로 리다이렉트한다.
+2. HTTPS로 들어온 요청을 Caddy가 받아서, Caddy는 요청을 받은 후에 해당 요청을 NodeJS/Spring 서버로 리버스프록시한다.
+3. NodeJS/Spring 서버는 요청을 받아서, 요청에 맞는 Controller를 찾아서 해당 Controller에서 Service를 호출한다.
 4. Service에서 로직을 처리한 후에, Repository를 통해 DB에 접근한다.
 5. Repository는 DB에 접근해서 데이터를 가져온 후에, Service에게 데이터를 전달한다.
 6. Service는 Repository로부터 받은 데이터를 가공해서 Controller에게 전달한다.
@@ -161,14 +161,19 @@ bar # 예시 모듈
 ## 환경 변수
 
 - 환경 변수는 dev/prod 환경에 따라 다르게 설정되어야 한다.
-  - dev 환경: .dev.env
-  - prod 환경: .prod.env
+  - Nestjs
+    - dev 환경: .dev.env
+    - prod 환경: .prod.env
+  - Spring
+    - dev 환경: application-dev.yml
+    - prod 환경: application-prod.yml
+    - application-secret.properties: secret key를 관리한다.
 
 ## API 문서
 
 - `/api-docs`로 접속하면 볼 수 있다.
-- [Crew API Docs - Dev](https://crew.api.dev.sopt.org/api-docs)
-- [Crew API Docs - Prod](https://crew.api.prod.sopt.org/api-docs)
+- [Crew API Docs - Dev](https://crew.api.dev.sopt.org/docs)
+- [Crew API Docs - Prod](https://crew.api.prod.sopt.org/docs)
 - [Playground API Docs - Dev](https://playground.dev.sopt.org/swagger-ui/index.html)
 
 ## 인증
@@ -189,20 +194,25 @@ bar # 예시 모듈
 ## 배포 정보
 
 - 배포 서버: AWS EC2
-- 배포 툴: PM2
+- 배포 툴: Docker Compose
 
 ## 배포 방법
 
 ```bash
-  # build
-  # 현재 서버에서 빌드를 하면 메모리가 부족해서 빌드가 안되기 때문에 임시방편 조치이다. CI/CD를 이용해 해결해야 한다.
-  $ NODE_OPTIONS=--max-old-space-size=2048 npm run build
+# Prod 배포
+$ sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
-  # build를 배포
-  $ pm2 restart 0
+# Dev 배포
+$ sudo docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
-  # 배포된 이후 로그를 확인해서 제대로 배포되었는지 확인
-  $ pm2 log
+# 배포 후 로그 확인
+$ sudo docker compose logs -f -t 10
+
+# 배포 후 컨테이너 상태 확인
+$ sudo docker compose ps -a
+
+# 배포 후 사용하지 않는 이미지 자동 삭제
+$ sudo docker image prune
 ```
 
 # 협업
