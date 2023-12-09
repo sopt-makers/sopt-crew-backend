@@ -31,7 +31,6 @@ services:
     networks:
       - caddy
     labels:
-      caddy: localhost crew.api.dev.sopt.org www.crew.api.dev.sopt.org
       caddy.route: /docs*
       caddy.route.reverse_proxy: "{{ upstreams 8080 }}"
 
@@ -40,15 +39,12 @@ services:
       context: ./main
       dockerfile: Dockerfile
     container_name: spring
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
     restart: unless-stopped
     depends_on:
       - nestjs
     networks:
       - caddy
     labels:
-      caddy: localhost crew.api.dev.sopt.org www.crew.api.dev.sopt.org
       # for Swagger spec
       caddy.route_0: /api-docs/json
       caddy.route_0.reverse_proxy: "{{ upstreams 4000 }}"
@@ -66,12 +62,9 @@ services:
       dockerfile: Dockerfile
     container_name: nestjs
     restart: unless-stopped
-    environment:
-      - NODE_ENV=dev
     networks:
       - caddy
     labels:
-      caddy: localhost crew.api.dev.sopt.org www.crew.api.dev.sopt.org
       # for Swagger spec
       caddy.route_0: /api-docs-json
       caddy.route_0.reverse_proxy: "{{ upstreams 3000 }}"
