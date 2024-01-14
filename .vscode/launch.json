@@ -7,7 +7,7 @@
       "cwd": "${workspaceFolder}",
       "mainClass": "org.sopt.makers.crew.main.MainApplication",
       "projectName": "main",
-      "args": "",
+      "args": "--spring.profiles.active=dev",
       "envFile": "${workspaceFolder}/.env"
     }
   ]
