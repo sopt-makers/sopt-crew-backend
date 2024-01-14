@@ -1,12 +1,12 @@
 package org.sopt.makers.crew.main.entity.meeting.vo;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class ImageUrlVO {
 
-  private final Integer id;
-  private final String url;
+  private Integer id;
+  private String url;
 }

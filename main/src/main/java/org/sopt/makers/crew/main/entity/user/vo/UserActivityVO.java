@@ -1,15 +1,16 @@
 package org.sopt.makers.crew.main.entity.user.vo;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Getter
-@RequiredArgsConstructor
+// @RequiredArgsConstructor
+@NoArgsConstructor
 @ToString
 public class UserActivityVO {
 
-  private final String part;
-  private final int generation;
+  private String part;
+  private int generation;
 
 }
