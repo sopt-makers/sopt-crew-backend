@@ -90,14 +90,14 @@ public class Comment {
      * 댓글이 속한 게시글 정보
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "postId", nullable = false)
+    @JoinColumn(name = "postId")
     private Post post;
 
     /**
      * 댓글이 속한 게시글의 고유 식별자
      */
     @Column(insertable = false, updatable = false)
-    private int postId;
+    private Integer postId;
 
     /**
      * 댓글에 대한 좋아요 목록
@@ -122,7 +122,7 @@ public class Comment {
      * 부모 댓글의 고유 식별자
      */
     @Column(insertable = false, updatable = false)
-    private int parentId;
+    private Integer parentId;
 
     /**
      * 자식 댓글 목록
@@ -138,8 +138,8 @@ public class Comment {
 
     @Builder
     public Comment(String contents, int depth, int order,
-                   User user, int userId, Post post, int postId, int likeCount, Comment parent,
-                   int parentId, List<Comment> children, List<Report> reports) {
+            User user, int userId, Post post, int postId, int likeCount, Comment parent,
+            int parentId, List<Comment> children, List<Report> reports) {
         this.contents = contents;
         this.depth = depth;
         this.order = order;
