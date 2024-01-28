@@ -115,13 +115,13 @@ services:
       caddy.route_11.reverse_proxy: "{{ upstreams 3000 }}"
       caddy.route_12: /users/*
       caddy.route_12.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_13: /meeting/\d+/apply/status$
+      caddy.route_13: ^/meeting/\d+/apply/status$
       caddy.route_13.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_14: /meeting/\d+/list$
+      caddy.route_14: ^/meeting/\d+/list$
       caddy.route_14.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_15: /meeting/apply$
+      caddy.route_15: ^/meeting/apply$
       caddy.route_15.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_16: /meeting/\d+$
+      caddy.route_16: ^/meeting/\d+$
       caddy.route_16.reverse_proxy: "{{ upstreams 3000 }}"
 
 networks:
