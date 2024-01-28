@@ -103,25 +103,25 @@ services:
       caddy.route_5.reverse_proxy: "{{ upstreams 3000 }}"
       caddy.route_6: /meeting/v1/*
       caddy.route_6.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_7: /notice/v1
+      caddy.route_7: /meeting/\d+/apply/status
       caddy.route_7.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_8: /notice/v1/*
+      caddy.route_8: /meeting/\d+/list
       caddy.route_8.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_9: /post/v1
+      caddy.route_9: /meeting/apply
       caddy.route_9.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_10: /post/v1/*
+      caddy.route_10: /meeting/\d+
       caddy.route_10.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_11: /users
+      caddy.route_11: /notice/v1
       caddy.route_11.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_12: /users/*
+      caddy.route_12: /notice/v1/*
       caddy.route_12.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_13: ^/meeting/\d+/apply/status$
+      caddy.route_13: /post/v1
       caddy.route_13.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_14: ^/meeting/\d+/list$
+      caddy.route_14: /post/v1/*
       caddy.route_14.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_15: ^/meeting/apply$
+      caddy.route_15: /users
       caddy.route_15.reverse_proxy: "{{ upstreams 3000 }}"
-      caddy.route_16: ^/meeting/\d+$
+      caddy.route_16: /users/*
       caddy.route_16.reverse_proxy: "{{ upstreams 3000 }}"
 
 networks:
