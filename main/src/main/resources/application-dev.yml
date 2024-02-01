@@ -46,3 +46,9 @@ springdoc:
     path: /api-docs/json
     groups:
       enabled: true
+
+push-notification:
+  web-url: ${DEV_WEB_PAGE_URL}
+  x-api-key: ${DEV_PUSH_API_KEY}
+  service: ${PUSH_NOTIFICATION_SERVICE}
+  push-server-url: ${DEV_PUSH_SERVER_URL}
