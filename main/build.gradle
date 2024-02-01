@@ -40,8 +40,22 @@ dependencies {
     implementation group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
     implementation group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.5'
     implementation 'com.auth0:java-jwt:4.4.0'
+
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.0.3'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+ext {
+    set('springCloudVersion', "2022.0.3")
+}
+
+dependencyManagement {
+
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+
 }
