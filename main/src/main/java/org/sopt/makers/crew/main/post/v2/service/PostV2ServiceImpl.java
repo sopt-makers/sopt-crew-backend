@@ -35,6 +35,9 @@ public class PostV2ServiceImpl implements PostV2Service {
   @Value("${push-notification.web-url}")
   private String pushWebUrl;
 
+  private static final String NEW_POST_PUSH_NOTIFICATION_TITLE = "✏️내 모임에 새로운 글이 업로드됐어요.";
+  private static final String PUSH_NOTIFICATION_CATEGORY = "NEWS";
+
   /**
    * 모임 게시글 작성 - 모임에 속한 유저만 작성 가능 - 모임에 속한 유저가 아니면 403 에러
    *
@@ -68,7 +71,7 @@ public class PostV2ServiceImpl implements PostV2Service {
         .build();
 
     Post savedPost = postRepository.save(post);
-    
+
     List<String> userIdList = applyRepository.findAllByMeetingIdAndStatus(meeting.getId(),
             EnApplyStatus.APPROVE)
         .stream()
@@ -76,15 +79,14 @@ public class PostV2ServiceImpl implements PostV2Service {
         .collect(toList());
 
     String[] userIds = userIdList.toArray(new String[0]);
-
-    String pushNotificationTitle = "내가 소속된 모임에 " + user.getName() + " 님이 새로운 글을 업로드했어요.";
-    String pushNotificationContent = post.getTitle();
+    String pushNotificationContent = String.format("[%s의 새 글] : \"%s\"",
+        user.getName(), post.getTitle());
     String pushNotificationWeblink = pushWebUrl + "/detail?id=" + meeting.getId();
 
     PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(userIds,
-        pushNotificationTitle,
+        NEW_POST_PUSH_NOTIFICATION_TITLE,
         pushNotificationContent,
-        "NEWS", pushNotificationWeblink);
+        PUSH_NOTIFICATION_CATEGORY, pushNotificationWeblink);
 
     pushNotificationService.sendPushNotification(pushRequestDto);
 
