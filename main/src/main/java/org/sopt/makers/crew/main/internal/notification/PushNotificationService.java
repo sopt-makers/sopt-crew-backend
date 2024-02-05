@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.internal.notification;
 
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_ACTION;
+
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
@@ -10,8 +12,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class PushNotificationService {
-
-  private static final String ACTION = "send";
 
   @Value("${push-notification.x-api-key}")
   private String pushNotificationApiKey;
@@ -24,12 +24,10 @@ public class PushNotificationService {
   public void sendPushNotification(PushNotificationRequestDto request) {
     PushNotificationResponseDto response = pushServerClient.sendPushNotification(
         pushNotificationApiKey,
-        ACTION,
+        PUSH_NOTIFICATION_ACTION.getValue(),
         UUID.randomUUID().toString(),
         service,
         request
     );
-
-    System.out.println(response.getMessage());
   }
 }
