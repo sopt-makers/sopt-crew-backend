@@ -39,11 +39,10 @@ public class PostV2ServiceImpl implements PostV2Service {
   private static final String PUSH_NOTIFICATION_CATEGORY = "NEWS";
 
   /**
-   * 모임 게시글 작성 - 모임에 속한 유저만 작성 가능 - 모임에 속한 유저가 아니면 403 에러
+   * 모임 게시글 작성
    *
-   * @param userId      유저 정보
-   * @param requestBody 게시글 생성 body
-   * @returns PostV1CreatePostResponseDto 게시글 생성 response dto
+   * @throws 403 모임에 속한 유저가 아닌 경우
+   * @apiNote 모임에 속한 유저만 작성 가능
    */
   @Override
   @Transactional
