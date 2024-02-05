@@ -1,6 +1,9 @@
 package org.sopt.makers.crew.main.post.v2.service;
 
 import static java.util.stream.Collectors.toList;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.FORBIDDEN_EXCEPTION;
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_POST_PUSH_NOTIFICATION_TITLE;
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -35,9 +38,6 @@ public class PostV2ServiceImpl implements PostV2Service {
   @Value("${push-notification.web-url}")
   private String pushWebUrl;
 
-  private static final String NEW_POST_PUSH_NOTIFICATION_TITLE = "✏️내 모임에 새로운 글이 업로드됐어요.";
-  private static final String PUSH_NOTIFICATION_CATEGORY = "NEWS";
-
   /**
    * 모임 게시글 작성
    *
@@ -58,7 +58,7 @@ public class PostV2ServiceImpl implements PostV2Service {
     boolean isMeetingCreator = meeting.getUserId().equals(userId);
 
     if (isInMeeting == false && isMeetingCreator == false) {
-      throw new ForbiddenException("권한이 없습니다.");
+      throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
     }
 
     Post post = Post.builder()
@@ -83,9 +83,9 @@ public class PostV2ServiceImpl implements PostV2Service {
     String pushNotificationWeblink = pushWebUrl + "/detail?id=" + meeting.getId();
 
     PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(userIds,
-        NEW_POST_PUSH_NOTIFICATION_TITLE,
+        NEW_POST_PUSH_NOTIFICATION_TITLE.getValue(),
         pushNotificationContent,
-        PUSH_NOTIFICATION_CATEGORY, pushNotificationWeblink);
+        PUSH_NOTIFICATION_CATEGORY.getValue(), pushNotificationWeblink);
 
     pushNotificationService.sendPushNotification(pushRequestDto);
 
