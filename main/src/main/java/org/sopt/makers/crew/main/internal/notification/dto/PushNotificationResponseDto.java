@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.external.notification.dto;
+package org.sopt.makers.crew.main.internal.notification.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
