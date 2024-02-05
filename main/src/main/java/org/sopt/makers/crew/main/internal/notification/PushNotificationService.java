@@ -1,9 +1,9 @@
-package org.sopt.makers.crew.main.external.notification;
+package org.sopt.makers.crew.main.internal.notification;
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.sopt.makers.crew.main.external.notification.dto.PushNotificationRequestDto;
-import org.sopt.makers.crew.main.external.notification.dto.PushNotificationResponseDto;
+import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
