@@ -140,8 +140,7 @@ public class Post {
   private List<Report> reports;
 
   @Builder
-  public Post(String title, String contents,
-      String[] images, User user, Meeting meeting) {
+  public Post(String title, String contents, String[] images, User user, Meeting meeting) {
     this.title = title;
     this.contents = contents;
     this.viewCount = 0;
