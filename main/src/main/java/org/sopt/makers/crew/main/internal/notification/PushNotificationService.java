@@ -22,12 +22,8 @@ public class PushNotificationService {
   private final PushNotificationServerClient pushServerClient;
 
   public void sendPushNotification(PushNotificationRequestDto request) {
-    PushNotificationResponseDto response = pushServerClient.sendPushNotification(
-        pushNotificationApiKey,
-        PUSH_NOTIFICATION_ACTION.getValue(),
-        UUID.randomUUID().toString(),
-        service,
-        request
-    );
+    PushNotificationResponseDto response =
+        pushServerClient.sendPushNotification(pushNotificationApiKey,
+            PUSH_NOTIFICATION_ACTION.getValue(), UUID.randomUUID().toString(), service, request);
   }
 }
