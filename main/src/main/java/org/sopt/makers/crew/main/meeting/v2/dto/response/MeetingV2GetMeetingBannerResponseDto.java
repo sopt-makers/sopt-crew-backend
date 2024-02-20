@@ -31,10 +31,6 @@ public class MeetingV2GetMeetingBannerResponseDto {
      * @apiNote 여러개여도 첫번째 이미지만 사용
      */
     private List<ImageUrlVO> imageURL;
-    /** 모임 지원 시작일 */
-    private LocalDateTime startDate;
-    /** 모임 지원 종료일 */
-    private LocalDateTime endDate;
     /** 모임 활동 시작일 */
     private LocalDateTime mStartDate;
     /** 모임 활동 종료일 */
