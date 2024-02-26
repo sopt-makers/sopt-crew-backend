@@ -52,7 +52,7 @@ public class Like {
      * 좋아요 누른사람 id
      */
     @Column(insertable = false, updatable = false)
-    private int userId;
+    private Integer userId;
 
     /**
      * 게시글
@@ -65,7 +65,7 @@ public class Like {
      * 게시글 id - 게시글 좋아요가 아닐 경우 null
      */
     @Column(insertable = false, updatable = false)
-    private int postId;
+    private Integer postId;
 
     /**
      * 댓글
@@ -78,11 +78,11 @@ public class Like {
      * 댓글 id - 댓글 좋아요가 아닐 경우 null
      */
     @Column(insertable = false, updatable = false)
-    private int commentId;
+    private Integer commentId;
 
     @Builder
-    public Like(User user, int userId, Post post, int postId, Comment comment,
-                int commentId) {
+    public Like(User user, Integer userId, Post post, Integer postId, Comment comment,
+            Integer commentId) {
         this.user = user;
         this.userId = userId;
         this.post = post;
