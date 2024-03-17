@@ -52,7 +52,7 @@ services:
       caddy.route.reverse_proxy: "{{ upstreams 8080 }}"
 
   spring-green:
-    image: makerscrew/main
+    image: makerscrew/main:latest
     env_file:
       - ./.env
     environment:
@@ -86,7 +86,7 @@ services:
       caddy.route_4.reverse_proxy: "{{ upstreams 4001 }}"
 
   nestjs-green:
-    image: makerscrew/server
+    image: makerscrew/server:latest
     environment:
       - TZ=Asia/Seoul
     ports:
@@ -136,7 +136,7 @@ services:
       caddy.route_14.reverse_proxy: "{{ upstreams 3001 }}"
 
   spring-blue:
-    image: makerscrew/main
+    image: makerscrew/main:latest
     env_file:
       - ./.env
     environment:
@@ -170,7 +170,7 @@ services:
       caddy.route_4.reverse_proxy: "{{ upstreams 4002 }}"
 
   nestjs-blue:
-    image: makerscrew/server
+    image: makerscrew/server:latest
     environment:
       - TZ=Asia/Seoul
     ports:
