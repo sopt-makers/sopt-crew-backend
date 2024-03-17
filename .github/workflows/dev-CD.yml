@@ -88,4 +88,5 @@ jobs:
           key: ${{ secrets.DEV_SERVER_KEY }}
           script: |
             cd ~
+            chmod +x ./deploy.sh
             ./deploy.sh
