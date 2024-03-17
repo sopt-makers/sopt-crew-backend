@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       working-directory-spring: main
-      working-directory-nextjs: server
+      working-directory-nestjs: server
 
     steps:
       - name: checkout
@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies (npm 의존성 설치)
         run: npm install
-        working-directory: ${{ env.working-directory-nextjs }}
+        working-directory: ${{ env.working-directory-nestjs }}
 
       - name: resources 폴더 내 application-secret.properties 파일 생성
         run: |
@@ -36,10 +36,10 @@ jobs:
           echo "${{ secrets.APPLICATION_SECRET }}" > src/main/resources/application-secret.properties
         working-directory: ${{ env.working-directory-spring }}
 
-      - name: nextjs 폴더 내 .dev.env 파일 생성
+      - name: nestjs 폴더 내 .dev.env 파일 생성
         run: |
           echo "${{ secrets.APPLICATION_SECRET }}" > .dev.env
-        working-directory: ${{ env.working-directory-nextjs }}
+        working-directory: ${{ env.working-directory-nestjs }}
 
       - name: Build (Spring)
         run: |
@@ -48,9 +48,9 @@ jobs:
         working-directory: ${{ env.working-directory-spring }}
         shell: bash
 
-      - name: Build (nextjs)
+      - name: Build (nestjs)
         run: npm run build
-        working-directory: ${{ env.working-directory-nextjs }}
+        working-directory: ${{ env.working-directory-nestjs }}
 
       ### 여기까지 CI와 거의 동일
 
@@ -69,8 +69,8 @@ jobs:
           docker push makerscrew/main
         working-directory: ${{ env.working-directory-spring }}
 
-      - name: docker image 빌드 및 푸시 (nextjs)
+      - name: docker image 빌드 및 푸시 (nestjs)
         run: |
           docker build --platform linux/amd64 -t makerscrew/server .
           docker push makerscrew/server
-        working-directory: ${{ env.working-directory-nextjs }}
+        working-directory: ${{ env.working-directory-nestjs }}
