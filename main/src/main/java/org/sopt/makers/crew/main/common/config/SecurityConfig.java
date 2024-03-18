@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -51,14 +52,34 @@ public class SecurityConfig {
             (sessionManagement) -> sessionManagement.sessionCreationPolicy(
                 SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
-            authorize -> authorize.requestMatchers(AUTH_WHITELIST).permitAll()
-                .requestMatchers(SWAGGER_URL).permitAll()
+            authorize -> authorize.requestMatchers(new AntPathRequestMatcher("/health/v2")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher("/docs/**")).permitAll()
                 .anyRequest().authenticated())
         .addFilterBefore(
             new JwtAuthenticationFilter(this.jwtTokenProvider, this.jwtAuthenticationEntryPoint),
             UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(exceptionHandling -> exceptionHandling
             .authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
+    return http.build();
+  }
+
+  @Bean
+  @Profile("test")
+  SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
+    http.csrf((csrfConfig) -> csrfConfig.disable())
+            .cors(Customizer.withDefaults())
+            .sessionManagement(
+                    (sessionManagement) -> sessionManagement.sessionCreationPolicy(
+                            SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(
+                    authorize -> authorize.requestMatchers(new AntPathRequestMatcher("/h2-console")).permitAll()
+                            .requestMatchers(new AntPathRequestMatcher("/docs/**")).permitAll()
+                            .anyRequest().authenticated())
+            .addFilterBefore(
+                    new JwtAuthenticationFilter(this.jwtTokenProvider, this.jwtAuthenticationEntryPoint),
+                    UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling(exceptionHandling -> exceptionHandling
+                    .authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
     return http.build();
   }
 
