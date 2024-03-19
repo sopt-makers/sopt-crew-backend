@@ -74,18 +74,3 @@ jobs:
           docker build --platform linux/amd64 -t makerscrew/server .
           docker push makerscrew/server
         working-directory: ${{ env.working-directory-nestjs }}
-
-  deploy-cd:
-    needs: deploy-ci
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: 도커 컨테이너 실행
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DEV_SERVER_IP }}
-          username: ${{ secrets.DEV_SERVER_USER }}
-          key: ${{ secrets.DEV_SERVER_KEY }}
-          script: |
-            cd ~
-            ./deploy.sh
