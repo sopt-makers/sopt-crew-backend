@@ -1,6 +1,9 @@
 package org.sopt.makers.crew.main.entity.user;
 
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.NO_CONTENT_EXCEPTION;
+
 import java.util.Optional;
+import org.sopt.makers.crew.main.common.exception.NoContentException;
 import org.sopt.makers.crew.main.common.exception.UnAuthorizedException;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,6 +16,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
   }
 
   default User findByOrgIdOrThrow(Integer orgUserId) {
-    return findByOrgId(orgUserId).orElseThrow(() -> new UnAuthorizedException());
+    return findByOrgId(orgUserId).orElseThrow(
+        () -> new NoContentException(
+            NO_CONTENT_EXCEPTION.getErrorCode())); //유저가 아직 모임 서비스를 이용 전이기 때문에
   }
 }
