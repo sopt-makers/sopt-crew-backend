@@ -12,4 +12,6 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer> {
   List<Apply> findAllByUserIdAndStatus(@Param("userId") Integer userId,
       @Param("statusValue") EnApplyStatus statusValue);
 
+  List<Apply> findAllByMeetingIdAndStatus(Integer meetingId, EnApplyStatus statusValue);
+
 }

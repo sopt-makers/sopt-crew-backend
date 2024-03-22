@@ -26,6 +26,7 @@ import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.meeting.converter.MeetingCategoryConverter;
+import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
@@ -99,7 +100,7 @@ public class Meeting {
    * 모집 인원
    */
   @Column(name = "capacity", nullable = false)
-  private int capacity;
+  private Integer capacity;
 
   /**
    * 모임 소개
@@ -147,19 +148,19 @@ public class Meeting {
    * 멘토 필요 여부
    */
   @Column(name = "isMentorNeeded", nullable = false)
-  private boolean isMentorNeeded;
+  private Boolean isMentorNeeded;
 
   /**
    * 활동 기수만 참여 가능한지 여부
    */
   @Column(name = "canJoinOnlyActiveGeneration", nullable = false)
-  private boolean canJoinOnlyActiveGeneration;
+  private Boolean canJoinOnlyActiveGeneration;
 
   /**
    * 모임 기수
    */
   @Column(name = "createdGeneration", nullable = false)
-  private int createdGeneration;
+  private Integer createdGeneration;
 
   /**
    * 대상 활동 기수
@@ -170,17 +171,10 @@ public class Meeting {
   /**
    * 모임 참여 가능한 파트
    */
-  @Type(
-      value = EnumArrayType.class,
-      parameters = @Parameter(
-          name = AbstractArrayType.SQL_ARRAY_TYPE,
-          value = "meeting_joinableparts_enum"
-      )
-  )
-  @Column(
-      name = "joinableParts",
-      columnDefinition = "meeting_joinableparts_enum[]"
-  )
+  @Type(value = EnumArrayType.class,
+      parameters = @Parameter(name = AbstractArrayType.SQL_ARRAY_TYPE,
+          value = "meeting_joinableparts_enum"))
+  @Column(name = "joinableParts", columnDefinition = "meeting_joinableparts_enum[]")
   private MeetingJoinablePart[] joinableParts;
 
   /**
@@ -190,13 +184,11 @@ public class Meeting {
   private List<Post> posts;
 
   @Builder
-  public Meeting(User user, int userId, String title, MeetingCategory category,
-      List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, int capacity,
-      String desc,
-      String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate, String leaderDesc,
-      String targetDesc,
-      String note, boolean isMentorNeeded, boolean canJoinOnlyActiveGeneration,
-      int createdGeneration,
+  public Meeting(User user, Integer userId, String title, MeetingCategory category,
+      List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
+      String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
+      String leaderDesc, String targetDesc, String note, Boolean isMentorNeeded,
+      Boolean canJoinOnlyActiveGeneration, Integer createdGeneration,
       Integer targetActiveGeneration, MeetingJoinablePart[] joinableParts) {
     this.user = user;
     this.userId = userId;
@@ -226,5 +218,21 @@ public class Meeting {
 
   public void addPost(Post post) {
     posts.add(post);
+  }
+
+  /**
+   * 모임 모집상태 확인
+   * 
+   * @return 모임 모집상태
+   */
+  public Integer getMeetingStatus() {
+    LocalDateTime now = LocalDateTime.now();
+    if (now.isBefore(startDate)) {
+      return EnMeetingStatus.BEFORE_START.getValue();
+    } else if (now.isBefore(endDate)) {
+      return EnMeetingStatus.APPLY_ABLE.getValue();
+    } else {
+      return EnMeetingStatus.RECRUITMENT_COMPLETE.getValue();
+    }
   }
 }

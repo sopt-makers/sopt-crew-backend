@@ -38,30 +38,47 @@ public class SecurityConfig {
   };
 
   private static final String[] AUTH_WHITELIST = {
-      "/health"
+      "/health",
+      "meeting/v2/org-user/**"
   };
 
   @Bean
   @Profile("dev")
   SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf((csrfConfig) ->
-            csrfConfig.disable()
-        )
+    http.csrf((csrfConfig) -> csrfConfig.disable())
         .cors(Customizer.withDefaults())
-        .sessionManagement((sessionManagement) ->
-            sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        )
+        .sessionManagement(
+            (sessionManagement) -> sessionManagement.sessionCreationPolicy(
+                SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             authorize -> authorize.requestMatchers(AUTH_WHITELIST).permitAll()
                 .requestMatchers(SWAGGER_URL).permitAll()
-                .anyRequest().authenticated()
-        )
+                .anyRequest().authenticated())
         .addFilterBefore(
-            new JwtAuthenticationFilter(jwtTokenProvider, jwtAuthenticationEntryPoint),
+            new JwtAuthenticationFilter(this.jwtTokenProvider, this.jwtAuthenticationEntryPoint),
             UsernamePasswordAuthenticationFilter.class)
-        .exceptionHandling(exceptionHandling ->
-            exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint)
-        );
+        .exceptionHandling(exceptionHandling -> exceptionHandling
+            .authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
+    return http.build();
+  }
+
+  @Bean
+  @Profile("prod")
+  SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
+    http.csrf((csrfConfig) -> csrfConfig.disable())
+        .cors(Customizer.withDefaults())
+        .sessionManagement(
+            (sessionManagement) -> sessionManagement.sessionCreationPolicy(
+                SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(
+            authorize -> authorize.requestMatchers(AUTH_WHITELIST).permitAll()
+                .requestMatchers(SWAGGER_URL).permitAll()
+                .anyRequest().authenticated())
+        .addFilterBefore(
+            new JwtAuthenticationFilter(this.jwtTokenProvider, this.jwtAuthenticationEntryPoint),
+            UsernamePasswordAuthenticationFilter.class)
+        .exceptionHandling(exceptionHandling -> exceptionHandling
+            .authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
     return http.build();
   }
 
