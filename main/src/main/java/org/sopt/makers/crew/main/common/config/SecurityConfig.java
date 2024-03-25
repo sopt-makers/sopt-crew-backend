@@ -41,7 +41,7 @@ public class SecurityConfig {
 
   private static final String[] AUTH_WHITELIST = {
       "/health",
-      "meeting/v2/org-user/**"
+      "/meeting/v2/org-user/**"
   };
 
   @Bean
