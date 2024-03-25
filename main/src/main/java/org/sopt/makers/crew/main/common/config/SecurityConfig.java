@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.common.config;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.config.jwt.JwtAuthenticationEntryPoint;
 import org.sopt.makers.crew.main.common.config.jwt.JwtAuthenticationFilter;
@@ -52,8 +53,14 @@ public class SecurityConfig {
             (sessionManagement) -> sessionManagement.sessionCreationPolicy(
                 SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
-            authorize -> authorize.requestMatchers(new AntPathRequestMatcher("/health/v2")).permitAll()
-                .requestMatchers(new AntPathRequestMatcher("/docs/**")).permitAll()
+            authorize -> authorize.requestMatchers(Stream
+                            .of(SWAGGER_URL)
+                            .map(AntPathRequestMatcher::antMatcher)
+                            .toArray(AntPathRequestMatcher[]::new)).permitAll()
+                .requestMatchers(Stream
+                        .of(AUTH_WHITELIST)
+                        .map(AntPathRequestMatcher::antMatcher)
+                        .toArray(AntPathRequestMatcher[]::new)).permitAll()
                 .anyRequest().authenticated())
         .addFilterBefore(
             new JwtAuthenticationFilter(this.jwtTokenProvider, this.jwtAuthenticationEntryPoint),
@@ -72,8 +79,14 @@ public class SecurityConfig {
                     (sessionManagement) -> sessionManagement.sessionCreationPolicy(
                             SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(
-                    authorize -> authorize.requestMatchers(new AntPathRequestMatcher("/h2-console")).permitAll()
-                            .requestMatchers(new AntPathRequestMatcher("/docs/**")).permitAll()
+                    authorize -> authorize.requestMatchers(Stream
+                                    .of(SWAGGER_URL)
+                                    .map(AntPathRequestMatcher::antMatcher)
+                                    .toArray(AntPathRequestMatcher[]::new)).permitAll()
+                            .requestMatchers(Stream
+                                    .of(AUTH_WHITELIST)
+                                    .map(AntPathRequestMatcher::antMatcher)
+                                    .toArray(AntPathRequestMatcher[]::new)).permitAll()
                             .anyRequest().authenticated())
             .addFilterBefore(
                     new JwtAuthenticationFilter(this.jwtTokenProvider, this.jwtAuthenticationEntryPoint),
@@ -92,9 +105,15 @@ public class SecurityConfig {
             (sessionManagement) -> sessionManagement.sessionCreationPolicy(
                 SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
-            authorize -> authorize.requestMatchers(AUTH_WHITELIST).permitAll()
-                .requestMatchers(SWAGGER_URL).permitAll()
-                .anyRequest().authenticated())
+                authorize -> authorize.requestMatchers(Stream
+                                .of(SWAGGER_URL)
+                                .map(AntPathRequestMatcher::antMatcher)
+                                .toArray(AntPathRequestMatcher[]::new)).permitAll()
+                        .requestMatchers(Stream
+                                .of(AUTH_WHITELIST)
+                                .map(AntPathRequestMatcher::antMatcher)
+                                .toArray(AntPathRequestMatcher[]::new)).permitAll()
+                        .anyRequest().authenticated())
         .addFilterBefore(
             new JwtAuthenticationFilter(this.jwtTokenProvider, this.jwtAuthenticationEntryPoint),
             UsernamePasswordAuthenticationFilter.class)
