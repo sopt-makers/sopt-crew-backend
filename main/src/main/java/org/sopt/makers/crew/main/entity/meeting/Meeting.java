@@ -22,8 +22,10 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.meeting.converter.MeetingCategoryConverter;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
@@ -80,8 +82,9 @@ public class Meeting {
   /**
    * 이미지
    */
-  @Column(name = "imageURL")
+  @Column(name = "imageURL",columnDefinition = "jsonb")
   @Type(JsonBinaryType.class)
+  //@JdbcTypeCode(SqlTypes.JSON)
   private List<ImageUrlVO> imageURL;
 
   /**

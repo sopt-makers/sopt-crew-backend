@@ -1,3 +1,5 @@
+
+
 server:
   port: 4000
 
@@ -7,25 +9,20 @@ spring:
       on-profile: test
     import: application-secret.properties
   datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: songmingyu
-    password: 1234
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:postgresql:///test-database
+  #    username: root
+  #    password:
   jpa:
     hibernate:
       naming:
         physical-strategy: org.sopt.makers.crew.main.common.config.CamelCaseNamingStrategy
-      ddl-auto: none
+      ddl-auto: create
     properties:
       hibernate:
         show_sql: true
-        format_sql: ture
-      dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
       storage_engine: innodb
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:schema.sql
 
 jwt:
   header: Authorization

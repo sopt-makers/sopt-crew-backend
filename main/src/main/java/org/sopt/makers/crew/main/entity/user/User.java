@@ -17,7 +17,9 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.like.Like;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
@@ -54,7 +56,7 @@ public class User {
     /**
      * 활동 목록
      */
-    @Column(name = "activities")
+    @Column(name = "activities",columnDefinition = "jsonb")
     @Type(JsonBinaryType.class)
     private List<UserActivityVO> activities;
 
