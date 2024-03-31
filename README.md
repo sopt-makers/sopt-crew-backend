@@ -231,4 +231,4 @@ $ sudo docker image prune
 
 ## 커밋 컨벤션
 
-TBU
+TBD
