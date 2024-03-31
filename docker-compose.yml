@@ -74,6 +74,8 @@ services:
       caddy.route_4.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_5: /post/v2/*
       caddy.route_5.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_6: /comment/v2/*
+      caddy.route_6.reverse_proxy: "{{ upstreams 4000 }}"
 
   nestjs:
     build:
