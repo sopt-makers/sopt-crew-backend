@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.1.5'
     id 'io.spring.dependency-management' version '1.1.3'
+    id 'jacoco'
 }
 
 group = 'org.sopt.makers.crew'
@@ -63,6 +64,19 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+
+    finalizedBy jacocoTestCoverageVerification
+
+    jacoco {
+        excludes += [
+                "org/crew/main/MainApplication.class",
+                "**/response/*",
+                "**/config/*",
+                "**/dto/*",
+                "**/vo/*",
+                "**/exception/*",
+        ]
+    }
 }
 
 ext {
@@ -75,4 +89,44 @@ dependencyManagement {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 
+}
+
+jacocoTestReport {
+    reports {
+        xml.required.set(true)
+        csv.required.set(true)
+        html.required.set(true)
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(
+                files(classDirectories.files.collect {
+                    fileTree(dir: it, excludes: [
+                            "org/crew/main/MainApplication.class",
+                            "**/response/*",
+                            "**/config/*",
+                            "org/crew/**/*Dto.*",
+                            "**/dto/*",
+                            "**/vo/*",
+                            "**/exception/*",
+                    ])
+                })
+        )
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            // ...
+
+            excludes = [
+                    '*.*Application',
+                    '*.*Exception',
+                    '*.Dto',
+                    '*.response'
+                    // ...
+            ]
+        }
+    }
 }
