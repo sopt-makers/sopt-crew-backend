@@ -21,7 +21,7 @@ public class SwaggerConfig {
 
                 Info info = new Info()
                                 .title("Crew API 문서")
-                                .version("1.1.0")
+                                .version("1.1.1")
                                 .description("Crew API 문서");
 
                 String jwtSchemeName = "JWT Authorization";
