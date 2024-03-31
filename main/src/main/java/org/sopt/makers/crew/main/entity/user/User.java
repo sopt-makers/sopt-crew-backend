@@ -17,9 +17,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.like.Like;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
@@ -127,4 +125,6 @@ public class User {
     public void addReport(Report report) {
         this.reports.add(report);
     }
+
+    public void setUserIdForTest(Integer userId){ this.id = userId;}
 }

@@ -187,7 +187,7 @@ public class Meeting {
   private List<Post> posts;
 
   @Builder
-  public Meeting(User user, Integer userId, String title, MeetingCategory category,
+  public Meeting(User user, Integer userId, List<Apply> appliedInfo, String title, MeetingCategory category,
       List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
       String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
       String leaderDesc, String targetDesc, String note, Boolean isMentorNeeded,
@@ -195,6 +195,7 @@ public class Meeting {
       Integer targetActiveGeneration, MeetingJoinablePart[] joinableParts) {
     this.user = user;
     this.userId = userId;
+    this.appliedInfo = appliedInfo;
     this.title = title;
     this.category = category;
     this.imageURL = imageURL;
