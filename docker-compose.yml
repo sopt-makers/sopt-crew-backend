@@ -50,6 +50,8 @@ services:
       dockerfile: Dockerfile
     container_name: spring
     restart: unless-stopped
+    environment:
+      - TZ=Asia/Seoul
     depends_on:
       - nestjs
     logging:
@@ -81,6 +83,8 @@ services:
       dockerfile: Dockerfile
     container_name: nestjs
     restart: unless-stopped
+    environment:
+      - TZ=Asia/Seoul
     networks:
       - caddy
     logging:
