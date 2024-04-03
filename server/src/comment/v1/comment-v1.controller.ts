@@ -95,6 +95,7 @@ export class CommentV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 댓글 작성',
+    deprecated: true,
   })
   @ApiOkResponseCommon(CommentV1CreateCommentResponseDto)
   @ApiResponse({
