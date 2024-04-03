@@ -13,30 +13,24 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@OpenAPIDefinition(servers = { @Server(url = "/", description = "Generated Server URL") })
+@OpenAPIDefinition(servers = {@Server(url = "/", description = "Generated Server URL")})
 public class SwaggerConfig {
 
         @Bean
         public OpenAPI openAPI() {
 
-                Info info = new Info()
-                                .title("Crew API 문서")
-                                .version("1.0.2")
+                Info info = new Info().title("Crew API 문서").version("1.1.2")
                                 .description("Crew API 문서");
 
                 String jwtSchemeName = "JWT Authorization";
-                SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
+                SecurityRequirement securityRequirement =
+                                new SecurityRequirement().addList(jwtSchemeName);
 
-                Components components = new Components()
-                                .addSecuritySchemes(jwtSchemeName, new SecurityScheme()
-                                                .name(jwtSchemeName)
-                                                .type(HTTP) // HTTP 방식
-                                                .scheme("bearer")
-                                                .bearerFormat("JWT"));
+                Components components = new Components().addSecuritySchemes(jwtSchemeName,
+                                new SecurityScheme().name(jwtSchemeName).type(HTTP) // HTTP 방식
+                                                .scheme("bearer").bearerFormat("JWT"));
 
-                return new OpenAPI()
-                                .info(info)
-                                .addSecurityItem(securityRequirement)
+                return new OpenAPI().info(info).addSecurityItem(securityRequirement)
                                 .components(components);
         }
 }

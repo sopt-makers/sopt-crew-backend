@@ -8,6 +8,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public enum ErrorStatus {
   /**
+   * 204 NO_CONTENT
+   */
+  NO_CONTENT_EXCEPTION("참여한 모임이 없습니다."),
+  
+  /**
    * 400 BAD_REQUEST
    */
   VALIDATION_EXCEPTION("CR-001"), // errorCode는 예시, 추후 변경 예정 -> 잘못된 요청입니다.

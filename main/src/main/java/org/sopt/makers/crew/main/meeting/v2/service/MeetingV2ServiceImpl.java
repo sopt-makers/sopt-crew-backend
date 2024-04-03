@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -40,18 +41,23 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
     int page = queryDto.getPage();
     int take = queryDto.getTake();
 
-    User user = userRepository.findByOrgIdOrThrow(queryDto.getOrgUserId());
+    Optional<User> user = userRepository.findByOrgId(queryDto.getOrgUserId());
+    List<MeetingV2GetAllMeetingByOrgUserMeetingDto> userJoinedList = new ArrayList<>();
 
-    List<MeetingV2GetAllMeetingByOrgUserMeetingDto> userJoinedList = Stream
-        .concat(user.getMeetings().stream(),
-            applyRepository.findAllByUserIdAndStatus(user.getId(), EnApplyStatus.APPROVE).stream()
-                .map(apply -> apply.getMeeting()))
-        .map(meeting -> MeetingV2GetAllMeetingByOrgUserMeetingDto.of(meeting.getId(),
-            checkMeetingLeader(meeting, user.getId()), meeting.getTitle(),
-            meeting.getImageURL().get(0).getUrl(), meeting.getCategory().getValue(),
-            meeting.getMStartDate(), meeting.getMEndDate(), checkActivityStatus(meeting)))
-        .sorted(Comparator.comparing(MeetingV2GetAllMeetingByOrgUserMeetingDto::getId).reversed())
-        .collect(Collectors.toList());
+    if (!user.isEmpty()) {
+      User existUser = user.get();
+      userJoinedList = Stream
+          .concat(existUser.getMeetings().stream(),
+              applyRepository.findAllByUserIdAndStatus(existUser.getId(), EnApplyStatus.APPROVE)
+                  .stream()
+                  .map(apply -> apply.getMeeting()))
+          .map(meeting -> MeetingV2GetAllMeetingByOrgUserMeetingDto.of(meeting.getId(),
+              checkMeetingLeader(meeting, existUser.getId()), meeting.getTitle(),
+              meeting.getImageURL().get(0).getUrl(), meeting.getCategory().getValue(),
+              meeting.getMStartDate(), meeting.getMEndDate(), checkActivityStatus(meeting)))
+          .sorted(Comparator.comparing(MeetingV2GetAllMeetingByOrgUserMeetingDto::getId).reversed())
+          .collect(Collectors.toList());
+    }
 
     List<MeetingV2GetAllMeetingByOrgUserMeetingDto> pagedUserJoinedList =
         userJoinedList.stream().skip((long) (page - 1) * take) // 스킵할 아이템 수 계산
