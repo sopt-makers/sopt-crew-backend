@@ -49,8 +49,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
       userJoinedList = Stream
           .concat(existUser.getMeetings().stream(),
               applyRepository.findAllByUserIdAndStatus(existUser.getId(), EnApplyStatus.APPROVE)
-                  .stream()
-                  .map(apply -> apply.getMeeting()))
+                  .stream().map(apply -> apply.getMeeting()))
           .map(meeting -> MeetingV2GetAllMeetingByOrgUserMeetingDto.of(meeting.getId(),
               checkMeetingLeader(meeting, existUser.getId()), meeting.getTitle(),
               meeting.getImageURL().get(0).getUrl(), meeting.getCategory().getValue(),
@@ -89,9 +88,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
           return MeetingV2GetMeetingBannerResponseDto.of(meeting.getId(), meeting.getUserId(),
               meeting.getTitle(), meeting.getCategory(), meeting.getImageURL(),
-              meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(),
-              recentActivityDate, meeting.getTargetActiveGeneration(), meeting.getJoinableParts(),
-              applicantCount, appliedUserCount, meetingLeader, meeting.getMeetingStatus());
+              meeting.getStartDate(), meeting.getMStartDate(), meeting.getMEndDate(),
+              meeting.getCapacity(), recentActivityDate, meeting.getTargetActiveGeneration(),
+              meeting.getJoinableParts(), applicantCount, appliedUserCount, meetingLeader,
+              meeting.getMeetingStatus());
         }).toList();
 
     return meetingBanners;
