@@ -50,6 +50,8 @@ services:
       dockerfile: Dockerfile
     container_name: spring
     restart: unless-stopped
+    environment:
+      - TZ=Asia/Seoul
     depends_on:
       - nestjs
     logging:
@@ -72,9 +74,9 @@ services:
       caddy.route_3.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_4: /meeting/v2/*
       caddy.route_4.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_5: /post/v2/*
+      caddy.route_5: /post/v2
       caddy.route_5.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_6: /comment/v2/*
+      caddy.route_6: /comment/v2
       caddy.route_6.reverse_proxy: "{{ upstreams 4000 }}"
 
   nestjs:
@@ -83,6 +85,8 @@ services:
       dockerfile: Dockerfile
     container_name: nestjs
     restart: unless-stopped
+    environment:
+      - TZ=Asia/Seoul
     networks:
       - caddy
     logging:
