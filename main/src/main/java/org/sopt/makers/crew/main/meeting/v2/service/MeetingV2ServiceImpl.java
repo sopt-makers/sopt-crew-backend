@@ -88,7 +88,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
           return MeetingV2GetMeetingBannerResponseDto.of(meeting.getId(), meeting.getUserId(),
               meeting.getTitle(), meeting.getCategory(), meeting.getImageURL(),
-              meeting.getStartDate(), meeting.getMStartDate(), meeting.getMEndDate(),
+              meeting.getMStartDate(), meeting.getMEndDate(), meeting.getStartDate(), meeting.getEndDate(),
               meeting.getCapacity(), recentActivityDate, meeting.getTargetActiveGeneration(),
               meeting.getJoinableParts(), applicantCount, appliedUserCount, meetingLeader,
               meeting.getMeetingStatus());
