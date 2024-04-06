@@ -37,6 +37,8 @@ public class MeetingV2GetMeetingBannerResponseDto {
     private LocalDateTime mEndDate;
     /** 모임 모집 시작일 */
     private LocalDateTime startDate;
+    /** 모임 모집 종료일 */
+    private LocalDateTime endDate;
     /** 모임 인원 */
     private Integer capacity;
     /** 최근 활동 일자 */
