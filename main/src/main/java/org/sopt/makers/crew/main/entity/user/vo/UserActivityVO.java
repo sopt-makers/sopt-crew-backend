@@ -9,7 +9,7 @@ import lombok.ToString;
 @ToString
 public class UserActivityVO {
 
-  private String part;
-  private int generation;
+  private final String part;
+  private final int generation;
 
 }

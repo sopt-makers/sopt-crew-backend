@@ -1,0 +1,55 @@
+
+
+server:
+  port: 4000
+
+spring:
+  config:
+    activate:
+      on-profile: test
+    import: application-secret.properties
+  datasource:
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:postgresql:///test-database
+  #    username: root
+  #    password:
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.sopt.makers.crew.main.common.config.CamelCaseNamingStrategy
+      ddl-auto: create
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+      storage_engine: innodb
+
+jwt:
+  header: Authorization
+  secret: ${TEST_JWT_SECRET}
+  access-token:
+    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
+
+aws-property:
+  aws-region: ${AWS_REGION}
+  s3-bucket-name: ${AWS_S3_BUCKET_NAME}
+  access-key: ${AWS_ACCESS_KEY_ID}
+  secret-key: ${AWS_SECRET_ACCESS_KEY}
+
+springdoc:
+  packages-to-scan: org.sopt.makers.crew
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  swagger-ui:
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /api-docs/json
+    groups:
+      enabled: true
+
+push-notification:
+  web-url: ${DEV_WEB_PAGE_URL}
+  x-api-key: ${DEV_PUSH_API_KEY}
+  service: ${PUSH_NOTIFICATION_SERVICE}
+  push-server-url: ${DEV_PUSH_SERVER_URL}

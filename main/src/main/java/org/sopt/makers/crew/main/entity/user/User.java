@@ -54,7 +54,7 @@ public class User {
     /**
      * 활동 목록
      */
-    @Column(name = "activities")
+    @Column(name = "activities",columnDefinition = "jsonb")
     @Type(JsonBinaryType.class)
     private List<UserActivityVO> activities;
 
@@ -125,4 +125,6 @@ public class User {
     public void addReport(Report report) {
         this.reports.add(report);
     }
+
+    public void setUserIdForTest(Integer userId){ this.id = userId;}
 }

@@ -22,8 +22,10 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.meeting.converter.MeetingCategoryConverter;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
@@ -80,8 +82,9 @@ public class Meeting {
   /**
    * 이미지
    */
-  @Column(name = "imageURL")
+  @Column(name = "imageURL",columnDefinition = "jsonb")
   @Type(JsonBinaryType.class)
+  //@JdbcTypeCode(SqlTypes.JSON)
   private List<ImageUrlVO> imageURL;
 
   /**
@@ -184,7 +187,7 @@ public class Meeting {
   private List<Post> posts;
 
   @Builder
-  public Meeting(User user, Integer userId, String title, MeetingCategory category,
+  public Meeting(User user, Integer userId, List<Apply> appliedInfo, String title, MeetingCategory category,
       List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
       String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
       String leaderDesc, String targetDesc, String note, Boolean isMentorNeeded,
@@ -192,6 +195,7 @@ public class Meeting {
       Integer targetActiveGeneration, MeetingJoinablePart[] joinableParts) {
     this.user = user;
     this.userId = userId;
+    this.appliedInfo = appliedInfo;
     this.title = title;
     this.category = category;
     this.imageURL = imageURL;
