@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -118,7 +119,7 @@ public class MeetingV2ServiceTest {
     void 내모임조회_성공() {
         // given
         User user = UserFixture.createStaticUser();
-        doReturn(user).when(userRepository).findByOrgIdOrThrow(any());
+        doReturn(Optional.of(user)).when(userRepository).findByOrgId(any());
         doReturn(applies).when(applyRepository).findAllByUserIdAndStatus(any(), any());
 
         MeetingV2GetAllMeetingByOrgUserQueryDto dto = new MeetingV2GetAllMeetingByOrgUserQueryDto(
