@@ -30,9 +30,12 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
 
+      - name: Print Current Directory
+        run: pwd
+
       - name: Create application.properties from secret
         run: |
-          echo "${{ secrets.APPLICATION_SECRET_SPRING_DEV }}" > ./main/src/main/resources/application.properties
+          echo "${{ secrets.APPLICATION_SECRET_SPRING_DEV }}" > ./main/src/main/resources/application-secret.properties
         shell: bash
 
       - name: Build and analyze (SpringBoot)
@@ -61,6 +64,9 @@ jobs:
         with:
           path: server/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('server/package-lock.json') }}
+
+      - name: Print Current Directory
+        run: pwd
 
       - name: Create .dev.env from secret
         run: |
