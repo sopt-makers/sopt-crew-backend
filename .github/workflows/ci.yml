@@ -35,7 +35,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd main
-          ./gradlew clean build
+          ./gradlew clean build --args='--spring.profiles.active=dev'
   
 
   build-nestjs:
@@ -63,4 +63,4 @@ jobs:
         run: |
           cd server
           npm install
-          npm run build
+          npm run start
