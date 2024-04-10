@@ -30,6 +30,11 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
 
+      - name: Create application.properties from secret
+        run: |
+          echo "${{ secrets.APPLICATION_SECRET_SPRING_DEV }}" > ./main/src/main/resources/application.properties
+        shell: bash
+
       - name: Build and analyze (SpringBoot)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,6 +61,11 @@ jobs:
         with:
           path: server/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('server/package-lock.json') }}
+
+      - name: Create .dev.env from secret
+        run: |
+          echo "${{ secrets.APPLICATION_SECRET_NESTJS_DEV }}" > ./server/.dev.env
+        shell: bash
 
       - name: Build and analyze (NestJS)
         env:
