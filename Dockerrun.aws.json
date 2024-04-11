@@ -1,0 +1,29 @@
+{
+  "AWSEBDockerrunVersion": 2,
+  "containerDefinitions": [
+    {
+      "name": "springboot",
+      "image": "public.ecr.aws/k9s0h6l7/crew-dev/springboot:latest",
+      "essential": true,
+      "memory": 350,
+      "portMappings": [
+        {
+          "hostPort": 4000,
+          "containerPort": 4000
+        }
+      ]
+    },
+    {
+      "name": "nestjs",
+      "image": "public.ecr.aws/k9s0h6l7/crew-dev/nestjs:latest",
+      "essential": true,
+      "memory": 450,
+      "portMappings": [
+        {
+          "hostPort": 3000,
+          "containerPort": 3000
+        }
+      ]
+    }
+  ]
+}
