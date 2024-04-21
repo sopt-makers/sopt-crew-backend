@@ -27,11 +27,11 @@ services:
         {url:'/api-docs-json', name:'nestjs'},
         ]
       - BASE_URL=/docs
-    #      - SPRING_NAME=${SPRING_NAME}
-    #      - NESTJS_NAME=${NESTJS_NAME}
-    #    depends_on:
-    #      - ${SPRING_NAME}
-    #      - ${NESTJS_NAME}
+        - SPRING_NAME=${SPRING_NAME}
+        - NESTJS_NAME=${NESTJS_NAME}
+    depends_on:
+      - ${SPRING_NAME}
+      - ${NESTJS_NAME}
     networks:
       - caddy
     labels:
