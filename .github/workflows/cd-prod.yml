@@ -1,12 +1,12 @@
-name: Makers_Crew CD
+name: Makers_Crew Dev CD #TODO - prod에 맞게 변경 필요
 on:
   workflow_run:
     workflows: [ "Makers_Crew CI" ]
-    branches: [ "develop", "main", "feat/#145" ]
+    branches: [ "main" ]
     types: [ completed ]
 
   push:
-    branches: [ "develop", "main", "feat/#145" ]
+    branches: [ "main" ]
 jobs:
   deploy:
     runs-on: ubuntu-22.04

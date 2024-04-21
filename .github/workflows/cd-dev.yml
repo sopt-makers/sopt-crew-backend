@@ -1,0 +1,50 @@
+name: Makers_Crew Dev CD
+on:
+  workflow_run:
+    workflows: [ "Makers_Crew CI" ]
+    branches: [ "develop", "feat/#145" ]
+    types: [ completed ]
+
+  push:
+    branches: [ "develop", "feat/#145" ]
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    env:
+      working-directory-spring: main
+      working-directory-nestjs: server
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Docker build 가능하도록 환경 설정
+        uses: docker/setup-buildx-action@v2
+
+      - name: Docker hub에 로그인
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_LOGIN_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_LOGIN_ACCESSTOKEN }}
+
+      - name: docker image 빌드 및 푸시 (Spring)
+        run: |
+          docker build --platform linux/amd64 -t makerscrew/main .
+          docker push makerscrew/main
+        working-directory: ${{ env.working-directory-spring }}
+
+      - name: docker image 빌드 및 푸시 (nestjs)
+        run: |
+          docker build --platform linux/amd64 -t makerscrew/server .
+          docker push makerscrew/server
+        working-directory: ${{ env.working-directory-nestjs }}
+
+      - name: 도커 컨테이너 실행
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_SERVER_IP }}
+          username: ${{ secrets.DEV_SERVER_USER }}
+          key: ${{ secrets.DEV_SERVER_KEY }}
+          script: |
+            cd ~
+            chmod +x ./deploy.sh
+            ./deploy.sh
