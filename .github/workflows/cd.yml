@@ -1,83 +1,50 @@
-name: Upload Docker Image to ECR & Pull Image to Beanstalk
-
+name: DEV CD
 on:
   workflow_run:
-    workflows:
-      - "Makers_Crew CI"
-    types:
-      - completed
-  push:
-    branches:
-      - dev
+    workflows: [ "Makers_Crew CI" ]
+    branches: [ "develop", "main", "feat/#145" ]
+    types: [ completed ]
 
+  push:
+    branches: [ "develop", "main", "feat/#145" ]
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    name: Deploy App
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-22.04
+    env:
+      working-directory-spring: main
+      working-directory-nestjs: server
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # AWS Credentials 설정
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Docker build 가능하도록 환경 설정
+        uses: docker/setup-buildx-action@v2
+
+      - name: Docker hub에 로그인
+        uses: docker/login-action@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          username: ${{ secrets.DOCKERHUB_LOGIN_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_LOGIN_ACCESSTOKEN }}
 
-      # Amazon ECR 로그인
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      # 스프링부트 이미지 빌드 및 푸시
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY_NAME }}
-          IMAGE_TAG: springboot:latest
+      - name: docker image 빌드 및 푸시 (Spring)
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT 
+          docker build --platform linux/amd64 -t makerscrew/main .
+          docker push makerscrew/main
+        working-directory: ${{ env.working-directory-spring }}
 
-      # NestJS 이미지 빌드 및 푸시
-      - name: Build, tag, and push NestJS image to Amazon ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          NESTJS_ECR_REPOSITORY: ${{ secrets.NESTJS_ECR_REPOSITORY_NAME }}
-          IMAGE_TAG: nestjs:latest
+      - name: docker image 빌드 및 푸시 (nestjs)
         run: |
-          docker build -t $ECR_REGISTRY/$NESTJS_ECR_REPOSITORY:$IMAGE_TAG ./nestjs/
-          docker push $ECR_REGISTRY/$NESTJS_ECR_REPOSITORY:$IMAGE_TAG
-          echo "nestjs_image=::$ECR_REGISTRY/$NESTJS_ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          docker build --platform linux/amd64 -t makerscrew/server .
+          docker push makerscrew/server
+        working-directory: ${{ env.working-directory-nestjs }}
 
-      - name: Get current time
-        uses: 1466587594/get-current-time@v2
-        id: current-time
+      - name: 도커 컨테이너 실행
+        uses: appleboy/ssh-action@master
         with:
-          format: YYYYMMDD_HH-mm-ss
-          utcOffset: "+09:00"
-
-      - name: Generate deployment package
-        run: |
-          mkdir -p deploy
-          cp -r .ebextensions deploy/.ebextensions
-          cp Dockerrun.aws.json deploy/Dockerrun.aws.json
-          cd deploy && zip -r deploy.zip .
-
-      - name: Beanstalk Deploy
-        uses: einaregilsson/beanstalk-deploy@v14
-        with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: Makers-Crew-Dev
-          environment_name: Makers-Crew-Dev
-          version_label: Github Actions-${{steps.current-time.outputs.formattedTime}}
-          region: ${{ secrets.AWS_REGION }}
-          deployment_package: deploy/deploy.zip
-          wait_for_environment_recovery: 200
+          host: ${{ secrets.DEV_SERVER_IP }}
+          username: ${{ secrets.DEV_SERVER_USER }}
+          key: ${{ secrets.DEV_SERVER_KEY }}
+          script: |
+            cd ~
+            chmod +x ./deploy.sh
+            ./deploy.sh
