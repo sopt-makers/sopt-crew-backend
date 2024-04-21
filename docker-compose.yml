@@ -18,7 +18,7 @@ services:
   swagger:
     image: swaggerapi/swagger-ui
     env_file:
-      - ${DIR}/.swagger.env
+      - /home/ubuntu/docker/.swagger.env
     container_name: swagger
     environment:
       - URLS=
