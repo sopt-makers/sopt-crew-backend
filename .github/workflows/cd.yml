@@ -1,4 +1,4 @@
-name: DEV CD
+name: Makers_Crew CD
 on:
   workflow_run:
     workflows: [ "Makers_Crew CI" ]
