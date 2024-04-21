@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
 
   swagger:
-    image: swaggerapi/swagger-ui
+    image: swaggerapi/swagger-ui:latest
     env_file:
       - /home/ubuntu/docker/.swagger.env
     container_name: swagger
@@ -39,7 +39,7 @@ services:
       caddy.route.reverse_proxy: "{{ upstreams 8080 }}"
 
   spring-green:
-    image: makerscrew/main #TODO - 경로 체크
+    image: makerscrew/main:latest #TODO - 경로 체크
     env_file:
       - ./application-secret.properties
     environment:
@@ -100,7 +100,7 @@ services:
       #TODO - 마이그 최신화
 
   nestjs-green:
-    image: makerscrew/server
+    image: makerscrew/server:latest
     env_file:
       - ./.env
     environment:
@@ -158,7 +158,7 @@ services:
       caddy.route_14.reverse_proxy: "{{ upstreams 3000 }}"
 
   spring-blue:
-    image: makerscrew/main
+    image: makerscrew/main:latest
     env_file:
       - ./application-secret.properties
     environment:
@@ -215,7 +215,7 @@ services:
       caddy.route_4.reverse_proxy: "{{ upstreams 4000 }}"
 
   nestjs-blue:
-    image: makerscrew/server
+    image: makerscrew/server:latest
     env_file:
       - ./.env
     environment:
