@@ -59,7 +59,8 @@ dependencies {
     testImplementation 'org.testcontainers:jdbc'           // DB와의 JDBC connection
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
 
-
+    // aop
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
 }
 
 tasks.named('test') {
