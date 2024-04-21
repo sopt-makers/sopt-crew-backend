@@ -5,13 +5,25 @@ services:
     labels:
       caddy: localhost crew.api.dev.sopt.org
 
-  spring:
+  spring-green:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
     labels:
       caddy: localhost crew.api.dev.sopt.org
 
-  nestjs:
+  nestjs-green:
+    environment:
+      - NODE_ENV=dev
+    labels:
+      caddy: localhost crew.api.dev.sopt.org
+
+  spring-blue:
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    labels:
+      caddy: localhost crew.api.dev.sopt.org
+
+  nestjs-blue:
     environment:
       - NODE_ENV=dev
     labels:

@@ -5,13 +5,25 @@ services:
     labels:
       caddy: localhost
 
-  spring:
+  spring-green:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
     labels:
       caddy: localhost
 
-  nestjs:
+  nestjs-green:
+    environment:
+      - NODE_ENV=dev
+    labels:
+      caddy: localhost
+
+  spring-blue:
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    labels:
+      caddy: localhost
+
+  nestjs-blue:
     environment:
       - NODE_ENV=dev
     labels:

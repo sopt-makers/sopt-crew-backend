@@ -13,15 +13,12 @@ services:
       - caddy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "10"
     restart: unless-stopped
 
   swagger:
     image: swaggerapi/swagger-ui
+    env_file:
+      - ./.swagger.env
     container_name: swagger
     environment:
       - URLS=
@@ -30,35 +27,57 @@ services:
         {url:'/api-docs-json', name:'nestjs'},
         ]
       - BASE_URL=/docs
+      - SPRING_NAME=${SPRING_NAME}
+      - NESTJS_NAME=${NESTJS_NAME}
     depends_on:
-      - nestjs
-      - spring
+      - ${SPRING_NAME}
+      - ${NESTJS_NAME}
     networks:
       - caddy
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "10"
     labels:
       caddy.route: /docs*
       caddy.route.reverse_proxy: "{{ upstreams 8080 }}"
 
-  spring:
-    build:
-      context: ./main
-      dockerfile: Dockerfile
-    container_name: spring
-    restart: unless-stopped
+  spring-green:
+    image: makerscrew/main #TODO - 경로 체크
+    env_file:
+      - ./.application-secret.properties
     environment:
       - TZ=Asia/Seoul
+      - DEV_DB_HOST=${DEV_DB_HOST}
+      - DEV_DB_PORT=${DEV_DB_PORT}
+      - DEV_DB_USERNAME=${DEV_DB_USERNAME}
+      - DEV_DB_PASSWORD=${DEV_DB_PASSWORD}
+      - DEV_DB_NAME=${DEV_DB_NAME}
+      - DEV_DB_SCHEMA=${DEV_DB_SCHEMA}
+      - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - PROD_JWT_SECRET=${PROD_JWT_SECRET}
+      - DEV_JWT_SECRET=${DEV_JWT_SECRET}
+      - TEST_JWT_SECRET=${TEST_JWT_SECRET}
+      - ACCESS_TOKEN_EXPIRED_TIME=${ACCESS_TOKEN_EXPIRED_TIME}
+      - DEV_WEB_PAGE_URL=${DEV_WEB_PAGE_URL}
+      - PROD_WEB_PAGE_URL=${PROD_WEB_PAGE_URL}
+      - PUSH_NOTIFICATION_SERVICE=${PUSH_NOTIFICATION_SERVICE}
+      - DEV_PUSH_API_KEY=${DEV_PUSH_API_KEY}
+      - PROD_PUSH_API_KEY=${PROD_PUSH_API_KEY}
+      - DEV_PUSH_SERVER_URL=${DEV_PUSH_SERVER_URL}
+      - PROD_PUSH_SERVER_URL=${PROD_PUSH_SERVER_URL}
+      - PROD_DB_HOST=${PROD_DB_HOST}
+      - PROD_DB_PORT=${PROD_DB_PORT}
+      - PROD_DB_USERNAME=${PROD_DB_USERNAME}
+      - PROD_DB_PASSWORD=${PROD_DB_PASSWORD}
+      - PROD_DB_NAME=${PROD_DB_NAME}
+      - PROD_DB_SCHEMA=${PROD_DB_SCHEMA}
+      - JWT_SECRET=${JWT_SECRET}
+    container_name: spring-green
+    ports:
+      - 4001:4000
+    restart: unless-stopped
     depends_on:
-      - nestjs
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "10"
+      - nestjs-green
     networks:
       - caddy
     labels:
@@ -78,22 +97,147 @@ services:
       caddy.route_5.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_6: /comment/v2
       caddy.route_6.reverse_proxy: "{{ upstreams 4000 }}"
+      #TODO - 마이그 최신화
 
-  nestjs:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    container_name: nestjs
-    restart: unless-stopped
+  nestjs-green:
+    image: makerscrew/server
+    env_file:
+      - ./.env
     environment:
       - TZ=Asia/Seoul
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SCHEMA=${DB_SCHEMA}
+      - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - JWT_SECRET=${JWT_SECRET}
+
+    container_name: nestjs-green
+    ports:
+      - 3001:3000
+    restart: unless-stopped
     networks:
       - caddy
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "10"
+    labels:
+      # for Swagger spec
+      caddy.route_0: /api-docs-json
+      caddy.route_0.reverse_proxy: "{{ upstreams 3000 }}"
+      # for health check
+      caddy.route_1: /
+      caddy.route_1.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_2: /auth
+      caddy.route_2.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_3: /comment/v1
+      caddy.route_3.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_4: /comment/v1/*
+      caddy.route_4.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_5: /meeting/apply
+      caddy.route_5.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_6: /meeting
+      caddy.route_6.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_7: /meeting/v1/*
+      caddy.route_7.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_8: /meeting/*
+      caddy.route_8.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_9: /notice/v1
+      caddy.route_9.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_10: /notice/v1/*
+      caddy.route_10.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_11: /post/v1
+      caddy.route_11.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_12: /post/v1/*
+      caddy.route_12.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_13: /users
+      caddy.route_13.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_14: /users/*
+      caddy.route_14.reverse_proxy: "{{ upstreams 3000 }}"
+
+  spring-blue:
+    image: makerscrew/main
+    env_file:
+      - ./application-secret.properties
+    environment:
+      - TZ=Asia/Seoul
+      - DEV_DB_HOST=${DEV_DB_HOST}
+      - DEV_DB_PORT=${DEV_DB_PORT}
+      - DEV_DB_USERNAME=${DEV_DB_USERNAME}
+      - DEV_DB_PASSWORD=${DEV_DB_PASSWORD}
+      - DEV_DB_NAME=${DEV_DB_NAME}
+      - DEV_DB_SCHEMA=${DEV_DB_SCHEMA}
+      - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - PROD_JWT_SECRET=${PROD_JWT_SECRET}
+      - DEV_JWT_SECRET=${DEV_JWT_SECRET}
+      - TEST_JWT_SECRET=${TEST_JWT_SECRET}
+      - ACCESS_TOKEN_EXPIRED_TIME=${ACCESS_TOKEN_EXPIRED_TIME}
+      - DEV_WEB_PAGE_URL=${DEV_WEB_PAGE_URL}
+      - PROD_WEB_PAGE_URL=${PROD_WEB_PAGE_URL}
+      - PUSH_NOTIFICATION_SERVICE=${PUSH_NOTIFICATION_SERVICE}
+      - DEV_PUSH_API_KEY=${DEV_PUSH_API_KEY}
+      - PROD_PUSH_API_KEY=${PROD_PUSH_API_KEY}
+      - DEV_PUSH_SERVER_URL=${DEV_PUSH_SERVER_URL}
+      - PROD_PUSH_SERVER_URL=${PROD_PUSH_SERVER_URL}
+      - PROD_DB_HOST=${PROD_DB_HOST}
+      - PROD_DB_PORT=${PROD_DB_PORT}
+      - PROD_DB_USERNAME=${PROD_DB_USERNAME}
+      - PROD_DB_PASSWORD=${PROD_DB_PASSWORD}
+      - PROD_DB_NAME=${PROD_DB_NAME}
+      - PROD_DB_SCHEMA=${PROD_DB_SCHEMA}
+      - JWT_SECRET=${JWT_SECRET}
+
+    container_name: spring-blue
+    ports:
+      - 4002:4000
+    restart: unless-stopped
+    depends_on:
+      - nestjs-blue
+    networks:
+      - caddy
+    labels:
+      # for Swagger spec
+      caddy.route_0: /api-docs/json
+      caddy.route_0.reverse_proxy: "{{ upstreams 4000 }}"
+      # for health check
+      caddy.route_1: /health
+      caddy.route_1.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_2: /user/v2
+      caddy.route_2.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_3: /user/v2/*
+      caddy.route_3.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_4: /meeting/v2/*
+      caddy.route_4.reverse_proxy: "{{ upstreams 4000 }}"
+
+  nestjs-blue:
+    image: makerscrew/server
+    env_file:
+      - ./.env
+    environment:
+      - TZ=Asia/Seoul
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SCHEMA=${DB_SCHEMA}
+      - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - JWT_SECRET=${JWT_SECRET}
+
+    container_name: nestjs-blue
+    ports:
+      - 3002:3000
+    restart: unless-stopped
+    networks:
+      - caddy
     labels:
       # for Swagger spec
       caddy.route_0: /api-docs-json
