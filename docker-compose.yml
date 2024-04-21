@@ -18,7 +18,7 @@ services:
   swagger:
     image: swaggerapi/swagger-ui
     env_file:
-      - ./.swagger.env
+      - ${DIR}/.swagger.env
     container_name: swagger
     environment:
       - URLS=
@@ -41,7 +41,7 @@ services:
   spring-green:
     image: makerscrew/main #TODO - 경로 체크
     env_file:
-      - ./.application-secret.properties
+      - ./application-secret.properties
     environment:
       - TZ=Asia/Seoul
       - DEV_DB_HOST=${DEV_DB_HOST}
