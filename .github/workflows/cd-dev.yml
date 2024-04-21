@@ -2,7 +2,7 @@ name: Makers_Crew Dev CD
 on:
   workflow_run:
     workflows: [ "Makers_Crew CI" ]
-    branches: [ "develop", "feat/#145" ]
+    branches: [ "develop", "feat/#145" ] #TODO - 수정 필요 (현재 CI 두번 실행됨)
     types: [ completed ]
 
   push:
