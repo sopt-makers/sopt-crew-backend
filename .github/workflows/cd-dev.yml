@@ -28,6 +28,7 @@ jobs:
 
       - name: docker image 빌드 및 푸시 (Spring)
         run: |
+          echo "${{ secrets.APPLICATION_SECRET_SPRING_DEV }}" > ./main/src/main/resources/application-secret.properties
           docker build --platform linux/amd64 -t makerscrew/main .
           docker push makerscrew/main
         working-directory: ${{ env.working-directory-spring }}
