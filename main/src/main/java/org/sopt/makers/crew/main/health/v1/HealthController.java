@@ -12,10 +12,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/health")
 public class HealthController {
 
-  private final HealthService healthService;
+    private final HealthService healthService;
 
-  @GetMapping("")
-  public ResponseEntity<HealthServiceGetHealthResponseDto> getHealth() {
-    return this.healthService.getHealth();
-  }
+    @GetMapping("")
+    public ResponseEntity<HealthServiceGetHealthResponseDto> getHealth() {
+        return this.healthService.getHealth();
+    }
+
+    @GetMapping("/v2")
+    public ResponseEntity<String> getHealthV2() {
+        return ResponseEntity.ok("Spring Health Check Success!");
+    }
 }
