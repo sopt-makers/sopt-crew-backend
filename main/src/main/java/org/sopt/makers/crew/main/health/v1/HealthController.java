@@ -21,6 +21,6 @@ public class HealthController {
 
     @GetMapping("/v2")
     public ResponseEntity<String> getHealthV2() {
-        return ResponseEntity.ok().body("spring health check success");
+        return ResponseEntity.status(200).body("Health Check V2");
     }
 }
