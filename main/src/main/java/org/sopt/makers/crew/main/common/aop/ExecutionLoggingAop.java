@@ -28,13 +28,13 @@ public class ExecutionLoggingAop {
         RequestMethod httpMethod = RequestMethod.valueOf(request.getMethod());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Integer userId = (Integer) authentication.getPrincipal();
+        Object userId = authentication.getPrincipal().toString();
 
         String className = pjp.getSignature().getDeclaringType().getSimpleName();
         String methodName = pjp.getSignature().getName();
         String task = className + "." + methodName;
 
-        log.info("[Call Method] " + httpMethod.toString() + ": " + task + " | Request userId=" + userId.toString());
+        log.info("[Call Method] " + httpMethod.toString() + ": " + task + " | Request userId=" + userId);
 
         Object[] paramArgs = pjp.getArgs();
         for (Object object : paramArgs) {
