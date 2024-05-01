@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
 
   swagger:
-    image: swaggerapi/swagger-ui:latest
+    image: swaggerapi/swagger-ui
     env_file:
       - ./.env
     container_name: swagger
@@ -27,8 +27,8 @@ services:
         {url:'/api-docs-json', name:'nestjs'},
         ]
       - BASE_URL=/docs
-        - SPRING_NAME=${SPRING_NAME}
-        - NESTJS_NAME=${NESTJS_NAME}
+      - SPRING_NAME=${SPRING_NAME}
+      - NESTJS_NAME=${NESTJS_NAME}
     depends_on:
       - ${SPRING_NAME}
       - ${NESTJS_NAME}
