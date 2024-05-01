@@ -1,4 +1,4 @@
-name: Makers_Crew Dev CD #TODO - prod에 맞게 변경 필요
+name: Makers_Crew Main CD
 on:
   workflow_run:
     workflows: [ "Makers_Crew CI" ]
@@ -19,6 +19,11 @@ jobs:
 
       - name: Docker build 가능하도록 환경 설정
         uses: docker/setup-buildx-action@v2
+
+      - name: Create application.properties from secret
+        run: |
+          echo "${{ secrets.APPLICATION_SECRET_SPRING_PROD }}" > ./main/src/main/resources/application-secret.properties
+        shell: bash
 
       - name: Docker hub에 로그인
         uses: docker/login-action@v1
@@ -41,9 +46,9 @@ jobs:
       - name: 도커 컨테이너 실행
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.DEV_SERVER_IP }}
-          username: ${{ secrets.DEV_SERVER_USER }}
-          key: ${{ secrets.DEV_SERVER_KEY }}
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SERVER_KEY }}
           script: |
             cd ~
             chmod +x ./deploy.sh
