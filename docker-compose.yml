@@ -127,7 +127,6 @@ services:
       caddy.route_5.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_6: /comment/v2
       caddy.route_6.reverse_proxy: "{{ upstreams 4000 }}"
-      #TODO - 마이그 최신화
 
   nestjs-blue:
     image: makerscrew/server:latest
