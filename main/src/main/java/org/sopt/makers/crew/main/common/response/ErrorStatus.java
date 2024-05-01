@@ -15,7 +15,7 @@ public enum ErrorStatus {
   /**
    * 400 BAD_REQUEST
    */
-  VALIDATION_EXCEPTION("CR-001"), // errorCode는 예시, 추후 변경 예정 -> 잘못된 요청입니다.
+  VALIDATION_EXCEPTION("CF-001"),
   VALIDATION_REQUEST_MISSING_EXCEPTION("요청값이 입력되지 않았습니다."),
   NOT_FOUND_MEETING("모임이 없습니다."),
   NOT_FOUND_POST("존재하지 않는 게시글입니다."),
