@@ -1,0 +1,77 @@
+name: Makers_Crew CI
+
+on:
+  push:
+    branches:
+      - '**'
+
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+jobs:
+  build-springboot:
+    name: Build and analyze (SpringBoot)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+
+      - name: Create application.properties from secret
+        run: |
+          echo "${{ secrets.APPLICATION_SECRET_SPRING_DEV }}" > ./main/src/main/resources/application-secret.properties
+        shell: bash
+
+      - name: Build and analyze (SpringBoot)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd main
+          ./gradlew clean build
+  
+# NsetJs 서버의 경우 변경될 사항이 없다고 생각하여 CI 작업 생략 / 만약 CI 작업이 필요하다면 맨 밑의 주석 참고
+#  build-nestjs:
+#    name: Build and analyze (NestJS)
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 0
+
+#      - name: Set up Node.js
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: '21'
+
+#      - name: Cache npm packages
+#        uses: actions/cache@v3
+#        with:
+#          path: server/node_modules
+#          key: ${{ runner.os }}-node-${{ hashFiles('server/package-lock.json') }}
+
+#      - name: Create .dev.env from secret
+#        run: |
+#          echo "${{ secrets.APPLICATION_SECRET_NESTJS_DEV }}" > ./server/.dev.env
+#        shell: bash
+
+#      - name: Build and analyze (NestJS)
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          cd server
+#          npm ci
+#          npm run start
+# Create .dev.env 작업을 통해 .dev.env 파일을 생성했음에도 CI 작업이 실패함.
