@@ -5,6 +5,7 @@ import static org.sopt.makers.crew.main.common.response.ErrorStatus.ALREADY_APPL
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.FORBIDDEN_EXCEPTION;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.FULL_MEETING_CAPACITY;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.MISSING_GENERATION_PART;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_ACTIVE_GENERATION;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_IN_APPLY_PERIOD;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_TARGET_PART;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.VALIDATION_EXCEPTION;
@@ -196,11 +197,16 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
     private List<UserActivityVO> filterUserActivities(User user, Meeting meeting) {
         // 현재 활동기수만 지원 가능할 경우 -> 현재 활동 기수에 해당하는 파트만 필터링
         if (meeting.getTargetActiveGeneration() == ACTIVE_GENERATION && meeting.getCanJoinOnlyActiveGeneration()) {
-            return user.getActivities().stream()
+            List<UserActivityVO> filteredActivities = user.getActivities().stream()
                     .filter(activity -> activity.getGeneration() == ACTIVE_GENERATION)
-                    .findFirst()
-                    .map(List::of)
-                    .orElseThrow(() -> new BadRequestException(NOT_TARGET_PART.getErrorCode()));
+                    .collect(Collectors.toList());
+
+            // 활동 기수가 아닌 경우 예외 처리
+            if (filteredActivities.isEmpty()) {
+                throw new BadRequestException(NOT_ACTIVE_GENERATION.getErrorCode());
+            }
+
+            return filteredActivities;
         }
         return user.getActivities();
     }
