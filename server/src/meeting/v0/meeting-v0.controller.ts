@@ -90,6 +90,7 @@ export class MeetingV0Controller {
   @ApiOperation({
     summary: '모임 지원/취소',
     description: '모임 지원/취소',
+    deprecated: true,
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
