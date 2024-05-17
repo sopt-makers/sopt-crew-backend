@@ -1,9 +1,6 @@
 name: Makers_Crew CI
 
 on:
-  push:
-    branches:
-      - develop, main
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [develop, main]
