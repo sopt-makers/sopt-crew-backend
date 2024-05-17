@@ -18,7 +18,6 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
-        show_sql: true
         format_sql: ture
       dialect: org.hibernate.dialect.PostgreSQLDialect
       storage_engine: innodb
