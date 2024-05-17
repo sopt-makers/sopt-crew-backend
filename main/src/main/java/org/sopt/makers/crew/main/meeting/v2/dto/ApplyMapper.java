@@ -13,6 +13,9 @@ public interface ApplyMapper {
 
     @Mapping(source = "requestBody.meetingId", target = "meetingId")
     @Mapping(source = "requestBody.content", target = "content")
+    @Mapping(source = "meeting", target = "meeting")
+    @Mapping(source = "user", target = "user")
+    @Mapping(source = "userId", target = "userId")
     Apply toApplyEntity(MeetingV2ApplyMeetingDto requestBody, EnApplyType type, Meeting meeting,
                         User user,
                         Integer userId);

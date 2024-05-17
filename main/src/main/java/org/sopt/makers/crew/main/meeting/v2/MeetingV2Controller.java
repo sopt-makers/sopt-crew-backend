@@ -59,10 +59,11 @@ public class MeetingV2Controller implements MeetingV2Api {
     @Override
     @PostMapping("/apply")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity applyMeeting(@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody, Principal principal) {
+    public ResponseEntity<Void> applyMeeting(@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
+                                             Principal principal) {
         Integer userId = UserUtil.getUserId(principal);
         meetingV2Service.applyMeeting(requestBody, userId);
-        return null;
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
 
