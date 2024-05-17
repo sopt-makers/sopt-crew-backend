@@ -1,15 +1,16 @@
 name: Makers_Crew Main CD
 on:
   workflow_run:
-    workflows: [ "Makers_Crew CI" ]
-    branches: [ "main" ]
-    types: [ completed ]
+    workflows: ["Makers_Crew CI"]
+    branches: [main]
+    types: [completed]
 
   push:
     branches: [ "main" ]
 jobs:
   deploy:
     runs-on: ubuntu-22.04
+    if: github.event.workflow_run.conclusion == 'success'
     env:
       working-directory-spring: main
       working-directory-nestjs: server
