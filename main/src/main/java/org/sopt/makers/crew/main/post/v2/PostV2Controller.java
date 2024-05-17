@@ -23,22 +23,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/post/v2")
 @RequiredArgsConstructor
-@Tag(name = "모임")
+@Tag(name = "게시글")
 public class PostV2Controller {
 
-  private final PostV2Service postV2Service;
+    private final PostV2Service postV2Service;
 
-  @Operation(summary = "모임 게시글 작성")
-  @PostMapping()
-  @ResponseStatus(HttpStatus.CREATED)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "201", description = "성공"),
-      @ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),
-      @ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
-  })
-  public ResponseEntity<PostV2CreatePostResponseDto> createPost(
-      @Valid @RequestBody PostV2CreatePostBodyDto requestBody, Principal principal) {
-    Integer userId = UserUtil.getUserId(principal);
-    return ResponseEntity.ok(postV2Service.createPost(requestBody, userId));
-  }
+    @Operation(summary = "모임 게시글 작성")
+    @PostMapping()
+    @ResponseStatus(HttpStatus.CREATED)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),
+            @ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
+    })
+    public ResponseEntity<PostV2CreatePostResponseDto> createPost(
+            @Valid @RequestBody PostV2CreatePostBodyDto requestBody, Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        return ResponseEntity.ok(postV2Service.createPost(requestBody, userId));
+    }
 }

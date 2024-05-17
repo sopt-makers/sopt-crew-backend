@@ -1,10 +1,18 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
 import static org.sopt.makers.crew.main.common.constant.CrewConst.ACTIVE_GENERATION;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.ALREADY_APPLIED_MEETING;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.FORBIDDEN_EXCEPTION;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.FULL_MEETING_CAPACITY;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.MISSING_GENERATION_PART;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_ACTIVE_GENERATION;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_IN_APPLY_PERIOD;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_TARGET_PART;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.VALIDATION_EXCEPTION;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -14,17 +22,26 @@ import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.common.util.UserPartUtil;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.entity.user.enums.UserPart;
+import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingCancelBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserMeetingDto;
@@ -45,6 +62,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
     private final MeetingRepository meetingRepository;
 
     private final MeetingMapper meetingMapper;
+    private final ApplyMapper applyMapper;
 
     @Override
     public MeetingV2GetAllMeetingByOrgUserDto getAllMeetingByOrgUser(
@@ -131,6 +149,36 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
         return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId());
     }
 
+    @Override
+    @Transactional
+    public MeetingV2ApplyMeetingResponseDto applyMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
+        Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+        User user = userRepository.findByIdOrThrow(userId);
+
+        validateMeetingCapacity(meeting);
+        validateUserAlreadyApplied(meeting, userId);
+        validateApplyPeriod(meeting);
+        validateUserActivities(user);
+        validateUserJoinableParts(user, meeting);
+
+        Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user,
+                userId);
+        Apply savedApply = applyRepository.save(apply);
+        return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+    }
+
+    @Override
+    @Transactional
+    public void applyMeetingCancel(MeetingV2ApplyMeetingCancelBodyDto requestBody, Integer userId) {
+        Apply apply = applyRepository.findByIdOrThrow(requestBody.getApplyId());
+
+        if (!apply.getUserId().equals(userId)) {
+            throw new BadRequestException(FORBIDDEN_EXCEPTION.getErrorCode());
+        }
+
+        applyRepository.delete(apply);
+    }
+
     private Boolean checkMeetingLeader(Meeting meeting, Integer userId) {
         return meeting.getUserId().equals(userId);
     }
@@ -144,5 +192,81 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
     private Integer getTargetActiveGeneration(Boolean canJoinOnlyActiveGeneration) {
         return canJoinOnlyActiveGeneration ? ACTIVE_GENERATION : null;
+    }
+
+    private List<UserActivityVO> filterUserActivities(User user, Meeting meeting) {
+        // 현재 활동기수만 지원 가능할 경우 -> 현재 활동 기수에 해당하는 파트만 필터링
+        if (meeting.getTargetActiveGeneration() == ACTIVE_GENERATION && meeting.getCanJoinOnlyActiveGeneration()) {
+            List<UserActivityVO> filteredActivities = user.getActivities().stream()
+                    .filter(activity -> activity.getGeneration() == ACTIVE_GENERATION)
+                    .collect(Collectors.toList());
+
+            // 활동 기수가 아닌 경우 예외 처리
+            if (filteredActivities.isEmpty()) {
+                throw new BadRequestException(NOT_ACTIVE_GENERATION.getErrorCode());
+            }
+
+            return filteredActivities;
+        }
+        return user.getActivities();
+    }
+
+    private void validateMeetingCapacity(Meeting meeting) {
+        List<Apply> approvedApplies = meeting.getAppliedInfo().stream()
+                .filter(apply -> EnApplyStatus.APPROVE.equals(apply.getStatus()))
+                .collect(Collectors.toList());
+
+        if (approvedApplies.size() >= meeting.getCapacity()) {
+            throw new BadRequestException(FULL_MEETING_CAPACITY.getErrorCode());
+        }
+    }
+
+    private void validateUserAlreadyApplied(Meeting meeting, Integer userId) {
+        boolean hasApplied = meeting.getAppliedInfo().stream()
+                .anyMatch(appliedInfo -> appliedInfo.getUser().getId().equals(userId));
+
+        if (hasApplied) {
+            throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
+        }
+    }
+
+    private void validateApplyPeriod(Meeting meeting) {
+        LocalDateTime now = LocalDateTime.now();
+        if (now.isAfter(meeting.getEndDate()) || now.isBefore(meeting.getStartDate())) {
+            throw new BadRequestException(NOT_IN_APPLY_PERIOD.getErrorCode());
+        }
+    }
+
+    private void validateUserActivities(User user) {
+        if (user.getActivities().isEmpty()) {
+            throw new BadRequestException(MISSING_GENERATION_PART.getErrorCode());
+        }
+    }
+
+    private void validateUserJoinableParts(User user, Meeting meeting) {
+        if (meeting.getJoinableParts().length == 0) {
+            return;
+        }
+
+        List<UserActivityVO> userActivities = filterUserActivities(user, meeting);
+        List<String> userJoinableParts = userActivities.stream()
+                .map(UserActivityVO::getPart)
+                .filter(part -> {
+                    MeetingJoinablePart meetingJoinablePart = UserPartUtil.getMeetingJoinablePart(
+                            UserPart.ofValue(part));
+
+                    // 임원진이라면 패스
+                    if (meetingJoinablePart == null) {
+                        return true;
+                    }
+
+                    return Arrays.stream(meeting.getJoinableParts())
+                            .anyMatch(joinablePart -> joinablePart == meetingJoinablePart);
+                })
+                .collect(Collectors.toList());
+
+        if (userJoinableParts.isEmpty()) {
+            throw new BadRequestException(NOT_TARGET_PART.getErrorCode());
+        }
     }
 }

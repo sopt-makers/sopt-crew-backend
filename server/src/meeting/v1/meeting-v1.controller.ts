@@ -84,6 +84,7 @@ export class MeetingV1Controller {
   @ApiOperation({
     summary: '모임 생성',
     description: '모임 생성',
+    deprecated: true,
   })
   @ApiOkResponseCommon(MeetingV1CreateMeetingResponseDto)
   @ApiResponse({

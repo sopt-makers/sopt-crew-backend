@@ -2,7 +2,10 @@ package org.sopt.makers.crew.main.meeting.v2.service;
 
 import java.util.List;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingCancelBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
@@ -10,9 +13,13 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBann
 public interface MeetingV2Service {
 
     MeetingV2GetAllMeetingByOrgUserDto getAllMeetingByOrgUser(
-      MeetingV2GetAllMeetingByOrgUserQueryDto queryDto);
+            MeetingV2GetAllMeetingByOrgUserQueryDto queryDto);
 
     List<MeetingV2GetMeetingBannerResponseDto> getMeetingBanner();
 
     MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateMeetingBodyDto requestBody, Integer userId);
+
+    MeetingV2ApplyMeetingResponseDto applyMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId);
+
+    void applyMeetingCancel(MeetingV2ApplyMeetingCancelBodyDto requestBody, Integer userId);
 }
