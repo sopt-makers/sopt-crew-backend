@@ -244,27 +244,29 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
     }
 
     private void validateUserJoinableParts(User user, Meeting meeting) {
-        if (meeting.getJoinableParts().length > 0) {
-            List<UserActivityVO> userActivities = filterUserActivities(user, meeting);
-            List<String> userJoinableParts = userActivities.stream()
-                    .map(UserActivityVO::getPart)
-                    .filter(part -> {
-                        MeetingJoinablePart meetingJoinablePart = UserPartUtil.getMeetingJoinablePart(
-                                UserPart.ofValue(part));
+        if (meeting.getJoinableParts().length == 0) {
+            return;
+        }
 
-                        // 임원진이라면 패스
-                        if (meetingJoinablePart == null) {
-                            return true;
-                        }
+        List<UserActivityVO> userActivities = filterUserActivities(user, meeting);
+        List<String> userJoinableParts = userActivities.stream()
+                .map(UserActivityVO::getPart)
+                .filter(part -> {
+                    MeetingJoinablePart meetingJoinablePart = UserPartUtil.getMeetingJoinablePart(
+                            UserPart.ofValue(part));
 
-                        return Arrays.stream(meeting.getJoinableParts())
-                                .anyMatch(joinablePart -> joinablePart == meetingJoinablePart);
-                    })
-                    .collect(Collectors.toList());
+                    // 임원진이라면 패스
+                    if (meetingJoinablePart == null) {
+                        return true;
+                    }
 
-            if (userJoinableParts.isEmpty()) {
-                throw new BadRequestException(NOT_TARGET_PART.getErrorCode());
-            }
+                    return Arrays.stream(meeting.getJoinableParts())
+                            .anyMatch(joinablePart -> joinablePart == meetingJoinablePart);
+                })
+                .collect(Collectors.toList());
+
+        if (userJoinableParts.isEmpty()) {
+            throw new BadRequestException(NOT_TARGET_PART.getErrorCode());
         }
     }
 }
