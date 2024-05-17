@@ -2,10 +2,10 @@ package org.sopt.makers.crew.main.meeting.v2.service;
 
 import static org.sopt.makers.crew.main.common.constant.CrewConst.ACTIVE_GENERATION;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.ALREADY_APPLIED_MEETING;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.FORBIDDEN_EXCEPTION;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.FULL_MEETING_CAPACITY;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.MISSING_GENERATION_PART;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_ACTIVE_GENERATION;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_FOUND_APPLY;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_IN_APPLY_PERIOD;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_TARGET_PART;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.VALIDATION_EXCEPTION;
@@ -38,7 +38,6 @@ import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingCancelBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
@@ -169,14 +168,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
     @Override
     @Transactional
-    public void applyMeetingCancel(MeetingV2ApplyMeetingCancelBodyDto requestBody, Integer userId) {
-        Apply apply = applyRepository.findByIdOrThrow(requestBody.getApplyId());
+    public void applyMeetingCancel(Integer meetingId, Integer userId) {
+        boolean exists = applyRepository.existsByMeetingIdAndUserId(meetingId, userId);
 
-        if (!apply.getUserId().equals(userId)) {
-            throw new BadRequestException(FORBIDDEN_EXCEPTION.getErrorCode());
+        if (!exists) {
+            throw new BadRequestException(NOT_FOUND_APPLY.getErrorCode());
         }
 
-        applyRepository.delete(apply);
+        applyRepository.deleteByMeetingIdAndUserId(meetingId, userId);
     }
 
     private Boolean checkMeetingLeader(Meeting meeting, Integer userId) {
