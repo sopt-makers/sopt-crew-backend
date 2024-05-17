@@ -9,6 +9,7 @@ import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
@@ -59,12 +60,10 @@ public class MeetingV2Controller implements MeetingV2Api {
     @Override
     @PostMapping("/apply")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Void> applyMeeting(@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
-                                             Principal principal) {
+    public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyMeeting(
+            @Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
+            Principal principal) {
         Integer userId = UserUtil.getUserId(principal);
-        meetingV2Service.applyMeeting(requestBody, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.ok(meetingV2Service.applyMeeting(requestBody, userId));
     }
-
-
 }
