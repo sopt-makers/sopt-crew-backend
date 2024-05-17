@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
@@ -27,32 +28,42 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class MeetingV2Controller implements MeetingV2Api {
 
-  private final MeetingV2Service meetingV2Service;
+    private final MeetingV2Service meetingV2Service;
 
-  @Override
-  @GetMapping("/org-user")
-  @ResponseStatus(HttpStatus.OK)
-  public ResponseEntity<MeetingV2GetAllMeetingByOrgUserDto> getAllMeetingByOrgUser(
-      @ModelAttribute @Parameter(hidden = true) MeetingV2GetAllMeetingByOrgUserQueryDto queryDto) {
-    return ResponseEntity.ok(meetingV2Service.getAllMeetingByOrgUser(queryDto));
-  }
+    @Override
+    @GetMapping("/org-user")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<MeetingV2GetAllMeetingByOrgUserDto> getAllMeetingByOrgUser(
+            @ModelAttribute @Parameter(hidden = true) MeetingV2GetAllMeetingByOrgUserQueryDto queryDto) {
+        return ResponseEntity.ok(meetingV2Service.getAllMeetingByOrgUser(queryDto));
+    }
 
-  @Override
-  @GetMapping("/banner")
-  @ResponseStatus(HttpStatus.OK)
-  public ResponseEntity<List<MeetingV2GetMeetingBannerResponseDto>> getMeetingBanner(
-      Principal principal) {
-    UserUtil.getUserId(principal);
-    return ResponseEntity.ok(meetingV2Service.getMeetingBanner());
-  }
+    @Override
+    @GetMapping("/banner")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<List<MeetingV2GetMeetingBannerResponseDto>> getMeetingBanner(
+            Principal principal) {
+        UserUtil.getUserId(principal);
+        return ResponseEntity.ok(meetingV2Service.getMeetingBanner());
+    }
 
-  @Override
-  @PostMapping
-  public ResponseEntity<MeetingV2CreateMeetingResponseDto> createMeeting(@Valid @RequestBody MeetingV2CreateMeetingBodyDto requestBody,
-                                                                         Principal principal) {
-    Integer userId = UserUtil.getUserId(principal);
-    return ResponseEntity.status(HttpStatus.CREATED).body(meetingV2Service.createMeeting(requestBody, userId));
-  }
+    @Override
+    @PostMapping
+    public ResponseEntity<MeetingV2CreateMeetingResponseDto> createMeeting(
+            @Valid @RequestBody MeetingV2CreateMeetingBodyDto requestBody,
+            Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        return ResponseEntity.status(HttpStatus.CREATED).body(meetingV2Service.createMeeting(requestBody, userId));
+    }
+
+    @Override
+    @PostMapping("/apply")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity applyMeeting(@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody, Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        meetingV2Service.applyMeeting(requestBody, userId);
+        return null;
+    }
 
 
 }

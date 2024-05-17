@@ -98,18 +98,16 @@ public class MeetingV2ServiceTest {
                 .appliedInfo(new ArrayList<>())
                 .build();
 
-
         Apply apply = Apply.builder()
                 .meeting(meeting)
                 .meetingId(1)
                 .user(applyUser)
                 .userId(2)
                 .content("제 지원동기는요")
-                .status(EnApplyStatus.APPROVE)
                 .build();
 
-
         meeting.addApply(apply);
+        apply.updateApplyStatus(EnApplyStatus.APPROVE);
 
         applies = new ArrayList<>();
         applies.add(apply);

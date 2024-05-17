@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
@@ -42,6 +43,12 @@ public interface MeetingV2Api {
             @ApiResponse(responseCode = "400", description = "\"이미지 파일이 없습니다.\" or \"한 개 이상의 파트를 입력해주세요\" or \"프로필을 입력해주세요\"", content = @Content),})
     ResponseEntity<MeetingV2CreateMeetingResponseDto> createMeeting(@Valid @RequestBody MeetingV2CreateMeetingBodyDto requestBody,
                                                                     Principal principal);
+
+    @Operation(summary = "모임 지원")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "지원 완료"),
+            @ApiResponse(responseCode = "400", description = "\"모임이 없습니다\" or \"기수/파트를 설정해주세요\" or \"정원이 꽉찼습니다\" or \"활동 기수가 아닙니다\" " +
+                    "or \"지원 가능한 파트가 아닙니다\" or \"지원 가능한 기간이 아닙니다\"", content = @Content),})
+    ResponseEntity applyMeeting(@RequestBody MeetingV2ApplyMeetingDto requestBody, Principal principal);
 
 
 }

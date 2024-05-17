@@ -33,76 +33,81 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "apply")
 public class Apply {
 
-  /**
-   * Primary Key
-   */
-  @Id
-  @GeneratedValue(strategy = IDENTITY)
-  private Integer id;
+    /**
+     * Primary Key
+     */
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
+    private Integer id;
 
-  /**
-   * 지원 타입
-   */
-  @Column(name = "type", nullable = false, columnDefinition = "integer default 0")
-  @Convert(converter = ApplyTypeConverter.class)
-  private EnApplyType type;
+    /**
+     * 지원 타입
+     */
+    @Column(name = "type", nullable = false, columnDefinition = "integer default 0")
+    @Convert(converter = ApplyTypeConverter.class)
+    private EnApplyType type;
 
-  /**
-   * 지원한 모임
-   */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "meetingId", nullable = false)
-  private Meeting meeting;
+    /**
+     * 지원한 모임
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "meetingId", nullable = false)
+    private Meeting meeting;
 
-  /**
-   * 지원한 모임 ID
-   */
-  @Column(insertable = false, updatable = false)
-  private Integer meetingId;
+    /**
+     * 지원한 모임 ID
+     */
+    @Column(insertable = false, updatable = false)
+    private Integer meetingId;
 
-  /**
-   * 지원자
-   */
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "userId", nullable = false)
-  private User user;
+    /**
+     * 지원자
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "userId", nullable = false)
+    private User user;
 
-  /**
-   * 지원자 ID
-   */
-  @Column(insertable = false, updatable = false)
-  private Integer userId;
+    /**
+     * 지원자 ID
+     */
+    @Column(insertable = false, updatable = false)
+    private Integer userId;
 
-  /**
-   * 지원 동기
-   */
-  @Column(name = "content", nullable = false)
-  private String content;
+    /**
+     * 지원 동기
+     */
+    @Column(name = "content", nullable = false)
+    private String content;
 
-  /**
-   * 지원한 날짜
-   */
-  @Column(name = "appliedDate", nullable = false, columnDefinition = "TIMESTAMP")
-  @CreatedDate
-  private LocalDateTime appliedDate;
+    /**
+     * 지원한 날짜
+     */
+    @Column(name = "appliedDate", nullable = false, columnDefinition = "TIMESTAMP")
+    @CreatedDate
+    private LocalDateTime appliedDate;
 
-  /**
-   * 지원 상태
-   */
-  @Column(name = "status", nullable = false, columnDefinition = "integer default 0")
-  @Convert(converter = ApplyStatusConverter.class)
-  private EnApplyStatus status;
+    /**
+     * 지원 상태
+     */
+    @Column(name = "status", nullable = false, columnDefinition = "integer default 0")
+    @Convert(converter = ApplyStatusConverter.class)
+    private EnApplyStatus status;
 
-  @Builder
-  public Apply(EnApplyType type, Meeting meeting, Integer meetingId, User user, Integer userId,
-      String content, EnApplyStatus status) {
-    this.type = type;
-    this.meeting = meeting;
-    this.meetingId = meetingId;
-    this.user = user;
-    this.userId = userId;
-    this.content = content;
-    this.appliedDate = LocalDateTime.now();
-    this.status = status;
-  }
+    @Builder
+    public Apply(EnApplyType type, Meeting meeting, Integer meetingId, User user, Integer userId,
+                 String content) {
+        this.type = type;
+        this.meeting = meeting;
+        this.meetingId = meetingId;
+        this.user = user;
+        this.userId = userId;
+        this.content = content;
+        this.appliedDate = LocalDateTime.now();
+        this.status = EnApplyStatus.WAITING;
+        this.meeting.addApply(this);
+    }
+
+    public void updateApplyStatus(EnApplyStatus status) {
+        this.status = status;
+    }
 }
