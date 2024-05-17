@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingCancelBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
@@ -16,6 +17,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBann
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -65,5 +67,15 @@ public class MeetingV2Controller implements MeetingV2Api {
             Principal principal) {
         Integer userId = UserUtil.getUserId(principal);
         return ResponseEntity.ok(meetingV2Service.applyMeeting(requestBody, userId));
+    }
+
+    @Override
+    @DeleteMapping("/apply")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Void> applyMeetingCancel(@Valid @RequestBody MeetingV2ApplyMeetingCancelBodyDto requestBody,
+                                                   Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        meetingV2Service.applyMeetingCancel(requestBody, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

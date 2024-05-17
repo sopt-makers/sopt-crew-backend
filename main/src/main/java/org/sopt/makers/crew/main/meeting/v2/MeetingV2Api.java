@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingCancelBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
@@ -54,5 +55,11 @@ public interface MeetingV2Api {
     ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyMeeting(@RequestBody MeetingV2ApplyMeetingDto requestBody,
                                                                   Principal principal);
 
+    @Operation(summary = "모임 지원 취소")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "지원 취소 완료"),
+            @ApiResponse(responseCode = "400", description =
+                    "\"존재하지 않는 모임 신청입니다.\" or \"권한이 없습니다.\"", content = @Content),})
+    ResponseEntity<Void> applyMeetingCancel(@Valid @RequestBody MeetingV2ApplyMeetingCancelBodyDto requestBody,
+                                            Principal principal);
 
 }

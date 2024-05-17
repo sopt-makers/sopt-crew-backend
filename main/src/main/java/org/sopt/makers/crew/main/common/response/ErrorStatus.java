@@ -25,7 +25,7 @@ public enum ErrorStatus {
     MISSING_GENERATION_PART("기수/파트를 설정해주세요."),
     NOT_ACTIVE_GENERATION("활동 기수가 아닙니다."),
     NOT_TARGET_PART("지원 가능한 파트가 아닙니다."),
-    NOT_APPLIED_MEETING("지원한 모임이 아닙니다."),
+    NOT_FOUND_APPLY("존재하지 않는 모임 신청입니다."),
 
     /**
      * 401 UNAUTHORIZED
