@@ -2,11 +2,9 @@ name: Makers_Crew Main CD
 on:
   workflow_run:
     workflows: ["Makers_Crew CI"]
-    branches: [main]
+    branches: ["main"]
     types: [completed]
 
-  push:
-    branches: [ "main" ]
 jobs:
   deploy:
     runs-on: ubuntu-22.04
