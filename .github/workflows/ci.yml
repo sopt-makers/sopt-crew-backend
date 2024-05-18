@@ -1,9 +1,9 @@
 name: Makers_Crew CI
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [develop, main]
+  push:
+    branches:
+      - '**'
 
 jobs:
   build-springboot:
