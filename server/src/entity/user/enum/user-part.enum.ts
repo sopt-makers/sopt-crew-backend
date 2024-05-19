@@ -23,6 +23,4 @@ export enum UserPart {
   OPERATION_LEADER = '운영팀장',
   MEDIA_LEADER = '미디어팀장',
 
-  // 기타
-  ETC = '기타',
 }

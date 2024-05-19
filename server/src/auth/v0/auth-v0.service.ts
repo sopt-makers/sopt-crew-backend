@@ -57,13 +57,12 @@ export class AuthV0Service {
         const [generationString, partString] = activity.cardinalInfo.split(',');
         const generation = parseInt(generationString);
         const partKey = getKeyByValue(UserPart, partString);
-        const part = partKey ? UserPart[partKey] : UserPart.ETC;
+        const part = UserPart[partKey];
 
         return {
           generation: generation, 
           part: part 
         };
-
     });
       
       const phone = playgroundUserProfile.phone
