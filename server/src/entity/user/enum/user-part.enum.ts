@@ -20,7 +20,7 @@ export enum UserPart {
   CHAIRMAN = '회장',
   VICE_CHAIRMAN = '부회장',
   GENERAL_AFFAIRS = '총무',
-  OPERATION_LEADER = '운영팀장',
-  MEDIA_LEADER = '미디어팀장',
+  OPERATION_LEADER = '운영 팀장',
+  MEDIA_LEADER = '미디어 팀장',
 
 }
