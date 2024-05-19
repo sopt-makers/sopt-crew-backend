@@ -10,6 +10,7 @@ import { PlaygroundService } from 'src/internal-api/playground/playground.servic
 import { UserActivity } from 'src/entity/user/interface/user-activity.interface';
 import { AuthV0TokenDto } from './dto/auth-v0-token.dto';
 import { UserRepository } from 'src/entity/user/user.repository';
+import { UserPart } from 'src/entity/user/enum/user-part.enum';
 
 @Injectable()
 export class AuthV0Service {
@@ -46,13 +47,24 @@ export class AuthV0Service {
       const playgroundUserProfile = await this.playgroundService.getUserProfile(
         authToken,
       );
-      const activities: UserActivity[] =
-        playgroundUserProfile.activities.flatMap((activity) => {
-          return activity.cardinalActivities.map((cardinalActivity) => ({
-            generation: cardinalActivity.generation,
-            part: cardinalActivity.part,
-          }));
+
+    
+      const playgroundUserActivities = await this.playgroundService.getUserActivities(
+        authToken, user.orgId
+      );
+
+      const activities: UserActivity[] = playgroundUserActivities[0].activities.flatMap((activity) => {
+        return activity.cardinalInfo.split(',').map((info, index) => {
+          const generation = parseInt(info.split(',')[0]);
+          const partString = info.split(',')[1];
+          const part = UserPart[partString] ? UserPart[partString] : UserPart.ETC; // 파트 정보가 없는 경우 "기타"로 기본값 설정
+          return {
+            generation: generation, 
+            part: part 
+          };
         });
+      });
+      
       const phone = playgroundUserProfile.phone
         ? playgroundUserProfile.phone
         : null;
@@ -67,7 +79,8 @@ export class AuthV0Service {
 
       return { accessToken };
     } catch (error) {
-      if (error.response.status === HttpStatus.UNAUTHORIZED) {
+      console.log(error);
+      if (error.response?.status === HttpStatus.UNAUTHORIZED) {
         throw new UnauthorizedException({ message: '유효하지 않은 토큰' });
       }
 

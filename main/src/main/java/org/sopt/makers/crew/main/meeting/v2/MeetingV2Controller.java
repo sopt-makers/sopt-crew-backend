@@ -7,7 +7,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingCancelBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
@@ -20,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,12 +69,12 @@ public class MeetingV2Controller implements MeetingV2Api {
     }
 
     @Override
-    @DeleteMapping("/apply")
+    @DeleteMapping("/{meetingId}/apply")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Void> applyMeetingCancel(@Valid @RequestBody MeetingV2ApplyMeetingCancelBodyDto requestBody,
+    public ResponseEntity<Void> applyMeetingCancel(@PathVariable Integer meetingId,
                                                    Principal principal) {
         Integer userId = UserUtil.getUserId(principal);
-        meetingV2Service.applyMeetingCancel(requestBody, userId);
+        meetingV2Service.applyMeetingCancel(meetingId, userId);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

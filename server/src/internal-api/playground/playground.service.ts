@@ -16,4 +16,10 @@ export class PlaygroundService {
 
     return response;
   }
+
+  async getUserActivities(authToken: string, memberId: number) {
+    const response = await this.playgroundRepository.getUserActivities(authToken, memberId);
+
+    return response;
+  }
 }
