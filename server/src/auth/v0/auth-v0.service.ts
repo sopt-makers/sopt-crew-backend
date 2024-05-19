@@ -54,16 +54,16 @@ export class AuthV0Service {
       );
 
       const activities: UserActivity[] = playgroundUserActivities[0].activities.flatMap((activity) => {
-        return activity.cardinalInfo.split(',').map((info, index) => {
-          const generation = parseInt(info.split(',')[0]);
-          const partString = info.split(',')[1];
-          const part = UserPart[partString] ? UserPart[partString] : UserPart.ETC; // 파트 정보가 없는 경우 "기타"로 기본값 설정
-          return {
-            generation: generation, 
-            part: part 
-          };
-        });
-      });
+        const [generationString, partString] = activity.cardinalInfo.split(',');
+        const generation = parseInt(generationString);
+        const partKey = getKeyByValue(UserPart, partString);
+        const part = UserPart[partKey];
+
+        return {
+          generation: generation, 
+          part: part 
+        };
+    });
       
       const phone = playgroundUserProfile.phone
         ? playgroundUserProfile.phone
@@ -90,4 +90,8 @@ export class AuthV0Service {
       );
     }
   }
+}
+
+function getKeyByValue(object: any, value: string) {
+  return Object.keys(object).find(key => object[key] === value);
 }
