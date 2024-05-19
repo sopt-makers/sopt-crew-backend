@@ -14,6 +14,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
+    labels:
+      caddy.log: ""
+      caddy.log.output: stdout
+      caddy.log.format: json
+      caddy.log.include: http.log.access.localhost
 
   swagger:
     image: swaggerapi/swagger-ui
@@ -40,6 +45,10 @@ services:
 
   nestjs-green:
     image: makerscrew/server:latest
+    container_name: nestjs-green
+    ports:
+      - 3001:3000
+    restart: unless-stopped
     env_file:
       - ./.env
     environment:
@@ -55,14 +64,17 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION}
       - JWT_SECRET=${JWT_SECRET}
-
-    container_name: nestjs-green
-    ports:
-      - 3001:3000
-    restart: unless-stopped
+    depends_on:
+      - nestjs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
     networks:
       - caddy
     labels:
+      caddy.log: "localhost"
       # for Swagger spec
       caddy.route_0: /api-docs-json
       caddy.route_0.reverse_proxy: "{{ upstreams 3000 }}"
@@ -96,8 +108,6 @@ services:
       caddy.route_14: /users/*
       caddy.route_14.reverse_proxy: "{{ upstreams 3000 }}"
 
-
-
   spring-green:
     image: makerscrew/main:latest
     environment:
@@ -111,6 +121,7 @@ services:
     networks:
       - caddy
     labels:
+      caddy.log: "localhost"
       # for Swagger spec
       caddy.route_0: /api-docs/json
       caddy.route_0.reverse_proxy: "{{ upstreams 4000 }}"
@@ -145,7 +156,6 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION}
       - JWT_SECRET=${JWT_SECRET}
-
     container_name: nestjs-blue
     ports:
       - 3002:3000
@@ -153,6 +163,7 @@ services:
     networks:
       - caddy
     labels:
+      caddy.log: "localhost"
       # for Swagger spec
       caddy.route_0: /api-docs-json
       caddy.route_0.reverse_proxy: "{{ upstreams 3000 }}"
@@ -186,7 +197,6 @@ services:
       caddy.route_14: /users/*
       caddy.route_14.reverse_proxy: "{{ upstreams 3000 }}"
 
-
   spring-blue:
     image: makerscrew/main:latest
     environment:
@@ -200,6 +210,7 @@ services:
     networks:
       - caddy
     labels:
+      caddy.log: "localhost"
       # for Swagger spec
       caddy.route_0: /api-docs/json
       caddy.route_0.reverse_proxy: "{{ upstreams 4000 }}"
@@ -216,6 +227,7 @@ services:
       caddy.route_5.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_6: /comment/v2
       caddy.route_6.reverse_proxy: "{{ upstreams 4000 }}"
+
 networks:
   caddy:
     external: true
