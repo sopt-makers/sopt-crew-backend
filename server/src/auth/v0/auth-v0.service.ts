@@ -48,18 +48,12 @@ export class AuthV0Service {
         authToken,
       );
 
+    
       const playgroundUserActivities = await this.playgroundService.getUserActivities(
-        authToken, user.id
+        authToken, user.orgId
       );
-      // const activities2: UserActivity[] =
-      //   playgroundUserProfile.activities.flatMap((activity) => {
-      //     return activity.cardinalActivities.map((cardinalActivity) => ({
-      //       generation: cardinalActivity.generation,
-      //       part: cardinalActivity.part,
-      //     }));
-      //   });
-        
-      const activities: UserActivity[] = playgroundUserActivities.activities.flatMap((activity) => {
+
+      const activities: UserActivity[] = playgroundUserActivities[0].activities.flatMap((activity) => {
         return activity.cardinalInfo.split(',').map((info, index) => {
           const generation = parseInt(info.split(',')[0]);
           const partString = info.split(',')[1];
@@ -85,7 +79,8 @@ export class AuthV0Service {
 
       return { accessToken };
     } catch (error) {
-      if (error.response.status === HttpStatus.UNAUTHORIZED) {
+      console.log(error);
+      if (error.response?.status === HttpStatus.UNAUTHORIZED) {
         throw new UnauthorizedException({ message: '유효하지 않은 토큰' });
       }
 

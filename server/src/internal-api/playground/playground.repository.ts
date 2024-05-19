@@ -43,24 +43,22 @@ export class PlaygroundRepository {
     }
   }
 
-
   async getUserActivities(
     authToken: string,
     memberId: number,
-  ): Promise<PlaygroundRepositoryGetUserActivityDto> {
+  ): Promise<PlaygroundRepositoryGetUserActivityDto[]> {
     try {
       const result = await axios.get(
-        `${this.URL}/internal/api/v1/members/profile`,
+        `${this.URL}/internal/api/v1/members/profile?memberIds=${memberId}`,
         {
           headers: {
             Authorization: authToken,
           },
-          params: {
-            memberIds: memberId,
-          },
+          // params: {
+          //   memberIds: memberId.toString(),
+          // },
         },
       );
-
       return result.data;
     } catch (error) {
       throw error;
