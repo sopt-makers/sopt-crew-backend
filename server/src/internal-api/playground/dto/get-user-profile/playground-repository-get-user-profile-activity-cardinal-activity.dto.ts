@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 import { UserPart } from 'src/entity/user/enum/user-part.enum';
 
-export class PlaygroundRepositoryGetUserProfileActivityCardinalActivityDto {
+export class  PlaygroundRepositoryGetUserProfileActivityCardinalActivityDto {
   /** 활동 식별자 */
   @IsNotEmpty()
   @IsNumber()

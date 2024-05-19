@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { PlaygroundRepositoryGetUserProfileDto } from './dto/get-user-profile/playground-repository-get-user-profile.dto';
 import { PlaygroundRepositoryGetUserDto } from './dto/get-user/playground-repository-get-user.dto';
-
+import { PlaygroundRepositoryGetUserActivityDto } from './dto/get-user-activities/playground-repository-get-user-activity.dto';
 @Injectable()
 export class PlaygroundRepository {
   private URL: string =
@@ -30,6 +30,26 @@ export class PlaygroundRepository {
     try {
       const result = await axios.get(
         `${this.URL}/internal/api/v1/members/profile/me`,
+        {
+          headers: {
+            Authorization: authToken,
+          },
+        },
+      );
+
+      return result.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+
+  async getUserActivities(
+    authToken: string,
+  ): Promise<PlaygroundRepositoryGetUserActivityDto> {
+    try {
+      const result = await axios.get(
+        `${this.URL}/internal/api/v1/members/profile`,
         {
           headers: {
             Authorization: authToken,
