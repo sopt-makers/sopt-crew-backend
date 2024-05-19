@@ -49,14 +49,14 @@ export class PlaygroundRepository {
   ): Promise<PlaygroundRepositoryGetUserActivityDto[]> {
     try {
       const result = await axios.get(
-        `${this.URL}/internal/api/v1/members/profile?memberIds=${memberId}`,
+        `${this.URL}/internal/api/v1/members/profile`,
         {
           headers: {
             Authorization: authToken,
           },
-          // params: {
-          //   memberIds: memberId.toString(),
-          // },
+          params: {
+            memberIds: memberId.toString(),
+          },
         },
       );
       return result.data;
