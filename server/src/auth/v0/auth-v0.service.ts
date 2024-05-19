@@ -49,7 +49,7 @@ export class AuthV0Service {
       );
 
       const playgroundUserActivities = await this.playgroundService.getUserActivities(
-        authToken,
+        authToken, user.id
       );
       // const activities2: UserActivity[] =
       //   playgroundUserProfile.activities.flatMap((activity) => {
@@ -70,7 +70,7 @@ export class AuthV0Service {
           };
         });
       });
-
+      
       const phone = playgroundUserProfile.phone
         ? playgroundUserProfile.phone
         : null;

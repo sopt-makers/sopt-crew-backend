@@ -46,6 +46,7 @@ export class PlaygroundRepository {
 
   async getUserActivities(
     authToken: string,
+    memberId: number,
   ): Promise<PlaygroundRepositoryGetUserActivityDto> {
     try {
       const result = await axios.get(
@@ -53,6 +54,9 @@ export class PlaygroundRepository {
         {
           headers: {
             Authorization: authToken,
+          },
+          params: {
+            memberIds: memberId,
           },
         },
       );
