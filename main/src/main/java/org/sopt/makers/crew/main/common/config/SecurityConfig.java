@@ -131,7 +131,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(
             Arrays.asList("https://playground.sopt.org/", "http://localhost:3000/",
-                "https://sopt-internal-dev.pages.dev/"));
+                "https://sopt-internal-dev.pages.dev/", "https://crew.api.dev.sopt.org", "https://crew.api.prod.sopt.org"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(false);
