@@ -102,7 +102,7 @@ export class PostV1Service {
           id: post.id,
           title: post.title,
           contents: post.contents,
-          updatedDate: post.updatedDate,
+          createdDate: post.createdDate,
           images: post.images,
           user: {
             id: post.user.id,
@@ -161,7 +161,7 @@ export class PostV1Service {
       id: post.id,
       title: post.title,
       contents: post.contents,
-      updatedDate: post.updatedDate,
+      createdDate: post.createdDate,
       images: post.images,
       user: {
         id: post.user.id,
