@@ -96,9 +96,9 @@ export class PostV1GetPostResponseDto {
   @IsString()
   contents: string;
 
-  /** 게시글 게시/업데이트 일자 */
+  /** 게시글 게시/생성 일자 */
   @IsDate()
-  updatedDate: Date;
+  createdDate: Date;
 
   /** 첨부 이미지 */
   @IsOptional()
