@@ -14,6 +14,7 @@ import java.util.List;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 
 @Tag(name = "모임")
@@ -62,4 +64,15 @@ public interface MeetingV2Api {
     ResponseEntity<Void> applyMeetingCancel(@PathVariable Integer meetingId,
                                             Principal principal);
 
+
+    @Operation(summary = "모임 지원자/참여자 조회", description = "모임 지원자/참여자 조회 (모임장이면 지원자, 아니면 참여자 조회)")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 지원자/참여자 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
+    ResponseEntity<MeetingGetApplyListResponseDto> findApplyList(@PathVariable Integer meetingId,
+                                                                 @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
+                                                                 @RequestParam(value = "take", required = false, defaultValue = "10") Integer take,
+                                                                 @RequestParam(value = "status", required = false, defaultValue = "0") List<Integer> status,
+                                                                 @RequestParam(value = "type", required = false, defaultValue = "0") List<Integer> type,
+                                                                 @RequestParam(value = "date", required = false, defaultValue = "desc") String date,
+                                                                 Principal principal);
 }
