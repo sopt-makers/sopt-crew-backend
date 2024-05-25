@@ -1,9 +1,11 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
 import java.util.List;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetApplyListCommand;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
@@ -21,4 +23,7 @@ public interface MeetingV2Service {
     MeetingV2ApplyMeetingResponseDto applyMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId);
 
     void applyMeetingCancel(Integer meetingId, Integer userId);
+
+    MeetingGetApplyListResponseDto findApplyList(MeetingGetApplyListCommand queryCommand, int page, int take, Integer meetingId,
+                                                 Integer userId);
 }
