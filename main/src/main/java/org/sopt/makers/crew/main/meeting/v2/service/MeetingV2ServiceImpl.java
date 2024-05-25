@@ -185,17 +185,17 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
     @Override
     @Transactional(readOnly = true)
-    public MeetingGetApplyListResponseDto findApplyList(MeetingGetApplyListCommand queryCommand, int page, int take, Integer meetingId,
+    public MeetingGetApplyListResponseDto findApplyList(MeetingGetApplyListCommand queryCommand, int page, int take,
+                                                        Integer meetingId,
                                                         Integer userId) {
         Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-        Page<ApplyInfoDto> applyInfoDtos = applyRepository.findApplyList(queryCommand, PageRequest.of(page - 1, take), meeting, userId);
+        Page<ApplyInfoDto> applyInfoDtos = applyRepository.findApplyList(queryCommand, PageRequest.of(page - 1, take),
+                meetingId, meeting.getUserId(), userId);
         PageOptionsDto pageOptionsDto = new PageOptionsDto(page, take);
         PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int) applyInfoDtos.getTotalElements());
 
         return MeetingGetApplyListResponseDto.of(applyInfoDtos.getContent(), pageMetaDto);
     }
-
-
 
     // private 메서드 들
 

@@ -9,7 +9,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetApplyListCommand;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.QApplicantDto;
@@ -26,16 +25,16 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<ApplyInfoDto> findApplyList(MeetingGetApplyListCommand queryCommand, Pageable pageable, Meeting meeting, Integer userId) {
-        List<ApplyInfoDto> content = getContent(queryCommand, pageable, meeting, userId);
-        JPAQuery<Long> countQuery = getCount(queryCommand, meeting);
+    public Page<ApplyInfoDto> findApplyList(MeetingGetApplyListCommand queryCommand, Pageable pageable, Integer meetingId, Integer studyCreatorId, Integer userId) {
+        List<ApplyInfoDto> content = getContent(queryCommand, pageable, meetingId, studyCreatorId, userId);
+        JPAQuery<Long> countQuery = getCount(queryCommand, meetingId);
 
         return PageableExecutionUtils.getPage(content,
                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
     }
 
-    private List<ApplyInfoDto> getContent(MeetingGetApplyListCommand queryCommand, Pageable pageable, Meeting meeting, Integer userId) {
-        boolean isStudyCreator = Objects.equals(meeting.getUserId(), userId);
+    private List<ApplyInfoDto> getContent(MeetingGetApplyListCommand queryCommand, Pageable pageable, Integer meetingId, Integer studyCreatorId, Integer userId) {
+        boolean isStudyCreator = Objects.equals(studyCreatorId, userId);
         return queryFactory
                 .select(new QApplyInfoDto(
                         apply.id, apply.type, isStudyCreator ? apply.content : Expressions.constant(""),
@@ -45,7 +44,7 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
                 .from(apply)
                 .leftJoin(apply.user, user)
                 .where(
-                        apply.meetingId.eq(meeting.getId()),
+                        apply.meetingId.eq(meetingId),
                         apply.status.in(queryCommand.getStatuses()),
                         apply.type.in(queryCommand.getTypes())
                 )
@@ -55,13 +54,13 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
                 .fetch();
     }
 
-    private JPAQuery<Long> getCount(MeetingGetApplyListCommand queryCommand, Meeting meeting) {
+    private JPAQuery<Long> getCount(MeetingGetApplyListCommand queryCommand, Integer meetingId) {
         return queryFactory
                 .select(apply.count())
                 .from(apply, user)
                 .fetchJoin()
                 .where(
-                        apply.meetingId.eq(meeting.getId()),
+                        apply.meetingId.eq(meetingId),
                         apply.status.in(queryCommand.getStatuses()),
                         apply.type.in(queryCommand.getTypes())
                 );
