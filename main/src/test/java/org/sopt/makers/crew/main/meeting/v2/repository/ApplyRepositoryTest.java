@@ -39,8 +39,7 @@ public class ApplyRepositoryTest {
     @Test
     void 스터디장이_신청자_리스트_최신순으로_조회() {
         // given
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0, 1, 2),
-                List.of(0), "desc");
+        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0, 1, 2), "desc");
         int page = 1;
         int take = 12;
         Integer meetingId = 1;
@@ -94,8 +93,7 @@ public class ApplyRepositoryTest {
     @Test
     void 스터디장이_신청자_리스트_오래된순으로_조회() {
         // given
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0, 1, 2),
-                List.of(0), "asc");
+        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0, 1, 2), "asc");
         int page = 1;
         int take = 12;
         Integer meetingId = 1;
@@ -147,8 +145,7 @@ public class ApplyRepositoryTest {
     @Test
     void 스터디장이_신청자_리스트_대기상태만_오래된순으로_조회() {
         // given
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0),
-                List.of(0), "asc");
+        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0), "asc");
         int page = 1;
         int take = 12;
         Integer meetingId = 1;
@@ -180,8 +177,7 @@ public class ApplyRepositoryTest {
     @Test
     void 스터디장이_신청자_리스트_승인상태만_오래된순으로_조회() {
         // given
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(1),
-                List.of(0), "asc");
+        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(1), "asc");
         int page = 1;
         int take = 12;
         Integer meetingId = 1;
@@ -224,8 +220,7 @@ public class ApplyRepositoryTest {
     @Test
     void 스터디장이_아닌_사람이_신청자_리스트_조회() {
         // given
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0, 1, 2),
-                List.of(0), "desc");
+        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0, 1, 2), "desc");
         int page = 1;
         int take = 12;
         Integer meetingId = 1;

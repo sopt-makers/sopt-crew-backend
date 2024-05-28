@@ -87,12 +87,11 @@ public class MeetingV2Controller implements MeetingV2Api {
                                                                         @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
                                                                         @RequestParam(value = "take", required = false, defaultValue = "10") Integer take,
                                                                         @RequestParam(value = "status", required = false, defaultValue = "0") List<Integer> status,
-                                                                        @RequestParam(value = "type", required = false, defaultValue = "0") List<Integer> type,
                                                                         @RequestParam(value = "date", required = false, defaultValue = "desc") String date,
                                                                         Principal principal) {
 
         Integer userId = UserUtil.getUserId(principal);
-        MeetingGetApplyListCommand meetingGetApplyListCommand = new MeetingGetApplyListCommand(status, type, date);
+        MeetingGetApplyListCommand meetingGetApplyListCommand = new MeetingGetApplyListCommand(status, date);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(meetingV2Service.findApplyList(meetingGetApplyListCommand, page, take, meetingId, userId));

@@ -45,8 +45,7 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
                 .leftJoin(apply.user, user)
                 .where(
                         apply.meetingId.eq(meetingId),
-                        apply.status.in(queryCommand.getStatuses()),
-                        apply.type.in(queryCommand.getTypes())
+                        apply.status.in(queryCommand.getStatuses())
                 )
                 .orderBy(queryCommand.getDate().equals("desc") ? apply.appliedDate.desc() : apply.appliedDate.asc())
                 .offset(pageable.getOffset())
@@ -61,8 +60,7 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
                 .fetchJoin()
                 .where(
                         apply.meetingId.eq(meetingId),
-                        apply.status.in(queryCommand.getStatuses()),
-                        apply.type.in(queryCommand.getTypes())
+                        apply.status.in(queryCommand.getStatuses())
                 );
 
     }

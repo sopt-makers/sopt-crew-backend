@@ -72,7 +72,6 @@ public interface MeetingV2Api {
                                                                  @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
                                                                  @RequestParam(value = "take", required = false, defaultValue = "10") Integer take,
                                                                  @RequestParam(value = "status", required = false, defaultValue = "0") List<Integer> status,
-                                                                 @RequestParam(value = "type", required = false, defaultValue = "0") List<Integer> type,
                                                                  @RequestParam(value = "date", required = false, defaultValue = "desc") String date,
                                                                  Principal principal);
 }
