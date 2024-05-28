@@ -25,16 +25,16 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<ApplyInfoDto> findApplyList(MeetingGetApplyListCommand queryCommand, Pageable pageable, Integer meetingId, Integer studyCreatorId, Integer userId) {
-        List<ApplyInfoDto> content = getContent(queryCommand, pageable, meetingId, studyCreatorId, userId);
+    public Page<ApplyInfoDto> findApplyList(MeetingGetApplyListCommand queryCommand, Pageable pageable, Integer meetingId, Integer meetingCreatorId, Integer userId) {
+        List<ApplyInfoDto> content = getContent(queryCommand, pageable, meetingId, meetingCreatorId, userId);
         JPAQuery<Long> countQuery = getCount(queryCommand, meetingId);
 
         return PageableExecutionUtils.getPage(content,
                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
     }
 
-    private List<ApplyInfoDto> getContent(MeetingGetApplyListCommand queryCommand, Pageable pageable, Integer meetingId, Integer studyCreatorId, Integer userId) {
-        boolean isStudyCreator = Objects.equals(studyCreatorId, userId);
+    private List<ApplyInfoDto> getContent(MeetingGetApplyListCommand queryCommand, Pageable pageable, Integer meetingId, Integer meetingCreatorId, Integer userId) {
+        boolean isStudyCreator = Objects.equals(meetingCreatorId, userId);
         return queryFactory
                 .select(new QApplyInfoDto(
                         apply.id, apply.type, isStudyCreator ? apply.content : Expressions.constant(""),
@@ -45,7 +45,7 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
                 .leftJoin(apply.user, user)
                 .where(
                         apply.meetingId.eq(meetingId),
-                        apply.status.in(queryCommand.getStatuses())
+                        apply.status.in(queryCommand.getStatus())
                 )
                 .orderBy(queryCommand.getDate().equals("desc") ? apply.appliedDate.desc() : apply.appliedDate.asc())
                 .offset(pageable.getOffset())
@@ -60,7 +60,7 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
                 .fetchJoin()
                 .where(
                         apply.meetingId.eq(meetingId),
-                        apply.status.in(queryCommand.getStatuses())
+                        apply.status.in(queryCommand.getStatus())
                 );
 
     }

@@ -8,5 +8,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface ApplySearchRepository {
     Page<ApplyInfoDto> findApplyList(MeetingGetApplyListCommand queryCommand, Pageable pageable, Integer meetingId,
-                                     Integer studyCreatorId, Integer userId);
+                                     Integer meetingCreatorId, Integer userId);
 }
