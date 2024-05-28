@@ -198,8 +198,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
         return MeetingGetApplyListResponseDto.of(applyInfoDtos.getContent(), pageMetaDto);
     }
 
-    // private 메서드 들
-
 
     private Boolean checkMeetingLeader(Meeting meeting, Integer userId) {
         return meeting.getUserId().equals(userId);
