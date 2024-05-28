@@ -56,8 +56,7 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
     private JPAQuery<Long> getCount(MeetingGetApplyListCommand queryCommand, Integer meetingId) {
         return queryFactory
                 .select(apply.count())
-                .from(apply, user)
-                .fetchJoin()
+                .from(apply)
                 .where(
                         apply.meetingId.eq(meetingId),
                         apply.status.in(queryCommand.getStatus())
