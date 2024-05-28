@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetApplyListCommand;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
@@ -23,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 @Tag(name = "모임")
@@ -69,9 +69,6 @@ public interface MeetingV2Api {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 지원자/참여자 조회 성공"),
             @ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
     ResponseEntity<MeetingGetApplyListResponseDto> findApplyList(@PathVariable Integer meetingId,
-                                                                 @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
-                                                                 @RequestParam(value = "take", required = false, defaultValue = "10") Integer take,
-                                                                 @RequestParam(value = "status", required = false, defaultValue = "0") List<Integer> status,
-                                                                 @RequestParam(value = "date", required = false, defaultValue = "desc") String date,
+                                                                 @ModelAttribute MeetingGetApplyListCommand queryCommand,
                                                                  Principal principal);
 }

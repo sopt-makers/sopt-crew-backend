@@ -24,6 +24,6 @@ public interface MeetingV2Service {
 
     void applyMeetingCancel(Integer meetingId, Integer userId);
 
-    MeetingGetApplyListResponseDto findApplyList(MeetingGetApplyListCommand queryCommand, int page, int take, Integer meetingId,
+    MeetingGetApplyListResponseDto findApplyList(MeetingGetApplyListCommand queryCommand, Integer meetingId,
                                                  Integer userId);
 }
