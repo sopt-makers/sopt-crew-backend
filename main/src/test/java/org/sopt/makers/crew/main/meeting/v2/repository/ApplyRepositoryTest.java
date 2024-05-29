@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.sopt.makers.crew.main.common.config.TestConfig;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetApplyListCommand;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +40,9 @@ public class ApplyRepositoryTest {
     @Test
     void 스터디장이_신청자_리스트_최신순으로_조회() {
         // given
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0, 1, 2), "desc");
         int page = 1;
         int take = 12;
+        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(page, take, List.of(EnApplyStatus.WAITING, EnApplyStatus.APPROVE, EnApplyStatus.REJECT), "desc");
         Integer meetingId = 1;
         Integer studyCreatorId = 1;
         Integer userId = 1;
@@ -59,43 +60,43 @@ public class ApplyRepositoryTest {
 
         ApplyInfoDto applyInfoDto1 = applyInfoDtos.getContent().get(0);
         assertThat(applyInfoDto1)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(3, 0, "전할말입니다3",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 3, 413489000)), 0);
-        assertThat(applyInfoDto1.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(3, "전할말입니다3",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 3, 413489000)), EnApplyStatus.WAITING);
+        assertThat(applyInfoDto1.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(4, "이영지", 1004, "profile4.jpg", "010-5555-5555");
-        assertThat(applyInfoDto1.getApplicant().getRecentActivity().getGeneration()).isEqualTo(32);
+        assertThat(applyInfoDto1.getUser().getRecentActivity().getGeneration()).isEqualTo(32);
 
 
         ApplyInfoDto applyInfoDto2 = applyInfoDtos.getContent().get(1);
         assertThat(applyInfoDto2)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(2, 0, "전할말입니다2",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 2, 413489000)), 1);
-        assertThat(applyInfoDto2.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(2, "전할말입니다2",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 2, 413489000)), EnApplyStatus.APPROVE);
+        assertThat(applyInfoDto2.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(3, "김철수", 1003, "profile3.jpg", "010-3333-4444");
-        assertThat(applyInfoDto2.getApplicant().getRecentActivity().getGeneration()).isEqualTo(34);
+        assertThat(applyInfoDto2.getUser().getRecentActivity().getGeneration()).isEqualTo(34);
 
 
         ApplyInfoDto applyInfoDto3 = applyInfoDtos.getContent().get(2);
         assertThat(applyInfoDto3)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(1, 0, "전할말입니다1",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 0, 913489000)), 1);
-        assertThat(applyInfoDto3.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(1, "전할말입니다1",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 0, 913489000)), EnApplyStatus.APPROVE);
+        assertThat(applyInfoDto3.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(2, "홍길동", 1002, "profile2.jpg", "010-1111-2222");
-        assertThat(applyInfoDto3.getApplicant().getRecentActivity().getGeneration()).isEqualTo(33);
+        assertThat(applyInfoDto3.getUser().getRecentActivity().getGeneration()).isEqualTo(33);
     }
 
     @Test
     void 스터디장이_신청자_리스트_오래된순으로_조회() {
         // given
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0, 1, 2), "asc");
         int page = 1;
         int take = 12;
+        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(page, take, List.of(EnApplyStatus.WAITING, EnApplyStatus.APPROVE, EnApplyStatus.REJECT), "asc");
         Integer meetingId = 1;
         Integer studyCreatorId = 1;
         Integer userId = 1;
@@ -112,42 +113,42 @@ public class ApplyRepositoryTest {
 
         ApplyInfoDto applyInfoDto3 = applyInfoDtos.getContent().get(0);
         assertThat(applyInfoDto3)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(1, 0, "전할말입니다1",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 0, 913489000)), 1);
-        assertThat(applyInfoDto3.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(1, "전할말입니다1",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 0, 913489000)), EnApplyStatus.APPROVE);
+        assertThat(applyInfoDto3.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(2, "홍길동", 1002, "profile2.jpg", "010-1111-2222");
-        assertThat(applyInfoDto3.getApplicant().getRecentActivity().getGeneration()).isEqualTo(33);
+        assertThat(applyInfoDto3.getUser().getRecentActivity().getGeneration()).isEqualTo(33);
 
         ApplyInfoDto applyInfoDto2 = applyInfoDtos.getContent().get(1);
         assertThat(applyInfoDto2)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(2, 0, "전할말입니다2",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 2, 413489000)), 1);
-        assertThat(applyInfoDto2.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(2, "전할말입니다2",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 2, 413489000)), EnApplyStatus.APPROVE);
+        assertThat(applyInfoDto2.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(3, "김철수", 1003, "profile3.jpg", "010-3333-4444");
-        assertThat(applyInfoDto2.getApplicant().getRecentActivity().getGeneration()).isEqualTo(34);
+        assertThat(applyInfoDto2.getUser().getRecentActivity().getGeneration()).isEqualTo(34);
 
         ApplyInfoDto applyInfoDto1 = applyInfoDtos.getContent().get(2);
         assertThat(applyInfoDto1)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(3, 0, "전할말입니다3",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 3, 413489000)), 0);
-        assertThat(applyInfoDto1.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(3, "전할말입니다3",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 3, 413489000)), EnApplyStatus.WAITING);
+        assertThat(applyInfoDto1.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(4, "이영지", 1004, "profile4.jpg", "010-5555-5555");
-        assertThat(applyInfoDto1.getApplicant().getRecentActivity().getGeneration()).isEqualTo(32);
+        assertThat(applyInfoDto1.getUser().getRecentActivity().getGeneration()).isEqualTo(32);
 
     }
 
     @Test
     void 스터디장이_신청자_리스트_대기상태만_오래된순으로_조회() {
         // given
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0), "asc");
         int page = 1;
         int take = 12;
+        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(page, take, List.of(EnApplyStatus.WAITING), "asc");
         Integer meetingId = 1;
         Integer studyCreatorId = 1;
         Integer userId = 1;
@@ -164,22 +165,22 @@ public class ApplyRepositoryTest {
 
         ApplyInfoDto applyInfoDto1 = applyInfoDtos.getContent().get(0);
         assertThat(applyInfoDto1)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(3, 0, "전할말입니다3",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 3, 413489000)), 0);
-        assertThat(applyInfoDto1.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(3, "전할말입니다3",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 3, 413489000)), EnApplyStatus.WAITING);
+        assertThat(applyInfoDto1.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(4, "이영지", 1004, "profile4.jpg", "010-5555-5555");
-        assertThat(applyInfoDto1.getApplicant().getRecentActivity().getGeneration()).isEqualTo(32);
+        assertThat(applyInfoDto1.getUser().getRecentActivity().getGeneration()).isEqualTo(32);
 
     }
 
     @Test
     void 스터디장이_신청자_리스트_승인상태만_오래된순으로_조회() {
         // given
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(1), "asc");
         int page = 1;
         int take = 12;
+        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(page, take, List.of(EnApplyStatus.APPROVE), "asc");
         Integer meetingId = 1;
         Integer studyCreatorId = 1;
         Integer userId = 1;
@@ -196,23 +197,23 @@ public class ApplyRepositoryTest {
 
         ApplyInfoDto applyInfoDto3 = applyInfoDtos.getContent().get(0);
         assertThat(applyInfoDto3)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(1, 0, "전할말입니다1",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 0, 913489000)), 1);
-        assertThat(applyInfoDto3.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(1, "전할말입니다1",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 0, 913489000)), EnApplyStatus.APPROVE);
+        assertThat(applyInfoDto3.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(2, "홍길동", 1002, "profile2.jpg", "010-1111-2222");
-        assertThat(applyInfoDto3.getApplicant().getRecentActivity().getGeneration()).isEqualTo(33);
+        assertThat(applyInfoDto3.getUser().getRecentActivity().getGeneration()).isEqualTo(33);
 
         ApplyInfoDto applyInfoDto2 = applyInfoDtos.getContent().get(1);
         assertThat(applyInfoDto2)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(2, 0, "전할말입니다2",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 2, 413489000)), 1);
-        assertThat(applyInfoDto2.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(2, "전할말입니다2",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 2, 413489000)), EnApplyStatus.APPROVE);
+        assertThat(applyInfoDto2.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(3, "김철수", 1003, "profile3.jpg", "010-3333-4444");
-        assertThat(applyInfoDto2.getApplicant().getRecentActivity().getGeneration()).isEqualTo(34);
+        assertThat(applyInfoDto2.getUser().getRecentActivity().getGeneration()).isEqualTo(34);
 
     }
 
@@ -220,9 +221,9 @@ public class ApplyRepositoryTest {
     @Test
     void 스터디장이_아닌_사람이_신청자_리스트_조회() {
         // given
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(List.of(0, 1, 2), "desc");
         int page = 1;
         int take = 12;
+        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(page, take, List.of(EnApplyStatus.WAITING, EnApplyStatus.APPROVE, EnApplyStatus.REJECT), "desc");
         Integer meetingId = 1;
         Integer studyCreatorId = 1;
         Integer userId = 2;
@@ -239,35 +240,35 @@ public class ApplyRepositoryTest {
 
         ApplyInfoDto applyInfoDto1 = applyInfoDtos.getContent().get(0);
         assertThat(applyInfoDto1)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(3, 0, "",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 3, 413489000)), 0);
-        assertThat(applyInfoDto1.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(3, "",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 3, 413489000)), EnApplyStatus.WAITING);
+        assertThat(applyInfoDto1.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(4, "이영지", 1004, "profile4.jpg", "010-5555-5555");
-        assertThat(applyInfoDto1.getApplicant().getRecentActivity().getGeneration()).isEqualTo(32);
+        assertThat(applyInfoDto1.getUser().getRecentActivity().getGeneration()).isEqualTo(32);
 
 
         ApplyInfoDto applyInfoDto2 = applyInfoDtos.getContent().get(1);
         assertThat(applyInfoDto2)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(2, 0, "",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 2, 413489000)), 1);
-        assertThat(applyInfoDto2.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(2, "",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 2, 413489000)), EnApplyStatus.APPROVE);
+        assertThat(applyInfoDto2.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(3, "김철수", 1003, "profile3.jpg", "010-3333-4444");
-        assertThat(applyInfoDto2.getApplicant().getRecentActivity().getGeneration()).isEqualTo(34);
+        assertThat(applyInfoDto2.getUser().getRecentActivity().getGeneration()).isEqualTo(34);
 
 
         ApplyInfoDto applyInfoDto3 = applyInfoDtos.getContent().get(2);
         assertThat(applyInfoDto3)
-                .extracting("applyId", "type", "content", "appliedDate", "status")
-                .containsExactly(1, 0, "",
-                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 0, 913489000)), 1);
-        assertThat(applyInfoDto3.getApplicant())
+                .extracting("id", "content", "appliedDate", "status")
+                .containsExactly(1, "",
+                        LocalDateTime.of(LocalDate.of(2024, 05, 19), LocalTime.of(0, 0, 0, 913489000)), EnApplyStatus.APPROVE);
+        assertThat(applyInfoDto3.getUser())
                 .extracting("id", "name", "orgId", "profileImage", "phone")
                 .containsExactly(2, "홍길동", 1002, "profile2.jpg", "010-1111-2222");
-        assertThat(applyInfoDto3.getApplicant().getRecentActivity().getGeneration()).isEqualTo(33);
+        assertThat(applyInfoDto3.getUser().getRecentActivity().getGeneration()).isEqualTo(33);
     }
 
 

@@ -37,7 +37,7 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
         boolean isStudyCreator = Objects.equals(meetingCreatorId, userId);
         return queryFactory
                 .select(new QApplyInfoDto(
-                        apply.id, apply.type, isStudyCreator ? apply.content : Expressions.constant(""),
+                        apply.id, isStudyCreator ? apply.content : Expressions.constant(""),
                         apply.appliedDate, apply.status,
                         new QApplicantDto(user.id, user.name, user.orgId, user.activities, user.profileImage,
                                 user.phone)))
