@@ -42,7 +42,7 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
                         new QApplicantDto(user.id, user.name, user.orgId, user.activities, user.profileImage,
                                 user.phone)))
                 .from(apply)
-                .leftJoin(apply.user, user)
+                .innerJoin(apply.user, user)
                 .where(
                         apply.meetingId.eq(meetingId),
                         apply.status.in(queryCommand.getStatus())
