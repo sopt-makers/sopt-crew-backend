@@ -9,6 +9,6 @@ import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 @AllArgsConstructor(staticName = "of")
 public class MeetingGetApplyListResponseDto {
 
-    private final List<ApplyInfoDto> applies;
+    private final List<ApplyInfoDto> apply;
     private final PageMetaDto meta;
 }

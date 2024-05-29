@@ -8,21 +8,21 @@ import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 
 @Getter
 public class ApplyInfoDto {
-    private final Integer applyId;
+    private final Integer id;
     private final int type;
     private final String content;
     private final LocalDateTime appliedDate;
     private final int status;
-    private final ApplicantDto applicant;
+    private final ApplicantDto user;
 
     @QueryProjection
-    public ApplyInfoDto(Integer applyId, EnApplyType type, String content, LocalDateTime appliedDate, EnApplyStatus status,
-                        ApplicantDto applicant) {
-        this.applyId = applyId;
+    public ApplyInfoDto(Integer id, EnApplyType type, String content, LocalDateTime appliedDate, EnApplyStatus status,
+                        ApplicantDto user) {
+        this.id = id;
         this.type = type.getValue();
         this.content = content;
         this.appliedDate = appliedDate;
         this.status = status.getValue();
-        this.applicant = applicant;
+        this.user = user;
     }
 }
