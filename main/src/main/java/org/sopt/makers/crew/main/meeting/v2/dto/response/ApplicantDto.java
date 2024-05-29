@@ -4,6 +4,7 @@ import com.querydsl.core.annotations.QueryProjection;
 import java.util.Comparator;
 import java.util.List;
 import lombok.Getter;
+import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 
 @Getter
@@ -22,7 +23,7 @@ public class ApplicantDto {
         this.id = id;
         this.name = name;
         this.orgId = orgId;
-        this.recentActivity = userActivityVOs.stream().max(Comparator.comparingInt(UserActivityVO::getGeneration)).orElse(null);
+        this.recentActivity = UserUtil.getRecentUserActivity(userActivityVOs);
         this.profileImage = profileImage;
         this.phone = phone;
     }
