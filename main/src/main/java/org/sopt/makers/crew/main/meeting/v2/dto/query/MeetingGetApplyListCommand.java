@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.meeting.v2.dto.query;
 
+import java.util.Arrays;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +18,8 @@ public class MeetingGetApplyListCommand extends PageOptionsDto {
     @Builder
     public MeetingGetApplyListCommand(int page, int take, List<EnApplyStatus> status, String date) {
         super(page, take);
-        this.status = status;
-        this.date = date;
+        this.status = (status == null || status.isEmpty()) ?
+                Arrays.asList(EnApplyStatus.WAITING, EnApplyStatus.APPROVE, EnApplyStatus.REJECT) : status;
+        this.date = date == null ? "desc" : date;
     }
 }
