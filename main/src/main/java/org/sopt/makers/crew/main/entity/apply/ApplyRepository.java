@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-public interface ApplyRepository extends JpaRepository<Apply, Integer> {
+public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySearchRepository {
 
     @Query("select a from Apply a join fetch a.meeting m where a.userId = :userId and a.status = :statusValue")
     List<Apply> findAllByUserIdAndStatus(@Param("userId") Integer userId,

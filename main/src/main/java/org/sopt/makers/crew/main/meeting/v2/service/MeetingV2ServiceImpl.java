@@ -37,15 +37,20 @@ import org.sopt.makers.crew.main.entity.user.enums.UserPart;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetApplyListCommand;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -177,6 +182,22 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
         applyRepository.deleteByMeetingIdAndUserId(meetingId, userId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MeetingGetApplyListResponseDto findApplyList(MeetingGetApplyListCommand queryCommand,
+                                                        Integer meetingId,
+                                                        Integer userId) {
+        Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+        Page<ApplyInfoDto> applyInfoDtos = applyRepository.findApplyList(queryCommand,
+                PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()),
+                meetingId, meeting.getUserId(), userId);
+        PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
+        PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int) applyInfoDtos.getTotalElements());
+
+        return MeetingGetApplyListResponseDto.of(applyInfoDtos.getContent(), pageMetaDto);
+    }
+
 
     private Boolean checkMeetingLeader(Meeting meeting, Integer userId) {
         return meeting.getUserId().equals(userId);
