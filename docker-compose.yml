@@ -132,12 +132,14 @@ services:
       caddy.route_2.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_3: /user/v2/*
       caddy.route_3.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_4: /meeting/v2/*
+      caddy.route_4: /meeting/v2
       caddy.route_4.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_5: /post/v2
+      caddy.route_5: /meeting/v2/*
       caddy.route_5.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_6: /comment/v2
+      caddy.route_6: /post/v2
       caddy.route_6.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_7: /comment/v2
+      caddy.route_7.reverse_proxy: "{{ upstreams 4000 }}"
 
   nestjs-blue:
     image: makerscrew/server:latest
@@ -221,12 +223,14 @@ services:
       caddy.route_2.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_3: /user/v2/*
       caddy.route_3.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_4: /meeting/v2/*
+      caddy.route_4: /meeting/v2
       caddy.route_4.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_5: /post/v2
+      caddy.route_5: /meeting/v2/*
       caddy.route_5.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_6: /comment/v2
+      caddy.route_6: /post/v2
       caddy.route_6.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_7: /comment/v2
+      caddy.route_7.reverse_proxy: "{{ upstreams 4000 }}"
 
 networks:
   caddy:
