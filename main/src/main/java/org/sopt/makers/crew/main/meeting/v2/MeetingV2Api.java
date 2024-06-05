@@ -20,6 +20,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingRe
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,4 +72,9 @@ public interface MeetingV2Api {
     ResponseEntity<MeetingGetApplyListResponseDto> findApplyList(@PathVariable Integer meetingId,
                                                                  @ModelAttribute MeetingGetApplyListCommand queryCommand,
                                                                  Principal principal);
+
+    @Operation(summary = "모임 상세 조회", description = "모임 상세 조회")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 상세 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
+    ResponseEntity<MeetingV2GetMeetingByIdResponseDto> getMeetingById(@PathVariable Integer meetingId, Principal principal);
 }

@@ -5,6 +5,8 @@ import org.sopt.makers.crew.main.common.exception.BadRequestException;
 
 /** 모임 상태 */
 public enum EnMeetingStatus {
+
+  // 1. 모집 전, 2. 모집 중, 3. 모집 마감, 4. 활동 중, 5. 활동 종료
   /** 시작 전 */
   BEFORE_START(0),
 
