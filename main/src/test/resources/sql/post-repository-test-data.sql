@@ -82,14 +82,3 @@ VALUES
     (2, '2024-06-12 11:00:01', 2, 1);
 
 UPDATE post SET "commentCount"=5, "likeCount"=2 WHERE id=1;
-
-
-
-
-
-
-
-
-
-
-
