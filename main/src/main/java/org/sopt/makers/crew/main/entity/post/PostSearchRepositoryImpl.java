@@ -95,6 +95,7 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
                 .where(comment.post.id.in(postIds))
                 .groupBy(comment.post.id, comment.user.id, comment.user.profileImage)
                 .orderBy(comment.post.id.asc(), comment.user.id.asc())
+                .limit(3)
                 .transform(GroupBy.groupBy(comment.post.id).as(GroupBy.list(comment.user.profileImage)));
 
         // 각 게시글별로 댓글 작성자의 프로필 이미지 리스트를 설정
