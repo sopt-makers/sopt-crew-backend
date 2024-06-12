@@ -89,5 +89,15 @@ public class Like {
         this.postId = postId;
         this.comment = comment;
         this.commentId = commentId;
+        linkToPostOrComment(post, comment);
+    }
+
+    private void linkToPostOrComment(Post post, Comment comment) {
+        if (post != null) {
+            post.addLike(this);
+        }
+        if (comment != null) {
+            comment.addLike(this);
+        }
     }
 }
