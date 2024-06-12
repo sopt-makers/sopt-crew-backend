@@ -63,6 +63,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 목록 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(PostV1GetPostsResponseDto)
   @ApiResponse({
