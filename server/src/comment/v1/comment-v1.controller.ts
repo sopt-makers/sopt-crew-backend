@@ -74,8 +74,12 @@ export class CommentV1Controller {
     return this.commentV1Service.switchCommentLike({ param, user });
   }
 
+  /**
+   * @deprecated
+   */
   @ApiOperation({
     summary: '댓글 신고',
+    deprecated: true,
   })
   @ApiOkResponseCommon(CommentV1ReportCommentResponseDto)
   @ApiResponse({
