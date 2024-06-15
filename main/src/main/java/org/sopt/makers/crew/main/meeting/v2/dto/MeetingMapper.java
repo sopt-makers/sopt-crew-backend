@@ -26,8 +26,8 @@ public interface MeetingMapper {
     @Mapping(source = "requestBody.endDate", target = "endDate", qualifiedByName = "getEndDate")
     @Mapping(source = "requestBody.mStartDate", target = "mStartDate", qualifiedByName = "getStartDate")
     @Mapping(source = "requestBody.mEndDate", target = "mEndDate", qualifiedByName = "getEndDate")
-    Meeting toMeetingEntity(MeetingV2CreateMeetingBodyDto requestBody, Integer targetActiveGeneration,
-                            Integer createdGeneration, User user, Integer userId);
+    Meeting toMeeting(MeetingV2CreateMeetingBodyDto requestBody, Integer targetActiveGeneration,
+                      Integer createdGeneration, User user, Integer userId);
 
     @Named("getImageURL")
     static List<ImageUrlVO> getImageURL(List<String> files) {
