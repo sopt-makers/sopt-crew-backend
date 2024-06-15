@@ -1,34 +1,25 @@
 package org.sopt.makers.crew.main.entity.meeting.enums;
 
-import java.util.Arrays;
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-/** 모임 상태 */
+/**
+ * 모임 상태
+ */
+@RequiredArgsConstructor
+@Getter
 public enum EnMeetingStatus {
 
-  // 1. 모집 전, 2. 모집 중, 3. 모집 마감, 4. 활동 중, 5. 활동 종료
-  /** 시작 전 */
-  BEFORE_START(0),
+    BEFORE_RECRUITMENT("모집 전"),
 
-  /** 지원 가능 */
-  APPLY_ABLE(1),
+    RECRUITING("모집 중"),
 
-  /** 모집 완료 */
-  RECRUITMENT_COMPLETE(2);
+    CLOSE_RECRUITMENT("모집 마감"),
 
-  private final int value;
+    ACTIVE("활동 중"),
 
-  EnMeetingStatus(int value) {
-    this.value = value;
-  }
+    ACTIVITY_END("활동 종료");
 
-  public static EnMeetingStatus ofValue(int dbData) {
-    return Arrays.stream(EnMeetingStatus.values()).filter(v -> v.getValue() == (dbData)).findFirst()
-        .orElseThrow(() -> new BadRequestException(
-            String.format("EnMeetingStatus 클래스에 value = [%s] 값을 가진 enum 객체가 없습니다.", dbData)));
-  }
+    private final String value;
 
-  public int getValue() {
-    return value;
-  }
 }
