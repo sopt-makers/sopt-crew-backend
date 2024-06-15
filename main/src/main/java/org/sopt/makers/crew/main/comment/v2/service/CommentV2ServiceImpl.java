@@ -8,10 +8,13 @@ import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2CreateCommentBo
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.common.response.ErrorStatus;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
+import org.sopt.makers.crew.main.entity.report.Report;
+import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.internal.notification.PushNotificationService;
@@ -28,6 +31,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
   private final PostRepository postRepository;
   private final UserRepository userRepository;
   private final CommentRepository commentRepository;
+  private final ReportRepository reportRepository;
   private final PushNotificationService pushNotificationService;
 
   @Value("${push-notification.web-url}")
@@ -69,6 +73,34 @@ public class CommentV2ServiceImpl implements CommentV2Service {
     pushNotificationService.sendPushNotification(pushRequestDto);
 
     return CommentV2CreateCommentResponseDto.of(savedComment.getId());
+  }
+
+  /**
+   * 댓글 신고하기
+   * @param commentId 댓글 신고할 댓글 id
+   * @param userId 신고하는 유저 id
+   * @return 신고 ID
+   * @apiNote 댓글 신고는 한 댓글당 한번만 가능
+   * @throws 400 이미 신고한 댓글일 때
+   */
+  @Override
+  @Transactional
+  public CommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId) {
+    Comment comment = commentRepository.findByIdOrThrow(commentId);
+    User user = userRepository.findByIdOrThrow(userId);
+
+    reportRepository.findByCommentAndUser(comment, user).ifPresent(report -> {
+      throw new IllegalArgumentException("이미 신고한 댓글입니다.");
+    });
+
+    Report report = Report.builder()
+        .comment(comment)
+        .user(user)
+        .build();
+
+    Report savedReport = reportRepository.save(report);
+
+    return CommentV2ReportCommentResponseDto.of(savedReport.getId());
   }
 
   /**
