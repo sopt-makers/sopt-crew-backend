@@ -10,6 +10,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingRe
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 
 public interface MeetingV2Service {
 
@@ -26,4 +27,6 @@ public interface MeetingV2Service {
 
     MeetingGetApplyListResponseDto findApplyList(MeetingGetApplyListCommand queryCommand, Integer meetingId,
                                                  Integer userId);
+
+    MeetingV2GetMeetingByIdResponseDto getMeetingById(Integer meetingId, Integer userId);
 }

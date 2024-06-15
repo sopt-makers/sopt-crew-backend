@@ -24,9 +24,11 @@ import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.common.util.UserPartUtil;
 import org.sopt.makers.crew.main.entity.apply.Apply;
+import org.sopt.makers.crew.main.entity.apply.ApplyGroups;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
+import org.sopt.makers.crew.main.entity.common.Time;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
@@ -42,6 +44,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOr
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingCreatorDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
@@ -49,6 +52,8 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingB
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.SimpleApplyInfoResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -67,6 +72,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
     private final MeetingMapper meetingMapper;
     private final ApplyMapper applyMapper;
+
+    private final Time time;
 
     @Override
     public MeetingV2GetAllMeetingByOrgUserDto getAllMeetingByOrgUser(
@@ -125,7 +132,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
                             meeting.getEndDate(),
                             meeting.getCapacity(), recentActivityDate, meeting.getTargetActiveGeneration(),
                             meeting.getJoinableParts(), applicantCount, appliedUserCount, meetingLeader,
-                            meeting.getMeetingStatus());
+                            meeting.getMeetingStatus(time.now()));
                 }).toList();
 
         return meetingBanners;
@@ -145,7 +152,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
             throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
         }
 
-        Meeting meeting = meetingMapper.toMeetingEntity(requestBody,
+        Meeting meeting = meetingMapper.toMeeting(requestBody,
                 getTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
                 user.getId());
 
@@ -196,6 +203,29 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
         PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int) applyInfoDtos.getTotalElements());
 
         return MeetingGetApplyListResponseDto.of(applyInfoDtos.getContent(), pageMetaDto);
+    }
+
+    @Override
+    public MeetingV2GetMeetingByIdResponseDto getMeetingById(Integer meetingId, Integer userId) {
+        Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+        User user = userRepository.findByIdOrThrow(userId);
+        User meetingCreator = userRepository.findByIdOrThrow(meeting.getUserId());
+        MeetingCreatorDto meetingCreatorDto = MeetingCreatorDto.of(meetingCreator.getId(), meetingCreator.getName(),
+                meetingCreator.getOrgId(), meetingCreator.getProfileImage());
+
+        ApplyGroups applyGroups = new ApplyGroups(applyRepository.findAllByMeetingIdWithUser(meetingId));
+
+        Boolean isHost = meeting.isHost(user.getId());
+        Boolean isApply = applyGroups.isApply(user.getId());
+        Boolean isApproved = applyGroups.isApproved(user.getId());
+        long approvedCount = applyGroups.getApprovedCount();
+
+        List<SimpleApplyInfoResponseDto> simpleApplyInfoResponseDtos = applyGroups.getApplyList().stream()
+                .map(apply -> SimpleApplyInfoResponseDto.of(apply.getUser().getName(), apply.getStatus(),
+                        apply.getUser().getProfileImage()))
+                .toList();
+
+        return MeetingV2GetMeetingByIdResponseDto.of(meeting, approvedCount, isHost, isApply, isApproved, meetingCreatorDto, simpleApplyInfoResponseDtos, time.now());
     }
 
 
