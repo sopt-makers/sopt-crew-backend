@@ -7,8 +7,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor(staticName = "of")
 public class MeetingCreatorDto {
-    Integer id;
-    String name;
-    Integer orgId;
+    private final Integer id;
+    private final String name;
+    private final Integer orgId;
+    private final String profileImage;
 
 }
