@@ -3,21 +3,15 @@ package org.sopt.makers.crew.main.entity.like;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.sopt.makers.crew.main.entity.comment.Comment;
-import org.sopt.makers.crew.main.entity.post.Post;
-import org.sopt.makers.crew.main.entity.user.User;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -32,7 +26,7 @@ public class Like {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     /**
      * 좋아요 누른 날짜
@@ -42,62 +36,28 @@ public class Like {
     private LocalDateTime createdDate;
 
     /**
-     * 좋아요 누른사람
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
-    private User user;
-
-    /**
      * 좋아요 누른사람 id
      */
     @Column(insertable = false, updatable = false)
-    private int userId;
-
-    /**
-     * 게시글
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "postId")
-    private Post post;
+    private Integer userId;
 
     /**
      * 게시글 id - 게시글 좋아요가 아닐 경우 null
      */
     @Column(insertable = false, updatable = false)
-    private int postId;
-
-    /**
-     * 댓글
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "commentId")
-    private Comment comment;
+    private Integer postId;
 
     /**
      * 댓글 id - 댓글 좋아요가 아닐 경우 null
      */
     @Column(insertable = false, updatable = false)
-    private int commentId;
+    private Integer commentId;
 
     @Builder
-    public Like(User user, int userId, Post post, int postId, Comment comment,
-                int commentId) {
-        this.user = user;
+    public Like(Integer userId, Integer postId, Integer commentId) {
         this.userId = userId;
-        this.post = post;
         this.postId = postId;
-        this.comment = comment;
         this.commentId = commentId;
-        linkToPostOrComment(post, comment);
     }
 
-    private void linkToPostOrComment(Post post, Comment comment) {
-        if (post != null) {
-            post.addLike(this);
-        }
-        if (comment != null) {
-            comment.addLike(this);
-        }
-    }
 }

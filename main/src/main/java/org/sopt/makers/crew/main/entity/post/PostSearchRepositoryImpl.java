@@ -62,7 +62,7 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
                         post.likeCount,
                         ExpressionUtils.as(
                                 JPAExpressions.selectFrom(like)
-                                        .where(like.post.eq(post).and(like.user.id.eq(userId)))
+                                        .where(like.postId.eq(post.id).and(like.userId.eq(userId)))
                                         .exists()
                                 , "isLiked"
                         ),

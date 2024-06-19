@@ -19,7 +19,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.entity.apply.Apply;
-import org.sopt.makers.crew.main.entity.like.Like;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.report.Report;
@@ -54,7 +53,7 @@ public class User {
     /**
      * 활동 목록
      */
-    @Column(name = "activities",columnDefinition = "jsonb")
+    @Column(name = "activities", columnDefinition = "jsonb")
     @Type(JsonBinaryType.class)
     private List<UserActivityVO> activities;
 
@@ -89,12 +88,6 @@ public class User {
     private List<Post> posts = new ArrayList<>();
 
     /**
-     * 좋아요
-     */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Like> likes = new ArrayList<>();
-
-    /**
      * 신고 내역
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
@@ -118,13 +111,11 @@ public class User {
         this.applies.add(apply);
     }
 
-    public void addLike(Like like) {
-        this.likes.add(like);
-    }
-
     public void addReport(Report report) {
         this.reports.add(report);
     }
 
-    public void setUserIdForTest(Integer userId){ this.id = userId;}
+    public void setUserIdForTest(Integer userId) {
+        this.id = userId;
+    }
 }

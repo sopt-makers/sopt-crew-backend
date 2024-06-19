@@ -22,7 +22,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.entity.comment.Comment;
-import org.sopt.makers.crew.main.entity.like.Like;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.user.User;
@@ -122,12 +121,6 @@ public class Post {
     private int commentCount;
 
     /**
-     * 게시글에 대한 좋아요 목록
-     */
-    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
-    private List<Like> likes = new ArrayList<>();
-
-    /**
      * 게시글에 대한 좋아요 수
      */
     @Column(nullable = false, columnDefinition = "int default 0")
@@ -149,10 +142,6 @@ public class Post {
         this.meeting = meeting;
         this.commentCount = 0;
         this.likeCount = 0;
-    }
-
-    public void addLike(Like like) {
-        this.likes.add(like);
     }
 
     public void addComment(Comment comment) {
