@@ -1,9 +1,12 @@
 package org.sopt.makers.crew.main.notice.service;
 
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.FORBIDDEN_EXCEPTION;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.notice.Notice;
 import org.sopt.makers.crew.main.entity.notice.NoticeRepository;
 import org.sopt.makers.crew.main.notice.dto.request.NoticeV2CreateRequestDto;
@@ -35,7 +38,7 @@ public class NoticeV2Service {
     public void createNotice(NoticeV2CreateRequestDto requestDto) {
 
         if (!requestDto.getNoticeSecretKey().equals(noticeSecretKey)) {
-            throw new BadRequestException("올바르지 않는 요청입니다.");
+            throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
         }
 
         Notice notice = Notice.builder()
