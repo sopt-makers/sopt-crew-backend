@@ -80,7 +80,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
   public void deleteComment(Integer commentId, Integer userId) {
     Comment comment = commentRepository.findByIdOrThrow(commentId);
 
-    if (!comment.getUser().getId().equals(userId)) {
+    if (!comment.getUserId().equals(userId)) {
       throw new SecurityException("댓글 작성자만 삭제할 수 있습니다.");
     }
 

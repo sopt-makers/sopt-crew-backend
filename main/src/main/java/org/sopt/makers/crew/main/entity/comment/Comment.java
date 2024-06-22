@@ -78,11 +78,11 @@ public class Comment {
     @JoinColumn(name = "userId", nullable = false)
     private User user;
 
-    /**
-     * 작성자의 고유 식별자
-     */
-    @Column(insertable = false, updatable = false)
-    private int userId;
+  /**
+   * 작성자의 고유 식별자
+   */
+  @Column(insertable = false, updatable = false)
+  private Integer userId;
 
     /**
      * 댓글이 속한 게시글 정보
