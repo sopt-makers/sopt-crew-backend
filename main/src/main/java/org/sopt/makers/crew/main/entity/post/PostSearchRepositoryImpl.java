@@ -12,14 +12,17 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
-import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailDto;
-import org.sopt.makers.crew.main.post.v2.dto.response.QPostDetailDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.CommenterThumbnails;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.QPostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.QPostMeetingDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.QPostWriterInfoDto;
 import org.springframework.data.domain.Page;
@@ -34,20 +37,23 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<PostDetailDto> findPostList(PostGetPostsCommand queryCommand, Pageable pageable, Integer userId) {
+    public Page<PostDetailResponseDto> findPostList(PostGetPostsCommand queryCommand, Pageable pageable,
+                                                    Integer userId) {
         Integer meetingId = queryCommand.getMeetingId().orElse(null);
 
-        List<PostDetailDto> content = getContent(pageable, meetingId, userId);
+        List<PostDetailResponseDto> content = getContent(pageable, meetingId, userId);
         JPAQuery<Long> countQuery = getCount(meetingId);
 
         return PageableExecutionUtils.getPage(content,
                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
     }
 
-    private List<PostDetailDto> getContent(Pageable pageable, Integer meetingId,
-                                           Integer userId) {
-        List<PostDetailDto> postDetailList = queryFactory
-                .select(new QPostDetailDto(
+    private List<PostDetailResponseDto> getContent(Pageable pageable, Integer meetingId,
+                                                   Integer userId) {
+        List<PostDetailResponseDto> responseDtos = new ArrayList<>();
+
+        List<PostDetailBaseDto> postDetailList = queryFactory
+                .select(new QPostDetailBaseDto(
                         post.id,
                         post.title,
                         post.contents,
@@ -85,7 +91,7 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 
         // 모든 게시글 ID를 추출
         List<Integer> postIds = postDetailList.stream()
-                .map(PostDetailDto::getId)
+                .map(PostDetailBaseDto::getId)
                 .collect(Collectors.toList());
 
         // 게시글 ID 리스트를 사용하여 한 번에 모든 댓글 작성자의 프로필 이미지를 조회
@@ -99,13 +105,14 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
                 .transform(GroupBy.groupBy(comment.post.id).as(GroupBy.list(comment.user.profileImage)));
 
         // 각 게시글별로 댓글 작성자의 프로필 이미지 리스트를 설정
-        for (PostDetailDto postDetail : postDetailList) {
-            List<String> commenterThumbnails = commenterThumbnailsMap.getOrDefault(postDetail.getId(),
-                    Collections.emptyList());
-            postDetail.updateCommenterThumbnails(commenterThumbnails);
+        for (PostDetailBaseDto postDetail : postDetailList) {
+            CommenterThumbnails commenterThumbnails = new CommenterThumbnails(
+                    commenterThumbnailsMap.getOrDefault(postDetail.getId(),
+                            Collections.emptyList()));
+            responseDtos.add(PostDetailResponseDto.of(postDetail, commenterThumbnails));
         }
 
-        return postDetailList;
+        return responseDtos;
     }
 
     private JPAQuery<Long> getCount(Integer meetingId) {

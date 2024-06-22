@@ -22,7 +22,7 @@ import org.sopt.makers.crew.main.internal.notification.PushNotificationService;
 import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
-import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.springframework.beans.factory.annotation.Value;
@@ -102,12 +102,12 @@ public class PostV2ServiceImpl implements PostV2Service {
     @Override
     @Transactional(readOnly = true)
     public PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, Integer userId) {
-        Page<PostDetailDto> postDetailDtos = postRepository.findPostList(queryCommand,
+        Page<PostDetailResponseDto> meetingPostListDtos = postRepository.findPostList(queryCommand,
                 PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()), userId);
 
         PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
-        PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int) postDetailDtos.getTotalElements());
+        PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int) meetingPostListDtos.getTotalElements());
 
-        return PostV2GetPostsResponseDto.of(postDetailDtos.getContent(), pageMetaDto);
+        return PostV2GetPostsResponseDto.of(meetingPostListDtos.getContent(), pageMetaDto);
     }
 }

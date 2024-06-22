@@ -2,11 +2,10 @@ package org.sopt.makers.crew.main.post.v2.dto.response;
 
 import com.querydsl.core.annotations.QueryProjection;
 import java.time.LocalDateTime;
-import java.util.List;
 import lombok.Getter;
 
 @Getter
-public class PostDetailDto {
+public class PostDetailBaseDto {
     private final Integer id;
     private final String title;
     private final String contents;
@@ -18,14 +17,12 @@ public class PostDetailDto {
     private final Boolean isLiked;
     private final int viewCount;
     private final int commentCount;
-    //* 댓글 작성자 썸네일 리스트
-    private List<String> commenterThumbnails;
     private final PostMeetingDto meeting;
 
     @QueryProjection
-    public PostDetailDto(Integer id, String title, String contents, LocalDateTime createdDate, String[] images,
-                         PostWriterInfoDto user, int likeCount, boolean isLiked, int viewCount, int commentCount,
-                         PostMeetingDto meeting) {
+    public PostDetailBaseDto(Integer id, String title, String contents, LocalDateTime createdDate, String[] images,
+                             PostWriterInfoDto user, int likeCount, boolean isLiked, int viewCount, int commentCount,
+                             PostMeetingDto meeting) {
         this.id = id;
         this.title = title;
         this.contents = contents;
@@ -37,9 +34,5 @@ public class PostDetailDto {
         this.viewCount = viewCount;
         this.commentCount = commentCount;
         this.meeting = meeting;
-    }
-
-    public void updateCommenterThumbnails(List<String> commenterThumbnails) {
-        this.commenterThumbnails = commenterThumbnails;
     }
 }

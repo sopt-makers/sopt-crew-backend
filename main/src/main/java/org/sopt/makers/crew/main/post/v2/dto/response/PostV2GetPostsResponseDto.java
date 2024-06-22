@@ -9,6 +9,6 @@ import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 @AllArgsConstructor(staticName = "of")
 public class PostV2GetPostsResponseDto {
 
-    private final List<PostDetailDto> posts;
+    private final List<PostDetailResponseDto> posts;
     private final PageMetaDto meta;
 }

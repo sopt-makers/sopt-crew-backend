@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.sopt.makers.crew.main.common.config.TestConfig;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
-import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -44,16 +44,17 @@ public class PostRepositoryTest {
         Integer userId = 1;
 
         // when
-        Page<PostDetailDto> postDetailDtos = postRepository.findPostList(queryCommand, PageRequest.of(page - 1, take),
+        Page<PostDetailResponseDto> postDetailJsonDtos = postRepository.findPostList(queryCommand,
+                PageRequest.of(page - 1, take),
                 userId);
 
         // then
-        assertThat(postDetailDtos.getTotalElements()).isEqualTo(3);
-        assertThat(postDetailDtos.getSize()).isEqualTo(take);
-        assertThat(postDetailDtos.getNumber()).isEqualTo(page - 1);
-        assertThat(postDetailDtos.getTotalPages()).isEqualTo(1);
+        assertThat(postDetailJsonDtos.getTotalElements()).isEqualTo(3);
+        assertThat(postDetailJsonDtos.getSize()).isEqualTo(take);
+        assertThat(postDetailJsonDtos.getNumber()).isEqualTo(page - 1);
+        assertThat(postDetailJsonDtos.getTotalPages()).isEqualTo(1);
 
-        PostDetailDto postDetailDto1 = postDetailDtos.getContent().get(0);
+        PostDetailResponseDto postDetailDto1 = postDetailJsonDtos.getContent().get(0);
         assertThat(postDetailDto1)
                 .extracting("id", "title", "contents", "createdDate", "likeCount", "isLiked", "commentCount")
                 .containsExactly(3, "제목3", "내용3",
@@ -63,7 +64,7 @@ public class PostRepositoryTest {
                 .extracting("id", "title", "category")
                 .containsExactly(1, "스터디 구합니다1", "행사");
 
-        PostDetailDto postDetailDto2 = postDetailDtos.getContent().get(1);
+        PostDetailResponseDto postDetailDto2 = postDetailJsonDtos.getContent().get(1);
         assertThat(postDetailDto2)
                 .extracting("id", "title", "contents", "createdDate", "likeCount", "isLiked", "commentCount")
                 .containsExactly(2, "제목2", "내용2",
@@ -73,7 +74,7 @@ public class PostRepositoryTest {
                 .extracting("id", "title", "category")
                 .containsExactly(1, "스터디 구합니다1", "행사");
 
-        PostDetailDto postDetailDto3 = postDetailDtos.getContent().get(2);
+        PostDetailResponseDto postDetailDto3 = postDetailJsonDtos.getContent().get(2);
         assertThat(postDetailDto3)
                 .extracting("id", "title", "contents", "createdDate", "likeCount", "isLiked", "commentCount")
                 .containsExactly(1, "제목1", "내용1",
@@ -96,16 +97,17 @@ public class PostRepositoryTest {
         Integer userId = 1;
 
         // when
-        Page<PostDetailDto> postDetailDtos = postRepository.findPostList(queryCommand, PageRequest.of(page - 1, take),
+        Page<PostDetailResponseDto> postDetailJsonDtos = postRepository.findPostList(queryCommand,
+                PageRequest.of(page - 1, take),
                 userId);
 
         // then
-        assertThat(postDetailDtos.getTotalElements()).isEqualTo(5);
-        assertThat(postDetailDtos.getSize()).isEqualTo(take);
-        assertThat(postDetailDtos.getNumber()).isEqualTo(page - 1);
-        assertThat(postDetailDtos.getTotalPages()).isEqualTo(1);
+        assertThat(postDetailJsonDtos.getTotalElements()).isEqualTo(5);
+        assertThat(postDetailJsonDtos.getSize()).isEqualTo(take);
+        assertThat(postDetailJsonDtos.getNumber()).isEqualTo(page - 1);
+        assertThat(postDetailJsonDtos.getTotalPages()).isEqualTo(1);
 
-        PostDetailDto postDetailDto1 = postDetailDtos.getContent().get(0);
+        PostDetailResponseDto postDetailDto1 = postDetailJsonDtos.getContent().get(0);
         assertThat(postDetailDto1)
                 .extracting("id", "title", "contents", "createdDate", "likeCount", "isLiked", "commentCount")
                 .containsExactly(5, "제목5", "내용5",
@@ -115,7 +117,7 @@ public class PostRepositoryTest {
                 .extracting("id", "title", "category")
                 .containsExactly(2, "스터디 구합니다2", "스터디");
 
-        PostDetailDto postDetailDto2 = postDetailDtos.getContent().get(4);
+        PostDetailResponseDto postDetailDto2 = postDetailJsonDtos.getContent().get(4);
         assertThat(postDetailDto2)
                 .extracting("id", "title", "contents", "createdDate", "likeCount", "isLiked", "commentCount")
                 .containsExactly(1, "제목1", "내용1",
