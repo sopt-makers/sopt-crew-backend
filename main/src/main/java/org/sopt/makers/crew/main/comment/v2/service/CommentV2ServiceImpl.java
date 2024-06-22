@@ -6,6 +6,8 @@ import static org.sopt.makers.crew.main.internal.notification.PushNotificationEn
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2CreateCommentBodyDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
+import org.sopt.makers.crew.main.common.exception.ForbiddenException;
+import org.sopt.makers.crew.main.common.response.ErrorStatus;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -72,16 +74,16 @@ public class CommentV2ServiceImpl implements CommentV2Service {
   /**
    * 모임 게시글 댓글 삭제
    *
-   * @throws 400 댓글 작성자가 아닐 때
+   * @exception ForbiddenException 댓글 작성자가 아닐 때
    * @apiNote 댓글 삭제시 게시글의 댓글 수를 1 감소시킴
    */
   @Override
   @Transactional
-  public void deleteComment(Integer commentId, Integer userId) {
+  public void deleteComment(Integer commentId, Integer userId) throws ForbiddenException {
     Comment comment = commentRepository.findByIdOrThrow(commentId);
 
     if (!comment.getUserId().equals(userId)) {
-      throw new SecurityException("댓글 작성자만 삭제할 수 있습니다.");
+      throw new ForbiddenException();
     }
 
     Post post = comment.getPost();
