@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetProfileResponseDto;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,5 +41,12 @@ public class UserV2Controller implements UserV2Api {
   @GetMapping("/{userId}")
   public ResponseEntity<User> getUserById(@PathVariable Integer userId) {
     return ResponseEntity.ok(userV2Service.getUserById(userId));
+  }
+
+  @Override
+  @GetMapping("/profile/me")
+  public ResponseEntity<UserV2GetProfileResponseDto> getUserOwnProfile(Principal principal) {
+    Integer userId = UserUtil.getUserId(principal);
+    return ResponseEntity.ok(userV2Service.getUserOwnProfile(userId));
   }
 }

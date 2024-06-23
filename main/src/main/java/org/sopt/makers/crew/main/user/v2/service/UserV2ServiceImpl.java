@@ -14,6 +14,7 @@ import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetProfileResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,5 +56,11 @@ public class UserV2ServiceImpl implements UserV2Service {
   @Override
   public User getUserById(Integer userId) {
     return userRepository.findById(userId).orElseThrow(() -> new NotFoundException(NOT_FOUND_USER.getErrorCode()));
+  }
+
+  @Override
+  public UserV2GetProfileResponseDto getUserOwnProfile(Integer userId) {
+    User user = userRepository.findByIdOrThrow(userId);
+    return UserV2GetProfileResponseDto.of(user.getId(), user.getOrgId(), user.getName(), user.getProfileImage(), !user.getActivities().isEmpty());
   }
 }
