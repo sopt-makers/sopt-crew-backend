@@ -9,14 +9,15 @@ import java.security.Principal;
 import java.util.List;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
-import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetProfileResponseDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetMeetingByUserDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Tag(name = "유저")
 public interface UserV2Api {
+
     @Operation(summary = "내가 속한 모임 조회")
     @ResponseStatus(HttpStatus.OK)
     @ApiResponses(value = {
@@ -40,5 +41,12 @@ public interface UserV2Api {
         @ApiResponse(responseCode = "200", description = "성공"),
         @ApiResponse(responseCode = "400", description = "해당 유저가 없는 경우", content = @Content),
     })
-    public ResponseEntity<UserV2GetProfileResponseDto> getUserOwnProfile(Principal principal);
+    public ResponseEntity<UserV2GetUserOwnProfileResponseDto> getUserOwnProfile(Principal principal);
+
+    @Operation(summary = "내가 만든 모임 조회")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "성공")
+    })
+    public ResponseEntity<UserV2GetMeetingByUserDto> getMeetingByUser(Principal principal);
 }

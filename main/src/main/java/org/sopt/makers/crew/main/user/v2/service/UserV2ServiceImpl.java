@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.user.v2.service;
 
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_FOUND_USER;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.NO_CONTENT_EXCEPTION;
 
 import java.util.Comparator;
 import java.util.List;
@@ -8,13 +9,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.exception.BaseException;
+import org.sopt.makers.crew.main.common.exception.NoContentException;
 import org.sopt.makers.crew.main.common.exception.NotFoundException;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.meeting.Meeting;
+import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
-import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetProfileResponseDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetMeetingByUserDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +31,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 
   private final UserRepository userRepository;
   private final ApplyRepository applyRepository;
+  private final MeetingRepository meetingRepository;
 
   @Override
   public List<UserV2GetAllMeetingByUserMeetingDto> getAllMeetingByUser(Integer userId) {
@@ -59,8 +65,15 @@ public class UserV2ServiceImpl implements UserV2Service {
   }
 
   @Override
-  public UserV2GetProfileResponseDto getUserOwnProfile(Integer userId) {
-    User user = userRepository.findByIdOrThrow(userId);
-    return UserV2GetProfileResponseDto.of(user.getId(), user.getOrgId(), user.getName(), user.getProfileImage(), !user.getActivities().isEmpty());
+  public UserV2GetUserOwnProfileResponseDto getUserOwnProfile(Integer userId) {
+    User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException(NOT_FOUND_USER.getErrorCode()));
+    return UserV2GetUserOwnProfileResponseDto.of(user.getId(), user.getOrgId(), user.getName(), user.getProfileImage(), !user.getActivities().isEmpty());
+  }
+
+  @Override
+  public UserV2GetMeetingByUserDto getMeetingByUser(Integer userId) {
+    List<Meeting> meetings = meetingRepository.findAllByUserId(userId);
+
+    return UserV2GetMeetingByUserDto.of(meetings, meetings.size());
   }
 }

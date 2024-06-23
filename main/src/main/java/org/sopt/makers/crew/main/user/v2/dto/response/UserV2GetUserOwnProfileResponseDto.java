@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class UserV2GetProfileResponseDto {
+public class UserV2GetUserOwnProfileResponseDto {
     /** 유저 ID */
     private Integer id;
     /** orgId */

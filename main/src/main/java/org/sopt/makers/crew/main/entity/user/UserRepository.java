@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserRepository extends JpaRepository<User, Integer> {
 
   Optional<User> findByOrgId(Integer orgId);
-  Optional<User> findById(Integer userId);
 
   default User findByIdOrThrow(Integer userId) {
     return findById(userId).orElseThrow(() -> new UnAuthorizedException());

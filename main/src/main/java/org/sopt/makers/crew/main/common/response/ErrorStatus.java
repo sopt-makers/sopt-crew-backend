@@ -11,7 +11,7 @@ public enum ErrorStatus {
      * 204 NO_CONTENT
      */
     NO_CONTENT_EXCEPTION("참여한 모임이 없습니다."),
-
+    NO_CREATED_MEETING("생성한 모임이 없습니다."),
     /**
      * 400 BAD_REQUEST
      */
