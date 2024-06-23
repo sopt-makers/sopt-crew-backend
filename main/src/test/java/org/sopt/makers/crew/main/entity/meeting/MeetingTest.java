@@ -55,15 +55,10 @@ public class MeetingTest {
     @Test
     void 신청기간_이전에_모임_모집상태_확인(){
         // given
-        User host = User.builder().name("김철수")
-                .orgId(1)
-                .activities(List.of(new UserActivityVO("웹", 31)))
-                .profileImage(null)
-                .phone("010-2222-2222")
-                .build();
+        User hostFixture = createHostFixture();
 
         Meeting meeting = Meeting.builder()
-                .user(host)
+                .user(hostFixture)
                 .userId(1)
                 .title("모임 제목입니다")
                 .category(MeetingCategory.EVENT)
@@ -98,6 +93,15 @@ public class MeetingTest {
         Assertions.assertThat(active).isEqualTo(EnMeetingStatus.ACTIVE);
         Assertions.assertThat(activityEnd).isEqualTo(EnMeetingStatus.ACTIVITY_END);
 
+    }
+
+    private User createHostFixture(){
+        return User.builder().name("김철수")
+                .orgId(1)
+                .activities(List.of(new UserActivityVO("웹", 31)))
+                .profileImage(null)
+                .phone("010-2222-2222")
+                .build();
     }
 
 }
