@@ -9,6 +9,7 @@ import java.security.Principal;
 import java.util.List;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetApplyByUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetMeetingByUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ public interface UserV2Api {
         @ApiResponse(responseCode = "200", description = "성공"),
         @ApiResponse(responseCode = "400", description = "해당 유저가 없는 경우", content = @Content),
     })
-    public ResponseEntity<User> getUserById(Integer userId);
+    ResponseEntity<User> getUserById(Integer userId);
 
     @Operation(summary = "유저 본인 프로필 조회")
     @ResponseStatus(HttpStatus.OK)
@@ -41,12 +42,19 @@ public interface UserV2Api {
         @ApiResponse(responseCode = "200", description = "성공"),
         @ApiResponse(responseCode = "400", description = "해당 유저가 없는 경우", content = @Content),
     })
-    public ResponseEntity<UserV2GetUserOwnProfileResponseDto> getUserOwnProfile(Principal principal);
+    ResponseEntity<UserV2GetUserOwnProfileResponseDto> getUserOwnProfile(Principal principal);
 
     @Operation(summary = "내가 만든 모임 조회")
     @ResponseStatus(HttpStatus.OK)
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "성공")
     })
-    public ResponseEntity<UserV2GetMeetingByUserDto> getMeetingByUser(Principal principal);
+    ResponseEntity<UserV2GetMeetingByUserDto> getMeetingByUser(Principal principal);
+
+    @Operation(summary = "내가 신청한 모임 조회")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "성공")
+    })
+    ResponseEntity<UserV2GetApplyByUserDto> getApplyByUser(Principal principal);
 }
