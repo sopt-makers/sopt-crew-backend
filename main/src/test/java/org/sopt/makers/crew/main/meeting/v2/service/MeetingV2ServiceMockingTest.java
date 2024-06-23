@@ -184,29 +184,8 @@ public class MeetingV2ServiceMockingTest {
     public void 모집시작시간이전_모임지원시_예외발생() {
         // given
         LocalDateTime oneMinuteAfterNow = LocalDateTime.now().plusMinutes(1);
-
-        meeting = Meeting.builder()
-                .user(ownerUser)
-                .userId(ownerUser.getId())
-                .title("사람 구해요")
-                .category(MeetingCategory.STUDY)
-                .startDate(oneMinuteAfterNow) // 모집 시작 시간을 현재 시간으로부터 1분 후로 설정
-                .endDate(oneMinuteAfterNow.plusDays(1))
-                .capacity(10)
-                .desc("열정 많은 사람 구해요")
-                .processDesc("이렇게 할거에여")
-                .mStartDate(LocalDateTime.of(2028, Month.APRIL, 20, 0, 0))
-                .mEndDate(LocalDateTime.of(2030, Month.APRIL, 20, 0, 0))
-                .leaderDesc("저는 이런 사람이에요.")
-                .targetDesc("이런 사람이 왔으면 좋겠어요")
-                .note("유의사항은 이거에요")
-                .isMentorNeeded(true)
-                .canJoinOnlyActiveGeneration(true)
-                .createdGeneration(33)
-                .targetActiveGeneration(33)
-                .joinableParts(MeetingJoinablePart.values())
-                .appliedInfo(new ArrayList<>())
-                .build();
+        Meeting meeting = createMeetingFixture(ownerUser, oneMinuteAfterNow, oneMinuteAfterNow.plusDays(1),
+                LocalDateTime.of(2028, Month.APRIL, 20, 0, 0), LocalDateTime.of(2030, Month.APRIL, 20, 0, 0));
 
         MeetingV2ApplyMeetingDto requestBody = new MeetingV2ApplyMeetingDto(meeting.getId(), "열심히 하겠습니다.");
 
@@ -219,5 +198,32 @@ public class MeetingV2ServiceMockingTest {
         });
 
         assertEquals(NOT_IN_APPLY_PERIOD.getErrorCode(), exception.getMessage());
+    }
+
+    private Meeting createMeetingFixture(User ownerUser, LocalDateTime startDate, LocalDateTime endDate,
+                                         LocalDateTime mStartDate, LocalDateTime mEndDate) {
+        return Meeting.builder()
+                .user(ownerUser)
+                .userId(ownerUser.getId())
+                .title("사람 구해요")
+                .category(MeetingCategory.STUDY)
+                .startDate(startDate) // 모집 시작 시간을 현재 시간으로부터 1분 후로 설정
+                .endDate(endDate)
+                .capacity(10)
+                .desc("열정 많은 사람 구해요")
+                .processDesc("이렇게 할거에여")
+                .mStartDate(mStartDate)
+                .mEndDate(mEndDate)
+                .leaderDesc("저는 이런 사람이에요.")
+                .targetDesc("이런 사람이 왔으면 좋겠어요")
+                .note("유의사항은 이거에요")
+                .isMentorNeeded(true)
+                .canJoinOnlyActiveGeneration(true)
+                .createdGeneration(33)
+                .targetActiveGeneration(33)
+                .joinableParts(MeetingJoinablePart.values())
+                .appliedInfo(new ArrayList<>())
+                .build();
+
     }
 }
