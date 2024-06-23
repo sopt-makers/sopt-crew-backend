@@ -9,11 +9,13 @@ import java.security.Principal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.util.UserUtil;
+import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,5 +36,9 @@ public class UserV2Controller implements UserV2Api {
     return ResponseEntity.ok(userV2Service.getAllMeetingByUser(userId));
   }
 
-
+  @Override
+  @GetMapping("/{userId}")
+  public ResponseEntity<User> getUserById(@PathVariable Integer userId) {
+    return ResponseEntity.ok(userV2Service.getUserById(userId));
+  }
 }

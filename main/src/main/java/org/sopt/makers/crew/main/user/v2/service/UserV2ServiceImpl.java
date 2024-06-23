@@ -1,11 +1,14 @@
 package org.sopt.makers.crew.main.user.v2.service;
 
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_FOUND_USER;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.exception.BaseException;
+import org.sopt.makers.crew.main.common.exception.NotFoundException;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.user.User;
@@ -47,5 +50,10 @@ public class UserV2ServiceImpl implements UserV2Service {
       throw new BaseException(HttpStatus.NO_CONTENT);
     }
     return userJoinedList;
+  }
+
+  @Override
+  public User getUserById(Integer userId) {
+    return userRepository.findById(userId).orElseThrow(() -> new NotFoundException(NOT_FOUND_USER.getErrorCode()));
   }
 }

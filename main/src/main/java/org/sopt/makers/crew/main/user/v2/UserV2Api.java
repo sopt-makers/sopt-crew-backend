@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.security.Principal;
 import java.util.List;
+import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,4 +24,12 @@ public interface UserV2Api {
     })
     public ResponseEntity<List<UserV2GetAllMeetingByUserMeetingDto>> getAllMeetingByUser(
         Principal principal);
+
+    @Operation(summary = "유저 정보 조회")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "성공"),
+        @ApiResponse(responseCode = "204", description = "해당 유저가 없는 경우", content = @Content),
+    })
+    public ResponseEntity<User> getUserById(Integer userId);
 }
