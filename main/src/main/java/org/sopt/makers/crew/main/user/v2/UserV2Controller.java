@@ -22,20 +22,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/user/v2")
 @RequiredArgsConstructor
 @Tag(name = "사용자")
-public class UserV2Controller {
+public class UserV2Controller implements UserV2Api {
 
   private final UserV2Service userV2Service;
 
-  @Operation(summary = "내가 속한 모임 조회")
+  @Override
   @GetMapping("/meeting/all")
-  @ResponseStatus(HttpStatus.OK)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "성공"),
-      @ApiResponse(responseCode = "204", description = "내가 속한 모임 리스트가 없는 경우", content = @Content),
-  })
   public ResponseEntity<List<UserV2GetAllMeetingByUserMeetingDto>> getAllMeetingByUser(
       Principal principal) {
     Integer userId = UserUtil.getUserId(principal);
     return ResponseEntity.ok(userV2Service.getAllMeetingByUser(userId));
   }
+
+
 }
