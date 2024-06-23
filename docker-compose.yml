@@ -105,6 +105,10 @@ services:
       caddy.route_13.reverse_proxy: "{{ upstreams 3000 }}"
       caddy.route_14: /users/*
       caddy.route_14.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_15: /notice/v2
+      caddy.route_15.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_16: /notice/v2/*
+      caddy.route_16.reverse_proxy: "{{ upstreams 3000 }}"
 
   spring-green:
     image: makerscrew/main:latest
@@ -198,6 +202,10 @@ services:
       caddy.route_13.reverse_proxy: "{{ upstreams 3000 }}"
       caddy.route_14: /users/*
       caddy.route_14.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_15: /notice/v2
+      caddy.route_15.reverse_proxy: "{{ upstreams 3000 }}"
+      caddy.route_16: /notice/v2/*
+      caddy.route_16.reverse_proxy: "{{ upstreams 3000 }}"
 
   spring-blue:
     image: makerscrew/main:latest
