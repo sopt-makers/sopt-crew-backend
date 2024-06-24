@@ -64,8 +64,6 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION}
       - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      - nestjs
     logging:
       driver: "json-file"
       options:
@@ -130,12 +128,16 @@ services:
       caddy.route_2.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_3: /user/v2/*
       caddy.route_3.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_4: /meeting/v2/*
+      caddy.route_4: /meeting/v2
       caddy.route_4.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_5: /post/v2
+      caddy.route_5: /meeting/v2/*
       caddy.route_5.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_6: /comment/v2
+      caddy.route_6: /post/v2
       caddy.route_6.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_7: /comment/v2
+      caddy.route_7.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_8: /notice/v2
+      caddy.route_8.reverse_proxy: "{{ upstreams 4000 }}"
 
   nestjs-blue:
     image: makerscrew/server:latest
@@ -217,12 +219,16 @@ services:
       caddy.route_2.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_3: /user/v2/*
       caddy.route_3.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_4: /meeting/v2/*
+      caddy.route_4: /meeting/v2
       caddy.route_4.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_5: /post/v2
+      caddy.route_5: /meeting/v2/*
       caddy.route_5.reverse_proxy: "{{ upstreams 4000 }}"
-      caddy.route_6: /comment/v2
+      caddy.route_6: /post/v2
       caddy.route_6.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_7: /comment/v2
+      caddy.route_7.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_8: /notice/v2
+      caddy.route_8.reverse_proxy: "{{ upstreams 4000 }}"
 
 networks:
   caddy:
