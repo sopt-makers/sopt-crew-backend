@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,9 +35,10 @@ public interface PostV2Api {
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),
     })
-    @Parameters({@Parameter(name = "page", description = "페이지, default = 1", example = "1"),
-            @Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50"),
-            @Parameter(name = "meetingId", description = "모임 id", example = "0")})
+    @Parameters({
+            @Parameter(name = "page", description = "페이지, default = 1", example = "1", schema = @Schema(type = "integer", format = "int32")),
+            @Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50", schema = @Schema(type = "integer", format = "int32")),
+            @Parameter(name = "meetingId", description = "모임 id", example = "0", schema = @Schema(type = "integer", format = "int32"))})
     ResponseEntity<PostV2GetPostsResponseDto> getPosts(
             @ModelAttribute @Parameter(hidden = true) PostGetPostsCommand queryCommand, Principal principal);
 }
