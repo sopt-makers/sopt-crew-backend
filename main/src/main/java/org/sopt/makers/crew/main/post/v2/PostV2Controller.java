@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.post.v2;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.security.Principal;
@@ -40,8 +41,9 @@ public class PostV2Controller implements PostV2Api {
     @Override
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<PostV2GetPostsResponseDto> getPosts(@ModelAttribute PostGetPostsCommand queryCommand,
-                                                              Principal principal) {
+    public ResponseEntity<PostV2GetPostsResponseDto> getPosts(
+            @ModelAttribute @Parameter(hidden = true) PostGetPostsCommand queryCommand,
+            Principal principal) {
         Integer userId = UserUtil.getUserId(principal);
         return ResponseEntity.ok(postV2Service.getPosts(queryCommand, userId));
     }
