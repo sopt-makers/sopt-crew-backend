@@ -29,7 +29,7 @@ public class NoticeV2Service {
         List<Notice> notices = noticeRepository.findByExposeStartDateBeforeAndExposeEndDateAfter(LocalDateTime.now(),
                 LocalDateTime.now());
         return notices.stream()
-                .map(notice -> NoticeV2GetResponseDto.of(notice.getTitle(), notice.getSubTitle(), notice.getContents(),
+                .map(notice -> NoticeV2GetResponseDto.of(notice.getId(), notice.getTitle(), notice.getSubTitle(), notice.getContents(),
                         notice.getCreatedDate()))
                 .toList();
     }

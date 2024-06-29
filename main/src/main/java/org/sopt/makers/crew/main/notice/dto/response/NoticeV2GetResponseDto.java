@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor(staticName = "of")
 public class NoticeV2GetResponseDto {
+    private final Integer id;
     private final String title;
     private final String subTitle;
     private final String contents;
