@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.entity.user;
 
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.NO_CONTENT_EXCEPTION;
 
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.Optional;
 import org.sopt.makers.crew.main.common.exception.NoContentException;
 import org.sopt.makers.crew.main.common.exception.UnAuthorizedException;
