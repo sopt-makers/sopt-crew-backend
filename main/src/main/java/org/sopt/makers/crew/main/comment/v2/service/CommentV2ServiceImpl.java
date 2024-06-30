@@ -39,7 +39,6 @@ public class CommentV2ServiceImpl implements CommentV2Service {
    */
   @Override
   @Transactional
-
   public CommentV2CreateCommentResponseDto createComment(CommentV2CreateCommentBodyDto requestBody,
       Integer userId) {
     Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
@@ -68,5 +67,26 @@ public class CommentV2ServiceImpl implements CommentV2Service {
     pushNotificationService.sendPushNotification(pushRequestDto);
 
     return CommentV2CreateCommentResponseDto.of(savedComment.getId());
+  }
+
+  /**
+   * 모임 게시글 댓글 삭제
+   *
+   * @throws 400 댓글 작성자가 아닐 때
+   * @apiNote 댓글 삭제시 게시글의 댓글 수를 1 감소시킴
+   */
+  @Override
+  @Transactional
+  public void deleteComment(Integer commentId, Integer userId) {
+    Comment comment = commentRepository.findByIdOrThrow(commentId);
+
+    if (!comment.getUser().getId().equals(userId)) {
+      throw new SecurityException("댓글 작성자만 삭제할 수 있습니다.");
+    }
+
+    Post post = comment.getPost();
+
+    post.decreaseCommentCount();
+    commentRepository.delete(comment);
   }
 }

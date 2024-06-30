@@ -137,8 +137,12 @@ export class CommentV1Controller {
     });
   }
 
+  /**
+   * @deprecated
+   */
   @ApiOperation({
     summary: '모임 게시글 댓글 삭제',
+    deprecated: true,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
