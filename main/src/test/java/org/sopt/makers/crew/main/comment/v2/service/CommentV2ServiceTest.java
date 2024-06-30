@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -55,7 +56,7 @@ public class CommentV2ServiceTest {
         doReturn(comment).when(commentRepository).findByIdOrThrow(any());
 
         // when
-        commentV2Service.deleteComment(comment.getId(), comment.getUser().getId());
+        commentV2Service.deleteComment(comment.getId(), user.getId());
 
         // then
         Assertions.assertThat(commentRepository.findById(comment.getId())).isEqualTo(Optional.empty());
@@ -68,7 +69,7 @@ public class CommentV2ServiceTest {
         doReturn(comment).when(commentRepository).findByIdOrThrow(any());
 
         // when & then
-        assertThrows(SecurityException.class, () -> {
+        assertThrows(ForbiddenException.class, () -> {
             commentV2Service.deleteComment(comment.getId(), comment.getUser().getId() + 1);
         });
     }
