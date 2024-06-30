@@ -132,6 +132,7 @@ public class Comment {
     public Comment(String contents, User user, Post post, Comment parent) {
         this.contents = contents;
         this.user = user;
+        this.userId = user.getId();
         this.post = post;
         this.parent = parent;
         this.depth = 0;
