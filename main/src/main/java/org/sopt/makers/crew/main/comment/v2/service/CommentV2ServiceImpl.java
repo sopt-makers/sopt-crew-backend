@@ -6,6 +6,7 @@ import static org.sopt.makers.crew.main.internal.notification.PushNotificationEn
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2CreateCommentBodyDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
+import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.common.response.ErrorStatus;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
@@ -77,20 +78,22 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
   /**
    * 댓글 신고하기
+   *
    * @param commentId 댓글 신고할 댓글 id
-   * @param userId 신고하는 유저 id
+   * @param userId    신고하는 유저 id
    * @return 신고 ID
+   * @throws BadRequestException 이미 신고한 댓글일 때
    * @apiNote 댓글 신고는 한 댓글당 한번만 가능
-   * @throws 400 이미 신고한 댓글일 때
    */
   @Override
   @Transactional
-  public CommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId) {
+  public CommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId)
+      throws BadRequestException {
     Comment comment = commentRepository.findByIdOrThrow(commentId);
     User user = userRepository.findByIdOrThrow(userId);
 
     reportRepository.findByCommentAndUser(comment, user).ifPresent(report -> {
-      throw new IllegalArgumentException("이미 신고한 댓글입니다.");
+      throw new BadRequestException(ErrorStatus.ALREADY_REPORTED_COMMENT.getErrorCode());
     });
 
     Report report = Report.builder()
@@ -106,7 +109,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
   /**
    * 모임 게시글 댓글 삭제
    *
-   * @exception ForbiddenException 댓글 작성자가 아닐 때
+   * @throws ForbiddenException 댓글 작성자가 아닐 때
    * @apiNote 댓글 삭제시 게시글의 댓글 수를 1 감소시킴
    */
   @Override
