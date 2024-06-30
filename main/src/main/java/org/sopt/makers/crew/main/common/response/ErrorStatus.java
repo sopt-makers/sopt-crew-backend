@@ -19,6 +19,7 @@ public enum ErrorStatus {
     VALIDATION_REQUEST_MISSING_EXCEPTION("요청값이 입력되지 않았습니다."),
     NOT_FOUND_MEETING("모임이 없습니다."),
     NOT_FOUND_POST("존재하지 않는 게시글입니다."),
+    NOT_FOUND_COMMENT("존재하지 않는 댓글입니다."),
     FULL_MEETING_CAPACITY("정원이 꽉 찼습니다."),
     ALREADY_APPLIED_MEETING("이미 지원한 모임입니다."),
     NOT_IN_APPLY_PERIOD("모임 지원 기간이 아닙니다."),
