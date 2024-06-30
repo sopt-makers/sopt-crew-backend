@@ -149,7 +149,11 @@ public class Post {
         this.commentCount++;
     }
 
-    public void addReport(Report report) {
-        this.reports.add(report);
-    }
+  public void addReport(Report report) {
+    this.reports.add(report);
+  }
+
+  public void decreaseCommentCount() {
+    this.commentCount--;
+  }
 }

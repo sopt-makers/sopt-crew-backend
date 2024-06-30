@@ -7,4 +7,6 @@ public interface CommentV2Service {
 
   CommentV2CreateCommentResponseDto createComment(CommentV2CreateCommentBodyDto requestBody,
       Integer userId);
+
+  void deleteComment(Integer commentId, Integer userId);
 }

@@ -32,12 +32,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "comment")
 public class Comment {
 
-    /**
-     * 댓글의 고유 식별자
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+  /**
+   * 댓글의 고유 식별자
+   */
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
 
     /**
      * 댓글 내용
@@ -110,11 +110,11 @@ public class Comment {
     @JoinColumn(name = "parentId")
     private Comment parent;
 
-    /**
-     * 부모 댓글의 고유 식별자
-     */
-    @Column(insertable = false, updatable = false)
-    private int parentId;
+  /**
+   * 부모 댓글의 고유 식별자
+   */
+  @Column(insertable = false, updatable = false)
+  private Integer parentId;
 
     /**
      * 자식 댓글 목록
