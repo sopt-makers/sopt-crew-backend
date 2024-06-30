@@ -3,6 +3,7 @@ package org.sopt.makers.crew.main.comment.v2.service;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_PUSH_NOTIFICATION_TITLE;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2CreateCommentBodyDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
@@ -92,9 +93,11 @@ public class CommentV2ServiceImpl implements CommentV2Service {
     Comment comment = commentRepository.findByIdOrThrow(commentId);
     User user = userRepository.findByIdOrThrow(userId);
 
-    reportRepository.findByCommentAndUser(comment, user).ifPresent(report -> {
+    Optional<Report> existingReport = reportRepository.findByCommentAndUser(comment, user);
+    
+    if (existingReport.isPresent()) {
       throw new BadRequestException(ErrorStatus.ALREADY_REPORTED_COMMENT.getErrorCode());
-    });
+    }
 
     Report report = Report.builder()
         .comment(comment)
