@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.entity.user;
 
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.*;
+
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -10,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +21,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
+import org.sopt.makers.crew.main.common.exception.ServerException;
+import org.sopt.makers.crew.main.common.response.ErrorStatus;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -117,5 +122,12 @@ public class User {
 
     public void setUserIdForTest(Integer userId) {
         this.id = userId;
+    }
+
+    public UserActivityVO getRecentActivityVO(){
+        return activities.stream()
+                .filter(userActivityVO -> userActivityVO.getPart() != null)
+                .max(Comparator.comparingInt(UserActivityVO::getGeneration))
+                .orElseThrow(() -> new ServerException(INTERNAL_SERVER_ERROR.getErrorCode()));
     }
 }
