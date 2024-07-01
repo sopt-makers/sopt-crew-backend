@@ -1,7 +1,6 @@
 package org.sopt.makers.crew.main.meeting.v2.dto.response;
 
 import com.querydsl.core.annotations.QueryProjection;
-import java.util.Comparator;
 import java.util.List;
 import lombok.Getter;
 import org.sopt.makers.crew.main.common.util.UserUtil;

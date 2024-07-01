@@ -15,6 +15,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingRe
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -91,5 +91,14 @@ public class MeetingV2Controller implements MeetingV2Api {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(meetingV2Service.findApplyList(queryCommand, meetingId, userId));
+    }
+
+    @Override
+    @GetMapping("/{meetingId}")
+    public ResponseEntity<MeetingV2GetMeetingByIdResponseDto> getMeetingById(@PathVariable Integer meetingId,
+                                                                             Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+
+        return ResponseEntity.ok(meetingV2Service.getMeetingById(meetingId, userId));
     }
 }

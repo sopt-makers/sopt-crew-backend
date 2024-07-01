@@ -219,8 +219,8 @@ public class Meeting {
         appliedInfo.add(apply);
     }
 
-    public void addPost(Post post) {
-        posts.add(post);
+    public Boolean isHost(Integer userId){
+        return this.getUserId().equals(userId);
     }
 
     /**
@@ -228,14 +228,17 @@ public class Meeting {
      *
      * @return 모임 모집상태
      */
-    public Integer getMeetingStatus() {
-        LocalDateTime now = LocalDateTime.now();
+    public EnMeetingStatus getMeetingStatus(LocalDateTime now) {
         if (now.isBefore(startDate)) {
-            return EnMeetingStatus.BEFORE_START.getValue();
+            return EnMeetingStatus.BEFORE_RECRUITMENT;
         } else if (now.isBefore(endDate)) {
-            return EnMeetingStatus.APPLY_ABLE.getValue();
+            return EnMeetingStatus.RECRUITING;
+        } else if (now.isBefore(mStartDate)) {
+            return EnMeetingStatus.CLOSE_RECRUITMENT;
+        } else if (now.isBefore(mEndDate)) {
+            return EnMeetingStatus.ACTIVE;
         } else {
-            return EnMeetingStatus.RECRUITMENT_COMPLETE.getValue();
+            return EnMeetingStatus.ACTIVITY_END;
         }
     }
 }
