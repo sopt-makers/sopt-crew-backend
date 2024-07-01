@@ -8,7 +8,7 @@ import lombok.Getter;
 public class UserV2GetAllMentionUserDto {
     private Integer userId;
     private String userName;
-    private String part;
+    private String recentPart;
     private int recentGeneration;
     private String profileImageUrl;
 }
