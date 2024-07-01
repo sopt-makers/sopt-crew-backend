@@ -8,5 +8,5 @@ public interface UserV2Service {
 
   List<UserV2GetAllMeetingByUserMeetingDto> getAllMeetingByUser(Integer userId);
 
-  List<UserV2GetAllMentionUserDto> getAllMentionUser(Integer userId);
+  List<UserV2GetAllMentionUserDto> getAllMentionUser();
 }

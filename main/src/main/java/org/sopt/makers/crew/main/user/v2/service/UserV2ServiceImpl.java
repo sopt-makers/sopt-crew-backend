@@ -51,7 +51,7 @@ public class UserV2ServiceImpl implements UserV2Service {
     }
 
     @Override
-    public List<UserV2GetAllMentionUserDto> getAllMentionUser(Integer userId) {
+    public List<UserV2GetAllMentionUserDto> getAllMentionUser() {
 
         List<User> users = userRepository.findAll();
 

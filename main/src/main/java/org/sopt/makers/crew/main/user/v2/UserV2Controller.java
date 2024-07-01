@@ -32,7 +32,7 @@ public class UserV2Controller implements UserApi {
     @GetMapping("/mention")
     public ResponseEntity<List<UserV2GetAllMentionUserDto>> getAllMentionUser(
             Principal principal) {
-        Integer userId = UserUtil.getUserId(principal);
-        return ResponseEntity.ok(userV2Service.getAllMentionUser(userId));
+        UserUtil.getUserId(principal);
+        return ResponseEntity.ok(userV2Service.getAllMentionUser());
     }
 }
