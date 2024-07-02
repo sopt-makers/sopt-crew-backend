@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/post/v2")
 @RequiredArgsConstructor
-@Tag(name = "게시글")
 public class PostV2Controller implements PostV2Api {
 
     private final PostV2Service postV2Service;
