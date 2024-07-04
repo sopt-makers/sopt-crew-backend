@@ -1,7 +1,7 @@
 package org.sopt.makers.crew.main.comment.v2.service;
 
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_MENTION_PUSH_NOTIFICATION_TITLE;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
 
 import lombok.RequiredArgsConstructor;
@@ -88,12 +88,12 @@ public class CommentV2ServiceImpl implements CommentV2Service {
             .map(mentionedUser -> String.valueOf(mentionedUser.getOrgId()))
             .toArray(String[]::new);
 
-        String newMentionPushNotificationTitle = String.format(
-            NEW_MENTION_PUSH_NOTIFICATION_TITLE.getValue(), user.getName());
+        String newCommentMentionPushNotificationTitle = String.format(
+            NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE.getValue(), user.getName());
 
         PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(
             userIdsArray,
-            newMentionPushNotificationTitle,
+            newCommentMentionPushNotificationTitle,
             pushNotificationContent,
             PUSH_NOTIFICATION_CATEGORY.getValue(),
             pushNotificationWeblink

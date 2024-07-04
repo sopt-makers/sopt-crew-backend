@@ -40,7 +40,7 @@ public class CommentV2Controller {
         return ResponseEntity.ok(commentV2Service.createComment(requestBody, userId));
     }
 
-    @Operation(summary = "댓글에서 유저 언급")
+    @Operation(summary = "댓글에서 유저 멘션")
     @PostMapping("/mention")
     @ResponseStatus(HttpStatus.OK)
     @ApiResponses(value = {
