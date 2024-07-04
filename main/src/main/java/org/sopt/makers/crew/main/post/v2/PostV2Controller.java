@@ -1,13 +1,13 @@
 package org.sopt.makers.crew.main.post.v2;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.sopt.makers.crew.main.post.v2.service.PostV2Service;
@@ -32,7 +32,7 @@ public class PostV2Controller implements PostV2Api {
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<PostV2CreatePostResponseDto> createPost(
-            @Valid @RequestBody PostV2CreatePostBodyDto requestBody, Principal principal) {
+        @Valid @RequestBody PostV2CreatePostBodyDto requestBody, Principal principal) {
         Integer userId = UserUtil.getUserId(principal);
         return ResponseEntity.ok(postV2Service.createPost(requestBody, userId));
     }
@@ -41,9 +41,20 @@ public class PostV2Controller implements PostV2Api {
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<PostV2GetPostsResponseDto> getPosts(
-            @ModelAttribute @Parameter(hidden = true) PostGetPostsCommand queryCommand,
-            Principal principal) {
+        @ModelAttribute @Parameter(hidden = true) PostGetPostsCommand queryCommand,
+        Principal principal) {
         Integer userId = UserUtil.getUserId(principal);
         return ResponseEntity.ok(postV2Service.getPosts(queryCommand, userId));
+    }
+
+
+    @Override
+    @PostMapping("/mention")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Void> mentionUserInPost(
+        @Valid @RequestBody PostV2MentionUserInPostRequestDto requestBody, Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        postV2Service.mentionUserInPost(requestBody, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

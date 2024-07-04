@@ -8,13 +8,13 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2CreateCommentBodyDto;
+import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2MentionUserInCommentRequestDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.service.CommentV2Service;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,45 +29,59 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "댓글/대댓글")
 public class CommentV2Controller {
 
-  private final CommentV2Service commentV2Service;
+    private final CommentV2Service commentV2Service;
 
-  @Operation(summary = "모임 게시글 댓글 작성")
-  @PostMapping()
-  @ResponseStatus(HttpStatus.CREATED)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "201", description = "성공"),
-  })
-  public ResponseEntity<CommentV2CreateCommentResponseDto> createComment(
-      @Valid @RequestBody CommentV2CreateCommentBodyDto requestBody, Principal principal) {
-    Integer userId = UserUtil.getUserId(principal);
-    return ResponseEntity.ok(commentV2Service.createComment(requestBody, userId));
-  }
+    @Operation(summary = "모임 게시글 댓글 작성")
+    @PostMapping()
+    @ResponseStatus(HttpStatus.CREATED)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "성공"),
+    })
+    public ResponseEntity<CommentV2CreateCommentResponseDto> createComment(
+        @Valid @RequestBody CommentV2CreateCommentBodyDto requestBody, Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        return ResponseEntity.ok(commentV2Service.createComment(requestBody, userId));
+    }
 
-  @Operation(summary = "댓글 신고하기")
-  @PostMapping("/{commentId}/report")
-  @ResponseStatus(HttpStatus.CREATED)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "201", description = "성공"),
-  })
-  public ResponseEntity<CommentV2ReportCommentResponseDto> reportComment(
-      @PathVariable Integer commentId, Principal principal) {
-    Integer userId = UserUtil.getUserId(principal);
-    return ResponseEntity.ok(commentV2Service.reportComment(commentId, userId));
-  }
-  @Operation(summary = "모임 게시글 댓글 삭제")
-  @DeleteMapping("/{commentId}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "204", description = "성공"),
-  })
-  public ResponseEntity<Void> deleteComment(
-      Principal principal,
-      @PathVariable Integer commentId) {
-    Integer userId = UserUtil.getUserId(principal);
+    @Operation(summary = "댓글 신고하기")
+    @PostMapping("/{commentId}/report")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "성공"),
+    })
+    public ResponseEntity<CommentV2ReportCommentResponseDto> reportComment(
+        @PathVariable Integer commentId, Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        return ResponseEntity.ok(commentV2Service.reportComment(commentId, userId));
+    }
 
-    commentV2Service.deleteComment(commentId, userId);
+    @Operation(summary = "모임 게시글 댓글 삭제")
+    @DeleteMapping("/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "성공"),
+    })
+    public ResponseEntity<Void> deleteComment(
+        Principal principal,
+        @PathVariable Integer commentId) {
+        Integer userId = UserUtil.getUserId(principal);
 
-    return ResponseEntity.noContent().build();
-  }
+        commentV2Service.deleteComment(commentId, userId);
 
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "댓글에서 유저 멘션")
+    @PostMapping("/mention")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "성공"),
+    })
+    public ResponseEntity<Void> mentionUserInComment(
+        @Valid @RequestBody CommentV2MentionUserInCommentRequestDto requestBody,
+        Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        commentV2Service.mentionUserInComment(requestBody, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }
