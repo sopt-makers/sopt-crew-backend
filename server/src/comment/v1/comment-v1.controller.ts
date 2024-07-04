@@ -74,8 +74,12 @@ export class CommentV1Controller {
     return this.commentV1Service.switchCommentLike({ param, user });
   }
 
+  /**
+   * @deprecated
+   */
   @ApiOperation({
     summary: '댓글 신고',
+    deprecated: true,
   })
   @ApiOkResponseCommon(CommentV1ReportCommentResponseDto)
   @ApiResponse({
@@ -137,8 +141,12 @@ export class CommentV1Controller {
     });
   }
 
+  /**
+   * @deprecated
+   */
   @ApiOperation({
     summary: '모임 게시글 댓글 삭제',
+    deprecated: true,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,

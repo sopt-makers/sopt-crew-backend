@@ -2,13 +2,14 @@ package org.sopt.makers.crew.main.post.v2.service;
 
 import static java.util.stream.Collectors.toList;
 import static org.sopt.makers.crew.main.common.response.ErrorStatus.FORBIDDEN_EXCEPTION;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_POST_MENTION_PUSH_NOTIFICATION_TITLE;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_POST_PUSH_NOTIFICATION_TITLE;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
+import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
@@ -19,10 +20,14 @@ import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.internal.notification.PushNotificationService;
 import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
-import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,13 +54,13 @@ public class PostV2ServiceImpl implements PostV2Service {
     @Override
     @Transactional
     public PostV2CreatePostResponseDto createPost(PostV2CreatePostBodyDto requestBody,
-        Integer userId) {
+                                                  Integer userId) {
         Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
         User user = userRepository.findByIdOrThrow(userId);
 
         boolean isInMeeting = meeting.getAppliedInfo().stream()
-            .anyMatch(apply -> apply.getUserId().equals(userId)
-                && apply.getStatus() == EnApplyStatus.APPROVE);
+                .anyMatch(apply -> apply.getUserId().equals(userId)
+                        && apply.getStatus() == EnApplyStatus.APPROVE);
 
         boolean isMeetingCreator = meeting.getUserId().equals(userId);
 
@@ -64,30 +69,30 @@ public class PostV2ServiceImpl implements PostV2Service {
         }
 
         Post post = Post.builder()
-            .title(requestBody.getTitle())
-            .user(user)
-            .contents(requestBody.getContents())
-            .images(requestBody.getImages())
-            .meeting(meeting)
-            .build();
+                .title(requestBody.getTitle())
+                .user(user)
+                .contents(requestBody.getContents())
+                .images(requestBody.getImages())
+                .meeting(meeting)
+                .build();
 
         Post savedPost = postRepository.save(post);
 
         List<String> userIdList = applyRepository.findAllByMeetingIdAndStatus(meeting.getId(),
-                EnApplyStatus.APPROVE)
-            .stream()
-            .map(apply -> String.valueOf(apply.getUser().getOrgId()))
-            .collect(toList());
+                        EnApplyStatus.APPROVE)
+                .stream()
+                .map(apply -> String.valueOf(apply.getUser().getOrgId()))
+                .collect(toList());
 
         String[] userIds = userIdList.toArray(new String[0]);
         String pushNotificationContent = String.format("[%s의 새 글] : \"%s\"",
-            user.getName(), post.getTitle());
+                user.getName(), post.getTitle());
         String pushNotificationWeblink = pushWebUrl + "/detail?id=" + meeting.getId();
 
         PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(userIds,
-            NEW_POST_PUSH_NOTIFICATION_TITLE.getValue(),
-            pushNotificationContent,
-            PUSH_NOTIFICATION_CATEGORY.getValue(), pushNotificationWeblink);
+                NEW_POST_PUSH_NOTIFICATION_TITLE.getValue(),
+                pushNotificationContent,
+                PUSH_NOTIFICATION_CATEGORY.getValue(), pushNotificationWeblink);
 
         pushNotificationService.sendPushNotification(pushRequestDto);
 
@@ -95,27 +100,14 @@ public class PostV2ServiceImpl implements PostV2Service {
     }
 
     @Override
-    public void mentionUserInPost(PostV2MentionUserInPostRequestDto requestBody, Integer userId) {
-        User user = userRepository.findByIdOrThrow(userId);
-        Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
+    @Transactional(readOnly = true)
+    public PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, Integer userId) {
+        Page<PostDetailResponseDto> meetingPostListDtos = postRepository.findPostList(queryCommand,
+                PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()), userId);
 
-        String pushNotificationContent = String.format("[%s의 글] : \"%s\"",
-            user.getName(), post.getTitle());
-        String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
+        PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
+        PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int) meetingPostListDtos.getTotalElements());
 
-        String[] userIdsArray = requestBody.getUserIds().stream()
-            .map(userRepository::findByIdOrThrow)
-            .map(mentionedUser -> String.valueOf(mentionedUser.getOrgId()))
-            .toArray(String[]::new);
-
-        PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(
-            userIdsArray,
-            NEW_POST_MENTION_PUSH_NOTIFICATION_TITLE.getValue(),
-            pushNotificationContent,
-            PUSH_NOTIFICATION_CATEGORY.getValue(),
-            pushNotificationWeblink
-        );
-
-        pushNotificationService.sendPushNotification(pushRequestDto);
+        return PostV2GetPostsResponseDto.of(meetingPostListDtos.getContent(), pageMetaDto);
     }
 }

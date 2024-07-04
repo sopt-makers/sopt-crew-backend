@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.entity.user;
 
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.*;
+
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -10,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,8 +21,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
+import org.sopt.makers.crew.main.common.exception.ServerException;
+import org.sopt.makers.crew.main.common.response.ErrorStatus;
 import org.sopt.makers.crew.main.entity.apply.Apply;
-import org.sopt.makers.crew.main.entity.like.Like;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.report.Report;
@@ -54,7 +58,7 @@ public class User {
     /**
      * 활동 목록
      */
-    @Column(name = "activities",columnDefinition = "jsonb")
+    @Column(name = "activities", columnDefinition = "jsonb")
     @Type(JsonBinaryType.class)
     private List<UserActivityVO> activities;
 
@@ -89,12 +93,6 @@ public class User {
     private List<Post> posts = new ArrayList<>();
 
     /**
-     * 좋아요
-     */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Like> likes = new ArrayList<>();
-
-    /**
      * 신고 내역
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
@@ -118,13 +116,18 @@ public class User {
         this.applies.add(apply);
     }
 
-    public void addLike(Like like) {
-        this.likes.add(like);
-    }
-
     public void addReport(Report report) {
         this.reports.add(report);
     }
 
-    public void setUserIdForTest(Integer userId){ this.id = userId;}
+    public void setUserIdForTest(Integer userId) {
+        this.id = userId;
+    }
+
+    public UserActivityVO getRecentActivityVO(){
+        return activities.stream()
+                .filter(userActivityVO -> userActivityVO.getPart() != null)
+                .max(Comparator.comparingInt(UserActivityVO::getGeneration))
+                .orElseThrow(() -> new ServerException(INTERNAL_SERVER_ERROR.getErrorCode()));
+    }
 }
