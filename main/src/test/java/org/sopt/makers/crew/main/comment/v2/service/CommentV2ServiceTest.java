@@ -4,6 +4,8 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.comment.Comment;
@@ -57,6 +60,43 @@ public class CommentV2ServiceTest {
     post.addComment(this.comment);
 
     this.report = Report.builder().comment(comment).user(user).build();
+  }
+
+  @Nested
+  class 댓글_수정 {
+
+    @Test
+    void 성공() {
+      // given
+      String updatedContents = "updatedContents";
+      LocalDateTime expectedUpdatedDate = LocalDateTime.now();
+
+      doReturn(comment).when(commentRepository).findByIdOrThrow(any());
+
+      // when
+      CommentV2UpdateCommentResponseDto result = commentV2Service.updateComment(comment.getId(),
+          updatedContents, user.getId());
+
+      // then
+      Assertions.assertThat(result.getId()).isEqualTo(comment.getId());
+      Assertions.assertThat(result.getContents()).isEqualTo(updatedContents);
+      Assertions.assertThat(LocalDateTime.parse(result.getUpdateDate()))
+          .isCloseTo(expectedUpdatedDate,
+              Assertions.within(1, ChronoUnit.SECONDS)
+          );
+    }
+
+    @Test
+    void 실패_본인_작성_댓글_아님() {
+      // given
+      doReturn(comment).when(commentRepository).findByIdOrThrow(any());
+
+      // when & then
+      assertThrows(ForbiddenException.class, () -> {
+        commentV2Service.updateComment(comment.getId(), "updatedContents",
+            comment.getUser().getId() + 1);
+      });
+    }
   }
 
   @Nested

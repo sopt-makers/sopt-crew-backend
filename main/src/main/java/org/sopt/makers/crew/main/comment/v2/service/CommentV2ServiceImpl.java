@@ -7,10 +7,11 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2CreateCommentBodyDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.common.response.ErrorStatus;
-import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -37,7 +38,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
   private final PushNotificationService pushNotificationService;
 
   @Value("${push-notification.web-url}")
-  private String pushWebUrl;
+  private java.lang.String pushWebUrl;
 
   /**
    * 모임 게시글 댓글 작성
@@ -61,11 +62,11 @@ public class CommentV2ServiceImpl implements CommentV2Service {
     Comment savedComment = commentRepository.save(comment);
 
     User PostWriter = post.getUser();
-    String[] userIds = {String.valueOf(PostWriter.getOrgId())};
+    java.lang.String[] userIds = {java.lang.String.valueOf(PostWriter.getOrgId())};
 
-    String pushNotificationContent = String.format("[%s의 댓글] : \"%s\"",
+    java.lang.String pushNotificationContent = java.lang.String.format("[%s의 댓글] : \"%s\"",
         user.getName(), requestBody.getContents());
-    String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
+    java.lang.String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
     PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(userIds,
         NEW_COMMENT_PUSH_NOTIFICATION_TITLE.getValue(),
@@ -75,6 +76,34 @@ public class CommentV2ServiceImpl implements CommentV2Service {
     pushNotificationService.sendPushNotification(pushRequestDto);
 
     return CommentV2CreateCommentResponseDto.of(savedComment.getId());
+  }
+
+
+  /**
+   * 모임 게시글 댓글 수정
+   *
+   * @param commentId 수정할 댓글 ID
+   * @param contents  수정할 내용
+   * @param userId    수정하는 유저 ID
+   * @return 수정된 댓글 정보
+   */
+  @Override
+  public CommentV2UpdateCommentResponseDto updateComment(Integer commentId,
+      String contents, Integer userId) {
+    // 1. id를 기반으로 comment를 찾는다.
+    Comment comment = commentRepository.findByIdOrThrow(commentId);
+
+    // 2. comment의 user_id와 userId가 같은지 확인한다.
+    if (!comment.getUserId().equals(userId)) {
+      throw new ForbiddenException();
+    }
+
+    // 3. comment의 contents를 수정한다.
+    comment.updateContents(contents);
+
+    // 4. 수정된 comment의 id, contents, updatedDate를 반환한다.
+    return CommentV2UpdateCommentResponseDto.of(comment.getId(), comment.getContents(),
+        String.valueOf(comment.getUpdatedDate()));
   }
 
   /**
@@ -94,7 +123,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
     User user = userRepository.findByIdOrThrow(userId);
 
     Optional<Report> existingReport = reportRepository.findByCommentAndUser(comment, user);
-    
+
     if (existingReport.isPresent()) {
       throw new BadRequestException(ErrorStatus.ALREADY_REPORTED_COMMENT.getErrorCode());
     }
