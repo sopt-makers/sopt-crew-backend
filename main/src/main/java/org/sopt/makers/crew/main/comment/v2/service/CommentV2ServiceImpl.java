@@ -143,8 +143,8 @@ public class CommentV2ServiceImpl implements CommentV2Service {
             user.getName(), requestBody.getContent());
         String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
-        String[] userIdsArray = requestBody.getUserIds().stream()
-            .map(userRepository::findByIdOrThrow)
+        String[] userOrgIds = userRepository.findByIdIn(requestBody.getUserIds())
+            .stream()
             .map(mentionedUser -> String.valueOf(mentionedUser.getOrgId()))
             .toArray(String[]::new);
 
@@ -152,7 +152,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
             NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE.getValue(), user.getName());
 
         PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(
-            userIdsArray,
+            userOrgIds,
             newCommentMentionPushNotificationTitle,
             pushNotificationContent,
             PUSH_NOTIFICATION_CATEGORY.getValue(),
