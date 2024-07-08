@@ -3,6 +3,7 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
@@ -53,6 +54,6 @@ public class MeetingV2GetMeetingBannerResponseDto {
     private Integer approvedUserCount;
     /** 개설자 정보 */
     private Optional<MeetingV2GetMeetingBannerResponseUserDto> user;
-    /** 미팅 상태 */
-    private Integer status;
+    /** 모임 상태 */
+    private EnMeetingStatus status;
 }

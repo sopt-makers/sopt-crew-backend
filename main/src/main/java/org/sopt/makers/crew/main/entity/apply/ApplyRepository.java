@@ -20,18 +20,14 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 
     List<Apply> findAllByMeetingIdAndStatus(Integer meetingId, EnApplyStatus statusValue);
 
+    @Query("select a from Apply a join fetch a.user u where a.meetingId = :meetingId")
+    List<Apply> findAllByMeetingIdWithUser(Integer meetingId);
+
     boolean existsByMeetingIdAndUserId(Integer meetingId, Integer userId);
 
     @Transactional
     @Modifying
     @Query("delete from Apply a where a.meeting.id = :meetingId and a.userId = :userId")
     void deleteByMeetingIdAndUserId(@Param("meetingId") Integer meetingId, @Param("userId") Integer userId);
-
-    Optional<Apply> findById(Integer applyId);
-
-    default Apply findByIdOrThrow(Integer applyId) {
-        return findById(applyId)
-                .orElseThrow(() -> new BadRequestException(NOT_FOUND_APPLY.getErrorCode()));
-    }
 
 }
