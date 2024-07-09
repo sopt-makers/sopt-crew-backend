@@ -12,6 +12,7 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentR
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.common.response.ErrorStatus;
+import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -38,7 +39,9 @@ public class CommentV2ServiceImpl implements CommentV2Service {
   private final PushNotificationService pushNotificationService;
 
   @Value("${push-notification.web-url}")
-  private java.lang.String pushWebUrl;
+  private String pushWebUrl;
+
+  private final Time time;
 
   /**
    * 모임 게시글 댓글 작성
@@ -62,11 +65,11 @@ public class CommentV2ServiceImpl implements CommentV2Service {
     Comment savedComment = commentRepository.save(comment);
 
     User PostWriter = post.getUser();
-    java.lang.String[] userIds = {java.lang.String.valueOf(PostWriter.getOrgId())};
+    String[] userIds = {String.valueOf(PostWriter.getOrgId())};
 
-    java.lang.String pushNotificationContent = java.lang.String.format("[%s의 댓글] : \"%s\"",
+    String pushNotificationContent = String.format("[%s의 댓글] : \"%s\"",
         user.getName(), requestBody.getContents());
-    java.lang.String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
+    String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
     PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(userIds,
         NEW_COMMENT_PUSH_NOTIFICATION_TITLE.getValue(),
@@ -88,18 +91,17 @@ public class CommentV2ServiceImpl implements CommentV2Service {
    * @return 수정된 댓글 정보
    */
   @Override
+  @Transactional
   public CommentV2UpdateCommentResponseDto updateComment(Integer commentId,
       String contents, Integer userId) {
     // 1. id를 기반으로 comment를 찾는다.
     Comment comment = commentRepository.findByIdOrThrow(commentId);
 
     // 2. comment의 user_id와 userId가 같은지 확인한다.
-    if (!comment.getUserId().equals(userId)) {
-      throw new ForbiddenException();
-    }
+    comment.isWriter(userId);
 
     // 3. comment의 contents를 수정한다.
-    comment.updateContents(contents);
+    comment.updateContents(contents, time.now());
 
     // 4. 수정된 comment의 id, contents, updatedDate를 반환한다.
     return CommentV2UpdateCommentResponseDto.of(comment.getId(), comment.getContents(),

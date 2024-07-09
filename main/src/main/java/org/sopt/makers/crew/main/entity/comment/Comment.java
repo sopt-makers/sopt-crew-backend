@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.entity.comment;
 
-import jakarta.persistence.CascadeType;
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.*;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -10,16 +11,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.post.Post;
-import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -95,7 +95,7 @@ public class Comment {
    * 댓글이 속한 게시글의 고유 식별자
    */
   @Column(insertable = false, updatable = false)
-  private int postId;
+  private Integer postId;
 
   /**
    * 댓글에 대한 좋아요 수
@@ -116,17 +116,6 @@ public class Comment {
   @Column(insertable = false, updatable = false)
   private Integer parentId;
 
-  /**
-   * 자식 댓글 목록
-   */
-  @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE)
-  private List<Comment> children;
-
-  /**
-   * 댓글에 대한 신고 목록
-   */
-  @OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE)
-  private List<Report> reports;
 
   @Builder
   public Comment(String contents, User user, Post post, Comment parent) {
@@ -141,16 +130,16 @@ public class Comment {
     this.post.addComment(this);
   }
 
-  public void updateContents(String contents) {
+  public void updateContents(String contents,LocalDateTime updatedDate) {
     this.contents = contents;
-    this.updatedDate = LocalDateTime.now();
+    this.updatedDate = updatedDate;
   }
 
-  public void addChildrenComment(Comment comment) {
-    this.children.add(comment);
+  public void isWriter(Integer userId){
+    boolean isWriter = this.userId.equals(userId);
+    if (!isWriter) {
+      throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
+    }
   }
 
-  public void addReport(Report report) {
-    this.reports.add(report);
-  }
 }
