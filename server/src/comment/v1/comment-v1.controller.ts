@@ -117,8 +117,12 @@ export class CommentV1Controller {
     return this.commentV1Service.createPostComment({ body, user });
   }
 
+  /**
+   * @deprecated
+   */
   @ApiOperation({
     summary: '모임 게시글 댓글 수정',
+    deprecated: true,
   })
   @ApiOkResponseCommon(CommentV1CreateCommentResponseDto)
   @ApiResponse({

@@ -1,18 +1,20 @@
 package org.sopt.makers.crew.main.comment.v2.service;
 
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.*;
 
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2CreateCommentBodyDto;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2MentionUserInCommentRequestDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
-import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.common.response.ErrorStatus;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
+import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -32,133 +34,160 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class CommentV2ServiceImpl implements CommentV2Service {
 
-    private final PostRepository postRepository;
-    private final UserRepository userRepository;
-    private final CommentRepository commentRepository;
-    private final ReportRepository reportRepository;
-    private final PushNotificationService pushNotificationService;
+	private final PostRepository postRepository;
+	private final UserRepository userRepository;
+	private final CommentRepository commentRepository;
+	private final ReportRepository reportRepository;
+	private final PushNotificationService pushNotificationService;
 
-    @Value("${push-notification.web-url}")
-    private String pushWebUrl;
+	@Value("${push-notification.web-url}")
+	private String pushWebUrl;
 
-    /**
-     * 모임 게시글 댓글 작성
-     *
-     * @throws 400 존재하지 않는 게시글일 떄
-     * @apiNote 모임에 속한 유저만 작성 가능
-     */
-    @Override
-    @Transactional
-    public CommentV2CreateCommentResponseDto createComment(
-        CommentV2CreateCommentBodyDto requestBody,
-        Integer userId) {
-        Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
-        User user = userRepository.findByIdOrThrow(userId);
+	private final Time time;
 
-        Comment comment = Comment.builder()
-            .contents(requestBody.getContents())
-            .user(user)
-            .post(post)
-            .build();
+	/**
+	 * 모임 게시글 댓글 작성
+	 *
+	 * @throws 400 존재하지 않는 게시글일 떄
+	 * @apiNote 모임에 속한 유저만 작성 가능
+	 */
+	@Override
+	@Transactional
+	public CommentV2CreateCommentResponseDto createComment(CommentV2CreateCommentBodyDto requestBody,
+		Integer userId) {
+		Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
+		User user = userRepository.findByIdOrThrow(userId);
 
-        Comment savedComment = commentRepository.save(comment);
+		Comment comment = Comment.builder()
+			.contents(requestBody.getContents())
+			.user(user)
+			.post(post)
+			.build();
 
-        User PostWriter = post.getUser();
-        String[] userIds = {String.valueOf(PostWriter.getOrgId())};
+		Comment savedComment = commentRepository.save(comment);
 
-        String pushNotificationContent = String.format("[%s의 댓글] : \"%s\"",
-            user.getName(), requestBody.getContents());
-        String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
+		User PostWriter = post.getUser();
+		String[] userIds = {String.valueOf(PostWriter.getOrgId())};
 
-        PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(userIds,
-            NEW_COMMENT_PUSH_NOTIFICATION_TITLE.getValue(),
-            pushNotificationContent,
-            PUSH_NOTIFICATION_CATEGORY.getValue(), pushNotificationWeblink);
+		String pushNotificationContent = String.format("[%s의 댓글] : \"%s\"",
+			user.getName(), requestBody.getContents());
+		String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
-        pushNotificationService.sendPushNotification(pushRequestDto);
+		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(userIds,
+			NEW_COMMENT_PUSH_NOTIFICATION_TITLE.getValue(),
+			pushNotificationContent,
+			PUSH_NOTIFICATION_CATEGORY.getValue(), pushNotificationWeblink);
 
-        return CommentV2CreateCommentResponseDto.of(savedComment.getId());
-    }
+		pushNotificationService.sendPushNotification(pushRequestDto);
 
-    /**
-     * 댓글 신고하기
-     *
-     * @param commentId 댓글 신고할 댓글 id
-     * @param userId    신고하는 유저 id
-     * @return 신고 ID
-     * @throws BadRequestException 이미 신고한 댓글일 때
-     * @apiNote 댓글 신고는 한 댓글당 한번만 가능
-     */
-    @Override
-    @Transactional
-    public CommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId)
-        throws BadRequestException {
-        Comment comment = commentRepository.findByIdOrThrow(commentId);
-        User user = userRepository.findByIdOrThrow(userId);
+		return CommentV2CreateCommentResponseDto.of(savedComment.getId());
+	}
 
-        Optional<Report> existingReport = reportRepository.findByCommentAndUser(comment, user);
+	/**
+	 * 모임 게시글 댓글 수정
+	 *
+	 * @param commentId 수정할 댓글 ID
+	 * @param contents  수정할 내용
+	 * @param userId    수정하는 유저 ID
+	 * @return 수정된 댓글 정보
+	 */
+	@Override
+	@Transactional
+	public CommentV2UpdateCommentResponseDto updateComment(Integer commentId,
+		String contents, Integer userId) {
+		// 1. id를 기반으로 comment를 찾는다.
+		Comment comment = commentRepository.findByIdOrThrow(commentId);
 
-        if (existingReport.isPresent()) {
-            throw new BadRequestException(ErrorStatus.ALREADY_REPORTED_COMMENT.getErrorCode());
-        }
+		// 2. comment의 user_id와 userId가 같은지 확인한다.
+		comment.isWriter(userId);
 
-        Report report = Report.builder()
-            .comment(comment)
-            .user(user)
-            .build();
+		// 3. comment의 contents를 수정한다.
+		comment.updateContents(contents, time.now());
 
-        Report savedReport = reportRepository.save(report);
+		// 4. 수정된 comment의 id, contents, updatedDate를 반환한다.
+		return CommentV2UpdateCommentResponseDto.of(comment.getId(), comment.getContents(),
+			String.valueOf(comment.getUpdatedDate()));
+	}
 
-        return CommentV2ReportCommentResponseDto.of(savedReport.getId());
-    }
+	/**
+	 * 댓글 신고하기
+	 *
+	 * @param commentId 댓글 신고할 댓글 id
+	 * @param userId    신고하는 유저 id
+	 * @return 신고 ID
+	 * @throws BadRequestException 이미 신고한 댓글일 때
+	 * @apiNote 댓글 신고는 한 댓글당 한번만 가능
+	 */
+	@Override
+	@Transactional
+	public CommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId)
+		throws BadRequestException {
+		Comment comment = commentRepository.findByIdOrThrow(commentId);
+		User user = userRepository.findByIdOrThrow(userId);
 
-    /**
-     * 모임 게시글 댓글 삭제
-     *
-     * @throws ForbiddenException 댓글 작성자가 아닐 때
-     * @apiNote 댓글 삭제시 게시글의 댓글 수를 1 감소시킴
-     */
-    @Override
-    @Transactional
-    public void deleteComment(Integer commentId, Integer userId) throws ForbiddenException {
-        Comment comment = commentRepository.findByIdOrThrow(commentId);
+		Optional<Report> existingReport = reportRepository.findByCommentAndUser(comment, user);
 
-        if (!comment.getUserId().equals(userId)) {
-            throw new ForbiddenException();
-        }
+		if (existingReport.isPresent()) {
+			throw new BadRequestException(ErrorStatus.ALREADY_REPORTED_COMMENT.getErrorCode());
+		}
 
-        Post post = comment.getPost();
+		Report report = Report.builder()
+			.comment(comment)
+			.user(user)
+			.build();
 
-        post.decreaseCommentCount();
-        commentRepository.delete(comment);
-    }
+		Report savedReport = reportRepository.save(report);
 
-    @Override
-    public void mentionUserInComment(CommentV2MentionUserInCommentRequestDto requestBody,
-        Integer userId) {
-        User user = userRepository.findByIdOrThrow(userId);
-        Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
+		return CommentV2ReportCommentResponseDto.of(savedReport.getId());
+	}
 
-        String pushNotificationContent = String.format("[%s님이 회원님을 언급했어요.] : \"%s\"",
-            user.getName(), requestBody.getContent());
-        String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
+	/**
+	 * 모임 게시글 댓글 삭제
+	 *
+	 * @throws ForbiddenException 댓글 작성자가 아닐 때
+	 * @apiNote 댓글 삭제시 게시글의 댓글 수를 1 감소시킴
+	 */
+	@Override
+	@Transactional
+	public void deleteComment(Integer commentId, Integer userId) throws ForbiddenException {
+		Comment comment = commentRepository.findByIdOrThrow(commentId);
 
-        String[] userOrgIds = userRepository.findByIdIn(requestBody.getUserIds())
-            .stream()
-            .map(mentionedUser -> String.valueOf(mentionedUser.getOrgId()))
-            .toArray(String[]::new);
+		if (!comment.getUserId().equals(userId)) {
+			throw new ForbiddenException();
+		}
 
-        String newCommentMentionPushNotificationTitle = String.format(
-            NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE.getValue(), user.getName());
+		Post post = comment.getPost();
 
-        PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(
-            userOrgIds,
-            newCommentMentionPushNotificationTitle,
-            pushNotificationContent,
-            PUSH_NOTIFICATION_CATEGORY.getValue(),
-            pushNotificationWeblink
-        );
+		post.decreaseCommentCount();
+		commentRepository.delete(comment);
+	}
 
-        pushNotificationService.sendPushNotification(pushRequestDto);
-    }
+	@Override
+	public void mentionUserInComment(CommentV2MentionUserInCommentRequestDto requestBody,
+		Integer userId) {
+		User user = userRepository.findByIdOrThrow(userId);
+		Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
+
+		String pushNotificationContent = String.format("[%s님이 회원님을 언급했어요.] : \"%s\"",
+			user.getName(), requestBody.getContent());
+		String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
+
+		String[] userOrgIds = userRepository.findByIdIn(requestBody.getUserIds())
+			.stream()
+			.map(mentionedUser -> String.valueOf(mentionedUser.getOrgId()))
+			.toArray(String[]::new);
+
+		String newCommentMentionPushNotificationTitle = String.format(
+			NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE.getValue(), user.getName());
+
+		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(
+			userOrgIds,
+			newCommentMentionPushNotificationTitle,
+			pushNotificationContent,
+			PUSH_NOTIFICATION_CATEGORY.getValue(),
+			pushNotificationWeblink
+		);
+
+		pushNotificationService.sendPushNotification(pushRequestDto);
+	}
 }
