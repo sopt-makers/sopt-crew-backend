@@ -33,6 +33,6 @@ public class UserV2Controller implements UserApi {
     public ResponseEntity<List<UserV2GetAllMentionUserDto>> getAllMentionUser(
             Principal principal) {
         UserUtil.getUserId(principal);
-        return ResponseEntity.ok(userV2Service.getAllMentionUser());
+        return ResponseEntity.ok(userV2Service.getAllMentionUser().getUserDtos());
     }
 }

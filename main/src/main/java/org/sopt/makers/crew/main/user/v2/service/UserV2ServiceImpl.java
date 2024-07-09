@@ -12,6 +12,7 @@ import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserV2ServiceImpl implements UserV2Service {
+    private final static String CACHE_NAME = "mention-user";
+
 
     private final UserRepository userRepository;
     private final ApplyRepository applyRepository;
@@ -51,15 +54,17 @@ public class UserV2ServiceImpl implements UserV2Service {
     }
 
     @Override
-    public List<UserV2GetAllMentionUserDto> getAllMentionUser() {
+    @Cacheable(cacheNames = CACHE_NAME, key = "'allMentionUsers'")
+    public Users getAllMentionUser() {
 
         List<User> users = userRepository.findAll();
-
-        return users.stream()
+        List<UserV2GetAllMentionUserDto> list = users.stream()
                 .filter(user -> user.getActivities() != null)
                 .map(user -> UserV2GetAllMentionUserDto.of(user.getId(), user.getName(),
                         user.getRecentActivityVO().getPart(), user.getRecentActivityVO().getGeneration(),
                         user.getProfileImage()))
                 .toList();
+
+        return new Users(list);
     }
 }
