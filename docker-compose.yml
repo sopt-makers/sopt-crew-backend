@@ -234,6 +234,15 @@ services:
       caddy.route_8: /notice/v2
       caddy.route_8.reverse_proxy: "{{ upstreams 4000 }}"
 
+  redis:
+    image: redis:6.2
+    container_name: redis
+    ports:
+      - 6379:6379
+    networks:
+      - caddy
+    restart: unless-stopped
+
 networks:
   caddy:
     external: true
