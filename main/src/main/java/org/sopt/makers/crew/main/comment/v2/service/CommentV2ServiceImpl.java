@@ -33,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommentV2ServiceImpl implements CommentV2Service {
+	private static final int IS_REPLY_COMMENT = 1;
+	private static final String DELETE_COMMENT_CONTENT = "삭제된 댓글입니다.";
 
 	private final PostRepository postRepository;
 	private final UserRepository userRepository;
@@ -193,7 +195,14 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 		Post post = postRepository.findByIdOrThrow(comment.getPostId());
 		post.decreaseCommentCount();
-		commentRepository.delete(comment);
+
+		if (comment.getDepth() == IS_REPLY_COMMENT) {
+			commentRepository.delete(comment);
+			return;
+		}
+
+		comment.deleteParentComment(DELETE_COMMENT_CONTENT, null, null);
+
 	}
 
 	@Override

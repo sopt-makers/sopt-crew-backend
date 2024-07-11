@@ -77,7 +77,7 @@ public class Comment {
 	 * 작성자 정보
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "userId", nullable = false)
+	@JoinColumn(name = "userId")
 	private User user;
 
 	/**
@@ -113,8 +113,7 @@ public class Comment {
 
 	@Builder
 	public Comment(String contents, int depth, int order, LocalDateTime createdDate, LocalDateTime updatedDate,
-		User user,
-		Integer userId, Post post, Integer postId, int likeCount, Integer parentId) {
+		User user, Integer userId, Post post, Integer postId, int likeCount, Integer parentId) {
 		this.contents = contents;
 		this.depth = depth;
 		this.order = order;
@@ -131,6 +130,12 @@ public class Comment {
 	public void updateContents(String contents, LocalDateTime updatedDate) {
 		this.contents = contents;
 		this.updatedDate = updatedDate;
+	}
+
+	public void deleteParentComment(String contents, User user, Integer userId) {
+		this.contents = contents;
+		this.user = user;
+		this.userId = userId;
 	}
 
 	public void isWriter(Integer userId) {
