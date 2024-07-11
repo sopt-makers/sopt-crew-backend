@@ -14,4 +14,6 @@ public interface PostRepository extends JpaRepository<Post, Integer>, PostSearch
         return findById(postId)
                 .orElseThrow(() -> new BadRequestException(NOT_FOUND_POST.getErrorCode()));
     }
+
+    Optional<Post> findFirstByMeetingIdOrderByIdDesc(Integer meetingId);
 }
