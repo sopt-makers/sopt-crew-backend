@@ -48,13 +48,13 @@ public class Comment {
 	private String contents;
 
 	/**
-	 * 댓글 깊이
+	 * 댓글/대댓글 구분자 (0 = 댓글, 1 = 대댓글)
 	 */
 	@Column(nullable = false, columnDefinition = "int default 0")
 	private int depth;
 
 	/**
-	 * 댓글 순서
+	 * 댓글 순서 (댓글일 경우 0, 대댓글은 1부터 시작)
 	 */
 	@Column(nullable = false, columnDefinition = "int default 0")
 	private int order;
@@ -106,29 +106,26 @@ public class Comment {
 	private int likeCount;
 
 	/**
-	 * 부모 댓글 정보
-	 */
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "parentId")
-	private Comment parent;
-
-	/**
 	 * 부모 댓글의 고유 식별자
 	 */
 	@Column(insertable = false, updatable = false)
 	private Integer parentId;
 
 	@Builder
-	public Comment(String contents, User user, Post post, Comment parent) {
+	public Comment(String contents, int depth, int order, LocalDateTime createdDate, LocalDateTime updatedDate,
+		User user,
+		Integer userId, Post post, Integer postId, int likeCount, Integer parentId) {
 		this.contents = contents;
+		this.depth = depth;
+		this.order = order;
+		this.createdDate = createdDate;
+		this.updatedDate = updatedDate;
 		this.user = user;
-		this.userId = user.getId();
+		this.userId = userId;
 		this.post = post;
-		this.parent = parent;
-		this.depth = 0;
-		this.order = 0;
-		this.likeCount = 0;
-		this.post.addComment(this);
+		this.postId = postId;
+		this.likeCount = likeCount;
+		this.parentId = parentId;
 	}
 
 	public void updateContents(String contents, LocalDateTime updatedDate) {
