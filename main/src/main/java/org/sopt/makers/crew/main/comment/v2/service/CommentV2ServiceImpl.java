@@ -56,16 +56,29 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 	public CommentV2CreateCommentResponseDto createComment(CommentV2CreateCommentBodyDto requestBody,
 		Integer userId) {
 		Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
-		User user = userRepository.findByIdOrThrow(userId);
+		User writer = userRepository.findByIdOrThrow(userId);
 
-		Comment comment = Comment.builder()
-			.contents(requestBody.getContents())
-			.user(user)
-			.post(post)
-			.build();
+		int depth = 0;
+		int order = 0;
+		Integer parentId = 0;
 
+		boolean isReplyComment = !requestBody.isParent();
+		if (isReplyComment) {
+			validateParentCommentId(requestBody);
+			depth = 1;
+			order = getOrder(parentId);
+			parentId = requestBody.getParentCommentId();
+		}
+
+		Comment comment = getComment(requestBody, post, writer, depth, order, parentId);
 		Comment savedComment = commentRepository.save(comment);
 
+		sendPushNotification(requestBody, post, writer);
+
+		return CommentV2CreateCommentResponseDto.of(savedComment.getId());
+	}
+
+	private void sendPushNotification(CommentV2CreateCommentBodyDto requestBody, Post post, User user) {
 		User PostWriter = post.getUser();
 		String[] userIds = {String.valueOf(PostWriter.getOrgId())};
 
@@ -79,8 +92,30 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 			PUSH_NOTIFICATION_CATEGORY.getValue(), pushNotificationWeblink);
 
 		pushNotificationService.sendPushNotification(pushRequestDto);
+	}
 
-		return CommentV2CreateCommentResponseDto.of(savedComment.getId());
+	private void validateParentCommentId(CommentV2CreateCommentBodyDto requestBody) {
+		commentRepository.findByIdAndPostIdOrThrow(requestBody.getParentCommentId(), requestBody.getPostId());
+	}
+
+	private Comment getComment(CommentV2CreateCommentBodyDto requestBody, Post post, User user, int depth, int order,
+		Integer parentId) {
+		return Comment.builder()
+			.contents(requestBody.getContents())
+			.depth(depth)
+			.order(order)
+			.user(user)
+			.userId(user.getId())
+			.post(post)
+			.postId(post.getId())
+			.parentId(parentId)
+			.build();
+	}
+
+	private int getOrder(Integer parentId) {
+		Optional<Comment> recentComment = commentRepository.findFirstByParentIdOrderByOrderDesc(
+			parentId);
+		return recentComment.map(comment -> comment.getOrder() + 1).orElse(1);
 	}
 
 	/**
@@ -156,8 +191,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 			throw new ForbiddenException();
 		}
 
-		Post post = comment.getPost();
-
+		Post post = postRepository.findByIdOrThrow(comment.getPostId());
 		post.decreaseCommentCount();
 		commentRepository.delete(comment);
 	}
