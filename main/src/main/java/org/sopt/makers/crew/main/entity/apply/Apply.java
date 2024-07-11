@@ -104,7 +104,6 @@ public class Apply {
         this.content = content;
         this.appliedDate = LocalDateTime.now();
         this.status = EnApplyStatus.WAITING;
-        this.meeting.addApply(this);
     }
 
     public void updateApplyStatus(EnApplyStatus status) {
