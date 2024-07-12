@@ -62,7 +62,7 @@ public interface CommentV2Api {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "성공"),
 	})
-	ResponseEntity<Void> mentionUserInCom현ment(
+	ResponseEntity<Void> mentionUserInComment(
 		@Valid @RequestBody CommentV2MentionUserInCommentRequestDto requestBody,
 		Principal principal);
 
