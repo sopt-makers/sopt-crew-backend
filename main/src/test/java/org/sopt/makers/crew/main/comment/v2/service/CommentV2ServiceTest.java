@@ -25,6 +25,7 @@ import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
+import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
@@ -38,6 +39,8 @@ public class CommentV2ServiceTest {
 	private CommentV2ServiceImpl commentV2Service;
 	@Mock
 	private CommentRepository commentRepository;
+	@Mock
+	private PostRepository postRepository;
 	@Mock
 	private ReportRepository reportRepository;
 	@Mock
@@ -61,8 +64,12 @@ public class CommentV2ServiceTest {
 		String[] images = {"image1", "image2", "image3"};
 		this.post = Post.builder().user(user).title("title").contents("contents").images(images)
 			.build();
-		this.comment = Comment.builder().contents("contents").post(post).user(user).build();
-		post.addComment(this.comment);
+		this.comment = Comment.builder()
+			.contents("contents")
+			.post(post)
+			.postId(1)
+			.user(user)
+			.userId(1).build();
 
 		this.report = Report.builder().comment(comment).user(user).build();
 	}
@@ -111,6 +118,7 @@ public class CommentV2ServiceTest {
 			// given
 			int initialCommentCount = post.getCommentCount();
 			doReturn(comment).when(commentRepository).findByIdOrThrow(any());
+			doReturn(post).when(postRepository).findByIdOrThrow((any()));
 
 			// when
 			commentV2Service.deleteComment(comment.getId(), user.getId());
@@ -125,10 +133,10 @@ public class CommentV2ServiceTest {
 		void 실패_본인_작성_댓글_아님() {
 			// given
 			doReturn(comment).when(commentRepository).findByIdOrThrow(any());
-
+			Integer id = comment.getUser().getId();
 			// when & then
 			assertThrows(ForbiddenException.class, () -> {
-				commentV2Service.deleteComment(comment.getId(), comment.getUser().getId() + 1);
+				commentV2Service.deleteComment(0, comment.getUser().getId() + 1);
 			});
 		}
 	}

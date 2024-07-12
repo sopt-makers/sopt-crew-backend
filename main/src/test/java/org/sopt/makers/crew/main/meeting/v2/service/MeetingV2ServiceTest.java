@@ -126,6 +126,7 @@ public class MeetingV2ServiceTest {
     void 내모임조회_성공() {
         // given
         User user = UserFixture.createStaticUser();
+        user.setUserIdForTest(3);
         doReturn(Optional.of(user)).when(userRepository).findByOrgId(any());
         doReturn(applies).when(applyRepository).findAllByUserIdAndStatus(any(), any());
 
@@ -145,6 +146,7 @@ public class MeetingV2ServiceTest {
     @Test
     public void 모임신청시_정원이찼을때_예외발생() {
         // given
+        applies = new ArrayList<>();
         for (int i = 0; i < meeting.getCapacity(); i++) {
             User tempUser = User.builder()
                     .name("user" + i)
@@ -162,12 +164,14 @@ public class MeetingV2ServiceTest {
                     .build();
 
             apply.updateApplyStatus(EnApplyStatus.APPROVE); // 승인 상태로 변경
+            applies.add(apply);
         }
-       // applies = new ArrayList<>(meeting.getAppliedInfo());
+
         MeetingV2ApplyMeetingDto requestBody = new MeetingV2ApplyMeetingDto(meeting.getId(), "열심히 하겠습니다.");
 
         doReturn(meeting).when(meetingRepository).findByIdOrThrow(requestBody.getMeetingId());
         doReturn(applyUser).when(userRepository).findByIdOrThrow(applyUser.getId());
+        doReturn(applies).when(applyRepository).findAllByMeetingId(any());
 
         // when & then
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
