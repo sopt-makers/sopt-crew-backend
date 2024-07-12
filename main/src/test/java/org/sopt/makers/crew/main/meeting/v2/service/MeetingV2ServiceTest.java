@@ -115,7 +115,7 @@ public class MeetingV2ServiceTest {
                 .content("제 지원동기는요")
                 .build();
 
-        meeting.addApply(apply);
+        //meeting.addApply(apply);
         apply.updateApplyStatus(EnApplyStatus.APPROVE);
 
         applies = new ArrayList<>();
@@ -163,7 +163,7 @@ public class MeetingV2ServiceTest {
 
             apply.updateApplyStatus(EnApplyStatus.APPROVE); // 승인 상태로 변경
         }
-        applies = new ArrayList<>(meeting.getAppliedInfo());
+       // applies = new ArrayList<>(meeting.getAppliedInfo());
         MeetingV2ApplyMeetingDto requestBody = new MeetingV2ApplyMeetingDto(meeting.getId(), "열심히 하겠습니다.");
 
         doReturn(meeting).when(meetingRepository).findByIdOrThrow(requestBody.getMeetingId());
