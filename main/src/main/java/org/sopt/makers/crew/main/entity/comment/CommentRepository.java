@@ -6,7 +6,7 @@ import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.response.ErrorStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CommentRepository extends JpaRepository<Comment, Integer> {
+public interface CommentRepository extends JpaRepository<Comment, Integer>, CommentSearchRepository {
 
 	default Comment findByIdOrThrow(Integer commentId) {
 		return findById(commentId)
