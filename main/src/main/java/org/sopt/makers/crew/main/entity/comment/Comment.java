@@ -108,7 +108,7 @@ public class Comment {
 	/**
 	 * 부모 댓글의 고유 식별자
 	 */
-	@Column(insertable = false, updatable = false)
+	@Column(updatable = false)
 	private Integer parentId;
 
 	@Builder
@@ -138,11 +138,13 @@ public class Comment {
 		this.userId = userId;
 	}
 
-	public void isWriter(Integer userId) {
-		boolean isWriter = this.userId.equals(userId);
-		if (!isWriter) {
+	public void validateWriter(Integer userId) {
+		if (!isWriter(userId)) {
 			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
 		}
 	}
 
+	public boolean isWriter(Integer userId){
+		return this.userId.equals(userId);
+	}
 }
