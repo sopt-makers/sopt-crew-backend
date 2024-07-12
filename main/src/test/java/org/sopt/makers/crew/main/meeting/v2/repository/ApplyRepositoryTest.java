@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.sopt.makers.crew.main.common.config.TestConfig;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
-import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetApplyListCommand;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -42,7 +42,7 @@ public class ApplyRepositoryTest {
         // given
         int page = 1;
         int take = 12;
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(page, take, List.of(EnApplyStatus.WAITING, EnApplyStatus.APPROVE, EnApplyStatus.REJECT), "desc");
+        MeetingGetAppliesQueryDto queryCommand = new MeetingGetAppliesQueryDto(page, take, List.of(EnApplyStatus.WAITING, EnApplyStatus.APPROVE, EnApplyStatus.REJECT), "desc");
         Integer meetingId = 1;
         Integer studyCreatorId = 1;
         Integer userId = 1;
@@ -96,7 +96,7 @@ public class ApplyRepositoryTest {
         // given
         int page = 1;
         int take = 12;
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(page, take, List.of(EnApplyStatus.WAITING, EnApplyStatus.APPROVE, EnApplyStatus.REJECT), "asc");
+        MeetingGetAppliesQueryDto queryCommand = new MeetingGetAppliesQueryDto(page, take, List.of(EnApplyStatus.WAITING, EnApplyStatus.APPROVE, EnApplyStatus.REJECT), "asc");
         Integer meetingId = 1;
         Integer studyCreatorId = 1;
         Integer userId = 1;
@@ -148,7 +148,7 @@ public class ApplyRepositoryTest {
         // given
         int page = 1;
         int take = 12;
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(page, take, List.of(EnApplyStatus.WAITING), "asc");
+        MeetingGetAppliesQueryDto queryCommand = new MeetingGetAppliesQueryDto(page, take, List.of(EnApplyStatus.WAITING), "asc");
         Integer meetingId = 1;
         Integer studyCreatorId = 1;
         Integer userId = 1;
@@ -180,7 +180,7 @@ public class ApplyRepositoryTest {
         // given
         int page = 1;
         int take = 12;
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(page, take, List.of(EnApplyStatus.APPROVE), "asc");
+        MeetingGetAppliesQueryDto queryCommand = new MeetingGetAppliesQueryDto(page, take, List.of(EnApplyStatus.APPROVE), "asc");
         Integer meetingId = 1;
         Integer studyCreatorId = 1;
         Integer userId = 1;
@@ -223,7 +223,7 @@ public class ApplyRepositoryTest {
         // given
         int page = 1;
         int take = 12;
-        MeetingGetApplyListCommand queryCommand = new MeetingGetApplyListCommand(page, take, List.of(EnApplyStatus.WAITING, EnApplyStatus.APPROVE, EnApplyStatus.REJECT), "desc");
+        MeetingGetAppliesQueryDto queryCommand = new MeetingGetAppliesQueryDto(page, take, List.of(EnApplyStatus.WAITING, EnApplyStatus.APPROVE, EnApplyStatus.REJECT), "desc");
         Integer meetingId = 1;
         Integer studyCreatorId = 1;
         Integer userId = 2;
