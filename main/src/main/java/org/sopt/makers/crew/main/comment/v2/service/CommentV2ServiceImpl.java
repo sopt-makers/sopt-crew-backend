@@ -91,6 +91,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 		Comment comment = getComment(requestBody, post, writer, depth, order, parentId);
 		Comment savedComment = commentRepository.save(comment);
+		post.increaseCommentCount();
 
 		sendPushNotification(requestBody, post, writer);
 
