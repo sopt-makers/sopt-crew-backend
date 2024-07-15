@@ -2,14 +2,12 @@ package org.sopt.makers.crew.main.comment.v2.service;
 
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
+import org.sopt.makers.crew.main.comment.v2.dto.CommentMapper;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2CreateCommentBodyDto;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2MentionUserInCommentRequestDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentDto;
@@ -26,7 +24,6 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentR
 import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
-import org.sopt.makers.crew.main.entity.like.Like;
 import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.like.MyLikes;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -59,6 +56,8 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 	private final PushNotificationService pushNotificationService;
 
+	private final CommentMapper commentMapper;
+
 	@Value("${push-notification.web-url}")
 	private String pushWebUrl;
 
@@ -89,7 +88,8 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 			order = getOrder(parentId);
 		}
 
-		Comment comment = getComment(requestBody, post, writer, depth, order, parentId);
+		Comment comment = commentMapper.toComment(requestBody, post, writer, depth, order, parentId);
+
 		Comment savedComment = commentRepository.save(comment);
 		post.increaseCommentCount();
 
@@ -116,20 +116,6 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 	private void validateParentCommentId(CommentV2CreateCommentBodyDto requestBody) {
 		commentRepository.findByIdAndPostIdOrThrow(requestBody.getParentCommentId(), requestBody.getPostId());
-	}
-
-	private Comment getComment(CommentV2CreateCommentBodyDto requestBody, Post post, User user, int depth, int order,
-		Integer parentId) {
-		return Comment.builder()
-			.contents(requestBody.getContents())
-			.depth(depth)
-			.order(order)
-			.user(user)
-			.userId(user.getId())
-			.post(post)
-			.postId(post.getId())
-			.parentId(parentId)
-			.build();
 	}
 
 	private int getOrder(Integer parentId) {

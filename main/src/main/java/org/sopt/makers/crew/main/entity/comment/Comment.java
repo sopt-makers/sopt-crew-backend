@@ -123,13 +123,11 @@ public class Comment {
 	}
 
 	@Builder
-	public Comment(String contents, int depth, int order, LocalDateTime createdDate, LocalDateTime updatedDate,
-		User user, Integer userId, Post post, Integer postId, int likeCount, Integer parentId) {
+	public Comment(String contents, int depth, int order, User user, Integer userId, Post post, Integer postId,
+		int likeCount, Integer parentId) {
 		this.contents = contents;
 		this.depth = depth;
 		this.order = order;
-		this.createdDate = createdDate;
-		this.updatedDate = updatedDate;
 		this.user = user;
 		this.userId = userId;
 		this.post = post;
@@ -155,11 +153,11 @@ public class Comment {
 		}
 	}
 
-	public boolean isWriter(Integer userId){
+	public boolean isWriter(Integer userId) {
 		return this.userId.equals(userId);
 	}
 
-	public boolean isParentComment(){
+	public boolean isParentComment() {
 		return this.depth == PARENT_COMMENT;
 	}
 }
