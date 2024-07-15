@@ -168,39 +168,22 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 	public CommentV2GetCommentsResponseDto getComments(Integer postId, Integer page, Integer take, Integer userId) {
 		Page<Comment> allComments = commentRepository.findAllByPostIdPagination(postId, IS_PARENT_COMMENT,
 			PageRequest.of(page - 1, take));
-		List<Comment> parentComments = allComments.stream()
-			.filter(comment -> comment.getDepth() == IS_PARENT_COMMENT)
-			.toList();
-		List<Comment> childComments = allComments.stream()
-			.filter(comment -> comment.getDepth() == IS_REPLY_COMMENT)
-			.toList();
 
 		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndPostIdNotNull(userId));
 
-		List<CommentDto> commentDtos = getCommentDtos(userId, parentComments, childComments, myLikes);
+		List<CommentDto> commentDtos = allComments.getContent().stream()
+			.map(comment -> new CommentDto(comment.getId(), comment.getContents(),
+				new CommentWriterDto(comment.getUser().getId(), comment.getUser().getName(),
+					comment.getUser().getProfileImage()),
+				comment.getUpdatedDate(), comment.getLikeCount(),
+				myLikes.isLikeComment(comment.getId()), comment.isWriter(userId), comment.getOrder(), comment.isParentComment(),
+				comment.getParentId()))
+			.toList();
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(page, take);
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)allComments.getTotalElements());
 
 		return CommentV2GetCommentsResponseDto.of(commentDtos, pageMetaDto);
-	}
-
-	private List<CommentDto> getCommentDtos(Integer userId, List<Comment> parentComments, List<Comment> childComments,
-		MyLikes myLikes) {
-
-		Map<Integer, List<CommentDto>> replyMap = new HashMap<>();
-		childComments.forEach(comment -> replyMap.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>())
-			.add(new CommentDto(comment.getId(), comment.getContents(),
-				new CommentWriterDto(comment.getUser().getId(), comment.getUser().getName(),
-					comment.getUser().getProfileImage()), comment.getUpdatedDate(), comment.getLikeCount(),
-				myLikes.isLikeComment(comment.getId()), comment.isWriter(userId), null)));
-
-		return parentComments.stream()
-			.map(comment -> new CommentDto(comment.getId(), comment.getContents(),
-				new CommentWriterDto(comment.getUser().getId(), comment.getUser().getName(),
-					comment.getUser().getProfileImage()), comment.getUpdatedDate(), comment.getLikeCount(),
-				myLikes.isLikeComment(comment.getId()), comment.isWriter(userId), replyMap.get(comment.getId())))
-			.toList();
 	}
 
 	/**

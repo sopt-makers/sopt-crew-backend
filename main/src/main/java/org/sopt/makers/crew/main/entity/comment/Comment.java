@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
@@ -30,9 +31,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners({AuditingEntityListener.class, Comment.CommentListener.class})
 @Table(name = "comment")
 public class Comment {
+
+	private static final int PARENT_COMMENT = 0;
 
 	/**
 	 * 댓글의 고유 식별자
@@ -108,8 +111,16 @@ public class Comment {
 	/**
 	 * 부모 댓글의 고유 식별자
 	 */
-	@Column(updatable = false)
 	private Integer parentId;
+
+	public static class CommentListener {
+		@PostPersist
+		public void setParentId(Comment comment) {
+			if (comment.depth == 0) { // 댓글일 경우
+				comment.parentId = comment.id;
+			}
+		}
+	}
 
 	@Builder
 	public Comment(String contents, int depth, int order, LocalDateTime createdDate, LocalDateTime updatedDate,
@@ -146,5 +157,9 @@ public class Comment {
 
 	public boolean isWriter(Integer userId){
 		return this.userId.equals(userId);
+	}
+
+	public boolean isParentComment(){
+		return this.depth == PARENT_COMMENT;
 	}
 }

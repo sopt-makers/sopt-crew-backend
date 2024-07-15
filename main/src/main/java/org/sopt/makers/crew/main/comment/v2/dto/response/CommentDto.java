@@ -1,7 +1,6 @@
 package org.sopt.makers.crew.main.comment.v2.dto.response;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import com.querydsl.core.annotations.QueryProjection;
 
@@ -16,11 +15,13 @@ public class CommentDto {
 	private final int likeCount;
 	private final boolean isLiked;
 	private final boolean isWriter;
-	private final List<CommentDto> replies;
+	private final int order;
+	private final boolean isParentComment;
+	private final Integer parentId;
 
 	@QueryProjection
 	public CommentDto(Integer id, String contents, CommentWriterDto user, LocalDateTime updatedDate, int likeCount,
-		boolean isLiked, boolean isWriter, List<CommentDto> replies) {
+		boolean isLiked, boolean isWriter, int order, boolean isParentComment, Integer parentId) {
 		this.id = id;
 		this.contents = contents;
 		this.user = user;
@@ -28,6 +29,8 @@ public class CommentDto {
 		this.likeCount = likeCount;
 		this.isLiked = isLiked;
 		this.isWriter = isWriter;
-		this.replies = replies;
+		this.order = order;
+		this.isParentComment = isParentComment;
+		this.parentId = parentId;
 	}
 }

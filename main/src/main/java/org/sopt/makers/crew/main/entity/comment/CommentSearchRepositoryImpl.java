@@ -26,10 +26,11 @@ public class CommentSearchRepositoryImpl implements CommentSearchRepository {
 		QComment childComment = new QComment("childComment");
 
 		List<Comment> content = queryFactory
-			.selectFrom(parentComment)
-			.leftJoin(childComment).on(childComment.parentId.eq(parentComment.id))
+			.select(childComment)
+			.from(parentComment)
+			.join(childComment).on(childComment.parentId.eq(parentComment.id))
 			.where(parentComment.postId.eq(postId))
-			.orderBy(parentComment.createdDate.asc())
+			.orderBy(parentComment.createdDate.asc(), childComment.createdDate.asc())
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())
 			.fetch();
