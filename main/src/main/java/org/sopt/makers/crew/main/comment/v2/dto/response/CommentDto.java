@@ -1,6 +1,9 @@
 package org.sopt.makers.crew.main.comment.v2.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import org.sopt.makers.crew.main.entity.comment.Comment;
 
 import com.querydsl.core.annotations.QueryProjection;
 
@@ -16,12 +19,11 @@ public class CommentDto {
 	private final boolean isLiked;
 	private final boolean isWriter;
 	private final int order;
-	private final boolean isParentComment;
-	private final Integer parentId;
+	private final List<CommentDto> replies;
 
 	@QueryProjection
 	public CommentDto(Integer id, String contents, CommentWriterDto user, LocalDateTime updatedDate, int likeCount,
-		boolean isLiked, boolean isWriter, int order, boolean isParentComment, Integer parentId) {
+		boolean isLiked, boolean isWriter, int order, List<CommentDto> replies) {
 		this.id = id;
 		this.contents = contents;
 		this.user = user;
@@ -30,7 +32,13 @@ public class CommentDto {
 		this.isLiked = isLiked;
 		this.isWriter = isWriter;
 		this.order = order;
-		this.isParentComment = isParentComment;
-		this.parentId = parentId;
+		this.replies = replies;
+	}
+
+	public static CommentDto of(Comment comment, boolean isLiked, boolean isWriter, List<CommentDto> replies){
+		return new CommentDto(comment.getId(), comment.getContents(),
+			new CommentWriterDto(comment.getUser().getId(), comment.getUser().getName(),
+				comment.getUser().getProfileImage()), comment.getUpdatedDate(), comment.getLikeCount(),
+			isLiked, isWriter, comment.getOrder(), replies);
 	}
 }

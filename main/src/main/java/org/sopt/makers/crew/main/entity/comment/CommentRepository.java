@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.entity.comment;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
@@ -21,4 +22,6 @@ public interface CommentRepository extends JpaRepository<Comment, Integer>, Comm
 		return findByIdAndPostId(id, postId)
 			.orElseThrow(() -> new BadRequestException(ErrorStatus.NOT_FOUND_COMMENT.getErrorCode()));
 	}
+
+	List<Comment> findAllByPostIdOrderByCreatedDate(Integer postId);
 }

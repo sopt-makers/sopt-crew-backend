@@ -116,7 +116,7 @@ public class Comment {
 	public static class CommentListener {
 		@PostPersist
 		public void setParentId(Comment comment) {
-			if (comment.depth == 0) { // 댓글일 경우
+			if (comment.depth == PARENT_COMMENT) { // 댓글일 경우
 				comment.parentId = comment.id;
 			}
 		}

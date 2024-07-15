@@ -2,7 +2,10 @@ package org.sopt.makers.crew.main.comment.v2.service;
 
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -14,11 +17,8 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
-import org.sopt.makers.crew.main.comment.v2.dto.response.CommentWriterDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
-import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
-import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.common.response.ErrorStatus;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.common.util.Time;
@@ -35,8 +35,6 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.internal.notification.PushNotificationService;
 import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -152,24 +150,25 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 	@Override
 	public CommentV2GetCommentsResponseDto getComments(Integer postId, Integer page, Integer take, Integer userId) {
-		Page<Comment> allComments = commentRepository.findAllByPostIdPagination(postId, IS_PARENT_COMMENT,
-			PageRequest.of(page - 1, take));
+		// TODO : 페이지네이션 구현
+
+		List<Comment> comments = commentRepository.findAllByPostIdOrderByCreatedDate(postId);
 
 		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndPostIdNotNull(userId));
 
-		List<CommentDto> commentDtos = allComments.getContent().stream()
-			.map(comment -> new CommentDto(comment.getId(), comment.getContents(),
-				new CommentWriterDto(comment.getUser().getId(), comment.getUser().getName(),
-					comment.getUser().getProfileImage()),
-				comment.getUpdatedDate(), comment.getLikeCount(),
-				myLikes.isLikeComment(comment.getId()), comment.isWriter(userId), comment.getOrder(), comment.isParentComment(),
-				comment.getParentId()))
+		Map<Integer, List<CommentDto>> replyMap = new HashMap<>();
+		comments.stream()
+			.filter(comment -> !comment.isParentComment())
+			.forEach(comment -> replyMap.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>())
+				.add(CommentDto.of(comment, myLikes.isLikeComment(comment.getId()), comment.isWriter(userId), null)));
+
+		List<CommentDto> commentDtos = comments.stream()
+			.filter(Comment::isParentComment)
+			.map(comment -> CommentDto.of(comment, myLikes.isLikeComment(comment.getId()), comment.isWriter(userId),
+				replyMap.get(comment.getId())))
 			.toList();
 
-		PageOptionsDto pageOptionsDto = new PageOptionsDto(page, take);
-		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)allComments.getTotalElements());
-
-		return CommentV2GetCommentsResponseDto.of(commentDtos, pageMetaDto);
+		return CommentV2GetCommentsResponseDto.of(commentDtos);
 	}
 
 	/**
