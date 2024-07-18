@@ -2,13 +2,20 @@ package org.sopt.makers.crew.main.comment.v2.service;
 
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
+import org.sopt.makers.crew.main.comment.v2.dto.CommentMapper;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2CreateCommentBodyDto;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2MentionUserInCommentRequestDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
@@ -17,6 +24,8 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentR
 import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
+import org.sopt.makers.crew.main.entity.like.LikeRepository;
+import org.sopt.makers.crew.main.entity.like.MyLikes;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.report.Report;
@@ -33,12 +42,19 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommentV2ServiceImpl implements CommentV2Service {
+	private static final int IS_PARENT_COMMENT = 0;
+	private static final int IS_REPLY_COMMENT = 1;
+	private static final String DELETE_COMMENT_CONTENT = "삭제된 댓글입니다.";
 
 	private final PostRepository postRepository;
 	private final UserRepository userRepository;
 	private final CommentRepository commentRepository;
 	private final ReportRepository reportRepository;
+	private final LikeRepository likeRepository;
+
 	private final PushNotificationService pushNotificationService;
+
+	private final CommentMapper commentMapper;
 
 	@Value("${push-notification.web-url}")
 	private String pushWebUrl;
@@ -56,16 +72,31 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 	public CommentV2CreateCommentResponseDto createComment(CommentV2CreateCommentBodyDto requestBody,
 		Integer userId) {
 		Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
-		User user = userRepository.findByIdOrThrow(userId);
+		User writer = userRepository.findByIdOrThrow(userId);
 
-		Comment comment = Comment.builder()
-			.contents(requestBody.getContents())
-			.user(user)
-			.post(post)
-			.build();
+		int depth = 0;
+		int order = 0;
+		Integer parentId = 0;
+
+		boolean isReplyComment = !requestBody.isParent();
+		if (isReplyComment) {
+			validateParentCommentId(requestBody);
+			depth = 1;
+			parentId = requestBody.getParentCommentId();
+			order = getOrder(parentId);
+		}
+
+		Comment comment = commentMapper.toComment(requestBody, post, writer, depth, order, parentId);
 
 		Comment savedComment = commentRepository.save(comment);
+		post.increaseCommentCount();
 
+		sendPushNotification(requestBody, post, writer);
+
+		return CommentV2CreateCommentResponseDto.of(savedComment.getId());
+	}
+
+	private void sendPushNotification(CommentV2CreateCommentBodyDto requestBody, Post post, User user) {
 		User PostWriter = post.getUser();
 		String[] userIds = {String.valueOf(PostWriter.getOrgId())};
 
@@ -79,8 +110,16 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 			PUSH_NOTIFICATION_CATEGORY.getValue(), pushNotificationWeblink);
 
 		pushNotificationService.sendPushNotification(pushRequestDto);
+	}
 
-		return CommentV2CreateCommentResponseDto.of(savedComment.getId());
+	private void validateParentCommentId(CommentV2CreateCommentBodyDto requestBody) {
+		commentRepository.findByIdAndPostIdOrThrow(requestBody.getParentCommentId(), requestBody.getPostId());
+	}
+
+	private int getOrder(Integer parentId) {
+		Optional<Comment> recentComment = commentRepository.findFirstByParentIdOrderByOrderDesc(
+			parentId);
+		return recentComment.map(comment -> comment.getOrder() + 1).orElse(1);
 	}
 
 	/**
@@ -99,7 +138,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		Comment comment = commentRepository.findByIdOrThrow(commentId);
 
 		// 2. comment의 user_id와 userId가 같은지 확인한다.
-		comment.isWriter(userId);
+		comment.validateWriter(userId);
 
 		// 3. comment의 contents를 수정한다.
 		comment.updateContents(contents, time.now());
@@ -107,6 +146,29 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		// 4. 수정된 comment의 id, contents, updatedDate를 반환한다.
 		return CommentV2UpdateCommentResponseDto.of(comment.getId(), comment.getContents(),
 			String.valueOf(comment.getUpdatedDate()));
+	}
+
+	@Override
+	public CommentV2GetCommentsResponseDto getComments(Integer postId, Integer page, Integer take, Integer userId) {
+		// TODO : 페이지네이션 구현
+
+		List<Comment> comments = commentRepository.findAllByPostIdOrderByCreatedDate(postId);
+
+		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndPostIdNotNull(userId));
+
+		Map<Integer, List<CommentDto>> replyMap = new HashMap<>();
+		comments.stream()
+			.filter(comment -> !comment.isParentComment())
+			.forEach(comment -> replyMap.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>())
+				.add(CommentDto.of(comment, myLikes.isLikeComment(comment.getId()), comment.isWriter(userId), null)));
+
+		List<CommentDto> commentDtos = comments.stream()
+			.filter(Comment::isParentComment)
+			.map(comment -> CommentDto.of(comment, myLikes.isLikeComment(comment.getId()), comment.isWriter(userId),
+				replyMap.get(comment.getId())))
+			.toList();
+
+		return CommentV2GetCommentsResponseDto.of(commentDtos);
 	}
 
 	/**
@@ -156,10 +218,18 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 			throw new ForbiddenException();
 		}
 
-		Post post = comment.getPost();
-
+		Post post = postRepository.findByIdOrThrow(comment.getPostId());
 		post.decreaseCommentCount();
-		commentRepository.delete(comment);
+
+		Optional<Comment> childComment = commentRepository.findFirstByParentIdOrderByOrderDesc(
+			comment.getId());
+
+		if (comment.getDepth() == IS_REPLY_COMMENT || childComment.isEmpty()) {
+			commentRepository.delete(comment);
+			return;
+		}
+
+		comment.deleteParentComment(DELETE_COMMENT_CONTENT, null, null);
 	}
 
 	@Override

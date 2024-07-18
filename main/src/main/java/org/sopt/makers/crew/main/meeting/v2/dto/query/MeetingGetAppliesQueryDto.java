@@ -10,13 +10,13 @@ import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 
 @Getter
 @Setter
-public class MeetingGetApplyListCommand extends PageOptionsDto {
+public class MeetingGetAppliesQueryDto extends PageOptionsDto {
 
     private List<EnApplyStatus> status;
     private String date;
 
     @Builder
-    public MeetingGetApplyListCommand(int page, int take, List<EnApplyStatus> status, String date) {
+    public MeetingGetAppliesQueryDto(int page, int take, List<EnApplyStatus> status, String date) {
         super(page, take);
         this.status = (status == null || status.isEmpty()) ?
                 Arrays.asList(EnApplyStatus.WAITING, EnApplyStatus.APPROVE, EnApplyStatus.REJECT) : status;

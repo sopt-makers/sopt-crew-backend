@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
@@ -62,7 +63,9 @@ public class PostV2ServiceImpl implements PostV2Service {
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
 		User user = userRepository.findByIdOrThrow(userId);
 
-		boolean isInMeeting = meeting.getAppliedInfo().stream()
+		List<Apply> applies = applyRepository.findAllById(List.of(meeting.getId()));
+
+		boolean isInMeeting = applies.stream()
 			.anyMatch(apply -> apply.getUserId().equals(userId)
 				&& apply.getStatus() == EnApplyStatus.APPROVE);
 

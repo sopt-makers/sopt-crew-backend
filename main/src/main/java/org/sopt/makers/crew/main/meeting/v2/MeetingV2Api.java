@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
-import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetApplyListCommand;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
@@ -69,6 +69,6 @@ public interface MeetingV2Api {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 지원자/참여자 조회 성공"),
             @ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
     ResponseEntity<MeetingGetApplyListResponseDto> findApplyList(@PathVariable Integer meetingId,
-                                                                 @ModelAttribute MeetingGetApplyListCommand queryCommand,
+                                                                 @ModelAttribute MeetingGetAppliesQueryDto queryCommand,
                                                                  Principal principal);
 }

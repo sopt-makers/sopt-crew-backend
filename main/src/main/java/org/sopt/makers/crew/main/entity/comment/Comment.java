@@ -11,8 +11,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
+
 import java.time.LocalDateTime;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,118 +31,133 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners({AuditingEntityListener.class, Comment.CommentListener.class})
 @Table(name = "comment")
 public class Comment {
 
-  /**
-   * 댓글의 고유 식별자
-   */
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer id;
+	private static final int PARENT_COMMENT = 0;
 
-  /**
-   * 댓글 내용
-   */
-  @Column(nullable = false)
-  private String contents;
+	/**
+	 * 댓글의 고유 식별자
+	 */
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer id;
 
-  /**
-   * 댓글 깊이
-   */
-  @Column(nullable = false, columnDefinition = "int default 0")
-  private int depth;
+	/**
+	 * 댓글 내용
+	 */
+	@Column(nullable = false)
+	private String contents;
 
-  /**
-   * 댓글 순서
-   */
-  @Column(nullable = false, columnDefinition = "int default 0")
-  private int order;
+	/**
+	 * 댓글/대댓글 구분자 (0 = 댓글, 1 = 대댓글)
+	 */
+	@Column(nullable = false, columnDefinition = "int default 0")
+	private int depth;
 
-  /**
-   * 작성일
-   */
-  @Column(name = "createdDate", nullable = false, columnDefinition = "TIMESTAMP")
-  @CreatedDate
-  private LocalDateTime createdDate;
+	/**
+	 * 댓글 순서 (댓글일 경우 0, 대댓글은 1부터 시작)
+	 */
+	@Column(nullable = false, columnDefinition = "int default 0")
+	private int order;
 
-  /**
-   * 수정일
-   */
-  @Column(name = "updatedDate", nullable = false, columnDefinition = "TIMESTAMP")
-  @LastModifiedDate
-  private LocalDateTime updatedDate;
+	/**
+	 * 작성일
+	 */
+	@Column(name = "createdDate", nullable = false, columnDefinition = "TIMESTAMP")
+	@CreatedDate
+	private LocalDateTime createdDate;
 
-  /**
-   * 작성자 정보
-   */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "userId", nullable = false)
-  private User user;
+	/**
+	 * 수정일
+	 */
+	@Column(name = "updatedDate", nullable = false, columnDefinition = "TIMESTAMP")
+	@LastModifiedDate
+	private LocalDateTime updatedDate;
 
-  /**
-   * 작성자의 고유 식별자
-   */
-  @Column(insertable = false, updatable = false)
-  private Integer userId;
+	/**
+	 * 작성자 정보
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "userId")
+	private User user;
 
-  /**
-   * 댓글이 속한 게시글 정보
-   */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "postId", nullable = false)
-  private Post post;
+	/**
+	 * 작성자의 고유 식별자
+	 */
+	@Column(insertable = false, updatable = false)
+	private Integer userId;
 
-  /**
-   * 댓글이 속한 게시글의 고유 식별자
-   */
-  @Column(insertable = false, updatable = false)
-  private Integer postId;
+	/**
+	 * 댓글이 속한 게시글 정보
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "postId", nullable = false)
+	private Post post;
 
-  /**
-   * 댓글에 대한 좋아요 수
-   */
-  @Column(nullable = false, columnDefinition = "int default 0")
-  private int likeCount;
+	/**
+	 * 댓글이 속한 게시글의 고유 식별자
+	 */
+	@Column(insertable = false, updatable = false)
+	private Integer postId;
 
-  /**
-   * 부모 댓글 정보
-   */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "parentId")
-  private Comment parent;
+	/**
+	 * 댓글에 대한 좋아요 수
+	 */
+	@Column(nullable = false, columnDefinition = "int default 0")
+	private int likeCount;
 
-  /**
-   * 부모 댓글의 고유 식별자
-   */
-  @Column(insertable = false, updatable = false)
-  private Integer parentId;
+	/**
+	 * 부모 댓글의 고유 식별자
+	 */
+	private Integer parentId;
 
+	public static class CommentListener {
+		@PostPersist
+		public void setParentId(Comment comment) {
+			if (comment.depth == PARENT_COMMENT) { // 댓글일 경우
+				comment.parentId = comment.id;
+			}
+		}
+	}
 
-  @Builder
-  public Comment(String contents, User user, Post post, Comment parent) {
-    this.contents = contents;
-    this.user = user;
-    this.userId = user.getId();
-    this.post = post;
-    this.parent = parent;
-    this.depth = 0;
-    this.order = 0;
-    this.likeCount = 0;
-    this.post.addComment(this);
-  }
+	@Builder
+	public Comment(String contents, int depth, int order, User user, Integer userId, Post post, Integer postId,
+		int likeCount, Integer parentId) {
+		this.contents = contents;
+		this.depth = depth;
+		this.order = order;
+		this.user = user;
+		this.userId = userId;
+		this.post = post;
+		this.postId = postId;
+		this.likeCount = likeCount;
+		this.parentId = parentId;
+	}
 
-  public void updateContents(String contents,LocalDateTime updatedDate) {
-    this.contents = contents;
-    this.updatedDate = updatedDate;
-  }
+	public void updateContents(String contents, LocalDateTime updatedDate) {
+		this.contents = contents;
+		this.updatedDate = updatedDate;
+	}
 
-  public void isWriter(Integer userId){
-    boolean isWriter = this.userId.equals(userId);
-    if (!isWriter) {
-      throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
-    }
-  }
+	public void deleteParentComment(String contents, User user, Integer userId) {
+		this.contents = contents;
+		this.user = user;
+		this.userId = userId;
+	}
 
+	public void validateWriter(Integer userId) {
+		if (!isWriter(userId)) {
+			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+	}
+
+	public boolean isWriter(Integer userId) {
+		return this.userId.equals(userId);
+	}
+
+	public boolean isParentComment() {
+		return this.depth == PARENT_COMMENT;
+	}
 }

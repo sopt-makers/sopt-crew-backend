@@ -7,14 +7,17 @@ import jakarta.validation.Valid;
 
 import java.security.Principal;
 
+import org.sopt.makers.crew.main.comment.v2.dto.query.CommentV2GetCommentsQueryDto;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2CreateCommentBodyDto;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2MentionUserInCommentRequestDto;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2UpdateCommentBodyDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -62,4 +65,11 @@ public interface CommentV2Api {
 	ResponseEntity<Void> mentionUserInComment(
 		@Valid @RequestBody CommentV2MentionUserInCommentRequestDto requestBody,
 		Principal principal);
+
+	@Operation(summary = "모임 게시글 댓글 리스트 조회")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "성공"),
+	})
+	ResponseEntity<CommentV2GetCommentsResponseDto> getComments(@Valid @ModelAttribute CommentV2GetCommentsQueryDto requestBody, Principal principal);
 }
