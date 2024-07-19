@@ -35,9 +35,9 @@ public class CommentDto {
 		this.replies = replies;
 	}
 
-	public static CommentDto of(Comment comment, boolean isLiked, boolean isWriter, List<CommentDto> replies){
+	public static CommentDto of(Comment comment, boolean isLiked, boolean isWriter, List<CommentDto> replies) {
 		return new CommentDto(comment.getId(), comment.getContents(),
-			new CommentWriterDto(comment.getUser().getId(), comment.getUser().getName(),
+			new CommentWriterDto(comment.getUser().getId(), comment.getUser().getOrgId(), comment.getUser().getName(),
 				comment.getUser().getProfileImage()), comment.getUpdatedDate(), comment.getLikeCount(),
 			isLiked, isWriter, comment.getOrder(), replies);
 	}
