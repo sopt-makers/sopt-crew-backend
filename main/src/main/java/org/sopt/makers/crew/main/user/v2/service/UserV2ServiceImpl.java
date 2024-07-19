@@ -64,7 +64,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 
 		return users.stream()
 			.filter(user -> user.getActivities() != null)
-			.map(user -> UserV2GetAllMentionUserDto.of(user.getId(), user.getName(),
+			.map(user -> UserV2GetAllMentionUserDto.of(user.getOrgId(), user.getName(),
 				user.getRecentActivityVO().getPart(), user.getRecentActivityVO().getGeneration(),
 				user.getProfileImage()))
 			.toList();

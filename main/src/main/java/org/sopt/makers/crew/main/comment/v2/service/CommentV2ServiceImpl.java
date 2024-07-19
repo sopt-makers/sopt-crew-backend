@@ -242,9 +242,8 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 			user.getName(), requestBody.getContent());
 		String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
-		String[] userOrgIds = userRepository.findByIdIn(requestBody.getUserIds())
-			.stream()
-			.map(mentionedUser -> String.valueOf(mentionedUser.getOrgId()))
+		String[] userOrgIds = requestBody.getUserIds().stream()
+			.map(Object::toString)
 			.toArray(String[]::new);
 
 		String newCommentMentionPushNotificationTitle = String.format(
