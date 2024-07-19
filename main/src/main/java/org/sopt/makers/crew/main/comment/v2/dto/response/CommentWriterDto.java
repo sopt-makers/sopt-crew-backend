@@ -7,12 +7,14 @@ import lombok.Getter;
 @Getter
 public class CommentWriterDto {
 	private final Integer id;
+	private final Integer orgId;
 	private final String name;
 	private final String profileImage;
 
 	@QueryProjection
-	public CommentWriterDto(Integer id, String name, String profileImage) {
+	public CommentWriterDto(Integer id, Integer orgId, String name, String profileImage) {
 		this.id = id;
+		this.orgId = orgId;
 		this.name = name;
 		this.profileImage = profileImage;
 	}

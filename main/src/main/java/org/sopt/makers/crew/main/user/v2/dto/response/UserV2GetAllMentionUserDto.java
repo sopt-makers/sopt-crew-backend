@@ -6,10 +6,14 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor(staticName = "of")
 public class UserV2GetAllMentionUserDto {
-    private Integer userId;
-    private String userName;
-    private String recentPart;
-    private int recentGeneration;
-    private String profileImageUrl;
+    /**
+     * 주의!! : 필드명은 userId 이지만 실제 응답 해야하는 데이터는 orgId 입니다.
+     */
+    private final Integer userId;
+
+    private final String userName;
+    private final String recentPart;
+    private final int recentGeneration;
+    private final String profileImageUrl;
 }
 
