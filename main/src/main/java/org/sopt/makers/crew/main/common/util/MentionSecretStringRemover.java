@@ -7,8 +7,8 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class MentionSecretStringRemover {
 
-    private static final String PREFIX_PATTERN = "-!@#";
-    private static final String SUFFIX_PATTERN = "\\[\\d+\\]%\\^&\\+";
+    private static final String PREFIX_PATTERN = "-~!@#";
+    private static final String SUFFIX_PATTERN = "\\[\\d+\\]%\\^&\\*\\+";
 
     public static String removeSecretString(String content) {
         Pattern prefixPattern = Pattern.compile(PREFIX_PATTERN);
