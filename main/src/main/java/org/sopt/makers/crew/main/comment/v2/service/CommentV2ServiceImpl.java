@@ -106,7 +106,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
         String[] userIds = {String.valueOf(PostWriter.getOrgId())};
         String secretStringRemovedContent = MentionSecretStringRemover.removeSecretString(
             requestBody.getContents());
-        String pushNotificationContent = String.format("[%s의 댓글] : \"%s\"",
+        String pushNotificationContent = String.format("[%s의 댓글] : \"%s\"", //새로 프로젝트 만들어서 테스트
             user.getName(), secretStringRemovedContent);
         String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
