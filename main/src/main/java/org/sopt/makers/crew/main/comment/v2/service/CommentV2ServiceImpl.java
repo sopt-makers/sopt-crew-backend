@@ -1,8 +1,6 @@
 package org.sopt.makers.crew.main.comment.v2.service;
 
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -249,8 +247,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
         User user = userRepository.findByIdOrThrow(userId);
         Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
 
-        String pushNotificationContent = String.format("[%s님이 회원님을 언급했어요.] : \"%s\"",
-            user.getName(), requestBody.getContent());
+        String pushNotificationContent = NEW_COMMENT_MENTION_PUSH_NOTIFICATION_CONTENT.getValue();
         String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
         String[] userOrgIds = requestBody.getUserIds().stream()
