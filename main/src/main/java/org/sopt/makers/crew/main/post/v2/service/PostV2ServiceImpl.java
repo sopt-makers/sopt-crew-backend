@@ -63,11 +63,11 @@ public class PostV2ServiceImpl implements PostV2Service {
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
 		User user = userRepository.findByIdOrThrow(userId);
 
-		List<Apply> applies = applyRepository.findAllById(List.of(meeting.getId()));
+		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 
 		boolean isInMeeting = applies.stream()
 			.anyMatch(apply -> apply.getUserId().equals(userId)
-				&& apply.getStatus() == EnApplyStatus.APPROVE);
+				&& apply.getStatus().equals(EnApplyStatus.APPROVE));
 
 		boolean isMeetingCreator = meeting.getUserId().equals(userId);
 
