@@ -36,6 +36,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public class Comment {
 
 	private static final int PARENT_COMMENT = 0;
+	private static final String DELETE_COMMENT_CONTENT = "삭제된 댓글입니다.";
+
 
 	/**
 	 * 댓글의 고유 식별자
@@ -136,15 +138,14 @@ public class Comment {
 		this.parentId = parentId;
 	}
 
-	public void updateContents(String contents, LocalDateTime updatedDate) {
+	public void updateContents(String contents) {
 		this.contents = contents;
-		this.updatedDate = updatedDate;
 	}
 
-	public void deleteParentComment(String contents, User user, Integer userId) {
-		this.contents = contents;
-		this.user = user;
-		this.userId = userId;
+	public void deleteParentComment() {
+		this.contents = DELETE_COMMENT_CONTENT;
+		this.user = null;
+		this.userId = null;
 	}
 
 	public void validateWriter(Integer userId) {
