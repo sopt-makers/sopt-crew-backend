@@ -129,9 +129,8 @@ public class PostV2ServiceImpl implements PostV2Service {
 			user.getName(), post.getTitle());
 		String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
-		String[] userOrgIds = userRepository.findByIdIn(requestBody.getUserIds())
-			.stream()
-			.map(mentionedUser -> String.valueOf(mentionedUser.getOrgId()))
+		String[] userOrgIds = requestBody.getUserIds().stream()
+			.map(Object::toString)
 			.toArray(String[]::new);
 
 		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(
