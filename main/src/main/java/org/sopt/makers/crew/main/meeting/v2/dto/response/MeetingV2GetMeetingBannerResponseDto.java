@@ -52,7 +52,7 @@ public class MeetingV2GetMeetingBannerResponseDto {
     /** 가입된 지원자 수 */
     private Integer approvedUserCount;
     /** 개설자 정보 */
-    private Optional<MeetingV2GetMeetingBannerResponseUserDto> user;
+    private MeetingV2GetMeetingBannerResponseUserDto user;
     /** 미팅 상태 */
     private Integer status;
 }

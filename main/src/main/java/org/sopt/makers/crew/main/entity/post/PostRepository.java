@@ -6,12 +6,14 @@ import java.util.Optional;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PostRepository extends JpaRepository<Post, Integer> {
+public interface PostRepository extends JpaRepository<Post, Integer>, PostSearchRepository {
 
-  Optional<Post> findById(Integer postId);
+    Optional<Post> findById(Integer postId);
 
-  default Post findByIdOrThrow(Integer postId) {
-    return findById(postId)
-        .orElseThrow(() -> new BadRequestException(NOT_FOUND_POST.getErrorCode()));
-  }
+    default Post findByIdOrThrow(Integer postId) {
+        return findById(postId)
+                .orElseThrow(() -> new BadRequestException(NOT_FOUND_POST.getErrorCode()));
+    }
+
+    Optional<Post> findFirstByMeetingIdOrderByIdDesc(Integer meetingId);
 }

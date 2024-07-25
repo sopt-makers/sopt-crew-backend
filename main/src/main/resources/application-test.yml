@@ -17,12 +17,14 @@ spring:
     hibernate:
       naming:
         physical-strategy: org.sopt.makers.crew.main.common.config.CamelCaseNamingStrategy
-      ddl-auto: create
+      ddl-auto: create-drop
     properties:
       hibernate:
         show_sql: true
         format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
       storage_engine: innodb
+    defer-datasource-initialization: true
 
 jwt:
   header: Authorization
@@ -53,3 +55,6 @@ push-notification:
   x-api-key: ${DEV_PUSH_API_KEY}
   service: ${PUSH_NOTIFICATION_SERVICE}
   push-server-url: ${DEV_PUSH_SERVER_URL}
+
+notice:
+  secret-key : ${NOTICE_SECRET_KEY}

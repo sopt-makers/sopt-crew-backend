@@ -24,7 +24,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "like")
+@Table(name = "report")
 @EntityListeners(AuditingEntityListener.class)
 public class Report {
     /**
@@ -65,7 +65,7 @@ public class Report {
      * 게시글 id - 게시글 좋아요가 아닐 경우 null
      */
     @Column(insertable = false, updatable = false)
-    private int postId;
+    private Integer postId;
 
     /**
      * 댓글
