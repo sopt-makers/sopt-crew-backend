@@ -10,6 +10,7 @@ import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.sopt.makers.crew.main.post.v2.service.PostV2Service;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -65,5 +67,12 @@ public class PostV2Controller implements PostV2Api {
     public ResponseEntity<PostDetailBaseDto> getPost(@PathVariable Integer postId, Principal principal) {
         Integer userId = UserUtil.getUserId(principal);
         return ResponseEntity.ok(postV2Service.getPost(userId, postId));
+    }
+
+    @Override
+    @GetMapping("/count")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<PostV2GetPostCountResponseDto> getPostCount(@RequestParam Integer meetingId) {
+        return ResponseEntity.ok(postV2Service.getPostCount(meetingId));
     }
 }

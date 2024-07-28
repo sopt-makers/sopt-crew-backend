@@ -15,11 +15,13 @@ import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "게시글")
 public interface PostV2Api {
@@ -59,4 +61,11 @@ public interface PostV2Api {
             @ApiResponse(responseCode = "400", description = "모임이 없습니다", content = @Content)
     })
     ResponseEntity<PostDetailBaseDto> getPost(@PathVariable Integer postId, Principal principal);
+
+    @Operation(summary = "모임 게시글 개수 조회")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "모임이 없습니다", content = @Content)
+    })
+    ResponseEntity<PostV2GetPostCountResponseDto> getPostCount(@RequestParam Integer meetingId);
 }

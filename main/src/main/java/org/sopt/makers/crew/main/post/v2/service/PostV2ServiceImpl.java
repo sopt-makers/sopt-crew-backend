@@ -14,7 +14,6 @@ import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
-import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -29,6 +28,7 @@ import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequ
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -45,7 +45,6 @@ public class PostV2ServiceImpl implements PostV2Service {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final ApplyRepository applyRepository;
-    private final LikeRepository likeRepository;
     private final PushNotificationService pushNotificationService;
 
     @Value("${push-notification.web-url}")
@@ -156,5 +155,16 @@ public class PostV2ServiceImpl implements PostV2Service {
         );
 
         pushNotificationService.sendPushNotification(pushRequestDto);
+    }
+
+    /**
+     * 모임 게시글 개수 조회
+     *
+     * @apiNote 모든 유저가 조회 가능
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public PostV2GetPostCountResponseDto getPostCount(Integer meetingId) {
+        return PostV2GetPostCountResponseDto.of(postRepository.countByMeetingId(meetingId));
     }
 }
