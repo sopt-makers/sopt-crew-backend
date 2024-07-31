@@ -128,4 +128,19 @@ public class PostRepositoryTest {
                 .containsExactly(1, "스터디 구합니다1", "행사");
     }
 
+    @Test
+    void 게시글_개수_조회() {
+        // given
+        int meetingId1 = 1;
+        int meetingId2 = 2;
+
+        // when
+        Integer postCount1 = postRepository.countByMeetingId(meetingId1);
+        Integer postCount2 = postRepository.countByMeetingId(meetingId2);
+
+        // then
+        assertThat(postCount1).isEqualTo(3);
+        assertThat(postCount2).isEqualTo(2);
+    }
+
 }
