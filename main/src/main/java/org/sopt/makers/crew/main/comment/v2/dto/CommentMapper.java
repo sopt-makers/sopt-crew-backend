@@ -13,6 +13,7 @@ public interface CommentMapper {
 	@Mapping(source = "requestBody.contents", target = "contents")
 	@Mapping(source = "user", target = "user")
 	@Mapping(source = "user.id", target = "userId")
+	@Mapping(target = "likeCount", constant = "0")
 	Comment toComment(CommentV2CreateCommentBodyDto requestBody, Post post, User user, int depth, int order,
 		Integer parentId);
 }

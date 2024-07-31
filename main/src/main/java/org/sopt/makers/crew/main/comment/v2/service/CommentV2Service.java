@@ -17,7 +17,7 @@ public interface CommentV2Service {
 	CommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId)
 		throws BadRequestException;
 
-	void deleteComment(Integer commentId, Integer userId) throws ForbiddenException;
+	void deleteComment(Integer commentId, Integer userId);
 
 	void mentionUserInComment(CommentV2MentionUserInCommentRequestDto requestBody, Integer userId);
 
