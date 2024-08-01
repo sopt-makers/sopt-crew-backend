@@ -16,4 +16,6 @@ public interface PostRepository extends JpaRepository<Post, Integer>, PostSearch
     }
 
     Optional<Post> findFirstByMeetingIdOrderByIdDesc(Integer meetingId);
+
+    Integer countByMeetingId(Integer meetingId);
 }

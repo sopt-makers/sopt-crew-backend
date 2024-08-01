@@ -47,6 +47,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 개수 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(PostV1GetPostCountResponseDto)
   @ApiResponse({
@@ -83,6 +84,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(PostV1GetPostResponseDto)
   @ApiResponse({
