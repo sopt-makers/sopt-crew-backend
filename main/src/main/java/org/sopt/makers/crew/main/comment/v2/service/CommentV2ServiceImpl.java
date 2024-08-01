@@ -79,7 +79,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		int order = 0;
 		Integer parentId = 0;
 
-		boolean isReplyComment = !requestBody.isParent();
+		boolean isReplyComment = !requestBody.getIsParent();
 		if (isReplyComment) {
 			validateParentCommentId(requestBody);
 			depth = 1;

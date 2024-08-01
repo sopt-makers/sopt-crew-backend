@@ -18,7 +18,7 @@ public class CommentV2MentionUserInCommentRequestDto {
 	 * 주의!! : 필드명은 userIds 이지만 실제 요청받는 값은 orgId 입니다.
 	 */
 
-	@Schema(example = "[111, 112, 113]", required = true, description = "언급할 유저 ID")
+	@Schema(example = "[111, 112, 113]", required = true, description = "언급할 유저 ID, orgId 의미")
 	@NotEmpty
 	private List<Integer> userIds;
 
