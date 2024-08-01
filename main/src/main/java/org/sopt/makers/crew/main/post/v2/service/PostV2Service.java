@@ -19,4 +19,6 @@ public interface PostV2Service {
     void mentionUserInPost(PostV2MentionUserInPostRequestDto requestBody, Integer userId);
 
     PostV2GetPostCountResponseDto getPostCount(Integer meetingId);
+
+    void deletePost(Integer postId, Integer userId);
 }

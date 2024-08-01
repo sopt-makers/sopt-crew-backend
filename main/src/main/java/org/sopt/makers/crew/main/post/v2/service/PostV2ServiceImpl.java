@@ -166,4 +166,20 @@ public class PostV2ServiceImpl implements PostV2Service {
     public PostV2GetPostCountResponseDto getPostCount(Integer meetingId) {
         return PostV2GetPostCountResponseDto.of(postRepository.countByMeetingId(meetingId));
     }
+
+    /**
+     * 모임 게시글 삭제
+     *
+     * @throws 403 글 작성자가 아닌 경우
+     * @apiNote 글을 작성한 유저만 삭제 가능
+     */
+    @Override
+    @Transactional
+    public void deletePost(Integer postId, Integer userId) {
+        Post post = postRepository.findByIdOrThrow(postId);
+        if (!post.getUserId().equals(userId)) {
+            throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
+        }
+        postRepository.delete(post);
+    }
 }
