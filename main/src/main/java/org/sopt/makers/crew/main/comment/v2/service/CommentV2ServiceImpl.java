@@ -18,6 +18,7 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentR
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.ReplyDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.common.response.ErrorStatus;
@@ -162,13 +163,13 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndPostIdNotNull(userId));
 
-		Map<Integer, List<CommentDto>> replyMap = new HashMap<>();
+		Map<Integer, List<ReplyDto>> replyMap = new HashMap<>();
 		comments.stream()
 			.filter(comment -> !comment.isParentComment())
 			.forEach(
 				comment -> replyMap.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>())
-					.add(CommentDto.of(comment, myLikes.isLikeComment(comment.getId()),
-						comment.isWriter(userId), null)));
+					.add(ReplyDto.of(comment, myLikes.isLikeComment(comment.getId()),
+						comment.isWriter(userId))));
 
 		List<CommentDto> commentDtos = comments.stream()
 			.filter(Comment::isParentComment)
