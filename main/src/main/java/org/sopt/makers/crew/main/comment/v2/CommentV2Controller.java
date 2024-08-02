@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.comment.v2;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -89,12 +90,12 @@ public class CommentV2Controller implements CommentV2Api {
 	@Override
 	@GetMapping
 	public ResponseEntity<CommentV2GetCommentsResponseDto> getComments(
-		@Valid @ModelAttribute CommentV2GetCommentsQueryDto requestBody,
+		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request,
 		Principal principal) {
 
 		Integer userId = UserUtil.getUserId(principal);
-		CommentV2GetCommentsResponseDto commentDtos = commentV2Service.getComments(requestBody.getPostId(),
-			requestBody.getPage(), requestBody.getTake(), userId);
+		CommentV2GetCommentsResponseDto commentDtos = commentV2Service.getComments(request.getPostId(),
+			request.getPage(), request.getTake(), userId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(commentDtos);
 	}
