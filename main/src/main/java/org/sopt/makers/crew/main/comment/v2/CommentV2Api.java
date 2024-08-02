@@ -1,6 +1,8 @@
 package org.sopt.makers.crew.main.comment.v2;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -71,5 +73,9 @@ public interface CommentV2Api {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "성공"),
 	})
-	ResponseEntity<CommentV2GetCommentsResponseDto> getComments(@Valid @ModelAttribute CommentV2GetCommentsQueryDto requestBody, Principal principal);
+	@Parameters({@Parameter(name = "page", description = "페이지, default = 1", example = "1"),
+		@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50"),
+		@Parameter(name = "postId", description = "게시글 id", example = "3")})
+	ResponseEntity<CommentV2GetCommentsResponseDto> getComments(
+		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request, Principal principal);
 }
