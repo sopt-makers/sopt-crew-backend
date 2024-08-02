@@ -161,7 +161,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 		List<Comment> comments = commentRepository.findAllByPostIdOrderByCreatedDate(postId);
 
-		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndPostIdNotNull(userId));
+		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndCommentIdNotNull(userId));
 
 		Map<Integer, List<ReplyDto>> replyMap = new HashMap<>();
 		comments.stream()
