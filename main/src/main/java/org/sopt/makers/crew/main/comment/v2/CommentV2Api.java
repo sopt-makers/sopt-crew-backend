@@ -17,6 +17,7 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentR
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
+import org.sopt.makers.crew.main.common.dto.TempResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -77,5 +78,16 @@ public interface CommentV2Api {
 		@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50"),
 		@Parameter(name = "postId", description = "게시글 id", example = "3")})
 	ResponseEntity<CommentV2GetCommentsResponseDto> getComments(
+		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request, Principal principal);
+
+	@Operation(summary = "[TEMP] 모임 게시글 댓글 리스트 조회")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "성공"),
+	})
+	@Parameters({@Parameter(name = "page", description = "페이지, default = 1", example = "1"),
+		@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50"),
+		@Parameter(name = "postId", description = "게시글 id", example = "3")})
+	ResponseEntity<TempResponseDto<CommentV2GetCommentsResponseDto>> getCommentsTemp(
 		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request, Principal principal);
 }

@@ -17,6 +17,7 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsRes
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.service.CommentV2Service;
+import org.sopt.makers.crew.main.common.dto.TempResponseDto;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -98,5 +99,18 @@ public class CommentV2Controller implements CommentV2Api {
 			request.getPage(), request.getTake(), userId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(commentDtos);
+	}
+
+	@Override
+	@GetMapping("/temp")
+	public ResponseEntity<TempResponseDto<CommentV2GetCommentsResponseDto>> getCommentsTemp(
+		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request,
+		Principal principal) {
+
+		Integer userId = UserUtil.getUserId(principal);
+		CommentV2GetCommentsResponseDto commentDtos = commentV2Service.getComments(request.getPostId(),
+			request.getPage(), request.getTake(), userId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(TempResponseDto.of(commentDtos));
 	}
 }
