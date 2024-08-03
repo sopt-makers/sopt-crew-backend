@@ -14,6 +14,9 @@ import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.comment.Comment;
+import org.sopt.makers.crew.main.entity.comment.CommentRepository;
+import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -45,6 +48,9 @@ public class PostV2ServiceImpl implements PostV2Service {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final ApplyRepository applyRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
+
     private final PushNotificationService pushNotificationService;
 
     @Value("${push-notification.web-url}")
@@ -177,9 +183,15 @@ public class PostV2ServiceImpl implements PostV2Service {
     @Transactional
     public void deletePost(Integer postId, Integer userId) {
         Post post = postRepository.findByIdOrThrow(postId);
-        if (!post.getUserId().equals(userId)) {
-            throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
-        }
+        post.isWriter(userId);
+
+        List<Comment> comments = commentRepository.findAllByPostIdOrderByCreatedDate(postId);
+        List<Integer> commentIds = comments.stream().map(Comment::getId).toList();
+
         postRepository.delete(post);
+        commentRepository.deleteAllByPostId(postId);
+        likeRepository.deleteAllByPostId(postId);
+        likeRepository.deleteAllByIdsInQuery(commentIds);
+
     }
 }
