@@ -284,6 +284,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
     if (isLike) {
       likeRepository.deleteByUserIdAndCommentId(userId, commentId);
+      comment.decreaseLikeCount();
       return CommentV2SwitchCommentLikeResponseDto.of(false);
     }
 
@@ -295,6 +296,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
         .build();
 
     likeRepository.save(like);
+    comment.increaseLikeCount();
 
     return CommentV2SwitchCommentLikeResponseDto.of(true);
   }
