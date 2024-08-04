@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.entity.post;
 
+import static org.sopt.makers.crew.main.common.response.ErrorStatus.*;
+
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -21,6 +23,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import org.hibernate.annotations.Type;
+import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.user.User;
@@ -137,5 +140,11 @@ public class Post {
 
 	public void decreaseCommentCount() {
 		this.commentCount--;
+	}
+
+	public void isWriter(Integer userId){
+		if (!this.userId.equals(userId)) {
+			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
 	}
 }

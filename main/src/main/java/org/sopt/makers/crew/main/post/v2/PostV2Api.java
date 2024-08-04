@@ -68,4 +68,12 @@ public interface PostV2Api {
             @ApiResponse(responseCode = "400", description = "모임이 없습니다", content = @Content)
     })
     ResponseEntity<PostV2GetPostCountResponseDto> getPostCount(@RequestParam Integer meetingId);
+
+    @Operation(summary = "모임 게시글 삭제")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),
+            @ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content)
+    })
+    ResponseEntity<Void> deletePost(@PathVariable Integer postId, Principal principal);
 }

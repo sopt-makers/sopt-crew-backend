@@ -182,6 +182,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 삭제',
+    deprecated: true,
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))

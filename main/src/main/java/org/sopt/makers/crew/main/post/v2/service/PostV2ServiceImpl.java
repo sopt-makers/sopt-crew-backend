@@ -14,6 +14,9 @@ import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.comment.Comment;
+import org.sopt.makers.crew.main.entity.comment.CommentRepository;
+import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -45,6 +48,9 @@ public class PostV2ServiceImpl implements PostV2Service {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final ApplyRepository applyRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
+
     private final PushNotificationService pushNotificationService;
 
     @Value("${push-notification.web-url}")
@@ -165,5 +171,27 @@ public class PostV2ServiceImpl implements PostV2Service {
     @Transactional(readOnly = true)
     public PostV2GetPostCountResponseDto getPostCount(Integer meetingId) {
         return PostV2GetPostCountResponseDto.of(postRepository.countByMeetingId(meetingId));
+    }
+
+    /**
+     * 모임 게시글 삭제
+     *
+     * @throws 403 글 작성자가 아닌 경우
+     * @apiNote 글을 작성한 유저만 삭제 가능
+     */
+    @Override
+    @Transactional
+    public void deletePost(Integer postId, Integer userId) {
+        Post post = postRepository.findByIdOrThrow(postId);
+        post.isWriter(userId);
+
+        List<Comment> comments = commentRepository.findAllByPostIdOrderByCreatedDate(postId);
+        List<Integer> commentIds = comments.stream().map(Comment::getId).toList();
+
+        commentRepository.deleteAllByPostId(postId);
+        likeRepository.deleteAllByPostId(postId);
+        likeRepository.deleteAllByIdsInQuery(commentIds);
+
+        postRepository.delete(post);
     }
 }
