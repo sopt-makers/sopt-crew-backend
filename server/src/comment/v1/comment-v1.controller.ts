@@ -43,6 +43,7 @@ export class CommentV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 댓글 리스트 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(CommentV1GetCommentsResponseDto)
   @ApiResponse({
@@ -74,8 +75,12 @@ export class CommentV1Controller {
     return this.commentV1Service.switchCommentLike({ param, user });
   }
 
+  /**
+   * @deprecated
+   */
   @ApiOperation({
     summary: '댓글 신고',
+    deprecated: true,
   })
   @ApiOkResponseCommon(CommentV1ReportCommentResponseDto)
   @ApiResponse({
@@ -113,8 +118,12 @@ export class CommentV1Controller {
     return this.commentV1Service.createPostComment({ body, user });
   }
 
+  /**
+   * @deprecated
+   */
   @ApiOperation({
     summary: '모임 게시글 댓글 수정',
+    deprecated: true,
   })
   @ApiOkResponseCommon(CommentV1CreateCommentResponseDto)
   @ApiResponse({
@@ -137,8 +146,12 @@ export class CommentV1Controller {
     });
   }
 
+  /**
+   * @deprecated
+   */
   @ApiOperation({
     summary: '모임 게시글 댓글 삭제',
+    deprecated: true,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,

@@ -26,7 +26,7 @@ public class Notice {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     /**
      * 공지사항 제목

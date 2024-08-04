@@ -6,8 +6,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.entity.user.User;
-import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetApplyByUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetApplyByUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetMeetingByUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
@@ -58,5 +59,12 @@ public class UserV2Controller implements UserV2Api {
   public ResponseEntity<UserV2GetApplyByUserDto> getApplyByUser(Principal principal) {
     Integer userId = UserUtil.getUserId(principal);
     return ResponseEntity.ok(userV2Service.getApplyByUser(userId));
+  }
+
+  @GetMapping("/mention")
+  public ResponseEntity<List<UserV2GetAllMentionUserDto>> getAllMentionUser(
+      Principal principal) {
+    UserUtil.getUserId(principal);
+    return ResponseEntity.ok(userV2Service.getAllMentionUser());
   }
 }

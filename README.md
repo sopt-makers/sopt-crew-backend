@@ -1,40 +1,7 @@
 # 설명
 
-- NestJS기반으로 운영되는 모임(Crew) 서버
+- Spring 기반으로 운영되는 모임(Crew) 서버
 - [PlayGround Link](https://playground.sopt.org/group/)
-- [PlayGround Dev Link](https://sopt-internal-dev.pages.dev/group/)
-
-## node_modules 설치
-
-```bash
-npm ci
-```
-
-## 실행하는 법
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## 테스트
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
 
 # 배경
 
@@ -45,15 +12,14 @@ $ npm run test:cov
 # 기술스택
 
 - DB: PostgreSQL
-- DB GUI tool: pgAdmin4
-- ORM: TypeORM
+- ORM: jpa, TypeORM
 - API 문서: Swagger
-- 배포: AWS EC2, Docker Compose
+- 배포: AWS EC2, Docker Compose, Docker hub
 - 인증: JWT
-- 테스트: Jest, Unit5
-- 서버 프레임워크: NestJS, Spring
+- 테스트: JUnit5, Jest 
+- 서버 프레임워크: Spring, NestJS
 - 웹서버 프레임워크: Caddy
-- 언어: typescript, Java
+- 언어: Java, Typescript
 
 # 아키텍처
 
@@ -187,8 +153,8 @@ bar # 예시 모듈
 
 ## 배포 전략
 
-- 현재는 수동배포를 진행중이고 Blue-Green 방식의 배포를 진행하고 있지 않는다.
-- 수동배포 이후 짧은 순단(서버 재시작)이 발생하기 때문에 새벽에 배포를 하거나, 사용자가 몰리는 시간대는 피해서 배포를 진행한다. (Prod환경 기준)
+- Blue-Green 방식의 배포 자동화를 구축했다.
+- 그럼에도 불구하고, 사용자가 몰리는 시간대는 피해서 배포를 진행한다. (Prod환경 기준)
 - Prod환경의 경우는 `main` 브랜치를, Dev환경의 경우는 `develop` 브랜치를 기준으로 배포를 진행한다.
 
 ## 배포 정보

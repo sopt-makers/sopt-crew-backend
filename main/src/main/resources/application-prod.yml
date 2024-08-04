@@ -51,3 +51,6 @@ push-notification:
   x-api-key: ${PROD_PUSH_API_KEY}
   service: ${PUSH_NOTIFICATION_SERVICE}
   push-server-url: ${PROD_PUSH_SERVER_URL}
+
+notice:
+  secret-key : ${NOTICE_SECRET_KEY}
