@@ -9,13 +9,13 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.exception.BaseException;
 import org.sopt.makers.crew.main.common.exception.NotFoundException;
-import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetCreatedMeetingByUserQueryDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAppliedMeetingByUserResponseDto;
@@ -90,18 +90,17 @@ public class UserV2ServiceImpl implements UserV2Service {
     return UserV2GetUserOwnProfileResponseDto.of(user.getId(), user.getOrgId(), user.getName(),
         user.getProfileImage(), !user.getActivities().isEmpty());
   }
-
-  //TODO - 걍 responseDto에 담으면 됨 / status code 안넘겨줘야 됨 -> 마지막에 확ㅇ니
-
+  
   @Override
   public UserV2GetCreatedMeetingByUserResponseDto getCreatedMeetingByUser(Integer userId) {
-    List<Meeting> meetings = meetingRepository.findCreatedMeetingByUser(userId);
+    List<MeetingV2GetCreatedMeetingByUserQueryDto> meetings = meetingRepository.findCreatedMeetingByUser(
+        userId);
     return UserV2GetCreatedMeetingByUserResponseDto.of(meetings, meetings.size());
   }
 
   @Override
   public UserV2GetAppliedMeetingByUserResponseDto getAppliedMeetingByUser(Integer userId) {
-    List<Apply> applies = meetingRepository.findAppliedMeetingByUser(userId);
+    //List<Apply> applies = meetingRepository.findAppliedMeetingByUser(userId);
 //    { 이런식으로
 //      apply : {},
 //      count : {}

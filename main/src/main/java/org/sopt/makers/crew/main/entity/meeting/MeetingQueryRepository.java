@@ -1,14 +1,12 @@
 package org.sopt.makers.crew.main.entity.meeting;
 
 import java.util.List;
-import org.sopt.makers.crew.main.entity.apply.Apply;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetCreatedMeetingByUserQueryDto;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MeetingQueryRepository {
 
-    List<Meeting> findCreatedMeetingByUser(int userId);
-
-    List<Apply> findAppliedMeetingByUser(int userId);
+  List<MeetingV2GetCreatedMeetingByUserQueryDto> findCreatedMeetingByUser(Integer userId);
 
 }

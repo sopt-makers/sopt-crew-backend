@@ -48,19 +48,20 @@ public class UserV2Controller implements UserV2Api {
     return ResponseEntity.ok(userV2Service.getUserOwnProfile(userId));
   }
 
+  @GetMapping("/mention")
+  public ResponseEntity<List<UserV2GetAllMentionUserDto>> getAllMentionUser(
+      Principal principal) {
+    UserUtil.getUserId(principal);
+    return ResponseEntity.ok(userV2Service.getAllMentionUser());
+  }
+
+
   @Override
   @GetMapping("/meeting")
   public ResponseEntity<UserV2GetCreatedMeetingByUserResponseDto> getCreatedMeetingByUser(
       Principal principal) {
     Integer userId = UserUtil.getUserId(principal);
     return ResponseEntity.ok(userV2Service.getCreatedMeetingByUser(userId));
-  }
-
-  @GetMapping("/mention")
-  public ResponseEntity<List<UserV2GetAllMentionUserDto>> getAllMentionUser(
-      Principal principal) {
-    UserUtil.getUserId(principal);
-    return ResponseEntity.ok(userV2Service.getAllMentionUser());
   }
 
   @Override
