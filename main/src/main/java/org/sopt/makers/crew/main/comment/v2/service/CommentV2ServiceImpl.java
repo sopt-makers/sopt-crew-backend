@@ -21,6 +21,8 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentR
 import org.sopt.makers.crew.main.comment.v2.dto.response.ReplyDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
+import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.common.response.ErrorStatus;
 import org.sopt.makers.crew.main.common.util.MentionSecretStringRemover;
 import org.sopt.makers.crew.main.common.util.Time;
@@ -178,7 +180,9 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 				replyMap.get(comment.getId())))
 			.toList();
 
-		return CommentV2GetCommentsResponseDto.of(commentDtos);
+		PageMetaDto pageMetaDto = new PageMetaDto(new PageOptionsDto(1, 12), 30);
+
+		return CommentV2GetCommentsResponseDto.of(commentDtos, pageMetaDto);
 	}
 
 	/**
