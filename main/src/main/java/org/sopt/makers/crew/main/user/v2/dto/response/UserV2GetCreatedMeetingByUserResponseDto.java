@@ -9,6 +9,6 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetCreatedMeeting
 @AllArgsConstructor(staticName = "of")
 public class UserV2GetCreatedMeetingByUserResponseDto {
 
-  List<MeetingV2GetCreatedMeetingByUserQueryDto> meetings;
-  Integer count;
+  private final List<MeetingV2GetCreatedMeetingByUserQueryDto> meetings;
+  private final Integer count;
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.sopt.makers.crew.main.apply.v2.dto.query.ApplyV2GetAppliedMeetingByUserQueryDto;
 import org.sopt.makers.crew.main.common.exception.BaseException;
 import org.sopt.makers.crew.main.common.exception.NotFoundException;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
@@ -90,7 +91,7 @@ public class UserV2ServiceImpl implements UserV2Service {
     return UserV2GetUserOwnProfileResponseDto.of(user.getId(), user.getOrgId(), user.getName(),
         user.getProfileImage(), !user.getActivities().isEmpty());
   }
-  
+
   @Override
   public UserV2GetCreatedMeetingByUserResponseDto getCreatedMeetingByUser(Integer userId) {
     List<MeetingV2GetCreatedMeetingByUserQueryDto> meetings = meetingRepository.findCreatedMeetingByUser(
@@ -100,12 +101,8 @@ public class UserV2ServiceImpl implements UserV2Service {
 
   @Override
   public UserV2GetAppliedMeetingByUserResponseDto getAppliedMeetingByUser(Integer userId) {
-    //List<Apply> applies = meetingRepository.findAppliedMeetingByUser(userId);
-//    { 이런식으로
-//      apply : {},
-//      count : {}
-//    }
-    // UserV2GetAppliedMeetingByUserResponseDto.of(applies, applies.size());
-    return null;
+    List<ApplyV2GetAppliedMeetingByUserQueryDto> meetings = applyRepository.findAppliedMeetingByUser(
+        userId);
+    return UserV2GetAppliedMeetingByUserResponseDto.of(meetings, meetings.size());
   }
 }
