@@ -15,6 +15,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.sopt.makers.crew.main.post.v2.service.PostV2Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -74,5 +75,14 @@ public class PostV2Controller implements PostV2Api {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<PostV2GetPostCountResponseDto> getPostCount(@RequestParam Integer meetingId) {
         return ResponseEntity.ok(postV2Service.getPostCount(meetingId));
+    }
+
+    @Override
+    @DeleteMapping("/{postId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Void> deletePost(@PathVariable Integer postId, Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        postV2Service.deletePost(postId, userId);
+        return ResponseEntity.ok().build();
     }
 }
