@@ -4,8 +4,8 @@ import java.util.List;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
-import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetApplyByUserDto;
-import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetMeetingByUserDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAppliedMeetingByUserResponseDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetCreatedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
 
 public interface UserV2Service {
@@ -16,9 +16,9 @@ public interface UserV2Service {
 
   UserV2GetUserOwnProfileResponseDto getUserOwnProfile(Integer userId);
 
-  UserV2GetMeetingByUserDto getMeetingByUser(Integer userId);
+  UserV2GetCreatedMeetingByUserResponseDto getCreatedMeetingByUser(Integer userId);
 
-  UserV2GetApplyByUserDto getApplyByUser(Integer userId);
+  UserV2GetAppliedMeetingByUserResponseDto getAppliedMeetingByUser(Integer userId);
 
   List<UserV2GetAllMentionUserDto> getAllMentionUser();
 }
