@@ -16,6 +16,7 @@ import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2UpdateCommentBo
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.common.dto.TempResponseDto;
 import org.springframework.http.HttpStatus;
@@ -78,7 +79,8 @@ public interface CommentV2Api {
 		@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50"),
 		@Parameter(name = "postId", description = "게시글 id", example = "3")})
 	ResponseEntity<CommentV2GetCommentsResponseDto> getComments(
-		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request, Principal principal);
+		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request,
+		Principal principal);
 
 	@Operation(summary = "[TEMP] 모임 게시글 댓글 리스트 조회")
 	@ResponseStatus(HttpStatus.OK)
@@ -89,5 +91,14 @@ public interface CommentV2Api {
 		@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50"),
 		@Parameter(name = "postId", description = "게시글 id", example = "3")})
 	ResponseEntity<TempResponseDto<CommentV2GetCommentsResponseDto>> getCommentsTemp(
-		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request, Principal principal);
+		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request,
+		Principal principal);
+
+	@Operation(summary = "모임 게시글 댓글 좋아요 토글")
+	@ResponseStatus(HttpStatus.CREATED)
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "201", description = "성공"),
+	})
+	ResponseEntity<CommentV2SwitchCommentLikeResponseDto> switchCommentLike(Principal principal,
+		@PathVariable Integer commentId);
 }

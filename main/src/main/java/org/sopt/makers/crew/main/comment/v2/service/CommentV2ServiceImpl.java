@@ -17,6 +17,7 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.ReplyDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
@@ -29,6 +30,7 @@ import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.comment.Comments;
+import org.sopt.makers.crew.main.entity.like.Like;
 import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.like.MyLikes;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -47,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommentV2ServiceImpl implements CommentV2Service {
+
 	private static final int IS_REPLY_COMMENT = 1;
 
 	private final PostRepository postRepository;
@@ -269,5 +272,34 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		);
 
 		pushNotificationService.sendPushNotification(pushRequestDto);
+	}
+
+	@Override
+	@Transactional
+	public CommentV2SwitchCommentLikeResponseDto switchCommentToggle(Integer commentId,
+		Integer userId) {
+
+		Comment comment = commentRepository.findByIdOrThrow(commentId);
+		User user = userRepository.findByIdOrThrow(userId);
+
+		boolean isLike = likeRepository.existsByUserIdAndCommentId(userId, commentId);
+
+		if (isLike) {
+			likeRepository.deleteByUserIdAndCommentId(userId, commentId);
+			comment.decreaseLikeCount();
+			return CommentV2SwitchCommentLikeResponseDto.of(false);
+		}
+
+		Like like = Like.builder()
+			.user(user)
+			.userId(userId)
+			.comment(comment)
+			.commentId(commentId)
+			.build();
+
+		likeRepository.save(like);
+		comment.increaseLikeCount();
+
+		return CommentV2SwitchCommentLikeResponseDto.of(true);
 	}
 }

@@ -61,8 +61,12 @@ export class CommentV1Controller {
     return this.commentV1Service.getComments({ query, user });
   }
 
+  /**
+   * @deprecated
+   */
   @ApiOperation({
     summary: '댓글 좋아요 토글',
+    deprecated: true,
   })
   @ApiOkResponseCommon(CommentV1SwitchCommentLikeResponseDto)
   @ApiBearerAuth()
@@ -98,6 +102,9 @@ export class CommentV1Controller {
     return this.commentV1Service.reportComment({ param, user });
   }
 
+  /**
+   * @deprecated
+   */
   @ApiOperation({
     summary: '모임 게시글 댓글 작성',
     deprecated: true,

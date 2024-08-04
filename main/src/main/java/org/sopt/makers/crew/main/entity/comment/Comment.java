@@ -38,7 +38,6 @@ public class Comment {
 	private static final int PARENT_COMMENT = 0;
 	private static final String DELETE_COMMENT_CONTENT = "삭제된 댓글입니다.";
 
-
 	/**
 	 * 댓글의 고유 식별자
 	 */
@@ -116,6 +115,7 @@ public class Comment {
 	private Integer parentId;
 
 	public static class CommentListener {
+
 		@PostPersist
 		public void setParentId(Comment comment) {
 			if (comment.depth == PARENT_COMMENT) { // 댓글일 경우
@@ -125,7 +125,8 @@ public class Comment {
 	}
 
 	@Builder
-	public Comment(String contents, int depth, int order, User user, Integer userId, Post post, Integer postId,
+	public Comment(String contents, int depth, int order, User user, Integer userId, Post post,
+		Integer postId,
 		int likeCount, Integer parentId) {
 		this.contents = contents;
 		this.depth = depth;
@@ -160,5 +161,13 @@ public class Comment {
 
 	public boolean isParentComment() {
 		return this.depth == PARENT_COMMENT;
+	}
+
+	public void increaseLikeCount() {
+		this.likeCount++;
+	}
+
+	public void decreaseLikeCount() {
+		this.likeCount--;
 	}
 }

@@ -5,9 +5,9 @@ import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2MentionUserInCo
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
-import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 
 public interface CommentV2Service {
 
@@ -24,5 +24,8 @@ public interface CommentV2Service {
 	CommentV2UpdateCommentResponseDto updateComment(Integer commentId, String contents,
 		Integer userId);
 
-	CommentV2GetCommentsResponseDto getComments(Integer postId, Integer page, Integer take, Integer userId);
+	CommentV2GetCommentsResponseDto getComments(Integer postId, Integer page, Integer take,
+		Integer userId);
+
+	CommentV2SwitchCommentLikeResponseDto switchCommentToggle(Integer commentId, Integer userId);
 }
