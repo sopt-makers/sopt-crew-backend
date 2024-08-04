@@ -12,11 +12,11 @@ public interface LikeRepository extends JpaRepository<Like, Integer> {
 
     @Modifying(clearAutomatically = true)
     @Transactional
-    @Query("DELETE FROM Comment c WHERE c.postId = :postId")
+    @Query("DELETE FROM Like l WHERE l.postId = :postId")
     void deleteAllByPostId(Integer postId);
 
     @Modifying(clearAutomatically = true)
     @Transactional
-    @Query("DELETE FROM Comment c WHERE c.postId IN :commentIds")
+    @Query("DELETE FROM Like l WHERE l.commentId IN :commentIds")
     void deleteAllByIdsInQuery(List<Integer> commentIds);
 }

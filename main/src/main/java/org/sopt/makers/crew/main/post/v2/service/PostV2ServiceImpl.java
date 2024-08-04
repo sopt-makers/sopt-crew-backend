@@ -188,10 +188,10 @@ public class PostV2ServiceImpl implements PostV2Service {
         List<Comment> comments = commentRepository.findAllByPostIdOrderByCreatedDate(postId);
         List<Integer> commentIds = comments.stream().map(Comment::getId).toList();
 
-        postRepository.delete(post);
         commentRepository.deleteAllByPostId(postId);
         likeRepository.deleteAllByPostId(postId);
         likeRepository.deleteAllByIdsInQuery(commentIds);
 
+        postRepository.delete(post);
     }
 }
