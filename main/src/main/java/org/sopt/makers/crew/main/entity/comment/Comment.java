@@ -156,7 +156,10 @@ public class Comment {
 	}
 
 	public boolean isWriter(Integer userId) {
-		return this.userId.equals(userId);
+		if (this.userId == null || !this.userId.equals(userId)) {
+			return false;
+		}
+		return true;
 	}
 
 	public boolean isParentComment() {

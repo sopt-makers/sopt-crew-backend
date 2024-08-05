@@ -2,8 +2,10 @@ package org.sopt.makers.crew.main.comment.v2.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.sopt.makers.crew.main.entity.comment.Comment;
+import org.sopt.makers.crew.main.entity.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.querydsl.core.annotations.QueryProjection;
@@ -57,9 +59,14 @@ public class CommentDto {
 	}
 
 	public static CommentDto of(Comment comment, boolean isLiked, boolean isWriter, List<ReplyDto> replies) {
+		Integer userId = comment.getUser() == null ? null : comment.getUser().getId();
+		Integer orgId = comment.getUser() == null ? null : comment.getUser().getOrgId();
+		String userName = comment.getUser() == null ? null : comment.getUser().getName();
+		String profileImage = comment.getUser() == null ? null : comment.getUser().getProfileImage();
+
 		return new CommentDto(comment.getId(), comment.getContents(),
-			new CommentWriterDto(comment.getUser().getId(), comment.getUser().getOrgId(), comment.getUser().getName(),
-				comment.getUser().getProfileImage()), comment.getUpdatedDate(), comment.getLikeCount(),
+			new CommentWriterDto(userId, orgId, userName,
+				profileImage), comment.getUpdatedDate(), comment.getLikeCount(),
 			isLiked, isWriter, comment.getOrder(), replies);
 	}
 }
