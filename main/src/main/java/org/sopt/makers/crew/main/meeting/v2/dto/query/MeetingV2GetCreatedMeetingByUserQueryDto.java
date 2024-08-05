@@ -1,14 +1,9 @@
 package org.sopt.makers.crew.main.meeting.v2.dto.query;
 
-import static org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus.APPLY_ABLE;
-import static org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus.BEFORE_START;
-import static org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus.RECRUITMENT_COMPLETE;
-
 import com.querydsl.core.annotations.QueryProjection;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Getter;
-import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
@@ -38,7 +33,7 @@ public class MeetingV2GetCreatedMeetingByUserQueryDto {
   private final Integer targetActiveGeneration;
   private final MeetingJoinablePart[] joinableParts;
   private final User user;
-  private final EnMeetingStatus status;
+  private final Integer status;
 
   @QueryProjection
   public MeetingV2GetCreatedMeetingByUserQueryDto(Integer id, Integer userId, String title,
@@ -72,14 +67,14 @@ public class MeetingV2GetCreatedMeetingByUserQueryDto {
     this.status = determineMeetingStatus(startDate, endDate);
   }
 
-  private EnMeetingStatus determineMeetingStatus(LocalDateTime startDate, LocalDateTime endDate) {
+  private Integer determineMeetingStatus(LocalDateTime startDate, LocalDateTime endDate) {
     LocalDateTime now = LocalDateTime.now();
     if (now.isBefore(startDate)) {
-      return BEFORE_START; // 예정
+      return 0; // 예정
     } else if (now.isAfter(endDate)) {
-      return RECRUITMENT_COMPLETE; // 종료
+      return 2; // 종료
     } else {
-      return APPLY_ABLE; // 진행 중
+      return 1; // 진행 중
     }
   }
 }

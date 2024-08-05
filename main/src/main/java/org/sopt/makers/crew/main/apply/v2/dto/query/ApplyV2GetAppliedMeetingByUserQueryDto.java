@@ -11,12 +11,12 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetCreatedMeeting
 public class ApplyV2GetAppliedMeetingByUserQueryDto {
 
   private final Integer id;
-  private final EnApplyType type;
+  private final Integer type;
   private final Integer meetingId;
   private final Integer userId;
   private final String content;
   private final LocalDateTime appliedDate;
-  private final EnApplyStatus status;
+  private final Integer status;
   private final MeetingV2GetCreatedMeetingByUserQueryDto meeting;
 
   @QueryProjection
@@ -24,12 +24,12 @@ public class ApplyV2GetAppliedMeetingByUserQueryDto {
       Integer userId, String content, LocalDateTime appliedDate, EnApplyStatus status,
       MeetingV2GetCreatedMeetingByUserQueryDto meeting) {
     this.id = id;
-    this.type = type;
+    this.type = type.getValue();
     this.meetingId = meetingId;
     this.userId = userId;
     this.content = content;
     this.appliedDate = appliedDate;
-    this.status = status;
+    this.status = status.getValue();
     this.meeting = meeting;
   }
 }
