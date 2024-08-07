@@ -47,6 +47,22 @@ springdoc:
     groups:
       enabled: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
 push-notification:
   web-url: ${DEV_WEB_PAGE_URL}
   x-api-key: ${DEV_PUSH_API_KEY}
