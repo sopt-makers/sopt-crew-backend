@@ -11,7 +11,7 @@ public enum ErrorStatus {
      * 204 NO_CONTENT
      */
     NO_CONTENT_EXCEPTION("참여한 모임이 없습니다."),
-
+    NO_CREATED_MEETING("생성한 모임이 없습니다."),
     /**
      * 400 BAD_REQUEST
      */
@@ -28,6 +28,7 @@ public enum ErrorStatus {
     NOT_ACTIVE_GENERATION("활동 기수가 아닙니다."),
     NOT_TARGET_PART("지원 가능한 파트가 아닙니다."),
     NOT_FOUND_APPLY("신청상태가 아닌 모임입니다."),
+    NOT_FOUND_USER("존재하지 않는 사용자입니다."),
 
     /**
      * 401 UNAUTHORIZED

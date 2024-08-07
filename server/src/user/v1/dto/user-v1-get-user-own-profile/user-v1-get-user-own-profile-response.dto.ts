@@ -7,7 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class UserV1GetUserOwnProfileResponseDto {
+export class  UserV1GetUserOwnProfileResponseDto {
   @ApiProperty({
     description: 'Crew ID',
     example: 1,
