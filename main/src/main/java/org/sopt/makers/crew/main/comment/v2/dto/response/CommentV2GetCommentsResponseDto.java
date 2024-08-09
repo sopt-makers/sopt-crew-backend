@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +14,9 @@ import lombok.Getter;
 @Schema(name = "CommentV2GetCommentsResponseDto", description = "댓글 목록 조회 응답 Dto")
 public class CommentV2GetCommentsResponseDto {
 
-	@Schema(description = "댓글 목록", example = "")
+	@ArraySchema(
+		schema = @Schema(implementation = CommentDto.class)
+	)
 	private final List<CommentDto> comments;
 
 	@Schema(description = "페이지네이션", example = "")
