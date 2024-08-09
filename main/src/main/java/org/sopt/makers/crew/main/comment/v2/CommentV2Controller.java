@@ -19,8 +19,6 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2SwitchCommentL
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.service.CommentV2Service;
 import org.sopt.makers.crew.main.common.dto.TempResponseDto;
-import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
-import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
