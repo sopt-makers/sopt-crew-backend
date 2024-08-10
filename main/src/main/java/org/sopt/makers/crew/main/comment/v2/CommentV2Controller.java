@@ -35,7 +35,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/comment/v2")
 @RequiredArgsConstructor
-@Tag(name = "댓글/대댓글")
 public class CommentV2Controller implements CommentV2Api {
 
 	private final CommentV2Service commentV2Service;
