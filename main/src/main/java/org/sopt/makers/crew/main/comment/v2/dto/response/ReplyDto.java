@@ -19,7 +19,10 @@ public class ReplyDto {
 	@Schema(description = "댓글 작성자 객체", example = "")
 	private final CommentWriterDto user;
 
-	@Schema(description = "댓글 업데이트 시간", example = "2024-07-31T15:30:00")
+	/*
+	* 변수명 createDate가 맞으나 레거시로 인해 updatedDate로 되어있음.
+	* */
+	@Schema(description = "댓글 생성 시점(현재 변수명은 레거시이다.)", example = "2024-07-31T15:30:00")
 	private final LocalDateTime updatedDate;
 
 	@Schema(description = "좋아요 갯수", example = "20")
@@ -50,7 +53,7 @@ public class ReplyDto {
 	public static ReplyDto of(Comment comment, boolean isLiked, boolean isWriter) {
 		return new ReplyDto(comment.getId(), comment.getContents(),
 			new CommentWriterDto(comment.getUser().getId(), comment.getUser().getOrgId(), comment.getUser().getName(),
-				comment.getUser().getProfileImage()), comment.getUpdatedDate(), comment.getLikeCount(),
+				comment.getUser().getProfileImage()), comment.getCreatedDate(), comment.getLikeCount(),
 			isLiked, isWriter, comment.getOrder());
 	}
 }
