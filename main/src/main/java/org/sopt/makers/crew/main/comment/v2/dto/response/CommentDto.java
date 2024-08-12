@@ -14,19 +14,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 @Getter
-@Schema(name = "CommentDto", description = "댓글 객체 응답 Dto")
+@Schema(name = "CommentDto", description = "댓글 객체 응답 Dto", required = true)
 public class CommentDto {
 
-	@Schema(description = "댓글 id", example = "1")
+	@Schema(description = "댓글 id", example = "1", required = true)
 	private final Integer id;
 
-	@Schema(description = "댓글 내용", example = "이것은 댓글 내용입니다.")
+	@Schema(description = "댓글 내용", example = "이것은 댓글 내용입니다.", required = true)
 	private final String contents;
 
-	@Schema(description = "댓글 작성자 객체", example = "")
+	@Schema(description = "댓글 작성자 객체", example = "", required = true)
 	private final CommentWriterDto user;
 
-	@Schema(description = "댓글 업데이트 시간", example = "2024-07-31T15:30:00")
+	@Schema(description = "댓글 업데이트 시간", example = "2024-07-31T15:30:00", required = true)
 	private final LocalDateTime updatedDate;
 
 	@Schema(description = "좋아요 갯수", example = "20")

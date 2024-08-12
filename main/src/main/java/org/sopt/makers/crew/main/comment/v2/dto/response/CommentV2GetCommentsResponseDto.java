@@ -11,15 +11,15 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-@Schema(name = "CommentV2GetCommentsResponseDto", description = "댓글 목록 조회 응답 Dto")
+@Schema(name = "CommentV2GetCommentsResponseDto", description = "댓글 목록 조회 응답 Dto", required = true)
 public class CommentV2GetCommentsResponseDto {
 
 	@ArraySchema(
-		schema = @Schema(implementation = CommentDto.class)
+		schema = @Schema(implementation = CommentDto.class, required = true)
 	)
 	private final List<CommentDto> comments;
 
-	@Schema(description = "페이지네이션", example = "")
+	@Schema(description = "페이지네이션", example = "", required = true)
 	private final PageMetaDto meta;
 
 }
