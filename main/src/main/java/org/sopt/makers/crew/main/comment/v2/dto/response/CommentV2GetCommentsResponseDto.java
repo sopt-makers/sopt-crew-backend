@@ -11,7 +11,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-@Schema(name = "CommentV2GetCommentsResponseDto", description = "댓글 목록 조회 응답 Dto", required = true)
+@Schema(name = "CommentV2GetCommentsResponseDto", description = "댓글 목록 조회 응답 Dto")
 public class CommentV2GetCommentsResponseDto {
 
 	@ArraySchema(

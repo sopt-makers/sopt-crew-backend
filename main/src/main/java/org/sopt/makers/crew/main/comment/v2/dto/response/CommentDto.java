@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 @Getter
-@Schema(name = "CommentDto", description = "댓글 객체 응답 Dto", required = true)
+@Schema(name = "CommentDto", description = "댓글 객체 응답 Dto")
 public class CommentDto {
 
 	@Schema(description = "댓글 id", example = "1", required = true)
