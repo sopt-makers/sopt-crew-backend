@@ -256,7 +256,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		String pushNotificationContent = "\"" + requestBody.getContent() + "\"";
 		String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
-		String[] userOrgIds = requestBody.getUserIds().stream()
+		String[] userOrgIds = requestBody.getPlaygroundUserIds().stream()
 			.map(Object::toString)
 			.toArray(String[]::new);
 

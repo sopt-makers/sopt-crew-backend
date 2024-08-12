@@ -14,9 +14,9 @@ import lombok.Getter;
 @Schema(description = "모임 게시글에서 유저 언급 request body dto")
 public class PostV2MentionUserInPostRequestDto {
 
-	@Schema(example = "[111, 112, 113]", required = true, description = "언급할 유저 ID")
+	@Schema(example = "[111, 112, 113]", required = true, description = "언급할 유저 플그 id")
 	@NotEmpty
-	private final List<Integer> userIds;
+	private final List<Integer> playgroundUserIds;
 
 	@Schema(example = "1", required = true, description = "게시글 ID")
 	@NotNull

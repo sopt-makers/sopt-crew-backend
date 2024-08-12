@@ -147,7 +147,7 @@ public class PostV2ServiceImpl implements PostV2Service {
                 user.getName(), post.getTitle());
         String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
-        String[] userOrgIds = requestBody.getUserIds().stream()
+        String[] userOrgIds = requestBody.getPlaygroundUserIds().stream()
                 .map(Object::toString)
                 .toArray(String[]::new);
 
