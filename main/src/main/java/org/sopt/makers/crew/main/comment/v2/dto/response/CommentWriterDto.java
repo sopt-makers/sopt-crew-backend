@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 @Getter
-@Schema(name = "CommentWriterDto", description = "댓글 작성자 객체 Dto")
+@Schema(name = "CommentWriterDto", description = "댓글 작성자 객체 Dto", required = true)
 public class CommentWriterDto {
 
 	@Schema(description = "크루에서 사용하는 userId", example = "1")

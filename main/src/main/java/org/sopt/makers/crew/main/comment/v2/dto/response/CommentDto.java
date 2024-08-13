@@ -17,13 +17,13 @@ import lombok.Getter;
 @Schema(name = "CommentDto", description = "댓글 객체 응답 Dto")
 public class CommentDto {
 
-	@Schema(description = "댓글 id", example = "1")
+	@Schema(description = "댓글 id", example = "1", required = true)
 	private final Integer id;
 
-	@Schema(description = "댓글 내용", example = "이것은 댓글 내용입니다.")
+	@Schema(description = "댓글 내용", example = "이것은 댓글 내용입니다.", required = true)
 	private final String contents;
 
-	@Schema(description = "댓글 작성자 객체", example = "")
+	@Schema(description = "댓글 작성자 객체", example = "", required = true)
 	private final CommentWriterDto user;
 
 	@Schema(description = "댓글 생성 시점", example = "2024-07-31T15:30:00")
