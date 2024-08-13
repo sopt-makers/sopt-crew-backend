@@ -7,6 +7,7 @@ import org.sopt.makers.crew.main.advertisement.dto.AdvertisementGetResponseDto;
 import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.advertisement.Advertisement;
 import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
+import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +21,9 @@ public class AdvertisementService {
 
 	private final Time time;
 
-	public AdvertisementGetResponseDto getAdvertisement() {
-		Optional<Advertisement> advertisement = advertisementRepository.findFirstByAdvertisementEndDateBeforeAndAdvertisementStartDateAfterOrderByPriority(
-			time.now(), time.now());
+	public AdvertisementGetResponseDto getAdvertisement(AdvertisementCategory advertisementCategory) {
+		Optional<Advertisement> advertisement = advertisementRepository.findFirstByAdvertisementCategoryAndAdvertisementEndDateBeforeAndAdvertisementStartDateAfterOrderByPriority(
+			advertisementCategory, time.now(), time.now());
 
 		return advertisement
 			.map(AdvertisementGetResponseDto::of)

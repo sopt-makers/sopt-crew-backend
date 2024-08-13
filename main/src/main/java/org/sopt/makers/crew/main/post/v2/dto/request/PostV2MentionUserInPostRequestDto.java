@@ -23,5 +23,6 @@ public class PostV2MentionUserInPostRequestDto {
 	private final Integer postId;
 
 	@Schema(example = "멘션내용~~", required = true, description = "멘션 내용")
+	@NotEmpty
 	private final String content;
 }

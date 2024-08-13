@@ -11,8 +11,8 @@ import lombok.Getter;
 @Schema(name = "CommentV2GetCommentsQueryDto", description = "댓글 목록 요청 Dto")
 public class CommentV2GetCommentsQueryDto extends PageOptionsDto {
 
-	@NotNull
 	@Schema(description = "게시글 id", example = "1")
+	@NotNull
 	private final Integer postId;
 
 	@Builder

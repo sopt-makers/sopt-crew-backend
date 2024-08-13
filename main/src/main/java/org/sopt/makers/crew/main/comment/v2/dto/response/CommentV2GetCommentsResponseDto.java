@@ -6,6 +6,7 @@ import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -15,11 +16,13 @@ import lombok.Getter;
 public class CommentV2GetCommentsResponseDto {
 
 	@ArraySchema(
-		schema = @Schema(implementation = CommentDto.class, required = true)
+		schema = @Schema(implementation = CommentDto.class)
 	)
+	@NotNull
 	private final List<CommentDto> comments;
 
-	@Schema(description = "페이지네이션", example = "", required = true)
+	@Schema(description = "페이지네이션", example = "")
+	@NotNull
 	private final PageMetaDto meta;
 
 }
