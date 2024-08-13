@@ -4,6 +4,7 @@ import static jakarta.persistence.GenerationType.*;
 
 import java.time.LocalDateTime;
 
+import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import jakarta.persistence.Entity;
@@ -37,6 +38,9 @@ public class Advertisement {
 	private String advertisementLink;
 
 	@NotNull
+	private AdvertisementCategory advertisementCategory;
+
+	@NotNull
 	private Long priority;
 
 	@NotNull
@@ -46,10 +50,13 @@ public class Advertisement {
 	private LocalDateTime advertisementEndDate;
 
 	@Builder
-	private Advertisement(String advertisementImageUrl, String advertisementLink, LocalDateTime advertisementStartDate,
+	private Advertisement(String advertisementImageUrl, String advertisementLink,
+		AdvertisementCategory advertisementCategory, Long priority, LocalDateTime advertisementStartDate,
 		LocalDateTime advertisementEndDate) {
 		this.advertisementImageUrl = advertisementImageUrl;
 		this.advertisementLink = advertisementLink;
+		this.advertisementCategory = advertisementCategory;
+		this.priority = priority;
 		this.advertisementStartDate = advertisementStartDate;
 		this.advertisementEndDate = advertisementEndDate;
 	}

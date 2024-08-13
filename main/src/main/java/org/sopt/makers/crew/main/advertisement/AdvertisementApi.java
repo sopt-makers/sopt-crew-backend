@@ -3,8 +3,10 @@ package org.sopt.makers.crew.main.advertisement;
 import java.security.Principal;
 
 import org.sopt.makers.crew.main.advertisement.dto.AdvertisementGetResponseDto;
+import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +23,7 @@ public interface AdvertisementApi {
 			responseCode = "200",
 			description = "성공"),
 	})
-	ResponseEntity<AdvertisementGetResponseDto> getAdvertisement(Principal principal);
+	ResponseEntity<AdvertisementGetResponseDto> getAdvertisement(@RequestParam(name = "category", required = true) AdvertisementCategory category,
+		Principal principal);
 
 }
