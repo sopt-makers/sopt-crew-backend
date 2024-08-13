@@ -19,15 +19,15 @@ public class PostMeetingDto {
     @NotNull
     private final Integer id;
 
-    @Schema(description = "게시글 제목", example = "게시글 제목입니다.")
+    @Schema(description = "모임 제목", example = "모임 제목입니다.")
     @NotNull
     private final String title;
 
-    @Schema(description = "게시글 카테고리", example = "스터디")
+    @Schema(description = "모임 카테고리", example = "스터디")
     @NotNull
     private final String category;
 
-    @Schema(description = "게시글 이미지 url", example = "[url 형식]")
+    @Schema(description = "모임 이미지 url", example = "[url 형식]")
     @NotNull
     private final List<ImageUrlVO> imageURL;
 

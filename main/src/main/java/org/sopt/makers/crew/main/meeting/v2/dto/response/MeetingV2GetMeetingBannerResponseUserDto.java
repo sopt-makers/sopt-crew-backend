@@ -27,6 +27,5 @@ public class MeetingV2GetMeetingBannerResponseUserDto {
 
 	/** 프로필 사진 */
 	@Schema(description = "모임장 프로필 사진", example = "[url] 형식")
-	@NotNull
 	private String profileImage;
 }

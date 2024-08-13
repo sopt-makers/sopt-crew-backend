@@ -16,7 +16,7 @@ import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 @Schema(name = "ApplicantDto", description = "모임 신청자 객체 Dto")
 public class ApplicantDto {
 
-	@Schema(description = "신청 id", example = "1")
+	@Schema(description = "신청자 id, 크루에서 사용하는 userId", example = "1")
 	@NotNull
 	private final Integer id;
 
@@ -24,7 +24,7 @@ public class ApplicantDto {
 	@NotNull
 	private final String name;
 
-	@Schema(description = "신청자 org id", example = "1")
+	@Schema(description = "신청자 org id, 메이커스 프로덕트에서 범용적으로 사용하는 userId", example = "1")
 	@NotNull
 	private final Integer orgId;
 
@@ -33,11 +33,9 @@ public class ApplicantDto {
 	private final UserActivityVO recentActivity;
 
 	@Schema(description = "신청자 프로필 사진", example = "[url] 형식")
-	@NotNull
 	private final String profileImage;
 
 	@Schema(description = "신청자 핸드폰 번호", example = "010-1234-5678")
-	@NotNull
 	private final String phone;
 
 	@QueryProjection

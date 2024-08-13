@@ -17,7 +17,6 @@ public class ApplyInfoDto {
     private final Integer id;
 
     @Schema(description = "전하는 말", example = "저 뽑아주세요.")
-    @NotNull
     private final String content;
 
     @Schema(description = "신청 시간", example = "2024-07-30T15:30:00")
