@@ -9,6 +9,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -38,6 +40,7 @@ public class Advertisement {
 	private String advertisementLink;
 
 	@NotNull
+	@Enumerated(EnumType.STRING)
 	private AdvertisementCategory advertisementCategory;
 
 	@NotNull
