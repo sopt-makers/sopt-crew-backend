@@ -26,8 +26,8 @@ public class CommentDto {
 	@Schema(description = "댓글 작성자 객체", example = "", required = true)
 	private final CommentWriterDto user;
 
-	@Schema(description = "댓글 업데이트 시간", example = "2024-07-31T15:30:00", required = true)
-	private final LocalDateTime updatedDate;
+	@Schema(description = "댓글 생성 시점", example = "2024-07-31T15:30:00")
+	private final LocalDateTime createdDate;
 
 	@Schema(description = "좋아요 갯수", example = "20")
 	private final int likeCount;
@@ -45,12 +45,12 @@ public class CommentDto {
 	private final List<ReplyDto> replies;
 
 	@QueryProjection
-	public CommentDto(Integer id, String contents, CommentWriterDto user, LocalDateTime updatedDate, int likeCount,
+	public CommentDto(Integer id, String contents, CommentWriterDto user, LocalDateTime createdDate, int likeCount,
 		boolean isLiked, boolean isWriter, int order, List<ReplyDto> replies) {
 		this.id = id;
 		this.contents = contents;
 		this.user = user;
-		this.updatedDate = updatedDate;
+		this.createdDate = createdDate;
 		this.likeCount = likeCount;
 		this.isLiked = isLiked;
 		this.isWriter = isWriter;
@@ -66,7 +66,7 @@ public class CommentDto {
 
 		return new CommentDto(comment.getId(), comment.getContents(),
 			new CommentWriterDto(userId, orgId, userName,
-				profileImage), comment.getUpdatedDate(), comment.getLikeCount(),
+				profileImage), comment.getCreatedDate(), comment.getLikeCount(),
 			isLiked, isWriter, comment.getOrder(), replies);
 	}
 }

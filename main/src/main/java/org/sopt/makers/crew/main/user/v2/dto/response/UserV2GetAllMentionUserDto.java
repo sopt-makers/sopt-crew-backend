@@ -8,11 +8,9 @@ import lombok.Getter;
 @AllArgsConstructor(staticName = "of")
 @Schema(name = "UserV2GetAllMentionUserDto", description = "멘션 유저 조회 응답 Dto")
 public class UserV2GetAllMentionUserDto {
-    /**
-     * 주의!! : 필드명은 userId 이지만 실제 응답 해야하는 데이터는 orgId 입니다.
-     */
-    @Schema(description = "유저 id", example = "1")
-    private final Integer userId;
+
+    @Schema(description = "메이커스 프로덕트에서 범용적으로 사용하는 userId", example = "1")
+    private final Integer orgId;
 
     @Schema(description = "유저 이름", example = "홍길")
     private final String userName;
