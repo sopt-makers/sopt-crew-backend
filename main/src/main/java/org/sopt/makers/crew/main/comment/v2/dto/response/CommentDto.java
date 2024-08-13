@@ -11,37 +11,47 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.querydsl.core.annotations.QueryProjection;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 @Getter
 @Schema(name = "CommentDto", description = "댓글 객체 응답 Dto")
 public class CommentDto {
 
-	@Schema(description = "댓글 id", example = "1", required = true)
+	@Schema(description = "댓글 id", example = "1")
+	@NotNull
 	private final Integer id;
 
-	@Schema(description = "댓글 내용", example = "이것은 댓글 내용입니다.", required = true)
+	@Schema(description = "댓글 내용", example = "이것은 댓글 내용입니다.")
+	@NotNull
 	private final String contents;
 
-	@Schema(description = "댓글 작성자 객체", example = "", required = true)
+	@Schema(description = "댓글 작성자 객체", example = "")
+	@NotNull
 	private final CommentWriterDto user;
 
 	@Schema(description = "댓글 생성 시점", example = "2024-07-31T15:30:00")
+	@NotNull
 	private final LocalDateTime createdDate;
 
 	@Schema(description = "좋아요 갯수", example = "20")
+	@NotNull
 	private final int likeCount;
 
 	@Schema(description = "댓글 좋아요 여부", example = "true")
+	@NotNull
 	private final Boolean isLiked;
 
 	@Schema(description = "댓글 작성자 여부", example = "true")
+	@NotNull
 	private final Boolean isWriter;
 
 	@Schema(description = "댓글 순서", example = "2")
+	@NotNull
 	private final int order;
 
 	@Schema(description = "대댓글 객체 목록", example = "")
+	@NotNull
 	private final List<ReplyDto> replies;
 
 	@QueryProjection

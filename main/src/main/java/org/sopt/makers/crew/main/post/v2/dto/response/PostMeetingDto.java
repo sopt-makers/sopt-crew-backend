@@ -5,6 +5,8 @@ import com.querydsl.core.annotations.QueryProjection;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
+
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
@@ -14,13 +16,19 @@ import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 public class PostMeetingDto {
 
     @Schema(description = "모임 id", example = "1")
+    @NotNull
     private final Integer id;
 
     @Schema(description = "게시글 제목", example = "게시글 제목입니다.")
+    @NotNull
     private final String title;
 
     @Schema(description = "게시글 카테고리", example = "스터디")
+    @NotNull
     private final String category;
+
+    @Schema(description = "게시글 이미지 url", example = "[url 형식]")
+    @NotNull
     private final List<ImageUrlVO> imageURL;
 
     @QueryProjection

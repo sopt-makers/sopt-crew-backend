@@ -22,6 +22,7 @@ public class CommentV2CreateCommentBodyDto {
 	private String contents;
 
 	@Schema(example = "true", description = "댓글/대댓글 여부")
+	@NotNull
 	private Boolean isParent;
 
 	@Schema(example = "3", description = "대댓글인 경우, 댓글의 id")
