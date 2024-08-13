@@ -12,7 +12,7 @@ import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto
 import org.springframework.http.ResponseEntity;
 
 @Tag(name = "사용자")
-public interface UserApi {
+public interface UserV2Api {
 
     @Operation(summary = "내가 속한 모임 조회")
     @ApiResponses(value = {
