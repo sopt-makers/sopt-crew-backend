@@ -9,8 +9,8 @@ import lombok.Getter;
 @Schema(name = "UserV2GetAllMentionUserDto", description = "멘션 유저 조회 응답 Dto")
 public class UserV2GetAllMentionUserDto {
 
-    @Schema(description = "플그 id", example = "1")
-    private final Integer playgroundUserId;
+    @Schema(description = "메이커스 프로덕트에서 범용적으로 사용하는 userId", example = "1")
+    private final Integer orgId;
 
     @Schema(description = "유저 이름", example = "홍길")
     private final String userName;

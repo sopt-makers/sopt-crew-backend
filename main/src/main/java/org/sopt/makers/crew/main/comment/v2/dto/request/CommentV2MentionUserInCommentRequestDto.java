@@ -14,9 +14,9 @@ import lombok.Getter;
 @Schema(description = "댓글에서 유저 언급 request body dto")
 public class CommentV2MentionUserInCommentRequestDto {
 
-	@Schema(example = "[111, 112, 113]", required = true, description = "언급할 유저 플그 id")
+	@Schema(example = "[111, 112, 113]", required = true, description = "메이커스 프로덕트에서 범용적으로 사용하는 userId")
 	@NotEmpty
-	private List<Integer> playgroundUserIds;
+	private List<Integer> orgIds;
 
 	@Schema(example = "1", required = true, description = "게시글 ID")
 	@NotNull
