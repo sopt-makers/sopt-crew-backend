@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "광고")
 public interface AdvertisementApi {
-	@Operation(summary = "광고 조회")
+	@Operation(summary = "광고 조회", description = "게시글 목록 페이지일 경우, ?category=POST  <br /> 모임 목록 페이지일 경우, ?category=MEETING")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiResponses(value = {
 		@ApiResponse(
