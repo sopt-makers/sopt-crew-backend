@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.common.config.jwt;
+package org.sopt.makers.crew.main.common.jwt;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

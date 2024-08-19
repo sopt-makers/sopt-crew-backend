@@ -12,8 +12,6 @@ import lombok.Getter;
 
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Getter
 @AllArgsConstructor
 @Schema(description = "모임 생성 request body dto")

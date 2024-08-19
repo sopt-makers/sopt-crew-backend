@@ -8,14 +8,21 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 import org.sopt.makers.crew.main.common.exception.BaseException;
+import org.sopt.makers.crew.main.entity.apply.Applies;
+import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.user.v2.dto.response.ApplyV2GetAppliedMeetingByUserResponseDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.MeetingV2GetCreatedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAppliedMeetingByUserResponseDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetCreatedMeetingByUserResponseDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,5 +75,44 @@ public class UserV2ServiceImpl implements UserV2Service {
 				user.getRecentActivityVO().getPart(), user.getRecentActivityVO().getGeneration(),
 				user.getProfileImage()))
 			.toList();
+	}
+
+	@Override
+	public UserV2GetUserOwnProfileResponseDto getUserOwnProfile(Integer userId) {
+		User user = userRepository.findByIdOrThrow(userId);
+		return UserV2GetUserOwnProfileResponseDto.of(user);
+	}
+
+	@Override
+	public UserV2GetCreatedMeetingByUserResponseDto getCreatedMeetingByUser(Integer userId) {
+		User meetingCreator = userRepository.findByIdOrThrow(userId);
+
+		List<Meeting> meetings = meetingRepository.findAllByUser(meetingCreator);
+		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
+		Applies applies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
+
+		List<MeetingV2GetCreatedMeetingByUserResponseDto> meetingByUserDtos = meetings.stream()
+			.map(meeting -> MeetingV2GetCreatedMeetingByUserResponseDto.of(meeting, meetingCreator,
+				applies.getAppliedCount(meeting.getId())))
+			.toList();
+
+		return UserV2GetCreatedMeetingByUserResponseDto.of(meetingByUserDtos);
+	}
+
+	@Override
+	public UserV2GetAppliedMeetingByUserResponseDto getAppliedMeetingByUser(Integer userId) {
+		List<Apply> myApplies = applyRepository.findAllByUserId(userId);
+		List<Integer> meetingIds = myApplies.stream().map(Apply::getMeetingId).toList();
+
+		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
+
+		List<ApplyV2GetAppliedMeetingByUserResponseDto> appliedMeetingByUserDtos = myApplies.stream()
+			.map(apply -> ApplyV2GetAppliedMeetingByUserResponseDto.of(
+				apply.getId(), apply.getStatus().getValue(),
+				MeetingV2GetCreatedMeetingByUserResponseDto.of(apply.getMeeting(), apply.getMeeting().getUser(),
+					allApplies.getAppliedCount(apply.getMeetingId()))
+			)).toList();
+
+		return UserV2GetAppliedMeetingByUserResponseDto.of(appliedMeetingByUserDtos);
 	}
 }
