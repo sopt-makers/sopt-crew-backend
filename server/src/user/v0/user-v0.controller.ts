@@ -27,6 +27,7 @@ export class UserV0Controller {
   @ApiOperation({
     summary: '내가 만든 모임 조회',
     description: '내가 만든 모임 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(UserV0GetMeetingByUserDto)
   @ApiBearerAuth()
@@ -41,6 +42,7 @@ export class UserV0Controller {
   @ApiOperation({
     summary: '내가 신청한 모임 조회',
     description: '내가 신청한 모임 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(UserV0GetApplyByUserDto)
   @ApiBearerAuth()
@@ -55,6 +57,7 @@ export class UserV0Controller {
   @ApiOperation({
     summary: '유저 상세 조회',
     description: '유저 상세 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(User)
   @ApiParam({ name: 'id', required: true, description: '유저 id' })
