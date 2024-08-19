@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.common.config.jwt;
+package org.sopt.makers.crew.main.common.jwt;
 
 public enum JwtExceptionType {
   VALID_JWT_TOKEN,            // 유효한 JWT

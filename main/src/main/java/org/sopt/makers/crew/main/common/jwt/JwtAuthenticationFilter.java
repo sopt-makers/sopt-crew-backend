@@ -1,6 +1,4 @@
-package org.sopt.makers.crew.main.common.config.jwt;
-
-import static org.sopt.makers.crew.main.common.config.jwt.JwtExceptionType.VALID_JWT_TOKEN;
+package org.sopt.makers.crew.main.common.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -30,7 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     if (accessToken != null) {
       // 토큰 검증
       if (jwtTokenProvider.validateToken(accessToken)
-          == VALID_JWT_TOKEN) {     // 토큰이 존재하고 유효한 토큰일 때만
+          == JwtExceptionType.VALID_JWT_TOKEN) {     // 토큰이 존재하고 유효한 토큰일 때만
         Integer userId = jwtTokenProvider.getAccessTokenPayload(accessToken);
         UserAuthentication authentication = new UserAuthentication(userId, null,
             null);       //사용자 객체 생성

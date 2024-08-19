@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.common.config.jwt;
+package org.sopt.makers.crew.main.common.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
