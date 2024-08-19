@@ -4,17 +4,21 @@ import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_FOUND_ME
 
 import java.util.List;
 import java.util.Optional;
+
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MeetingRepository extends JpaRepository<Meeting, Integer> {
 
-  List<Meeting> findAllByUserId(int userId);
+	List<Meeting> findAllByUserId(Integer userId);
 
-  Optional<Meeting> findById(Integer meetingId);
+	List<Meeting> findAllByUser(User user);
 
-  default Meeting findByIdOrThrow(Integer meetingId) {
-    return findById(meetingId)
-        .orElseThrow(() -> new BadRequestException(NOT_FOUND_MEETING.getErrorCode()));
-  }
+	Optional<Meeting> findById(Integer meetingId);
+
+	default Meeting findByIdOrThrow(Integer meetingId) {
+		return findById(meetingId)
+			.orElseThrow(() -> new BadRequestException(NOT_FOUND_MEETING.getErrorCode()));
+	}
 }

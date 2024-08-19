@@ -18,9 +18,14 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
     List<Apply> findAllByUserIdAndStatus(@Param("userId") Integer userId,
                                          @Param("statusValue") EnApplyStatus statusValue);
 
+    @Query("select a from Apply a join fetch a.meeting m join fetch m.user u where a.userId = :userId")
+    List<Apply> findAllByUserId(@Param("userId") Integer userId);
+
     List<Apply> findAllByMeetingIdAndStatus(Integer meetingId, EnApplyStatus statusValue);
 
     List<Apply> findAllByMeetingId(Integer meetingId);
+
+    List<Apply> findAllByMeetingIdIn(List<Integer> meetingIds);
 
     boolean existsByMeetingIdAndUserId(Integer meetingId, Integer userId);
 
