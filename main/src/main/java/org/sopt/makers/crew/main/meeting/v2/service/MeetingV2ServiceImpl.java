@@ -21,10 +21,13 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
+import org.sopt.makers.crew.main.common.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.common.util.UserPartUtil;
+import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
@@ -42,6 +45,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
@@ -50,6 +54,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingRe
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserMeetingDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
 import org.springframework.data.domain.Page;
@@ -71,6 +76,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private final MeetingMapper meetingMapper;
 	private final ApplyMapper applyMapper;
+
+	private final Time time;
 
 	@Override
 	public MeetingV2GetAllMeetingByOrgUserDto getAllMeetingByOrgUser(
@@ -202,6 +209,26 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)applyInfoDtos.getTotalElements());
 
 		return MeetingGetApplyListResponseDto.of(applyInfoDtos.getContent(), pageMetaDto);
+	}
+
+	@Override
+	public MeetingV2GetAllMeetingDto getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand) {
+
+		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand,
+			PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()), time);
+		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
+
+		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
+
+		List<MeetingResponseDto> meetingResponseDtos = meetings.getContent().stream()
+			.map(meeting -> MeetingResponseDto.of(meeting, meeting.getUser(),
+				allApplies.getAppliedCount(meeting.getId())))
+			.toList();
+
+		PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
+		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)meetings.getTotalElements());
+
+		return MeetingV2GetAllMeetingDto.of(meetingResponseDtos, pageMetaDto);
 	}
 
 	private Boolean checkMeetingLeader(Meeting meeting, Integer userId) {

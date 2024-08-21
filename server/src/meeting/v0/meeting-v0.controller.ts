@@ -136,6 +136,7 @@ export class MeetingV0Controller {
   @ApiOperation({
     summary: '모임 전체 조회/검색/필터링',
     description: '모임 전체 조회/검색/필터링',
+    deprecated: true
   })
   @ApiOkResponseCommon(MeetingV0GetAllMeetingsResponseDto)
   @Get('/')
