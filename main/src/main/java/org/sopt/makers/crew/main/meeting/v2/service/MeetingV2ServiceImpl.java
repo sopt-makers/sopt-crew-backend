@@ -25,6 +25,7 @@ import org.sopt.makers.crew.main.common.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.common.util.UserPartUtil;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
@@ -75,6 +76,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private final MeetingMapper meetingMapper;
 	private final ApplyMapper applyMapper;
+
+	private final Time time;
 
 	@Override
 	public MeetingV2GetAllMeetingByOrgUserDto getAllMeetingByOrgUser(
@@ -212,7 +215,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2GetAllMeetingDto getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand) {
 
 		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand,
-			PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()));
+			PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()), time);
 		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));

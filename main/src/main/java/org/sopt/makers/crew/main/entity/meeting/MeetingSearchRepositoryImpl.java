@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	private final JPAQueryFactory queryFactory;
-	private final Time time;
+	//private final Time time;
 
 	/**
 	 * @note: canJoinOnlyActiveGeneration 처리 유의
@@ -39,21 +39,21 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	 * */
 
 	@Override
-	public Page<Meeting> findAllByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable) {
+	public Page<Meeting> findAllByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time) {
 
-		List<Meeting> meetings = getMeetings(queryCommand, pageable);
-		JPAQuery<Long> countQuery = getCount(queryCommand);
+		List<Meeting> meetings = getMeetings(queryCommand, pageable, time);
+		JPAQuery<Long> countQuery = getCount(queryCommand, time);
 
 		return PageableExecutionUtils.getPage(meetings,
 			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
 	}
 
-	private List<Meeting> getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable) {
+	private List<Meeting> getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time) {
 		return queryFactory
 			.selectFrom(meeting)
 			.where(
 				eqCategory(queryCommand.getCategory()),
-				eqStatus(queryCommand.getStatus()),
+				eqStatus(queryCommand.getStatus(), time),
 				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration()),
 				eqJoinableParts(queryCommand.getJoinableParts()),
 				eqQuery(queryCommand.getQuery())
@@ -66,13 +66,13 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.fetch();
 	}
 
-	private JPAQuery<Long> getCount(MeetingV2GetAllMeetingQueryDto queryCommand) {
+	private JPAQuery<Long> getCount(MeetingV2GetAllMeetingQueryDto queryCommand, Time time) {
 		return queryFactory
 			.select(meeting.count())
 			.from(meeting)
 			.where(
 				eqCategory(queryCommand.getCategory()),
-				eqStatus(queryCommand.getStatus()),
+				eqStatus(queryCommand.getStatus(), time),
 				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration()),
 				eqJoinableParts(queryCommand.getJoinableParts()),
 				eqQuery(queryCommand.getQuery())
@@ -92,7 +92,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		return meeting.category.in(categoryList);
 	}
 
-	private BooleanExpression eqStatus(List<String> statues) {
+	private BooleanExpression eqStatus(List<String> statues, Time time) {
 
 		if (statues == null || statues.isEmpty()) {
 			return null;
