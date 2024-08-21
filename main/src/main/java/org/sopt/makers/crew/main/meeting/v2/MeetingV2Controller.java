@@ -5,15 +5,19 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+
+import org.sopt.makers.crew.main.common.dto.TempResponseDto;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.springframework.http.HttpStatus;
@@ -90,5 +94,22 @@ public class MeetingV2Controller implements MeetingV2Api {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(meetingV2Service.findApplyList(queryCommand, meetingId, userId));
+    }
+
+    @Override
+    @GetMapping
+    public ResponseEntity<MeetingV2GetAllMeetingDto> getMeetings(@ModelAttribute @Valid MeetingV2GetAllMeetingQueryDto queryCommand,
+        Principal principal) {
+
+        MeetingV2GetAllMeetingDto meetings = meetingV2Service.getMeetings(queryCommand);
+        return ResponseEntity.ok().body(meetings);
+    }
+
+    @Override
+    @GetMapping("/temp")
+    public ResponseEntity<TempResponseDto<MeetingV2GetAllMeetingDto>> getMeetingsTemp(
+        MeetingV2GetAllMeetingQueryDto queryCommand, Principal principal) {
+        MeetingV2GetAllMeetingDto meetings = meetingV2Service.getMeetings(queryCommand);
+        return ResponseEntity.ok().body(TempResponseDto.of(meetings));
     }
 }
