@@ -222,7 +222,7 @@ public class Meeting {
 	}
 
 	public void validateMeetingCreator(Integer requestUserId) {
-		if (!this.userId.equals(requestUserId)) {
+		if (Boolean.FALSE.equals(checkMeetingLeader(requestUserId))) {
 			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
 		}
 	}
