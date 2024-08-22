@@ -1,9 +1,10 @@
 package org.sopt.makers.crew.main.entity.meeting;
 
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
 import io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -26,6 +27,7 @@ import lombok.NoArgsConstructor;
 
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
+import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.meeting.converter.MeetingCategoryConverter;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
@@ -215,6 +217,12 @@ public class Meeting {
 			return EnMeetingStatus.APPLY_ABLE.getValue();
 		} else {
 			return EnMeetingStatus.RECRUITMENT_COMPLETE.getValue();
+		}
+	}
+
+	public void validateMeetingCreator(Integer requestUserId){
+		if(!this.userId.equals(requestUserId)){
+			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
 		}
 	}
 }
