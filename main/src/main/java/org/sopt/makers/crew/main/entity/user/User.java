@@ -84,4 +84,14 @@ public class User {
                 .max(Comparator.comparingInt(UserActivityVO::getGeneration))
                 .orElseThrow(() -> new ServerException(INTERNAL_SERVER_ERROR.getErrorCode()));
     }
+
+    public void updateUser(String name, Integer orgId, List<UserActivityVO> activities, String profileImage,
+        String phone){
+
+        this.name = name;
+        this.orgId = orgId;
+        this.activities = activities;
+        this.profileImage = profileImage;
+        this.phone = phone;
+    }
 }
