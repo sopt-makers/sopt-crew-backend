@@ -33,6 +33,7 @@ public enum ErrorStatus {
      * 401 UNAUTHORIZED
      */
     UNAUTHORIZED_TOKEN("유효하지 않은 토큰입니다."),
+    UNAUTHORIZED_USER("존재하지 않거나 유효하지 않은 유저입니다."),
 
     /**
      * 403 FORBIDDEN
