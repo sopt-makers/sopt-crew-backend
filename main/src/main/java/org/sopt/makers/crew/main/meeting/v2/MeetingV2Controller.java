@@ -112,4 +112,13 @@ public class MeetingV2Controller implements MeetingV2Api {
         MeetingV2GetAllMeetingDto meetings = meetingV2Service.getMeetings(queryCommand);
         return ResponseEntity.ok().body(TempResponseDto.of(meetings));
     }
+
+    @Override
+    @DeleteMapping("/{meetingId}")
+    public ResponseEntity<Void> deleteMeeting(@PathVariable("meetingId") Integer meetingId, Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        meetingV2Service.deleteMeeting(meetingId, userId);
+
+        return ResponseEntity.ok().build();
+    }
 }

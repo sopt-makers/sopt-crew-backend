@@ -1,14 +1,14 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
 import static org.sopt.makers.crew.main.common.constant.CrewConst.ACTIVE_GENERATION;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.ALREADY_APPLIED_MEETING;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.FULL_MEETING_CAPACITY;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.MISSING_GENERATION_PART;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_ACTIVE_GENERATION;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_FOUND_APPLY;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_IN_APPLY_PERIOD;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_TARGET_PART;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.VALIDATION_EXCEPTION;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.ALREADY_APPLIED_MEETING;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.FULL_MEETING_CAPACITY;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.MISSING_GENERATION_PART;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_ACTIVE_GENERATION;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_FOUND_APPLY;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_IN_APPLY_PERIOD;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_TARGET_PART;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.VALIDATION_EXCEPTION;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,6 +32,10 @@ import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
+import org.sopt.makers.crew.main.entity.comment.Comment;
+import org.sopt.makers.crew.main.entity.comment.CommentRepository;
+import org.sopt.makers.crew.main.entity.like.Like;
+import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
@@ -73,6 +77,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final ApplyRepository applyRepository;
 	private final MeetingRepository meetingRepository;
 	private final PostRepository postRepository;
+	private final CommentRepository commentRepository;
+	private final LikeRepository likeRepository;
 
 	private final MeetingMapper meetingMapper;
 	private final ApplyMapper applyMapper;
@@ -229,6 +235,32 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)meetings.getTotalElements());
 
 		return MeetingV2GetAllMeetingDto.of(meetingResponseDtos, pageMetaDto);
+	}
+
+	@Override
+	@Transactional
+	public void deleteMeeting(Integer meetingId, Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+		meeting.validateMeetingCreator(userId);
+
+		// like(Comment, post) -> comment -> post 순으로 삭제
+		// apply 삭제
+		// meeting 삭제
+
+		List<Post> posts = postRepository.findAllByMeetingId(meetingId);
+		List<Integer> postIds = posts.stream().map(Post::getId).toList();
+
+		List<Comment> comments = commentRepository.findAllByPostIdIsIn(postIds);
+		List<Integer> commentIds = comments.stream().map(Comment::getId).toList();
+
+		likeRepository.deleteAllByPostIdsInQuery(postIds);
+		likeRepository.deleteAllByCommentIdsInQuery(commentIds);
+
+		commentRepository.deleteAllByPostIdsInQuery(postIds);
+		postRepository.deleteAllByMeetingIdQuery(meetingId);
+		applyRepository.deleteAllByMeetingIdQuery(meetingId);
+
+		meetingRepository.delete(meeting);
 	}
 
 	private Boolean checkMeetingLeader(Meeting meeting, Integer userId) {

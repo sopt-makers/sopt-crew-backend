@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.meeting;
 
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_FOUND_MEETING;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_FOUND_MEETING;
 
 import java.util.List;
 import java.util.Optional;
