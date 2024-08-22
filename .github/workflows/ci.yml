@@ -30,7 +30,7 @@ jobs:
 
       - name: Create application.properties from secret
         run: |
-          echo "${{ secrets.APPLICATION_SECRET_SPRING_DEV }}" > ./main/src/main/resources/application-secret.properties
+          echo "${{ secrets.APPLICATION_SECRET_SPRING }}" > ./main/src/main/resources/application-secret.properties
         shell: bash
 
       - name: Build and analyze (SpringBoot)
