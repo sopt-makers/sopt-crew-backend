@@ -1,9 +1,8 @@
 package org.sopt.makers.crew.main.entity.post;
 
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.*;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
 
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -24,7 +23,6 @@ import lombok.NoArgsConstructor;
 
 import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
-import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.springframework.data.annotation.CreatedDate;

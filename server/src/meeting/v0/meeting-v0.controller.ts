@@ -149,6 +149,7 @@ export class MeetingV0Controller {
   @ApiOperation({
     summary: '모임 삭제',
     description: '모임 삭제',
+    deprecated: true,
   })
   @ApiResponse({
     status: HttpStatus.OK,

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
-import org.sopt.makers.crew.main.common.response.ErrorStatus;
+import org.sopt.makers.crew.main.common.exception.ErrorStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -30,8 +30,15 @@ public interface CommentRepository extends JpaRepository<Comment, Integer>, Comm
 
 	List<Comment> findAllByPostIdOrderByCreatedDate(Integer postId);
 
+	List<Comment> findAllByPostIdIsIn(List<Integer> postIds);
+
 	@Modifying(clearAutomatically = true)
 	@Transactional
 	@Query("DELETE FROM Comment c WHERE c.postId = :postId")
 	void deleteAllByPostId(Integer postId);
+
+	@Modifying(clearAutomatically = true)
+	@Transactional
+	@Query("DELETE FROM Comment c WHERE c.postId IN :postIds")
+	void deleteAllByPostIdsInQuery(List<Integer> postIds);
 }

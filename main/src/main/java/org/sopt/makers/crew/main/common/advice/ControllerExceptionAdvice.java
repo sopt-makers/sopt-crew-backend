@@ -1,8 +1,8 @@
 package org.sopt.makers.crew.main.common.advice;
 
 import org.sopt.makers.crew.main.common.exception.BaseException;
-import org.sopt.makers.crew.main.common.response.CommonResponseDto;
-import org.sopt.makers.crew.main.common.response.ErrorStatus;
+import org.sopt.makers.crew.main.common.exception.CommonResponseDto;
+import org.sopt.makers.crew.main.common.exception.ErrorStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;

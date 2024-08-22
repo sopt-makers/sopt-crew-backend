@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.apply;
 
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_FOUND_APPLY;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_FOUND_APPLY;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,5 +40,10 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
         return findById(applyId)
                 .orElseThrow(() -> new BadRequestException(NOT_FOUND_APPLY.getErrorCode()));
     }
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("DELETE FROM Apply a WHERE a.meetingId = :meetingId")
+    void deleteAllByMeetingIdQuery(Integer meetingId);
 
 }

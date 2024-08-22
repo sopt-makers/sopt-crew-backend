@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.post;
 
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_FOUND_POST;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_FOUND_POST;
 import static org.sopt.makers.crew.main.entity.comment.QComment.comment;
 import static org.sopt.makers.crew.main.entity.like.QLike.like;
 import static org.sopt.makers.crew.main.entity.meeting.QMeeting.meeting;

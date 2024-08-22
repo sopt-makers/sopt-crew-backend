@@ -30,4 +30,6 @@ public interface MeetingV2Service {
                                                  Integer userId);
 
     MeetingV2GetAllMeetingDto getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand);
+
+    void deleteMeeting(Integer meetingId, Integer userId);
 }

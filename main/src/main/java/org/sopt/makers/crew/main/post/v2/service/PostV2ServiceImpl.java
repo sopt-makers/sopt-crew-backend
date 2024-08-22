@@ -1,7 +1,7 @@
 package org.sopt.makers.crew.main.post.v2.service;
 
 import static java.util.stream.Collectors.toList;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.FORBIDDEN_EXCEPTION;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_POST_MENTION_PUSH_NOTIFICATION_TITLE;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_POST_PUSH_NOTIFICATION_TITLE;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
@@ -190,7 +190,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 
         commentRepository.deleteAllByPostId(postId);
         likeRepository.deleteAllByPostId(postId);
-        likeRepository.deleteAllByIdsInQuery(commentIds);
+        likeRepository.deleteAllByCommentIdsInQuery(commentIds);
 
         postRepository.delete(post);
     }

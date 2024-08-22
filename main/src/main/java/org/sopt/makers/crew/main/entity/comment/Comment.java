@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.comment;
 
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.*;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
