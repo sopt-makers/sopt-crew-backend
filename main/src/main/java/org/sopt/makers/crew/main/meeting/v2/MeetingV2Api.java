@@ -106,5 +106,8 @@ public interface MeetingV2Api {
         Principal principal);
 
     @Operation(summary = "모임 삭제", description = "모임 삭제합니다.")
-    ResponseEntity<Void> deleteMeeting(@PathVariable("id") Integer meetingId, Principal principal);
+    ResponseEntity<Void> deleteMeeting(@PathVariable("meetingId") Integer meetingId, Principal principal);
+
+    @Operation(summary = "모임 수정", description = "모임 내용을 수정합니다.")
+    ResponseEntity<Void> updateMeeting(@PathVariable Integer meetingId, @RequestBody @Valid MeetingV2CreateMeetingBodyDto requestBody ,Principal principal);
 }

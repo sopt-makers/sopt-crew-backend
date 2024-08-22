@@ -34,7 +34,6 @@ import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
-import org.sopt.makers.crew.main.entity.like.Like;
 import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
@@ -101,9 +100,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			userJoinedList = Stream
 				.concat(myMeetings.stream(),
 					applyRepository.findAllByUserIdAndStatus(existUser.getId(), EnApplyStatus.APPROVE)
-						.stream().map(apply -> apply.getMeeting()))
+						.stream().map(Apply::getMeeting))
 				.map(meeting -> MeetingV2GetAllMeetingByOrgUserMeetingDto.of(meeting.getId(),
-					checkMeetingLeader(meeting, existUser.getId()), meeting.getTitle(),
+					meeting.checkMeetingLeader(existUser.getId()), meeting.getTitle(),
 					meeting.getImageURL().get(0).getUrl(), meeting.getCategory().getValue(),
 					meeting.getMStartDate(), meeting.getMEndDate(), checkActivityStatus(meeting)))
 				.sorted(Comparator.comparing(MeetingV2GetAllMeetingByOrgUserMeetingDto::getId).reversed())
@@ -163,7 +162,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		Meeting meeting = meetingMapper.toMeetingEntity(requestBody,
-			getTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
+			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
 			user.getId());
 
 		Meeting savedMeeting = meetingRepository.save(meeting);
@@ -265,8 +264,19 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		meetingRepository.delete(meeting);
 	}
 
-	private Boolean checkMeetingLeader(Meeting meeting, Integer userId) {
-		return meeting.getUserId().equals(userId);
+	@Override
+	@Transactional
+	public void updateMeeting(Integer meetingId, MeetingV2CreateMeetingBodyDto requestBody, Integer userId) {
+		User user = userRepository.findByIdOrThrow(userId);
+
+		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+		meeting.validateMeetingCreator(userId);
+
+		Meeting updatedMeeting = meetingMapper.toMeetingEntity(requestBody,
+			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
+			user.getId());
+
+		meeting.updateMeeting(updatedMeeting);
 	}
 
 	private Boolean checkActivityStatus(Meeting meeting) {
@@ -276,8 +286,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		return now.isEqual(mStartDate) || (now.isAfter(mStartDate) && now.isBefore(mEndDate));
 	}
 
-	private Integer getTargetActiveGeneration(Boolean canJoinOnlyActiveGeneration) {
-		return canJoinOnlyActiveGeneration ? ACTIVE_GENERATION : null;
+	private Integer createTargetActiveGeneration(Boolean canJoinOnlyActiveGeneration) {
+		return Boolean.TRUE.equals(canJoinOnlyActiveGeneration) ? ACTIVE_GENERATION : null;
 	}
 
 	private List<UserActivityVO> filterUserActivities(User user, Meeting meeting) {
