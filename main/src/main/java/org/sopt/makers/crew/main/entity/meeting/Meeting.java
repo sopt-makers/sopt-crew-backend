@@ -35,6 +35,7 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -176,7 +177,7 @@ public class Meeting {
 	private MeetingJoinablePart[] joinableParts;
 
 	@Builder
-	public Meeting(User user, Integer userId, List<Apply> appliedInfo, String title, MeetingCategory category,
+	public Meeting(User user, Integer userId, String title, MeetingCategory category,
 		List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
 		String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
 		String leaderDesc, String targetDesc, String note, Boolean isMentorNeeded,
@@ -220,9 +221,35 @@ public class Meeting {
 		}
 	}
 
-	public void validateMeetingCreator(Integer requestUserId){
-		if(!this.userId.equals(requestUserId)){
+	public void validateMeetingCreator(Integer requestUserId) {
+		if (!this.userId.equals(requestUserId)) {
 			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
 		}
 	}
+
+	public Boolean checkMeetingLeader(Integer userId) {
+		return this.userId.equals(userId);
+	}
+
+	public void updateMeeting(Meeting updateMeeting) {
+
+		this.title = updateMeeting.getTitle();
+		this.category = updateMeeting.getCategory();
+		this.imageURL = updateMeeting.getImageURL();
+		this.startDate = updateMeeting.getStartDate();
+		this.endDate = updateMeeting.getEndDate();
+		this.capacity = updateMeeting.getCapacity();
+		this.desc = updateMeeting.getDesc();
+		this.processDesc = updateMeeting.getProcessDesc();
+		this.mStartDate = updateMeeting.mStartDate;
+		this.mEndDate = updateMeeting.getMEndDate();
+		this.leaderDesc = updateMeeting.getLeaderDesc();
+		this.targetDesc = updateMeeting.getTargetDesc();
+		this.note = updateMeeting.getNote();
+		this.isMentorNeeded = updateMeeting.getIsMentorNeeded();
+		this.canJoinOnlyActiveGeneration = updateMeeting.getCanJoinOnlyActiveGeneration();
+		this.targetActiveGeneration = updateMeeting.getTargetActiveGeneration();
+		this.joinableParts = updateMeeting.getJoinableParts();
+	}
+
 }

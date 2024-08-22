@@ -14,7 +14,7 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 
 @Getter
 @AllArgsConstructor
-@Schema(description = "모임 생성 request body dto")
+@Schema(description = "모임 생성 및 수정 request body dto")
 public class MeetingV2CreateMeetingBodyDto {
 
 	@Schema(example = "알고보면 쓸데있는 개발 프로세스", description = "모임 제목")

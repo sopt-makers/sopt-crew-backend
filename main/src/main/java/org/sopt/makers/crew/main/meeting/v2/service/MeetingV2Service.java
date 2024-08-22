@@ -32,4 +32,6 @@ public interface MeetingV2Service {
     MeetingV2GetAllMeetingDto getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand);
 
     void deleteMeeting(Integer meetingId, Integer userId);
+
+    void updateMeeting(Integer meetingId, MeetingV2CreateMeetingBodyDto requestBody, Integer userId);
 }
