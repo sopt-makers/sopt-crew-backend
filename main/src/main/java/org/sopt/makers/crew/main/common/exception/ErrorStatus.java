@@ -28,6 +28,7 @@ public enum ErrorStatus {
     NOT_ACTIVE_GENERATION("활동 기수가 아닙니다."),
     NOT_TARGET_PART("지원 가능한 파트가 아닙니다."),
     NOT_FOUND_APPLY("신청상태가 아닌 모임입니다."),
+    ALREADY_PROCESSED_APPLY("이미 해당 상태로 처리된 신청 정보입니다."),
 
     /**
      * 401 UNAUTHORIZED

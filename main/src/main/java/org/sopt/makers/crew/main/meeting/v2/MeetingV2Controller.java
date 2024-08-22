@@ -13,6 +13,7 @@ import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
@@ -119,7 +120,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 
 	@Override
 	@DeleteMapping("/{meetingId}")
-	public ResponseEntity<Void> deleteMeeting(@PathVariable("meetingId") Integer meetingId, Principal principal) {
+	public ResponseEntity<Void> deleteMeeting(@PathVariable Integer meetingId, Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
 		meetingV2Service.deleteMeeting(meetingId, userId);
 
@@ -135,6 +136,19 @@ public class MeetingV2Controller implements MeetingV2Api {
 
 		Integer userId = UserUtil.getUserId(principal);
 		meetingV2Service.updateMeeting(meetingId, requestBody, userId);
+
+		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	@PutMapping("/{meetingId}/apply/status")
+	public ResponseEntity<Void> updateApplyStatus(
+		@PathVariable Integer meetingId,
+		@RequestBody @Valid ApplyV2UpdateStatusBodyDto requestBody,
+		Principal principal) {
+
+		Integer userId = UserUtil.getUserId(principal);
+		meetingV2Service.updateApplyStatus(meetingId, requestBody, userId);
 
 		return ResponseEntity.ok().build();
 	}

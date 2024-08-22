@@ -1,14 +1,7 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
 import static org.sopt.makers.crew.main.common.constant.CrewConst.ACTIVE_GENERATION;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.ALREADY_APPLIED_MEETING;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.FULL_MEETING_CAPACITY;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.MISSING_GENERATION_PART;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_ACTIVE_GENERATION;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_FOUND_APPLY;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_IN_APPLY_PERIOD;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_TARGET_PART;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.VALIDATION_EXCEPTION;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -49,6 +42,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
@@ -277,6 +271,27 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			user.getId());
 
 		meeting.updateMeeting(updatedMeeting);
+	}
+
+	@Override
+	@Transactional
+	public void updateApplyStatus(Integer meetingId, ApplyV2UpdateStatusBodyDto requestBody, Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+		meeting.validateMeetingCreator(userId);
+
+		Apply apply = applyRepository.findByIdOrThrow(requestBody.getApplyId());
+		EnApplyStatus updatedApplyStatus = EnApplyStatus.ofValue(requestBody.getStatus());
+		apply.validateDuplicateUpdateApplyStatus(updatedApplyStatus);
+
+		if (updatedApplyStatus.equals(EnApplyStatus.APPROVE)) {
+			List<Apply> applies = applyRepository.findAllByMeetingIdAndStatus(meetingId,
+				EnApplyStatus.APPROVE);
+
+			meeting.validateCapacity(applies.size());
+		}
+
+		apply.updateApplyStatus(updatedApplyStatus);
+
 	}
 
 	private Boolean checkActivityStatus(Meeting meeting) {
