@@ -327,9 +327,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			.filter(apply -> EnApplyStatus.APPROVE.equals(apply.getStatus()))
 			.toList();
 
-		if (approvedApplies.size() >= meeting.getCapacity()) {
-			throw new BadRequestException(FULL_MEETING_CAPACITY.getErrorCode());
-		}
+		meeting.validateCapacity(approvedApplies.size());
 	}
 
 	private void validateUserAlreadyApplied(Integer userId, List<Apply> applies) {
