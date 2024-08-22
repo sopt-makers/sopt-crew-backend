@@ -104,7 +104,6 @@ public class MeetingV2ServiceTest {
                 .createdGeneration(33)
                 .targetActiveGeneration(33)
                 .joinableParts(MeetingJoinablePart.values())
-                .appliedInfo(new ArrayList<>())
                 .build();
 
         Apply apply = Apply.builder()
@@ -206,7 +205,6 @@ public class MeetingV2ServiceTest {
                 .createdGeneration(33)
                 .targetActiveGeneration(33)
                 .joinableParts(MeetingJoinablePart.values())
-                .appliedInfo(new ArrayList<>())
                 .build();
 
         MeetingV2ApplyMeetingDto requestBody = new MeetingV2ApplyMeetingDto(meeting.getId(), "열심히 하겠습니다.");
