@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.common.response;
+package org.sopt.makers.crew.main.common.exception;
 
 import lombok.AccessLevel;
 import lombok.Getter;

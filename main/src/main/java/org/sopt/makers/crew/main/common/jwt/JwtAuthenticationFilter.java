@@ -9,7 +9,7 @@ import java.io.IOException;
 
 import lombok.RequiredArgsConstructor;
 
-import org.sopt.makers.crew.main.common.response.ErrorStatus;
+import org.sopt.makers.crew.main.common.exception.ErrorStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;

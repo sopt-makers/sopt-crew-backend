@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.user;
 
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.*;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
 
 import java.util.Optional;
 

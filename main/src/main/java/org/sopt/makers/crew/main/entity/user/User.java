@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.user;
 
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.*;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
 
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
