@@ -148,6 +148,10 @@ services:
       caddy.route_11.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_12: /advertisement/v2/*
       caddy.route_12.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_13: /auth/v2
+      caddy.route_13.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_14: /auth/v2/*
+      caddy.route_14.reverse_proxy: "{{ upstreams 4000 }}"
 
   nestjs-blue:
     image: makerscrew/server:latest
@@ -249,6 +253,10 @@ services:
       caddy.route_11.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_12: /advertisement/v2/*
       caddy.route_12.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_13: /auth/v2
+      caddy.route_13.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_14: /auth/v2/*
+      caddy.route_14.reverse_proxy: "{{ upstreams 4000 }}"
 
 networks:
   caddy:
