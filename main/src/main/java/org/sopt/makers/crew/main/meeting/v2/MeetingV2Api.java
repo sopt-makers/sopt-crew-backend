@@ -104,4 +104,7 @@ public interface MeetingV2Api {
     })
     ResponseEntity<TempResponseDto<MeetingV2GetAllMeetingDto>> getMeetingsTemp(@ModelAttribute MeetingV2GetAllMeetingQueryDto queryCommand,
         Principal principal);
+
+    @Operation(summary = "모임 삭제", description = "모임 삭제합니다.")
+    ResponseEntity<Void> deleteMeeting(@PathVariable("id") Integer meetingId, Principal principal);
 }
