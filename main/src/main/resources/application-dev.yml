@@ -55,3 +55,8 @@ push-notification:
 
 notice:
   secret-key : ${NOTICE_SECRET_KEY}
+
+playground:
+  server:
+    url: ${DEV_PLAYGROUND_URL}
+    endpoint: ${PLAYGROUND_ENDPOINT}
