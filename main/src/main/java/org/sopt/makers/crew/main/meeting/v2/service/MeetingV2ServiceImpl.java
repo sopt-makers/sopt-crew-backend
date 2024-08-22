@@ -237,15 +237,17 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		return MeetingV2GetAllMeetingDto.of(meetingResponseDtos, pageMetaDto);
 	}
 
+	/**
+	 * @note: 1. like(Comment, post 관련) -> comment -> post 순으로 삭제
+	 * 		  2. apply 삭제
+	 * 		  3. meeting 삭제
+	 * */
+
 	@Override
 	@Transactional
 	public void deleteMeeting(Integer meetingId, Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		meeting.validateMeetingCreator(userId);
-
-		// like(Comment, post) -> comment -> post 순으로 삭제
-		// apply 삭제
-		// meeting 삭제
 
 		List<Post> posts = postRepository.findAllByMeetingId(meetingId);
 		List<Integer> postIds = posts.stream().map(Post::getId).toList();
