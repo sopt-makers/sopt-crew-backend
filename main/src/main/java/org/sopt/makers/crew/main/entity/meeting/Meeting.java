@@ -27,15 +27,14 @@ import lombok.NoArgsConstructor;
 
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
+import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
-import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.meeting.converter.MeetingCategoryConverter;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -80,7 +79,6 @@ public class Meeting {
 	 */
 	@Column(name = "imageURL", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
-	//@JdbcTypeCode(SqlTypes.JSON)
 	private List<ImageUrlVO> imageURL;
 
 	/**
@@ -229,6 +227,12 @@ public class Meeting {
 
 	public Boolean checkMeetingLeader(Integer userId) {
 		return this.userId.equals(userId);
+	}
+
+	public void validateCapacity(int approvedCount) {
+		if (approvedCount >= this.capacity) {
+			throw new BadRequestException(FULL_MEETING_CAPACITY.getErrorCode());
+		}
 	}
 
 	public void updateMeeting(Meeting updateMeeting) {

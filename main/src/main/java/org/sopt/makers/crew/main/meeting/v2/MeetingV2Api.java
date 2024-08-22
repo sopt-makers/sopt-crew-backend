@@ -17,6 +17,7 @@ import org.sopt.makers.crew.main.common.dto.TempResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
@@ -106,8 +107,11 @@ public interface MeetingV2Api {
         Principal principal);
 
     @Operation(summary = "모임 삭제", description = "모임 삭제합니다.")
-    ResponseEntity<Void> deleteMeeting(@PathVariable("meetingId") Integer meetingId, Principal principal);
+    ResponseEntity<Void> deleteMeeting(@PathVariable Integer meetingId, Principal principal);
 
     @Operation(summary = "모임 수정", description = "모임 내용을 수정합니다.")
     ResponseEntity<Void> updateMeeting(@PathVariable Integer meetingId, @RequestBody @Valid MeetingV2CreateMeetingBodyDto requestBody ,Principal principal);
+
+    @Operation(summary = "모임 지원자 상태 변경", description = "모임 지원자의 지원 상태를 변경합니다.")
+    ResponseEntity<Void> updateApplyStatus(@PathVariable Integer meetingId, @RequestBody @Valid ApplyV2UpdateStatusBodyDto requestBody ,Principal principal);
 }

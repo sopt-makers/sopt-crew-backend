@@ -47,6 +47,7 @@ export class MeetingV0Controller {
   @ApiOperation({
     summary: '모임 지원자 상태 변경',
     description: '모임 지원자 상태 변경',
+    deprecated: true,
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))

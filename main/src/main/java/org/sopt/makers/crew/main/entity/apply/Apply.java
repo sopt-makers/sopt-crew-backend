@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.entity.apply;
 
 import static jakarta.persistence.GenerationType.IDENTITY;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -17,6 +18,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.entity.apply.enums.ApplyStatusConverter;
 import org.sopt.makers.crew.main.entity.apply.enums.ApplyTypeConverter;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
@@ -108,5 +111,11 @@ public class Apply {
 
     public void updateApplyStatus(EnApplyStatus status) {
         this.status = status;
+    }
+
+    public void validateDuplicateUpdateApplyStatus(EnApplyStatus updatedApplyStatus){
+        if(updatedApplyStatus.equals(this.getStatus())){
+            throw new BadRequestException(ALREADY_PROCESSED_APPLY.getErrorCode());
+        }
     }
 }
