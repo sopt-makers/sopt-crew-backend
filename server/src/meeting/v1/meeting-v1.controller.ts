@@ -106,6 +106,7 @@ export class MeetingV1Controller {
   @ApiOperation({
     summary: '모임 수정',
     description: '모임 수정',
+    deprecated: true,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
