@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 @Schema(name = "AdvertisementGetResponseDto", description = "광고 구좌 조회 응답 Dto")
 public record AdvertisementGetResponseDto(
-	@Schema(description = "광고 구좌 이미지 객체", example = "[image Url]")
+	@Schema(description = "광고 구좌 이미지 객체", example = "")
 	@NotNull
 	List<AdvertisementImageDto> advertisementImages,
 	@Schema(description = "광고 구좌 링크", example = "https://www.naver.com")
