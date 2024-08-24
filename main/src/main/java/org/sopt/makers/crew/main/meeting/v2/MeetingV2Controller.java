@@ -25,6 +25,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingR
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.springframework.http.HttpStatus;
@@ -182,5 +183,13 @@ public class MeetingV2Controller implements MeetingV2Api {
 		AppliesCsvFileUrlResponseDto responseDto = meetingV2Service.getAppliesCsvFileUrl(meetingId, status, order, userId);
 
 		return ResponseEntity.ok(responseDto);
+	}
+
+	@Override
+	@GetMapping("/{meetingId}")
+	public ResponseEntity<MeetingV2GetMeetingByIdResponseDto> getMeetingById(@PathVariable Integer meetingId, Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+
+		return ResponseEntity.ok(meetingV2Service.getMeetingById(meetingId, userId));
 	}
 }

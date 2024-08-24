@@ -4,9 +4,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
+@Getter
 public class Applies {
 
 	/**
@@ -30,5 +34,22 @@ public class Applies {
 			return 0;
 		}
 		return applies.size();
+	}
+
+	public long getApprovedCount(Integer meetingId) {
+		return appliesMap.get(meetingId).stream()
+			.filter(apply -> apply.getStatus().equals(EnApplyStatus.APPROVE))
+			.count();
+	}
+
+	public Boolean isApply(Integer meetingId, Integer userId) {
+		return appliesMap.get(meetingId).stream()
+			.anyMatch(apply -> apply.getUserId().equals(userId));
+	}
+
+	public Boolean isApproved(Integer meetingId, Integer userId) {
+		return appliesMap.get(meetingId).stream()
+			.anyMatch(apply -> apply.getUserId().equals(userId)
+				&& apply.getStatus().equals(EnApplyStatus.APPROVE));
 	}
 }

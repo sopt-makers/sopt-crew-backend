@@ -117,6 +117,7 @@ export class MeetingV0Controller {
   @ApiOperation({
     summary: '모임 상세 조회',
     description: '모임 상세 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(MeetingV0GetMeetingByIdResponseDto)
   @ApiResponse({

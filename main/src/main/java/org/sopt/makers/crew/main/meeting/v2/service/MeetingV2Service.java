@@ -14,6 +14,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingR
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 
 public interface MeetingV2Service {
 
@@ -40,4 +41,6 @@ public interface MeetingV2Service {
     void updateApplyStatus(Integer meetingId, ApplyV2UpdateStatusBodyDto requestBody, Integer userId);
 
     AppliesCsvFileUrlResponseDto getAppliesCsvFileUrl(Integer meetingId, List<Integer> status, String order, Integer userId);
+
+    MeetingV2GetMeetingByIdResponseDto getMeetingById(Integer meetingId, Integer userId);
 }

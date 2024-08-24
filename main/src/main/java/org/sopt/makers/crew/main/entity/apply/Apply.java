@@ -118,4 +118,12 @@ public class Apply {
             throw new BadRequestException(ALREADY_PROCESSED_APPLY.getErrorCode());
         }
     }
+
+    public String getContent(Integer requestUserId){
+        if(!this.userId.equals(requestUserId)){
+            return "";
+        }
+
+        return this.content;
+    }
 }
