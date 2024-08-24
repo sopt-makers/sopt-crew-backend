@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.entity.apply;
 
+import static org.sopt.makers.crew.main.common.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.entity.apply.QApply.apply;
 import static org.sopt.makers.crew.main.entity.user.QUser.user;
 
@@ -47,7 +48,7 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
                         apply.meetingId.eq(meetingId),
                         apply.status.in(queryCommand.getStatus())
                 )
-                .orderBy(queryCommand.getDate().equals("desc") ? apply.appliedDate.desc() : apply.appliedDate.asc())
+                .orderBy(queryCommand.getDate().equals(ORDER_DESC) ? apply.appliedDate.desc() : apply.appliedDate.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
