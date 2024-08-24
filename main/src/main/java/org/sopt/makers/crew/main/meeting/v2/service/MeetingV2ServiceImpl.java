@@ -154,7 +154,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 					meeting.getEndDate(),
 					meeting.getCapacity(), recentActivityDate, meeting.getTargetActiveGeneration(),
 					meeting.getJoinableParts(), applicantCount, appliedUserCount, meetingLeaderDto,
-					meeting.getMeetingStatus());
+					meeting.getMeetingStatus(time.now()));
 			}).toList();
 	}
 
@@ -236,7 +236,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		List<MeetingResponseDto> meetingResponseDtos = meetings.getContent().stream()
 			.map(meeting -> MeetingResponseDto.of(meeting, meeting.getUser(),
-				allApplies.getAppliedCount(meeting.getId())))
+				allApplies.getAppliedCount(meeting.getId()), time.now()))
 			.toList();
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
@@ -345,7 +345,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 
 		return MeetingV2GetMeetingByIdResponseDto.of(meeting, approvedCount, isHost, isApply, isApproved,
-			meetingCreator, applyWholeInfoDtos);
+			meetingCreator, applyWholeInfoDtos, time.now());
 	}
 
 	private void deleteCsvFile(String filePath) {

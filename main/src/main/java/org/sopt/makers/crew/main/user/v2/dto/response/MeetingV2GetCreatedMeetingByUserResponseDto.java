@@ -66,14 +66,14 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	@NotNull
 	int appliedCount
 ) {
-	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, User meetingCreator, int appliedCount) {
+	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, User meetingCreator, int appliedCount, LocalDateTime now) {
 		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meetingCreator);
 		boolean canJoinOnlyActiveGeneration = meeting.getTargetActiveGeneration() == CrewConst.ACTIVE_GENERATION
 			&& meeting.getCanJoinOnlyActiveGeneration();
 
 		return new MeetingV2GetCreatedMeetingByUserResponseDto(meeting.getId(), meeting.getTitle(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory().getValue(),
-			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(), meeting.getImageURL(),
+			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), meeting.getImageURL(),
 			meeting.getIsMentorNeeded(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(), creatorDto, appliedCount);
 	}
 

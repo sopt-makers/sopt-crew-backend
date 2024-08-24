@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 import org.sopt.makers.crew.main.common.exception.BaseException;
+import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
@@ -35,6 +36,8 @@ public class UserV2ServiceImpl implements UserV2Service {
 	private final UserRepository userRepository;
 	private final ApplyRepository applyRepository;
 	private final MeetingRepository meetingRepository;
+
+	private final Time time;
 
 	@Override
 	public List<UserV2GetAllMeetingByUserMeetingDto> getAllMeetingByUser(Integer userId) {
@@ -93,7 +96,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 
 		List<MeetingV2GetCreatedMeetingByUserResponseDto> meetingByUserDtos = meetings.stream()
 			.map(meeting -> MeetingV2GetCreatedMeetingByUserResponseDto.of(meeting, meetingCreator,
-				applies.getAppliedCount(meeting.getId())))
+				applies.getAppliedCount(meeting.getId()), time.now()))
 			.toList();
 
 		return UserV2GetCreatedMeetingByUserResponseDto.of(meetingByUserDtos);
@@ -110,7 +113,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 			.map(apply -> ApplyV2GetAppliedMeetingByUserResponseDto.of(
 				apply.getId(), apply.getStatus().getValue(),
 				MeetingV2GetCreatedMeetingByUserResponseDto.of(apply.getMeeting(), apply.getMeeting().getUser(),
-					allApplies.getAppliedCount(apply.getMeetingId()))
+					allApplies.getAppliedCount(apply.getMeetingId()), time.now())
 			)).toList();
 
 		return UserV2GetAppliedMeetingByUserResponseDto.of(appliedMeetingByUserDtos);

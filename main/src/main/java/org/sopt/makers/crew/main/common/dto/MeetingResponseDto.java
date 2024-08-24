@@ -101,14 +101,14 @@ public class MeetingResponseDto {
 		this.appliedCount = appliedCount;
 	}
 
-	public static MeetingResponseDto of(Meeting meeting, User meetingCreator, int appliedCount){
+	public static MeetingResponseDto of(Meeting meeting, User meetingCreator, int appliedCount, LocalDateTime now){
 		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meetingCreator);
 		boolean canJoinOnlyActiveGeneration = meeting.getTargetActiveGeneration() == CrewConst.ACTIVE_GENERATION
 			&& meeting.getCanJoinOnlyActiveGeneration();
 
 		return new MeetingResponseDto(meeting.getId(), meeting.getTitle(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory(),
-			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(), meeting.getImageURL(),
+			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), meeting.getImageURL(),
 			meeting.getIsMentorNeeded(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(), creatorDto, appliedCount);
 	}
 }

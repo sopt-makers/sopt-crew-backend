@@ -132,11 +132,11 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 	public static MeetingV2GetMeetingByIdResponseDto of(Meeting meeting, long approvedCount, Boolean isHost, Boolean isApply,
 		Boolean isApproved, User meetingCreator,
-		List<ApplyWholeInfoDto> appliedInfo) {
+		List<ApplyWholeInfoDto> appliedInfo, LocalDateTime now) {
 
 		MeetingCreatorDto meetingCreatorDto = MeetingCreatorDto.of(meetingCreator);
 
-		Integer meetingStatus = meeting.getMeetingStatus();
+		Integer meetingStatus = meeting.getMeetingStatus(now);
 
 		return new MeetingV2GetMeetingByIdResponseDto(meeting.getId(), meeting.getTitle(),
 			meeting.getCategory().getValue(), meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(),

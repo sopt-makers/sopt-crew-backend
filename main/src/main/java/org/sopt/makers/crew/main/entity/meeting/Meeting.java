@@ -208,8 +208,8 @@ public class Meeting {
 	 *
 	 * @return 모임 모집상태
 	 */
-	public Integer getMeetingStatus() {
-		LocalDateTime now = LocalDateTime.now();
+	public Integer getMeetingStatus(LocalDateTime now) {
+
 		if (now.isBefore(startDate)) {
 			return EnMeetingStatus.BEFORE_START.getValue();
 		} else if (now.isBefore(endDate)) {
