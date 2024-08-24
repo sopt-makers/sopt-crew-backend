@@ -1,7 +1,8 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
-import static org.sopt.makers.crew.main.common.constant.CrewConst.ACTIVE_GENERATION;
+import static org.sopt.makers.crew.main.common.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -55,6 +56,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
@@ -63,6 +65,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingB
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -307,7 +310,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	public AppliesCsvFileUrlResponseDto getAppliesCsvFileUrl(Integer meetingId, List<Integer> status, String order, Integer userId) {
+	public AppliesCsvFileUrlResponseDto getAppliesCsvFileUrl(Integer meetingId, List<Integer> status, String order,
+		Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		meeting.validateMeetingCreator(userId);
 
@@ -319,6 +323,29 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		deleteCsvFile(csvFilePath);
 
 		return AppliesCsvFileUrlResponseDto.of(csvFileUrl);
+	}
+
+	@Override
+	public MeetingV2GetMeetingByIdResponseDto getMeetingById(Integer meetingId, Integer userId) {
+		User user = userRepository.findByIdOrThrow(userId);
+
+		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+		User meetingCreator = userRepository.findByIdOrThrow(meeting.getUserId());
+
+		Applies applies = new Applies(applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
+
+		Boolean isHost = meeting.checkMeetingLeader(user.getId());
+		Boolean isApply = applies.isApply(meetingId, user.getId());
+		Boolean isApproved = applies.isApproved(meetingId, user.getId());
+		long approvedCount = applies.getApprovedCount(meetingId);
+
+		List<ApplyWholeInfoDto> applyWholeInfoDtos = applies.getAppliesMap().get(meetingId).stream()
+			.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
+			.toList();
+
+
+		return MeetingV2GetMeetingByIdResponseDto.of(meeting, approvedCount, isHost, isApply, isApproved,
+			meetingCreator, applyWholeInfoDtos);
 	}
 
 	private void deleteCsvFile(String filePath) {

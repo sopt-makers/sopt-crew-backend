@@ -29,6 +29,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingR
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -129,4 +130,9 @@ public interface MeetingV2Api {
         @RequestParam(name = "type") List<Integer> type,
         @RequestParam(name = "order", required = false, defaultValue = "desc") String order,
         Principal principal);
+
+    @Operation(summary = "모임 상세 조회", description = "모임 상세 조회")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 상세 조회 성공"),
+        @ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
+    ResponseEntity<MeetingV2GetMeetingByIdResponseDto> getMeetingById(@PathVariable Integer meetingId, Principal principal);
 }
