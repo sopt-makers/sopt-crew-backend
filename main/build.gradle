@@ -71,6 +71,9 @@ dependencies {
     annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+    // AWS SDK for S3
+    implementation "software.amazon.awssdk:s3:2.27.0"
 }
 
 tasks.named('test') {

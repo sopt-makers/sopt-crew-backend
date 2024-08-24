@@ -34,6 +34,11 @@ aws-property:
   s3-bucket-name: ${AWS_S3_BUCKET_NAME}
   access-key: ${AWS_ACCESS_KEY_ID}
   secret-key: ${AWS_SECRET_ACCESS_KEY}
+  file-min-size: ${AWS_FILE_MIN_SIZE}
+  file-max-size: ${AWS_FILE_MAX_SIZE}
+  algorithm: ${AWS_ALGORITHM}
+  content-type: ${AWS_CONTENT_TYPE}
+  request-type: ${AWS_REQUEST_TYPE}
 
 springdoc:
   packages-to-scan: org.sopt.makers.crew

@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
+
 import java.security.Principal;
 import java.util.List;
 
@@ -20,12 +22,14 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQuer
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -114,4 +118,15 @@ public interface MeetingV2Api {
 
     @Operation(summary = "모임 지원자 상태 변경", description = "모임 지원자의 지원 상태를 변경합니다.")
     ResponseEntity<Void> updateApplyStatus(@PathVariable Integer meetingId, @RequestBody @Valid ApplyV2UpdateStatusBodyDto requestBody ,Principal principal);
+
+    @Operation(summary = "Meeting 썸네일 업로드용 Pre-Signed URL 발급", description = "Meeting 썸네일 업로드용 Pre-Signed URL 발급합니다.")
+    ResponseEntity<PreSignedUrlResponseDto> createPreSignedUrl(@PathParam("contentType") String contentType ,Principal principal);
+
+    @Operation(summary = "모임 지원자 목록 csv 파일 다운로드", description = "모임 지원자 목록 csv 파일 다운로드")
+    ResponseEntity<AppliesCsvFileUrlResponseDto> getAppliesCsvFileUrl(
+        @PathVariable Integer meetingId,
+        @PathParam("status") Integer status,
+        @PathParam("type") Integer type,
+        @PathParam("order") String order,
+        Principal principal);
 }
