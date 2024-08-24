@@ -29,7 +29,7 @@ public class ApplicantByMeetingDto {
 
 	@Schema(description = "신청자 기수 정보", example = "[{\"part\": \"웹\", \"generation\": 32}]")
 	@NotNull
-	private final List<UserActivityVO> recentActivity;
+	private final List<UserActivityVO> activities;
 
 	@Schema(description = "신청자 프로필 사진", example = "[url] 형식")
 	private final String profileImage;

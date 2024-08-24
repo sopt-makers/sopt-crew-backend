@@ -27,6 +27,10 @@ public class ApplyWholeInfoDto {
 	@NotNull
 	private final Integer meetingId;
 
+	@Schema(description = "신청자 id", example = "184")
+	@NotNull
+	private final Integer userId;
+
 	@Schema(description = "신청 내용", example = "모임장에게 전하는 말입니다.")
 	@NotNull
 	private final String content;
@@ -47,7 +51,7 @@ public class ApplyWholeInfoDto {
 
 		ApplicantByMeetingDto applicantByMeetingDto = ApplicantByMeetingDto.of(user);
 
-		return new ApplyWholeInfoDto(apply.getId(), apply.getType().getValue(), apply.getMeetingId(),
+		return new ApplyWholeInfoDto(apply.getId(), apply.getType().getValue(), apply.getMeetingId(), apply.getUserId(),
 			apply.getContent(requestUserId), apply.getAppliedDate(), apply.getStatus().getValue(),
 			applicantByMeetingDto);
 	}

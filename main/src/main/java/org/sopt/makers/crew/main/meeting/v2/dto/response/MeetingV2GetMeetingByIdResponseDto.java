@@ -23,6 +23,10 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final Integer id;
 
+	@Schema(description = "모임장 id", example = "184")
+	@NotNull
+	private final Integer userId;
+
 	@Schema(description = "모임 제목", example = "모임 제목입니다.")
 	@NotNull
 	private final String title;
@@ -33,7 +37,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 	@Schema(description = "모임 이미지", example = "[url 형식]")
 	@NotNull
-	private final List<ImageUrlVO> imageURLs;
+	private final List<ImageUrlVO> imageURL;
 
 	@Schema(description = "모임 신청 시작 시간", example = "2024-07-10T15:30:00")
 	@NotNull
@@ -138,12 +142,20 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 		Integer meetingStatus = meeting.getMeetingStatus(now);
 
-		return new MeetingV2GetMeetingByIdResponseDto(meeting.getId(), meeting.getTitle(),
+		return new MeetingV2GetMeetingByIdResponseDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(),
 			meeting.getCategory().getValue(), meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(),
 			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getMStartDate(),
 			meeting.getMEndDate(), meeting.getLeaderDesc(), meeting.getTargetDesc(), meeting.getNote(),
 			meeting.getIsMentorNeeded(), meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meetingStatus,
 			approvedCount, isHost, isApply, isApproved, meetingCreatorDto, appliedInfo);
+	}
+
+	public LocalDateTime getmStartDate() {
+		return mStartDate;
+	}
+
+	public LocalDateTime getmEndDate() {
+		return mEndDate;
 	}
 }
