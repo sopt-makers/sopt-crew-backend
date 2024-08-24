@@ -65,6 +65,7 @@ export class MeetingV1Controller {
 
   @ApiOperation({
     summary: 'Meeting 썸네일 업로드용 Pre-Signed URL 발급',
+    deprecated: true,
   })
   @ApiOkResponseCommon(MeetingV1GetPresignedUrlResponseDto)
   @ApiResponse({
