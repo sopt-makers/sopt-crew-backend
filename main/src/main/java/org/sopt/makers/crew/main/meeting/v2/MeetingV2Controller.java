@@ -6,22 +6,26 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 
 import org.sopt.makers.crew.main.common.dto.TempResponseDto;
 import org.sopt.makers.crew.main.common.util.UserUtil;
+import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +46,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class MeetingV2Controller implements MeetingV2Api {
 
 	private final MeetingV2Service meetingV2Service;
+
+	private final S3Service s3Service;
 
 	@Override
 	@GetMapping("/org-user")
@@ -151,5 +157,27 @@ public class MeetingV2Controller implements MeetingV2Api {
 		meetingV2Service.updateApplyStatus(meetingId, requestBody, userId);
 
 		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	@GetMapping("/presigned-url")
+	public ResponseEntity<PreSignedUrlResponseDto> createPreSignedUrl(
+		@PathParam("contentType") String contentType, Principal principal) {
+		PreSignedUrlResponseDto responseDto = s3Service.generatePreSignedUrl(contentType);
+
+		return ResponseEntity.ok(responseDto);
+	}
+
+	@Override
+	@GetMapping("/{meetingId}/list/csv")
+	public ResponseEntity<AppliesCsvFileUrlResponseDto> getAppliesCsvFileUrl(
+		@PathVariable Integer meetingId,
+		@PathParam("status") Integer status,
+		@PathParam("type") Integer type,
+		@PathParam("order") String order,
+		Principal principal) {
+
+
+		return null;
 	}
 }
