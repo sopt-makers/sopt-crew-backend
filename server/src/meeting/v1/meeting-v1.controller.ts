@@ -40,6 +40,7 @@ export class MeetingV1Controller {
   @ApiOperation({
     summary: '모임 지원자 목록 csv 파일 다운로드',
     description: '모임장일때만 지원자 목록 csv 파일 다운로드 가능',
+    deprecated: true,
   })
   @ApiOkResponseCommon(MeetingV1GetApplyListByMeetingCsvFileUrlResponseDto)
   @ApiResponse({

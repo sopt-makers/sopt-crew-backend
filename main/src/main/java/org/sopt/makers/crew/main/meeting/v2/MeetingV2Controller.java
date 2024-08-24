@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -162,7 +163,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 	@Override
 	@GetMapping("/presigned-url")
 	public ResponseEntity<PreSignedUrlResponseDto> createPreSignedUrl(
-		@PathParam("contentType") String contentType, Principal principal) {
+		@RequestParam("contentType") String contentType, Principal principal) {
 		PreSignedUrlResponseDto responseDto = s3Service.generatePreSignedUrl(contentType);
 
 		return ResponseEntity.ok(responseDto);
@@ -172,12 +173,14 @@ public class MeetingV2Controller implements MeetingV2Api {
 	@GetMapping("/{meetingId}/list/csv")
 	public ResponseEntity<AppliesCsvFileUrlResponseDto> getAppliesCsvFileUrl(
 		@PathVariable Integer meetingId,
-		@PathParam("status") Integer status,
-		@PathParam("type") Integer type,
-		@PathParam("order") String order,
+		@RequestParam(name = "status") List<Integer> status,
+		@RequestParam(name = "type") List<Integer> type,
+		@RequestParam(name = "order", required = false, defaultValue = "desc") String order,
 		Principal principal) {
 
+		Integer userId = UserUtil.getUserId(principal);
+		AppliesCsvFileUrlResponseDto responseDto = meetingV2Service.getAppliesCsvFileUrl(meetingId, status, order, userId);
 
-		return null;
+		return ResponseEntity.ok(responseDto);
 	}
 }

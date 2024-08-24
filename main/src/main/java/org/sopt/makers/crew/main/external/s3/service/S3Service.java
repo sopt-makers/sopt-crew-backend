@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.external.s3.service;
 
 import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -28,11 +29,15 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class S3Service {
 	private static final String MEETING_PATH = "meeting";
 	private static final String S3_SERVCIE = "s3";
@@ -41,6 +46,29 @@ public class S3Service {
 	private final S3Client s3Client;
 
 	private final AwsProperties awsProperties;
+
+	public String uploadCSVFile(String fileName) {
+		try {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+			String curDate = LocalDateTime.now().format(formatter);
+
+			String objectKey = MEETING_PATH + "/" + curDate + "/" + fileName;
+
+			File file = new File(fileName);
+			PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+				.bucket(awsProperties.getS3BucketName())
+				.key(objectKey)
+				.build();
+
+			s3Client.putObject(putObjectRequest, RequestBody.fromFile(file));
+			log.info("File uploaded successfully to S3: {}", fileName);
+
+			return awsProperties.getObjectUrl() + objectKey;
+		} catch (Exception e) {
+			throw new ServerException(S3_STORAGE_ERROR.getErrorCode());
+		}
+
+	}
 
 	public PreSignedUrlResponseDto generatePreSignedUrl(String contentType) {
 		SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'");

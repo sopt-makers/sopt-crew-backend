@@ -21,6 +21,13 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
     @Query("select a from Apply a join fetch a.meeting m join fetch m.user u where a.userId = :userId")
     List<Apply> findAllByUserId(@Param("userId") Integer userId);
 
+    @Query("select a "
+        + "from Apply a "
+        + "join fetch a.user u "
+        + "where a.meetingId = :meetingId "
+        + "and a.status in :statuses order by :order")
+    List<Apply> findAllByMeetingIdWithUser(@Param("meetingId") Integer meetingId, @Param("statuses") List<EnApplyStatus> statuses, @Param("order") String order);
+
     List<Apply> findAllByMeetingIdAndStatus(Integer meetingId, EnApplyStatus statusValue);
 
     List<Apply> findAllByMeetingId(Integer meetingId);
@@ -33,8 +40,6 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
     @Modifying
     @Query("delete from Apply a where a.meeting.id = :meetingId and a.userId = :userId")
     void deleteByMeetingIdAndUserId(@Param("meetingId") Integer meetingId, @Param("userId") Integer userId);
-
-    Optional<Apply> findById(Integer applyId);
 
     default Apply findByIdOrThrow(Integer applyId) {
         return findById(applyId)

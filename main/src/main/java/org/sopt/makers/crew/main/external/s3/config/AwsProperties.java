@@ -18,4 +18,5 @@ public final class AwsProperties {
 	private final String algorithm;
 	private final String contentType;
 	private final String requestType;
+	private final String objectUrl;
 }

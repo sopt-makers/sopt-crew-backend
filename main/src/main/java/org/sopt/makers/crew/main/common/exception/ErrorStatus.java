@@ -45,6 +45,7 @@ public enum ErrorStatus {
      * 500 SERVER_ERROR
      */
     NOTIFICATION_SERVER_ERROR("알림 서버에 에러가 발생했습니다."),
+    CSV_ERROR("csv 처리 과정에 에러가 발생했습니다."),
     S3_STORAGE_ERROR("s3 스토리지에 에러가 발생했습니다."),
     INTERNAL_SERVER_ERROR("예상치 못한 서버 에러가 발생했습니다.");
 
