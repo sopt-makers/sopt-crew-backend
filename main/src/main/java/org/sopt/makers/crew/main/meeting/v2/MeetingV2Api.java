@@ -34,7 +34,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "모임")
 public interface MeetingV2Api {
@@ -125,8 +125,8 @@ public interface MeetingV2Api {
     @Operation(summary = "모임 지원자 목록 csv 파일 다운로드", description = "모임 지원자 목록 csv 파일 다운로드")
     ResponseEntity<AppliesCsvFileUrlResponseDto> getAppliesCsvFileUrl(
         @PathVariable Integer meetingId,
-        @PathParam("status") Integer status,
-        @PathParam("type") Integer type,
-        @PathParam("order") String order,
+        @RequestParam(name = "status") List<Integer> status,
+        @RequestParam(name = "type") List<Integer> type,
+        @RequestParam(name = "order", required = false, defaultValue = "desc") String order,
         Principal principal);
 }

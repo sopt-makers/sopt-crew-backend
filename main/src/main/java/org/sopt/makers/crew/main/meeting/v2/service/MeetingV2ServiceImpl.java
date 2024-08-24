@@ -3,12 +3,18 @@ package org.sopt.makers.crew.main.meeting.v2.service;
 import static org.sopt.makers.crew.main.common.constant.CrewConst.ACTIVE_GENERATION;
 import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.sopt.makers.crew.main.common.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.common.exception.ServerException;
 import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.common.util.Time;
@@ -37,6 +44,7 @@ import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.enums.UserPart;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
@@ -45,6 +53,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQuer
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
@@ -59,6 +68,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.opencsv.CSVWriter;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -72,6 +83,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
+
+	private final S3Service s3Service;
 
 	private final MeetingMapper meetingMapper;
 	private final ApplyMapper applyMapper;
@@ -196,7 +209,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	@Transactional(readOnly = true)
 	public MeetingGetApplyListResponseDto findApplyList(MeetingGetAppliesQueryDto queryCommand,
 		Integer meetingId,
 		Integer userId) {
@@ -292,6 +304,59 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		apply.updateApplyStatus(updatedApplyStatus);
 
+	}
+
+	@Override
+	public AppliesCsvFileUrlResponseDto getAppliesCsvFileUrl(Integer meetingId, List<Integer> status, String order, Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+		meeting.validateMeetingCreator(userId);
+
+		List<EnApplyStatus> statuses = status.stream().map(EnApplyStatus::ofValue).toList();
+		List<Apply> applies = applyRepository.findAllByMeetingIdWithUser(meetingId, statuses, order);
+
+		String csvFilePath = createCsvFile(applies);
+		String csvFileUrl = s3Service.uploadCSVFile(csvFilePath);
+		deleteCsvFile(csvFilePath);
+
+		return AppliesCsvFileUrlResponseDto.of(csvFileUrl);
+	}
+
+	private void deleteCsvFile(String filePath) {
+		try {
+			Files.deleteIfExists(Paths.get(filePath));
+		} catch (IOException e) {
+			throw new ServerException(CSV_ERROR.getErrorCode());
+		}
+	}
+
+	private String createCsvFile(List<Apply> applies) {
+		String filePath = UUID.randomUUID() + ".csv";
+
+		try (CSVWriter writer = new CSVWriter(new FileWriter(filePath))) {
+			// CSV 파일의 헤더 정의
+			String[] header = {"이름", "최근 활동 파트", "최근 활동 기수", "전화번호", "신청 날짜 및 시간", "신청 내용"};
+			writer.writeNext(header);
+
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+			for (Apply apply : applies) {
+				User user = apply.getUser();
+				UserActivityVO activity = user.getRecentActivityVO();
+
+				String[] data = {
+					user.getName(),
+					activity.getPart(),
+					String.valueOf(activity.getGeneration()),
+					String.format("\"%s\"", user.getPhone()),
+					apply.getAppliedDate().format(formatter),
+					apply.getContent()
+				};
+				writer.writeNext(data);
+			}
+		} catch (Exception e) {
+			throw new ServerException(CSV_ERROR.getErrorCode());
+		}
+
+		return filePath;
 	}
 
 	private Boolean checkActivityStatus(Meeting meeting) {
