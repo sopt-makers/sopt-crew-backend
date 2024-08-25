@@ -38,3 +38,5 @@ out/
 .vscode/
 
 application-secret.properties
+
+.DS_Store
