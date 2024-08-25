@@ -157,6 +157,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 수정',
+    deprecated: true,
   })
   @ApiOkResponseCommon(PostV1UpdatePostResponseDto)
   @ApiResponse({

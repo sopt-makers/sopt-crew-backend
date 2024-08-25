@@ -8,10 +8,12 @@ import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
+import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.service.PostV2Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -84,5 +87,15 @@ public class PostV2Controller implements PostV2Api {
         Integer userId = UserUtil.getUserId(principal);
         postV2Service.deletePost(postId, userId);
         return ResponseEntity.ok().build();
+    }
+
+    @Override
+    @PutMapping("/{postId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<PostV2UpdatePostResponseDto> updatePost(@PathVariable Integer postId,
+                                                                  @RequestBody PostV2UpdatePostBodyDto requestBody,
+                                                                  Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        return ResponseEntity.ok(postV2Service.updatePost(postId, requestBody, userId));
     }
 }

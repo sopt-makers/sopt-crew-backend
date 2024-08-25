@@ -3,10 +3,12 @@ package org.sopt.makers.crew.main.post.v2.service;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
+import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 
 public interface PostV2Service {
 
@@ -21,4 +23,6 @@ public interface PostV2Service {
     PostV2GetPostCountResponseDto getPostCount(Integer meetingId);
 
     void deletePost(Integer postId, Integer userId);
+
+    PostV2UpdatePostResponseDto updatePost(Integer postId, PostV2UpdatePostBodyDto requestBody, Integer userId);
 }
