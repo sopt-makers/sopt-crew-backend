@@ -2,15 +2,18 @@ package org.sopt.makers.crew.main.post.v2.service;
 
 import static java.util.stream.Collectors.toList;
 import static org.sopt.makers.crew.main.common.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.MAX_IMAGE_UPLOAD_EXCEEDED;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_POST_MENTION_PUSH_NOTIFICATION_TITLE;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_POST_PUSH_NOTIFICATION_TITLE;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
@@ -28,11 +31,13 @@ import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationReque
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
+import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -55,6 +60,8 @@ public class PostV2ServiceImpl implements PostV2Service {
 
     @Value("${push-notification.web-url}")
     private String pushWebUrl;
+
+    private final Time time;
 
     /**
      * 모임 게시글 작성
@@ -193,5 +200,30 @@ public class PostV2ServiceImpl implements PostV2Service {
         likeRepository.deleteAllByCommentIdsInQuery(commentIds);
 
         postRepository.delete(post);
+    }
+
+    /**
+     * 모임 게시글 수정
+     *
+     * @throws 400 존재하지 않는 게시글인 경우
+     * @throws 400 업로드하려는 이미지가 10개 초과인 경우
+     * @throws 403 글 작성자가 아닌 경우
+     * @apiNote 글을 작성한 유저만 수정 가능
+     */
+    @Override
+    @Transactional
+    public PostV2UpdatePostResponseDto updatePost(Integer postId, PostV2UpdatePostBodyDto requestBody, Integer userId) {
+        Post post = postRepository.findByIdOrThrow(postId);
+        post.isWriter(userId);
+
+        if (requestBody.getImages().length > 10) {
+            throw new BadRequestException(MAX_IMAGE_UPLOAD_EXCEEDED.getErrorCode());
+        }
+
+        post.updatePost(requestBody.getTitle(), requestBody.getContents(), requestBody.getImages());
+
+        return PostV2UpdatePostResponseDto.of(post.getId(), post.getTitle(), post.getContents(),
+                String.valueOf(time.now()),
+                post.getImages());
     }
 }

@@ -29,7 +29,8 @@ public enum ErrorStatus {
     NOT_TARGET_PART("지원 가능한 파트가 아닙니다."),
     NOT_FOUND_APPLY("신청상태가 아닌 모임입니다."),
     ALREADY_PROCESSED_APPLY("이미 해당 상태로 처리된 신청 정보입니다."),
-
+    MAX_IMAGE_UPLOAD_EXCEEDED("이미지는 최대 10개까지만 업로드 가능합니다."),
+    
     /**
      * 401 UNAUTHORIZED
      */
