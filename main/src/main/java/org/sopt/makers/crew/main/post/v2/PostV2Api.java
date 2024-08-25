@@ -88,4 +88,11 @@ public interface PostV2Api {
     ResponseEntity<PostV2UpdatePostResponseDto> updatePost(@PathVariable Integer postId,
                                                            @RequestBody PostV2UpdatePostBodyDto requestBody,
                                                            Principal principal);
+
+    @Operation(summary = "모임 게시글 신고")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "\"게시글이 없습니다.\" or \"이미 신고한 게시글입니다.\"")
+    })
+    ResponseEntity<PostV2ReportResponseDto> reportPost(@PathVariable Integer postId, Principal principal);
 }

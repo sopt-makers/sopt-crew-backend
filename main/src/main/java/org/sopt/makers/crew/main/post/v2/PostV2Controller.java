@@ -98,4 +98,13 @@ public class PostV2Controller implements PostV2Api {
         Integer userId = UserUtil.getUserId(principal);
         return ResponseEntity.ok(postV2Service.updatePost(postId, requestBody, userId));
     }
+
+    @Override
+    @PostMapping("/{postId}/report")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<PostV2ReportResponseDto> reportPost(@PathVariable Integer postId, Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        return ResponseEntity.status(HttpStatus.CREATED).body(postV2Service.reportPost(postId, userId));
+    }
+
 }
