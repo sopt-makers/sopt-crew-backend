@@ -361,7 +361,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		try (CSVWriter writer = new CSVWriter(new FileWriter(filePath))) {
 			// CSV 파일의 헤더 정의
-			String[] header = {"이름", "최근 활동 파트", "최근 활동 기수", "전화번호", "신청 날짜 및 시간", "신청 내용"};
+			String[] header = {"이름", "최근 활동 파트", "최근 활동 기수", "전화번호", "신청 날짜 및 시간", "신청 내용", "신청 상태"};
 			writer.writeNext(header);
 
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -375,7 +375,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 					String.valueOf(activity.getGeneration()),
 					String.format("\"%s\"", user.getPhone()),
 					apply.getAppliedDate().format(formatter),
-					apply.getContent()
+					apply.getContent(),
+					apply.getStatus().getDescription()
 				};
 				writer.writeNext(data);
 			}
