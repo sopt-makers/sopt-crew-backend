@@ -17,7 +17,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.post.Post;
-import org.sopt.makers.crew.main.entity.user.User;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -42,17 +41,10 @@ public class Report {
     private LocalDateTime createdDate;
 
     /**
-     * 신고자
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
-    private User user;
-
-    /**
      * 신고자 id
      */
-    @Column(insertable = false, updatable = false)
-    private int userId;
+    @Column(updatable = false)
+    private Integer userId;
 
     /**
      * 게시글
@@ -78,12 +70,11 @@ public class Report {
      * 댓글 id - 댓글 좋아요가 아닐 경우 null
      */
     @Column(insertable = false, updatable = false)
-    private int commentId;
+    private Integer commentId;
 
     @Builder
-    public Report(User user, int userId, Post post, int postId, Comment comment,
-            int commentId) {
-        this.user = user;
+    public Report(Integer userId, Post post, Integer postId, Comment comment,
+                  Integer commentId) {
         this.userId = userId;
         this.post = post;
         this.postId = postId;
