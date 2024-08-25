@@ -13,6 +13,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.service.PostV2Service;
 import org.springframework.http.HttpStatus;

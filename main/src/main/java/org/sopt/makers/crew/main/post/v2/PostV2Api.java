@@ -18,6 +18,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -82,8 +83,8 @@ public interface PostV2Api {
     @Operation(summary = "모임 게시글 수정")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공"),
-            @ApiResponse(responseCode = "400", description = "\"게시글이 없습니다.\" or \"이미지는 최대 10개까지만 업로드 가능합니다.\""),
-            @ApiResponse(responseCode = "403", description = "권한이 없습니다.")
+            @ApiResponse(responseCode = "400", description = "\"게시글이 없습니다.\" or \"이미지는 최대 10개까지만 업로드 가능합니다.\"", content = @Content),
+            @ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content)
     })
     ResponseEntity<PostV2UpdatePostResponseDto> updatePost(@PathVariable Integer postId,
                                                            @RequestBody PostV2UpdatePostBodyDto requestBody,
@@ -91,8 +92,8 @@ public interface PostV2Api {
 
     @Operation(summary = "모임 게시글 신고")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공"),
-            @ApiResponse(responseCode = "400", description = "\"게시글이 없습니다.\" or \"이미 신고한 게시글입니다.\"")
+            @ApiResponse(responseCode = "201", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "\"게시글이 없습니다.\" or \"이미 신고한 게시글입니다.\"", content = @Content)
     })
     ResponseEntity<PostV2ReportResponseDto> reportPost(@PathVariable Integer postId, Principal principal);
 }
