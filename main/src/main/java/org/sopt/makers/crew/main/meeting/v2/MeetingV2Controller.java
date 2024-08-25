@@ -6,12 +6,12 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 
-import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 
 import org.sopt.makers.crew.main.common.dto.TempResponseDto;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesCsvQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
@@ -174,20 +174,41 @@ public class MeetingV2Controller implements MeetingV2Api {
 	@GetMapping("/{meetingId}/list/csv")
 	public ResponseEntity<AppliesCsvFileUrlResponseDto> getAppliesCsvFileUrl(
 		@PathVariable Integer meetingId,
-		@RequestParam(name = "status") List<Integer> status,
-		@RequestParam(name = "type") List<Integer> type,
-		@RequestParam(name = "order", required = false, defaultValue = "desc") String order,
+		@ModelAttribute @Valid MeetingGetAppliesCsvQueryDto queryCommand,
 		Principal principal) {
 
 		Integer userId = UserUtil.getUserId(principal);
-		AppliesCsvFileUrlResponseDto responseDto = meetingV2Service.getAppliesCsvFileUrl(meetingId, status, order, userId);
+
+		// TODO: FE 에서 request 값 변경하도록 요청 필요
+		List<Integer> statuses = List.of(0, 1, 2);
+
+		AppliesCsvFileUrlResponseDto responseDto = meetingV2Service.getAppliesCsvFileUrl(meetingId, statuses,
+			queryCommand.getOrder(), userId);
 
 		return ResponseEntity.ok(responseDto);
 	}
 
 	@Override
+	@GetMapping("/{meetingId}/list/csv/temp")
+	public ResponseEntity<TempResponseDto<AppliesCsvFileUrlResponseDto>> getAppliesCsvFileUrlTemp(
+		@PathVariable Integer meetingId,
+		@ModelAttribute @Valid MeetingGetAppliesCsvQueryDto queryCommand,
+		Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+
+		// TODO: FE 에서 request 값 변경하도록 요청 필요
+		List<Integer> statuses = List.of(0, 1, 2);
+
+		AppliesCsvFileUrlResponseDto responseDto = meetingV2Service.getAppliesCsvFileUrl(meetingId, statuses,
+			queryCommand.getOrder(), userId);
+
+		return ResponseEntity.ok(TempResponseDto.of(responseDto));
+	}
+
+	@Override
 	@GetMapping("/{meetingId}")
-	public ResponseEntity<MeetingV2GetMeetingByIdResponseDto> getMeetingById(@PathVariable Integer meetingId, Principal principal) {
+	public ResponseEntity<MeetingV2GetMeetingByIdResponseDto> getMeetingById(@PathVariable Integer meetingId,
+		Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
 
 		return ResponseEntity.ok(meetingV2Service.getMeetingById(meetingId, userId));
