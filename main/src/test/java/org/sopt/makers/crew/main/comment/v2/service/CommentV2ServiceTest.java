@@ -96,7 +96,7 @@ public class CommentV2ServiceTest {
                 .user(user)
                 .userId(1).build();
 
-        this.report = Report.builder().comment(comment).user(user).build();
+        this.report = Report.builder().comment(comment).userId(user.getId()).build();
     }
 
     @Nested
@@ -173,8 +173,7 @@ public class CommentV2ServiceTest {
         void 댓글_신고_성공() {
             // given
             doReturn(comment).when(commentRepository).findByIdOrThrow(any());
-            doReturn(user).when(userRepository).findByIdOrThrow(any());
-            doReturn(Optional.empty()).when(reportRepository).findByCommentAndUser(any(), any());
+            doReturn(false).when(reportRepository).existsByCommentIdAndUserId(any(), any());
             doReturn(report).when(reportRepository).save(any());
 
             // when
@@ -189,8 +188,7 @@ public class CommentV2ServiceTest {
         void 댓글_신고_실패_이미_신고한_댓글() {
             // given
             doReturn(comment).when(commentRepository).findByIdOrThrow(any());
-            doReturn(user).when(userRepository).findByIdOrThrow(any());
-            doReturn(Optional.of(report)).when(reportRepository).findByCommentAndUser(any(), any());
+            doReturn(true).when(reportRepository).existsByCommentIdAndUserId(any(), any());
 
             // when & then
             assertThrows(BadRequestException.class, () -> {
