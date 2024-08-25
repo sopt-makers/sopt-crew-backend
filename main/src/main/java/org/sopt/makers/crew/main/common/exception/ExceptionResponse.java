@@ -7,12 +7,12 @@ import lombok.Getter;
 @Builder
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CommonResponseDto<T> {
+public class ExceptionResponse {
 
   private final String errorCode;
 
-  public static CommonResponseDto fail(String errorCode) {
-    return CommonResponseDto.builder()
+  public static ExceptionResponse fail(String errorCode) {
+    return ExceptionResponse.builder()
         .errorCode(errorCode)
         .build();
   }
