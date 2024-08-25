@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.post.v2.service;
 
 import static java.util.stream.Collectors.toList;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.ALREADY_REPORTED_POST;
 import static org.sopt.makers.crew.main.common.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
 import static org.sopt.makers.crew.main.common.exception.ErrorStatus.MAX_IMAGE_UPLOAD_EXCEEDED;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_POST_MENTION_PUSH_NOTIFICATION_TITLE;
@@ -24,6 +25,8 @@ import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
+import org.sopt.makers.crew.main.entity.report.Report;
+import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.internal.notification.PushNotificationService;
@@ -37,6 +40,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -55,6 +59,7 @@ public class PostV2ServiceImpl implements PostV2Service {
     private final ApplyRepository applyRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
+    private final ReportRepository reportRepository;
 
     private final PushNotificationService pushNotificationService;
 
@@ -225,5 +230,35 @@ public class PostV2ServiceImpl implements PostV2Service {
         return PostV2UpdatePostResponseDto.of(post.getId(), post.getTitle(), post.getContents(),
                 String.valueOf(time.now()),
                 post.getImages());
+    }
+
+    /**
+     * 모임 게시글 신고
+     *
+     * @param postId 신고할 게시글 id
+     * @param userId 신고하는 유저 id
+     * @return 신고 ID
+     * @throws 400 존재하지 않는 게시글인 경우
+     * @throws 400 이미 신고한 게시글인 경우
+     * @apiNote 중복 신고는 되지 않음
+     */
+    @Override
+    @Transactional
+    public PostV2ReportResponseDto reportPost(Integer postId, Integer userId) {
+        Post post = postRepository.findByIdOrThrow(postId);
+
+        if (reportRepository.existsByPostIdAndUserId(postId, userId)) {
+            throw new BadRequestException(ALREADY_REPORTED_POST.getErrorCode());
+        }
+
+        Report report = Report.builder()
+                .post(post)
+                .postId(postId)
+                .userId(userId)
+                .build();
+
+        Report savedReport = reportRepository.save(report);
+        
+        return PostV2ReportResponseDto.of(savedReport.getId());
     }
 }
