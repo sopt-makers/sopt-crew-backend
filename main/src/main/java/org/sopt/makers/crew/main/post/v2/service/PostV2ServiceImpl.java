@@ -20,6 +20,7 @@ import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
+import org.sopt.makers.crew.main.entity.like.Like;
 import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
@@ -41,6 +42,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDt
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -258,7 +260,45 @@ public class PostV2ServiceImpl implements PostV2Service {
                 .build();
 
         Report savedReport = reportRepository.save(report);
-        
+
         return PostV2ReportResponseDto.of(savedReport.getId());
+    }
+
+    /**
+     * 모임 게시글 좋아요 토글
+     *
+     * @param postId 좋아요 누르는 게시글 id
+     * @param userId 좋아요 누르는 유저 id
+     * @return 해당 게시글을 좋아요 눌렀는지 여부
+     * @apiNote 회원만 할 수 있음, 좋아요 버튼 누르면 삭제했다가 다시 생김
+     */
+    @Override
+    @Transactional
+    public PostV2SwitchPostLikeResponseDto switchPostLike(Integer postId, Integer userId) {
+
+        Post post = postRepository.findByIdOrThrow(postId);
+
+        // 좋아요 취소
+        int deletedLikes = likeRepository.deleteByUserIdAndPostId(userId, postId);
+
+        // 취소된 좋아요 정보가 없을 경우
+        if (deletedLikes == 0) {
+            Like newLike = Like.builder()
+                    .postId(postId)
+                    .userId(userId)
+                    .build();
+
+            likeRepository.save(newLike);
+
+            // 좋아요 개수 증가
+            post.increaseLikeCount();
+
+            return PostV2SwitchPostLikeResponseDto.of(true);
+        }
+
+        // 취소된 경우 게시글 좋아요 개수를 감소시킴
+        post.decreaseLikeCount();
+
+        return PostV2SwitchPostLikeResponseDto.of(false);
     }
 }
