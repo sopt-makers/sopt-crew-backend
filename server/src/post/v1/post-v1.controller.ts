@@ -124,6 +124,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '게시글 좋아요 토글',
+    deprecated: true,
   })
   @ApiOkResponseCommon(PostV1SwitchPostLikeResponseDto)
   @ApiBearerAuth()
