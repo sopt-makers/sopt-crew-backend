@@ -277,7 +277,6 @@ public class CommentV2ServiceImpl implements CommentV2Service {
                                                                      Integer userId) {
 
         Comment comment = commentRepository.findByIdOrThrow(commentId);
-        User user = userRepository.findByIdOrThrow(userId);
 
         boolean isLike = likeRepository.existsByUserIdAndCommentId(userId, commentId);
 
@@ -288,9 +287,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
         }
 
         Like like = Like.builder()
-                .user(user)
                 .userId(userId)
-                .comment(comment)
                 .commentId(commentId)
                 .build();
 
