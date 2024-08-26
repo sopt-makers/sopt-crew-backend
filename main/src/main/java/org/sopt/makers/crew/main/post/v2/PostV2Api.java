@@ -19,6 +19,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDt
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -96,4 +97,8 @@ public interface PostV2Api {
             @ApiResponse(responseCode = "400", description = "\"게시글이 없습니다.\" or \"이미 신고한 게시글입니다.\"", content = @Content)
     })
     ResponseEntity<PostV2ReportResponseDto> reportPost(@PathVariable Integer postId, Principal principal);
+
+    @Operation(summary = "모임 게시글 좋아요 토글")
+    @ApiResponse(responseCode = "201", description = "성공")
+    ResponseEntity<PostV2SwitchPostLikeResponseDto> switchPostLike(@PathVariable Integer postId, Principal principal);
 }
