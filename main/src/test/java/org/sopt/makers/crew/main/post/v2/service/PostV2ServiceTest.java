@@ -14,19 +14,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.common.util.Time;
-import org.sopt.makers.crew.main.entity.comment.CommentRepository;
+import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
-import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
+import org.sopt.makers.crew.main.entity.report.Report;
+import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserFixture;
-import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,13 +38,11 @@ public class PostV2ServiceTest {
     @InjectMocks
     private PostV2ServiceImpl postV2Service;
     @Mock
-    private MeetingRepository meetingRepository;
-    @Mock
-    private UserRepository userRepository;
-    @Mock
     private PostRepository postRepository;
     @Mock
-    private CommentRepository commentRepository;
+    private ReportRepository reportRepository;
+    @Mock
+    private LikeRepository likeRepository;
 
     @Mock
     private Time time;
@@ -51,6 +52,8 @@ public class PostV2ServiceTest {
     private Meeting meeting;
 
     private Post post;
+
+    private Report report;
 
     @BeforeEach
     void init() {
@@ -81,6 +84,7 @@ public class PostV2ServiceTest {
 
         String[] images = {"image1", "image2", "image3"};
         post = Post.builder().user(user).title("title").contents("contents").images(images).meeting(meeting).build();
+        report = Report.builder().post(post).postId(post.getId()).userId(user.getId()).build();
 
     }
 
@@ -117,8 +121,72 @@ public class PostV2ServiceTest {
             // when & then
             assertThrows(ForbiddenException.class, () -> {
                 postV2Service.updatePost(post.getId(), requestDto,
-                        post.getUser().getId() + 1);
+                        post.getUserId() + 1);
             });
+        }
+    }
+
+    @Nested
+    class 게시글_신고 {
+
+        @Test
+        void 게시글_신고_성공() {
+            // given
+            doReturn(post).when(postRepository).findByIdOrThrow(any());
+            doReturn(false).when(reportRepository).existsByPostIdAndUserId(any(), any());
+            doReturn(report).when(reportRepository).save(any());
+
+            // when
+            PostV2ReportResponseDto result = postV2Service.reportPost(post.getId(),
+                    user.getId());
+
+            // then
+            Assertions.assertThat(result.getReportId()).isEqualTo(report.getId());
+        }
+
+        @Test
+        void 댓글_신고_실패_이미_신고한_댓글() {
+            // given
+            doReturn(post).when(postRepository).findByIdOrThrow(any());
+            doReturn(true).when(reportRepository).existsByPostIdAndUserId(any(), any());
+
+            // when & then
+            assertThrows(BadRequestException.class, () -> {
+                postV2Service.reportPost(post.getId(), user.getId());
+            });
+        }
+    }
+
+    @Nested
+    class 게시글_좋아요_토글 {
+
+        @Test
+        void 기존에_게시글_좋아요_안눌렀을때_좋아요_누르기_성공() {
+            // given
+            doReturn(post).when(postRepository).findByIdOrThrow(any());
+            doReturn(0).when(likeRepository).deleteByUserIdAndPostId(any(), any()); //기존에 좋아요 누른 적 없을 때
+
+            //when
+            PostV2SwitchPostLikeResponseDto result = postV2Service.switchPostLike(post.getId(), user.getId());
+
+            //then
+            Assertions.assertThat(result.getIsLiked()).isEqualTo(true);
+            Assertions.assertThat(post.getLikeCount()).isEqualTo(1);
+        }
+
+        @Test
+        void 기존에_게시글_좋아요_눌렀을때_좋아요_취소_성공() {
+            // given
+            post.increaseLikeCount();
+            doReturn(post).when(postRepository).findByIdOrThrow(any());
+            doReturn(1).when(likeRepository).deleteByUserIdAndPostId(any(), any()); //기존에 좋아요 누른 적 있을 때
+
+            //when
+            PostV2SwitchPostLikeResponseDto result = postV2Service.switchPostLike(post.getId(), user.getId());
+
+            //then
+            Assertions.assertThat(result.getIsLiked()).isEqualTo(false);
+            Assertions.assertThat(post.getLikeCount()).isEqualTo(0);
         }
     }
 

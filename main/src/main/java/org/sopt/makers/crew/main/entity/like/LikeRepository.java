@@ -9,28 +9,31 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface LikeRepository extends JpaRepository<Like, Integer> {
 
-    List<Like> findAllByUserIdAndCommentIdNotNull(Integer userId);
+	List<Like> findAllByUserIdAndCommentIdNotNull(Integer userId);
 
-    @Modifying(clearAutomatically = true)
-    @Transactional
-    @Query("DELETE FROM Like l WHERE l.postId = :postId")
-    void deleteAllByPostId(Integer postId);
+	@Modifying(clearAutomatically = true)
+	@Transactional
+	@Query("DELETE FROM Like l WHERE l.postId = :postId")
+	void deleteAllByPostId(Integer postId);
 
-    @Modifying(clearAutomatically = true)
-    @Transactional
-    @Query("DELETE FROM Like l WHERE l.postId IN :postIds")
-    void deleteAllByPostIdsInQuery(List<Integer> postIds);
+	@Modifying(clearAutomatically = true)
+	@Transactional
+	@Query("DELETE FROM Like l WHERE l.postId IN :postIds")
+	void deleteAllByPostIdsInQuery(List<Integer> postIds);
 
-    @Modifying(clearAutomatically = true)
-    @Transactional
-    @Query("DELETE FROM Like l WHERE l.commentId IN :commentIds")
-    void deleteAllByCommentIdsInQuery(List<Integer> commentIds);
+	@Modifying(clearAutomatically = true)
+	@Transactional
+	@Query("DELETE FROM Like l WHERE l.commentId IN :commentIds")
+	void deleteAllByCommentIdsInQuery(List<Integer> commentIds);
 
 	boolean existsByUserIdAndCommentId(Integer userId, Integer commentId);
 
 	void deleteByUserIdAndCommentId(Integer userId, Integer commentId);
 
-    List<Like> findAllByPostIdIsIn(List<Integer> postIds);
-    List<Like> findAllByCommentIdIsIn(List<Integer> commentIds);
+	int deleteByUserIdAndPostId(Integer userId, Integer postId);
+
+	List<Like> findAllByPostIdIsIn(List<Integer> postIds);
+
+	List<Like> findAllByCommentIdIsIn(List<Integer> commentIds);
 
 }

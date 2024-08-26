@@ -25,6 +25,7 @@ public enum ErrorStatus {
     FULL_MEETING_CAPACITY("정원이 꽉 찼습니다."),
     ALREADY_APPLIED_MEETING("이미 지원한 모임입니다."),
     ALREADY_REPORTED_COMMENT("이미 신고한 댓글입니다."),
+    ALREADY_REPORTED_POST("이미 신고한 게시글입니다."),
     NOT_IN_APPLY_PERIOD("모임 지원 기간이 아닙니다."),
     MISSING_GENERATION_PART("내 프로필에서 기수/파트 정보를 입력해주세요."),
     NOT_ACTIVE_GENERATION("활동 기수가 아닙니다."),
@@ -32,7 +33,7 @@ public enum ErrorStatus {
     NOT_FOUND_APPLY("신청상태가 아닌 모임입니다."),
     ALREADY_PROCESSED_APPLY("이미 해당 상태로 처리된 신청 정보입니다."),
     MAX_IMAGE_UPLOAD_EXCEEDED("이미지는 최대 10개까지만 업로드 가능합니다."),
-    
+
     /**
      * 401 UNAUTHORIZED
      */

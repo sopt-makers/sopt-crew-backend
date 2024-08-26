@@ -13,6 +13,8 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.service.PostV2Service;
 import org.springframework.http.HttpStatus;
@@ -98,4 +100,22 @@ public class PostV2Controller implements PostV2Api {
         Integer userId = UserUtil.getUserId(principal);
         return ResponseEntity.ok(postV2Service.updatePost(postId, requestBody, userId));
     }
+
+    @Override
+    @PostMapping("/{postId}/report")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<PostV2ReportResponseDto> reportPost(@PathVariable Integer postId, Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        return ResponseEntity.status(HttpStatus.CREATED).body(postV2Service.reportPost(postId, userId));
+    }
+
+    @Override
+    @PostMapping("/{postId}/like")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<PostV2SwitchPostLikeResponseDto> switchPostLike(@PathVariable Integer postId,
+                                                                          Principal principal) {
+        Integer userId = UserUtil.getUserId(principal);
+        return ResponseEntity.status(HttpStatus.CREATED).body(postV2Service.switchPostLike(postId, userId));
+    }
+
 }

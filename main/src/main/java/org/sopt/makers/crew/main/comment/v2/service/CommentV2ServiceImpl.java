@@ -1,6 +1,8 @@
 package org.sopt.makers.crew.main.comment.v2.service;
 
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.*;
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE;
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_PUSH_NOTIFICATION_TITLE;
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,10 +23,10 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2SwitchCommentL
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.ReplyDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.common.exception.ErrorStatus;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.common.exception.ErrorStatus;
 import org.sopt.makers.crew.main.common.util.MentionSecretStringRemover;
 import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.comment.Comment;
@@ -199,20 +201,17 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 	 */
 	@Override
 	@Transactional
-	public CommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId)
-		throws BadRequestException {
+	public CommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId) {
 		Comment comment = commentRepository.findByIdOrThrow(commentId);
-		User user = userRepository.findByIdOrThrow(userId);
 
-		Optional<Report> existingReport = reportRepository.findByCommentAndUser(comment, user);
-
-		if (existingReport.isPresent()) {
+		if (reportRepository.existsByCommentIdAndUserId(commentId, userId)) {
 			throw new BadRequestException(ErrorStatus.ALREADY_REPORTED_COMMENT.getErrorCode());
 		}
 
 		Report report = Report.builder()
+			.userId(userId)
 			.comment(comment)
-			.user(user)
+			.commentId(commentId)
 			.build();
 
 		Report savedReport = reportRepository.save(report);
@@ -280,7 +279,6 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		Integer userId) {
 
 		Comment comment = commentRepository.findByIdOrThrow(commentId);
-		User user = userRepository.findByIdOrThrow(userId);
 
 		boolean isLike = likeRepository.existsByUserIdAndCommentId(userId, commentId);
 
@@ -291,9 +289,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		}
 
 		Like like = Like.builder()
-			.user(user)
 			.userId(userId)
-			.comment(comment)
 			.commentId(commentId)
 			.build();
 
