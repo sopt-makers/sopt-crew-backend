@@ -139,6 +139,14 @@ public class Post {
         this.commentCount--;
     }
 
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        this.likeCount--;
+    }
+
     public void isWriter(Integer userId) {
         if (!this.userId.equals(userId)) {
             throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
