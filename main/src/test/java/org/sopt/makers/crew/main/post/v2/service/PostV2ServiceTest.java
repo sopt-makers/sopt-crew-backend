@@ -17,9 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.common.util.Time;
-import org.sopt.makers.crew.main.entity.comment.CommentRepository;
+import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
-import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -28,9 +27,9 @@ import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserFixture;
-import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,15 +38,11 @@ public class PostV2ServiceTest {
     @InjectMocks
     private PostV2ServiceImpl postV2Service;
     @Mock
-    private MeetingRepository meetingRepository;
-    @Mock
-    private UserRepository userRepository;
-    @Mock
     private PostRepository postRepository;
     @Mock
-    private CommentRepository commentRepository;
-    @Mock
     private ReportRepository reportRepository;
+    @Mock
+    private LikeRepository likeRepository;
 
     @Mock
     private Time time;
@@ -126,7 +121,7 @@ public class PostV2ServiceTest {
             // when & then
             assertThrows(ForbiddenException.class, () -> {
                 postV2Service.updatePost(post.getId(), requestDto,
-                        post.getUser().getId() + 1);
+                        post.getUserId() + 1);
             });
         }
     }
@@ -159,6 +154,39 @@ public class PostV2ServiceTest {
             assertThrows(BadRequestException.class, () -> {
                 postV2Service.reportPost(post.getId(), user.getId());
             });
+        }
+    }
+
+    @Nested
+    class 게시글_좋아요_토글 {
+
+        @Test
+        void 기존에_게시글_좋아요_안눌렀을때_좋아요_누르기_성공() {
+            // given
+            doReturn(post).when(postRepository).findByIdOrThrow(any());
+            doReturn(0).when(likeRepository).deleteByUserIdAndPostId(any(), any()); //기존에 좋아요 누른 적 없을 때
+
+            //when
+            PostV2SwitchPostLikeResponseDto result = postV2Service.switchPostLike(post.getId(), user.getId());
+
+            //then
+            Assertions.assertThat(result.getIsLiked()).isEqualTo(true);
+            Assertions.assertThat(post.getLikeCount()).isEqualTo(1);
+        }
+
+        @Test
+        void 기존에_게시글_좋아요_눌렀을때_좋아요_취소_성공() {
+            // given
+            post.increaseLikeCount();
+            doReturn(post).when(postRepository).findByIdOrThrow(any());
+            doReturn(1).when(likeRepository).deleteByUserIdAndPostId(any(), any()); //기존에 좋아요 누른 적 있을 때
+
+            //when
+            PostV2SwitchPostLikeResponseDto result = postV2Service.switchPostLike(post.getId(), user.getId());
+
+            //then
+            Assertions.assertThat(result.getIsLiked()).isEqualTo(false);
+            Assertions.assertThat(post.getLikeCount()).isEqualTo(0);
         }
     }
 
