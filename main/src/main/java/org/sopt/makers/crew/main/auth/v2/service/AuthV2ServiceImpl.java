@@ -28,6 +28,7 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 	private final JwtTokenProvider jwtTokenProvider;
 
 	@Override
+	@Transactional
 	public AuthV2ResponseDto loginUser(AuthV2RequestDto requestDto) {
 
 		// 플그 서버로의 요청
