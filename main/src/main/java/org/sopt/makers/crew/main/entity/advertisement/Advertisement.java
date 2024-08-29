@@ -34,7 +34,10 @@ public class Advertisement {
 	private Integer id;
 
 	@NotNull
-	private String advertisementImageUrl;
+	private String advertisementDesktopImageUrl;
+
+	@NotNull
+	private String advertisementMobileImageUrl;
 
 	@NotNull
 	private String advertisementLink;
@@ -53,10 +56,11 @@ public class Advertisement {
 	private LocalDateTime advertisementEndDate;
 
 	@Builder
-	private Advertisement(String advertisementImageUrl, String advertisementLink,
+	private Advertisement(String advertisementDesktopImageUrl, String advertisementMobileImageUrl, String advertisementLink,
 		AdvertisementCategory advertisementCategory, Long priority, LocalDateTime advertisementStartDate,
 		LocalDateTime advertisementEndDate) {
-		this.advertisementImageUrl = advertisementImageUrl;
+		this.advertisementDesktopImageUrl = advertisementDesktopImageUrl;
+		this.advertisementMobileImageUrl = advertisementMobileImageUrl;
 		this.advertisementLink = advertisementLink;
 		this.advertisementCategory = advertisementCategory;
 		this.priority = priority;

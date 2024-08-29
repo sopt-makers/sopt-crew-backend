@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.advertisement;
 
 import java.security.Principal;
 
-import org.sopt.makers.crew.main.advertisement.dto.AdvertisementGetResponseDto;
+import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto;
 import org.sopt.makers.crew.main.advertisement.service.AdvertisementService;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +22,11 @@ public class AdvertisementController implements AdvertisementApi {
 
 	@Override
 	@GetMapping
-	public ResponseEntity<AdvertisementGetResponseDto> getAdvertisement(
+	public ResponseEntity<AdvertisementsGetResponseDto> getAdvertisement(
 		@RequestParam(name = "category") AdvertisementCategory category,
 		Principal principal) {
 
-		AdvertisementGetResponseDto response = advertisementService.getAdvertisement(category);
+		AdvertisementsGetResponseDto response = advertisementService.getAdvertisement(category);
 
 		return ResponseEntity.ok().body(response);
 	}

@@ -1,14 +1,11 @@
 package org.sopt.makers.crew.main.advertisement.service;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.sopt.makers.crew.main.advertisement.dto.AdvertisementGetResponseDto;
-import org.sopt.makers.crew.main.advertisement.dto.AdvertisementImageDto;
+import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto;
+import org.sopt.makers.crew.main.advertisement.dto.AdvertisementGetDto;
 import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.advertisement.Advertisement;
-import org.sopt.makers.crew.main.entity.advertisement.AdvertisementImage;
-import org.sopt.makers.crew.main.entity.advertisement.AdvertisementImageRepository;
 import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.springframework.stereotype.Service;
@@ -21,25 +18,20 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class AdvertisementService {
 	private final AdvertisementRepository advertisementRepository;
-	private final AdvertisementImageRepository advertisementImageRepository;
 
 	private final Time time;
 
-	public AdvertisementGetResponseDto getAdvertisement(AdvertisementCategory advertisementCategory) {
-		Optional<Advertisement> advertisement = advertisementRepository.findFirstByAdvertisementCategoryAndAdvertisementEndDateBeforeAndAdvertisementStartDateAfterOrderByPriority(
+	public AdvertisementsGetResponseDto getAdvertisement(AdvertisementCategory advertisementCategory) {
+		List<Advertisement> advertisements = advertisementRepository.findTop6ByAdvertisementCategoryAndAdvertisementEndDateAfterAndAdvertisementStartDateBeforeOrderByPriority(
 			advertisementCategory, time.now(), time.now());
 
-		if (advertisement.isEmpty()) {
-			return AdvertisementGetResponseDto.of(null, null);
+		if (advertisements.isEmpty()) {
+			return AdvertisementsGetResponseDto.of(null);
 		}
 
-		List<AdvertisementImage> advertisementImages = advertisementImageRepository.findAllByAdvertisementOrderByImageOrder(
-			advertisement.get());
-
-		List<AdvertisementImageDto> imageDtos = advertisementImages.stream()
-			.map(AdvertisementImageDto::of)
+		List<AdvertisementGetDto> advertisementDtos = advertisements.stream().map(AdvertisementGetDto::of)
 			.toList();
 
-		return AdvertisementGetResponseDto.of(imageDtos, advertisement.get().getAdvertisementLink());
+		return AdvertisementsGetResponseDto.of(advertisementDtos);
 	}
 }
