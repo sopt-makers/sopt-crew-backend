@@ -26,8 +26,8 @@
 ## flow
 
 1. Caddy를 통해 HTTPS를 적용하고, HTTP로 들어오는 요청을 HTTPS로 리다이렉트한다.
-2. HTTPS로 들어온 요청을 Caddy가 받아서, Caddy는 요청을 받은 후에 해당 요청을 NodeJS/Spring 서버로 리버스프록시한다.
-3. NodeJS/Spring 서버는 요청을 받아서, 요청에 맞는 Controller를 찾아서 해당 Controller에서 Service를 호출한다.
+2. HTTPS로 들어온 요청을 Caddy가 받아서, Caddy는 요청을 받은 후에 해당 요청을 NestJS/Spring 서버로 리버스프록시한다.
+3. NestJS/Spring 서버는 요청을 받아서, 요청에 맞는 Controller를 찾아서 해당 Controller에서 Service를 호출한다.
 4. Service에서 로직을 처리한 후에, Repository를 통해 DB에 접근한다.
 5. Repository는 DB에 접근해서 데이터를 가져온 후에, Service에게 데이터를 전달한다.
 6. Service는 Repository로부터 받은 데이터를 가공해서 Controller에게 전달한다.
@@ -37,7 +37,7 @@
 
 ```bash
 .
-├── Dockerfile # docker로 배포할 때 사용하는 파일. 현재는 사용하지 않음
+├── Dockerfile 
 ├── jest.config.ts
 ├── nest-cli.json
 ├── package-lock.json
@@ -127,7 +127,7 @@ bar # 예시 모듈
 ## 환경 변수
 
 - 환경 변수는 dev/prod 환경에 따라 다르게 설정되어야 한다.
-  - Nestjs
+  - NestJS
     - dev 환경: .dev.env
     - prod 환경: .prod.env
   - Spring
@@ -162,7 +162,8 @@ bar # 예시 모듈
 - 배포 서버: AWS EC2
 - 배포 툴: Docker Compose
 
-## 배포 방법
+## 수동 배포 방법
+- 현재는 배포 자동화가 되어있다.
 
 ```bash
 # Prod 배포
@@ -195,6 +196,19 @@ $ sudo docker image prune
 7. 리뷰를 받은 후에 PR을 develop에 merge한다.
 8. develop에 merge된 후에 develop환경 배포를 진행한다.
 
-## 커밋 컨벤션
+## 🙏 Commit Convention
+- <a href="https://udacity.github.io/git-styleguide/">유다시티 컨벤션
 
-TBD
+```
+feat: 새로운 기능 구현
+add: 기능구현까지는 아니지만 새로운 파일이 추가된 경우
+del: 기존 코드를 삭제한 경우
+fix: 버그, 오류 해결
+docs: README나 WIKI 등의 문서 작업
+style: 코드가 아닌 스타일 변경을 하는 경우
+refactor: 리팩토링 작업
+test: 테스트 코드 추가, 테스트 코드 리팩토링
+chore: 코드 수정, 내부 파일 수정
+```
+
+## 기여
