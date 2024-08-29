@@ -12,9 +12,9 @@ import lombok.RequiredArgsConstructor;
 @Schema(name = "AdvertisementImageDto", description = "광고 구좌 이미지 Dto")
 public class AdvertisementGetDto {
 
-	@Schema(description = "[Desktop] 광고 구좌 이미지 url", example = "[pc 버전 url 형식]")
+	@Schema(description = "광고 구좌 이미지 url", example = "[pc 버전 url 형식]")
 	@NotNull
-	private final String desktopImageUrl;
+	private final String imageUrl;
 
 	@Schema(description = "[mobile] 광고 구좌 이미지 url", example = "[mobile 버전 url 형식]")
 	@NotNull

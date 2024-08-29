@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(value = "pushNotification", url = "${push-notification.push-server-url}")
 public interface PushNotificationServerClient {
 
-  @PostMapping()
-  public PushNotificationResponseDto sendPushNotification(
-      @RequestHeader("x-api-key") String pushNotificationApiKey,
-      @RequestHeader("action") String action,
-      @RequestHeader("transactionId") String transactionId,
-      @RequestHeader("service") String service,
-      @RequestBody PushNotificationRequestDto request
-  );
+	@PostMapping()
+	public PushNotificationResponseDto sendPushNotification(
+		@RequestHeader("x-api-key") String pushNotificationApiKey,
+		@RequestHeader("action") String action,
+		@RequestHeader("transactionId") String transactionId,
+		@RequestHeader("service") String service,
+		@RequestBody PushNotificationRequestDto request
+	);
 
 }

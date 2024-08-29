@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class ImageUrlVO {
-  
-  private final Integer id;
-  private final String url;
+
+	private final Integer id;
+	private final String url;
 }

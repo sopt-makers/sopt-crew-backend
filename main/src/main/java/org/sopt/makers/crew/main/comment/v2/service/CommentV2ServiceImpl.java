@@ -108,8 +108,8 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 	private void sendPushNotification(CommentV2CreateCommentBodyDto requestBody, Post post,
 		User user) {
-		User PostWriter = post.getUser();
-		String[] userIds = {String.valueOf(PostWriter.getOrgId())};
+		User postWriter = post.getUser();
+		String[] userIds = {String.valueOf(postWriter.getOrgId())};
 		String secretStringRemovedContent = MentionSecretStringRemover.removeSecretString(
 			requestBody.getContents());
 		String pushNotificationContent = String.format("[%s의 댓글] : \"%s\"",
@@ -170,6 +170,24 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndCommentIdNotNull(userId));
 
+		Map<Integer, List<ReplyDto>> replyMap = getReplyDtoMap(userId, comments, myLikes);
+		List<CommentDto> commentDtos = getCommentDtos(userId, comments, myLikes, replyMap);
+		PageMetaDto pageMetaDto = new PageMetaDto(new PageOptionsDto(1, 12), 30);
+
+		return CommentV2GetCommentsResponseDto.of(commentDtos, pageMetaDto);
+	}
+
+	private List<CommentDto> getCommentDtos(Integer userId, List<Comment> comments, MyLikes myLikes,
+		Map<Integer, List<ReplyDto>> replyMap) {
+		return comments.stream()
+			.filter(Comment::isParentComment)
+			.map(comment -> CommentDto.of(comment, myLikes.isLikeComment(comment.getId()),
+				comment.isWriter(userId),
+				replyMap.get(comment.getId())))
+			.toList();
+	}
+
+	private Map<Integer, List<ReplyDto>> getReplyDtoMap(Integer userId, List<Comment> comments, MyLikes myLikes) {
 		Map<Integer, List<ReplyDto>> replyMap = new HashMap<>();
 		comments.stream()
 			.filter(comment -> !comment.isParentComment())
@@ -177,17 +195,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 				comment -> replyMap.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>())
 					.add(ReplyDto.of(comment, myLikes.isLikeComment(comment.getId()),
 						comment.isWriter(userId))));
-
-		List<CommentDto> commentDtos = comments.stream()
-			.filter(Comment::isParentComment)
-			.map(comment -> CommentDto.of(comment, myLikes.isLikeComment(comment.getId()),
-				comment.isWriter(userId),
-				replyMap.get(comment.getId())))
-			.toList();
-
-		PageMetaDto pageMetaDto = new PageMetaDto(new PageOptionsDto(1, 12), 30);
-
-		return CommentV2GetCommentsResponseDto.of(commentDtos, pageMetaDto);
+		return replyMap;
 	}
 
 	/**
@@ -263,11 +271,8 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 			NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE.getValue(), user.getName());
 
 		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(
-			userOrgIds,
-			newCommentMentionPushNotificationTitle,
-			pushNotificationContent,
-			PUSH_NOTIFICATION_CATEGORY.getValue(),
-			pushNotificationWeblink
+			userOrgIds, newCommentMentionPushNotificationTitle, pushNotificationContent,
+			PUSH_NOTIFICATION_CATEGORY.getValue(), pushNotificationWeblink
 		);
 
 		pushNotificationService.sendPushNotification(pushRequestDto);
@@ -279,7 +284,6 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		Integer userId) {
 
 		Comment comment = commentRepository.findByIdOrThrow(commentId);
-
 		boolean isLike = likeRepository.existsByUserIdAndCommentId(userId, commentId);
 
 		if (isLike) {

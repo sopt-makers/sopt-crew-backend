@@ -5,8 +5,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-
 public interface ApplySearchRepository {
-    Page<ApplyInfoDto> findApplyList(MeetingGetAppliesQueryDto queryCommand, Pageable pageable, Integer meetingId,
-                                     Integer meetingCreatorId, Integer userId);
+	Page<ApplyInfoDto> findApplyList(MeetingGetAppliesQueryDto queryCommand, Pageable pageable, Integer meetingId,
+		Integer meetingCreatorId, Integer userId);
 }

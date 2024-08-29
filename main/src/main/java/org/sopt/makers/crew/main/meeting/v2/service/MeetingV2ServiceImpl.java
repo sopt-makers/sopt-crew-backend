@@ -78,7 +78,7 @@ import com.opencsv.CSVWriter;
 @Transactional(readOnly = true)
 public class MeetingV2ServiceImpl implements MeetingV2Service {
 
-	private final static int ZERO = 0;
+	private static final int ZERO = 0;
 
 	private final UserRepository userRepository;
 	private final ApplyRepository applyRepository;

@@ -27,10 +27,10 @@ public class Applies {
 			.collect(Collectors.groupingBy(Apply::getMeetingId));
 	}
 
-	public int getAppliedCount(Integer meetingId){
+	public int getAppliedCount(Integer meetingId) {
 		List<Apply> applies = appliesMap.get(meetingId);
 
-		if(applies == null){
+		if (applies == null) {
 			return 0;
 		}
 		return applies.size();

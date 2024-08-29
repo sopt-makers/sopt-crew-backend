@@ -31,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	private final JPAQueryFactory queryFactory;
-	//private final Time time;
 
 	/**
 	 * @note: canJoinOnlyActiveGeneration 처리 유의
@@ -153,7 +152,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 
 		// SQL 템플릿을 사용하여 BooleanExpression 생성
 		return Expressions.booleanTemplate(
-			"arraycontains({0}, "+ joinablePartsToString + ") || '' = 'true'",
+			"arraycontains({0}, " + joinablePartsToString + ") || '' = 'true'",
 			meeting.joinableParts,
 			joinablePartsToString
 		);

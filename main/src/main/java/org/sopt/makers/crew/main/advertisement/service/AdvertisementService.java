@@ -2,8 +2,8 @@ package org.sopt.makers.crew.main.advertisement.service;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto;
 import org.sopt.makers.crew.main.advertisement.dto.AdvertisementGetDto;
+import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto;
 import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.advertisement.Advertisement;
 import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
@@ -22,7 +22,8 @@ public class AdvertisementService {
 	private final Time time;
 
 	public AdvertisementsGetResponseDto getAdvertisement(AdvertisementCategory advertisementCategory) {
-		List<Advertisement> advertisements = advertisementRepository.findTop6ByAdvertisementCategoryAndAdvertisementEndDateAfterAndAdvertisementStartDateBeforeOrderByPriority(
+		List<Advertisement> advertisements = advertisementRepository
+			.findTop6ByAdvertisementCategoryAndAdvertisementEndDateAfterAndAdvertisementStartDateBeforeOrderByPriority(
 			advertisementCategory, time.now(), time.now());
 
 		if (advertisements.isEmpty()) {

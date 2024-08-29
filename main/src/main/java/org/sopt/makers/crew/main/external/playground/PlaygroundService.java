@@ -16,15 +16,8 @@ import lombok.RequiredArgsConstructor;
 public class PlaygroundService {
 	private final PlaygroundServer playgroundServer;
 
-	public PlaygroundUserResponseDto getUser(PlaygroundUserRequestDto requestDto){
+	public PlaygroundUserResponseDto getUser(PlaygroundUserRequestDto requestDto) {
 		return playgroundServer.getUser(requestDto.accessToken());
-	}
-
-
-	private Map<String, String> createAuthorizationHeader(String accessToken) {
-		Map<String, String> headers = createDefaultHeader();
-		headers.put(HttpHeaders.AUTHORIZATION, accessToken);
-		return headers;
 	}
 
 	private Map<String, String> createDefaultHeader() {

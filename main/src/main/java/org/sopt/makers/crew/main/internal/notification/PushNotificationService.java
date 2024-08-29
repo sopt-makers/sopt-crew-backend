@@ -29,7 +29,7 @@ public class PushNotificationService {
 		try {
 			pushServerClient.sendPushNotification(pushNotificationApiKey,
 				PUSH_NOTIFICATION_ACTION.getValue(), UUID.randomUUID().toString(), service, request);
-		}catch (Exception e){
+		} catch (Exception e) {
 			log.error(NOTIFICATION_SERVER_ERROR.getErrorCode(), e);
 		}
 	}

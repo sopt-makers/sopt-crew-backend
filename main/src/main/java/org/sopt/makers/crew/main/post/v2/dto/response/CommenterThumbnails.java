@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class CommenterThumbnails {
 
-    @Schema(description = "댓글 작성자들의 프로필 이미지 목록", example = "[\"url1\", \"url2\"]")
-    private final List<String> commenterThumbnails;
+	@Schema(description = "댓글 작성자들의 프로필 이미지 목록", example = "[\"url1\", \"url2\"]")
+	private final List<String> commenterThumbnails;
 
 }

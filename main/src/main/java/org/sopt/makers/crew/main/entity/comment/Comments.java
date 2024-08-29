@@ -10,15 +10,15 @@ import lombok.RequiredArgsConstructor;
 public class Comments {
 	private final List<Comment> comments;
 
-	public void deleteMention(String mentionName, String mentionOrgId){
+	public void deleteMention(String mentionName, String mentionOrgId) {
 		comments.forEach(comment -> {
 			String deletedMentionContent = MentionSecretStringRemover.deleteMentionContent(comment.getContents(),
 				mentionName, mentionOrgId);
-				comment.updateContents(deletedMentionContent);
-			});
+			comment.updateContents(deletedMentionContent);
+		});
 	}
 
-	public boolean hasChild(){
+	public boolean hasChild() {
 		return !comments.isEmpty();
 	}
 }

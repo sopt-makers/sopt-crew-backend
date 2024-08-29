@@ -2,7 +2,9 @@ package org.sopt.makers.crew.main.common.config;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
+
 import lombok.RequiredArgsConstructor;
+
 import org.sopt.makers.crew.main.common.jwt.JwtAuthenticationEntryPoint;
 import org.sopt.makers.crew.main.common.jwt.JwtAuthenticationFilter;
 import org.sopt.makers.crew.main.common.jwt.JwtTokenProvider;
@@ -25,122 +27,123 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtTokenProvider jwtTokenProvider;
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+	private final JwtTokenProvider jwtTokenProvider;
+	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-    private static final String[] SWAGGER_URL = {
-        "/swagger-resources/**",
-        "/favicon.ico",
-        "/api-docs/**",
-        "/swagger-ui/**",
-        "/swagger-ui.html",
-        "/swagger-ui/index.html",
-        "/docs/swagger-ui/index.html",
-        "/swagger-ui/swagger-ui.css",
-    };
+	private static final String[] SWAGGER_URL = {
+		"/swagger-resources/**",
+		"/favicon.ico",
+		"/api-docs/**",
+		"/swagger-ui/**",
+		"/swagger-ui.html",
+		"/swagger-ui/index.html",
+		"/docs/swagger-ui/index.html",
+		"/swagger-ui/swagger-ui.css",
+	};
 
-    private static final String[] AUTH_WHITELIST = {
-        "/health",
-        "/health/v2",
-        "/meeting/v2/org-user/**",
-        "/auth/v2",
-        "/auth/v2/**"
-    };
+	private static final String[] AUTH_WHITELIST = {
+		"/health",
+		"/health/v2",
+		"/meeting/v2/org-user/**",
+		"/auth/v2",
+		"/auth/v2/**"
+	};
 
-    @Bean
-    @Profile("dev")
-    SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf((csrfConfig) -> csrfConfig.disable())
-            .cors(Customizer.withDefaults())
-            .sessionManagement(
-                (sessionManagement) -> sessionManagement.sessionCreationPolicy(
-                    SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(
-                authorize -> authorize.requestMatchers(Stream
-                        .of(SWAGGER_URL)
-                        .map(AntPathRequestMatcher::antMatcher)
-                        .toArray(AntPathRequestMatcher[]::new)).permitAll()
-                    .requestMatchers(Stream
-                        .of(AUTH_WHITELIST)
-                        .map(AntPathRequestMatcher::antMatcher)
-                        .toArray(AntPathRequestMatcher[]::new)).permitAll()
-                    .anyRequest().authenticated())
-            .addFilterBefore(
-                new JwtAuthenticationFilter(this.jwtTokenProvider,
-                    this.jwtAuthenticationEntryPoint),
-                UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(exceptionHandling -> exceptionHandling
-                .authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
-        return http.build();
-    }
+	@Bean
+	@Profile("dev")
+	SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.csrf((csrfConfig) -> csrfConfig.disable())
+			.cors(Customizer.withDefaults())
+			.sessionManagement(
+				(sessionManagement) -> sessionManagement.sessionCreationPolicy(
+					SessionCreationPolicy.STATELESS))
+			.authorizeHttpRequests(
+				authorize -> authorize.requestMatchers(Stream
+						.of(SWAGGER_URL)
+						.map(AntPathRequestMatcher::antMatcher)
+						.toArray(AntPathRequestMatcher[]::new)).permitAll()
+					.requestMatchers(Stream
+						.of(AUTH_WHITELIST)
+						.map(AntPathRequestMatcher::antMatcher)
+						.toArray(AntPathRequestMatcher[]::new)).permitAll()
+					.anyRequest().authenticated())
+			.addFilterBefore(
+				new JwtAuthenticationFilter(this.jwtTokenProvider,
+					this.jwtAuthenticationEntryPoint),
+				UsernamePasswordAuthenticationFilter.class)
+			.exceptionHandling(exceptionHandling -> exceptionHandling
+				.authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
+		return http.build();
+	}
 
-    @Bean
-    @Profile("test")
-    SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf((csrfConfig) -> csrfConfig.disable())
-            .cors(Customizer.withDefaults())
-            .sessionManagement(
-                (sessionManagement) -> sessionManagement.sessionCreationPolicy(
-                    SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(
-                authorize -> authorize.requestMatchers(Stream
-                        .of(SWAGGER_URL)
-                        .map(AntPathRequestMatcher::antMatcher)
-                        .toArray(AntPathRequestMatcher[]::new)).permitAll()
-                    .requestMatchers(Stream
-                        .of(AUTH_WHITELIST)
-                        .map(AntPathRequestMatcher::antMatcher)
-                        .toArray(AntPathRequestMatcher[]::new)).permitAll()
-                    .anyRequest().authenticated())
-            .addFilterBefore(
-                new JwtAuthenticationFilter(this.jwtTokenProvider,
-                    this.jwtAuthenticationEntryPoint),
-                UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(exceptionHandling -> exceptionHandling
-                .authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
-        return http.build();
-    }
+	@Bean
+	@Profile("test")
+	SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.csrf((csrfConfig) -> csrfConfig.disable())
+			.cors(Customizer.withDefaults())
+			.sessionManagement(
+				(sessionManagement) -> sessionManagement.sessionCreationPolicy(
+					SessionCreationPolicy.STATELESS))
+			.authorizeHttpRequests(
+				authorize -> authorize.requestMatchers(Stream
+						.of(SWAGGER_URL)
+						.map(AntPathRequestMatcher::antMatcher)
+						.toArray(AntPathRequestMatcher[]::new)).permitAll()
+					.requestMatchers(Stream
+						.of(AUTH_WHITELIST)
+						.map(AntPathRequestMatcher::antMatcher)
+						.toArray(AntPathRequestMatcher[]::new)).permitAll()
+					.anyRequest().authenticated())
+			.addFilterBefore(
+				new JwtAuthenticationFilter(this.jwtTokenProvider,
+					this.jwtAuthenticationEntryPoint),
+				UsernamePasswordAuthenticationFilter.class)
+			.exceptionHandling(exceptionHandling -> exceptionHandling
+				.authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
+		return http.build();
+	}
 
-    @Bean
-    @Profile("prod")
-    SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf((csrfConfig) -> csrfConfig.disable())
-            .cors(Customizer.withDefaults())
-            .sessionManagement(
-                (sessionManagement) -> sessionManagement.sessionCreationPolicy(
-                    SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(
-                authorize -> authorize.requestMatchers(Stream
-                        .of(SWAGGER_URL)
-                        .map(AntPathRequestMatcher::antMatcher)
-                        .toArray(AntPathRequestMatcher[]::new)).permitAll()
-                    .requestMatchers(Stream
-                        .of(AUTH_WHITELIST)
-                        .map(AntPathRequestMatcher::antMatcher)
-                        .toArray(AntPathRequestMatcher[]::new)).permitAll()
-                    .anyRequest().authenticated())
-            .addFilterBefore(
-                new JwtAuthenticationFilter(this.jwtTokenProvider,
-                    this.jwtAuthenticationEntryPoint),
-                UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(exceptionHandling -> exceptionHandling
-                .authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
-        return http.build();
-    }
+	@Bean
+	@Profile("prod")
+	SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
+		http.csrf((csrfConfig) -> csrfConfig.disable())
+			.cors(Customizer.withDefaults())
+			.sessionManagement(
+				(sessionManagement) -> sessionManagement.sessionCreationPolicy(
+					SessionCreationPolicy.STATELESS))
+			.authorizeHttpRequests(
+				authorize -> authorize.requestMatchers(Stream
+						.of(SWAGGER_URL)
+						.map(AntPathRequestMatcher::antMatcher)
+						.toArray(AntPathRequestMatcher[]::new)).permitAll()
+					.requestMatchers(Stream
+						.of(AUTH_WHITELIST)
+						.map(AntPathRequestMatcher::antMatcher)
+						.toArray(AntPathRequestMatcher[]::new)).permitAll()
+					.anyRequest().authenticated())
+			.addFilterBefore(
+				new JwtAuthenticationFilter(this.jwtTokenProvider,
+					this.jwtAuthenticationEntryPoint),
+				UsernamePasswordAuthenticationFilter.class)
+			.exceptionHandling(exceptionHandling -> exceptionHandling
+				.authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
+		return http.build();
+	}
 
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(
-            Arrays.asList("https://playground.sopt.org/", "http://localhost:3000/",
-                "https://sopt-internal-dev.pages.dev/", "https://crew.api.dev.sopt.org", "https://crew.api.prod.sopt.org"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"));
-        configuration.addAllowedHeader("*");
-        configuration.setAllowCredentials(false);
+	@Bean
+	CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowedOrigins(
+			Arrays.asList("https://playground.sopt.org/", "http://localhost:3000/",
+				"https://sopt-internal-dev.pages.dev/", "https://crew.api.dev.sopt.org",
+				"https://crew.api.prod.sopt.org"));
+		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"));
+		configuration.addAllowedHeader("*");
+		configuration.setAllowCredentials(false);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", configuration);
+		return source;
+	}
 
 }

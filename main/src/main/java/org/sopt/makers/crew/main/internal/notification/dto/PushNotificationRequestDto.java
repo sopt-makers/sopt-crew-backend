@@ -7,14 +7,14 @@ import lombok.Getter;
 @AllArgsConstructor(staticName = "of")
 public class PushNotificationRequestDto {
 
-  private String[] userIds;
+	private String[] userIds;
 
-  private String title;
+	private String title;
 
-  private String content;
+	private String content;
 
-  private String category;
+	private String category;
 
-  private String webLink;
+	private String webLink;
 
 }

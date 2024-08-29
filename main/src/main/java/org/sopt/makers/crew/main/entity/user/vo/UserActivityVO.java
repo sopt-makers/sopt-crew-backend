@@ -11,12 +11,12 @@ import lombok.ToString;
 @ToString
 public class UserActivityVO {
 
-    @Schema(description = "파트", example = "서버")
-    @NotNull
-    private final String part;
+	@Schema(description = "파트", example = "서버")
+	@NotNull
+	private final String part;
 
-    @Schema(description = "기수", example = "36")
-    @NotNull
-    private final int generation;
+	@Schema(description = "기수", example = "36")
+	@NotNull
+	private final int generation;
 
 }

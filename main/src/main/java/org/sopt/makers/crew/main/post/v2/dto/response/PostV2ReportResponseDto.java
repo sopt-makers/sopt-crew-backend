@@ -10,7 +10,7 @@ import lombok.Getter;
 @Schema(name = "PostV2ReportResponseDto", description = "게시글 신고 응답 Dto")
 public class PostV2ReportResponseDto {
 
-    @Schema(description = "생성된 신고 id", example = "1")
-    @NotNull
-    private final Integer reportId;
+	@Schema(description = "생성된 신고 id", example = "1")
+	@NotNull
+	private final Integer reportId;
 }

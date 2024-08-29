@@ -37,7 +37,8 @@ public class CommentSearchRepositoryImpl implements CommentSearchRepository {
 
 		JPAQuery<Long> countQuery = getCount(postId);
 
-		return PageableExecutionUtils.getPage(content, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
+		return PageableExecutionUtils.getPage(content, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()),
+			countQuery::fetchFirst);
 	}
 
 	private JPAQuery<Long> getCount(Integer postId) {

@@ -29,9 +29,9 @@ public class UserV2Controller implements UserV2Api {
 	@GetMapping("/meeting/all")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<List<UserV2GetAllMeetingByUserMeetingDto>> getAllMeetingByUser(
-	        Principal principal) {
-	    Integer userId = UserUtil.getUserId(principal);
-	    return ResponseEntity.ok(userV2Service.getAllMeetingByUser(userId));
+		Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(userV2Service.getAllMeetingByUser(userId));
 	}
 
 	@Override
@@ -66,6 +66,5 @@ public class UserV2Controller implements UserV2Api {
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.ok().body(userV2Service.getCreatedMeetingByUser(userId));
 	}
-
 
 }

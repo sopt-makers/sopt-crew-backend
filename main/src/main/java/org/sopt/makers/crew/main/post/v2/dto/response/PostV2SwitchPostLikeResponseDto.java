@@ -10,7 +10,7 @@ import lombok.Getter;
 @Schema(name = "PostV2SwitchPostLikeResponseDto", description = "모임 게시글 좋아요 토글 응답 Dto")
 public class PostV2SwitchPostLikeResponseDto {
 
-    @Schema(description = "본인이 게시글 좋아요를 눌렀는지 여부", example = "true")
-    @NotNull
-    private final Boolean isLiked;
+	@Schema(description = "본인이 게시글 좋아요를 눌렀는지 여부", example = "true")
+	@NotNull
+	private final Boolean isLiked;
 }

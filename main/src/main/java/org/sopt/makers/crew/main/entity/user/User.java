@@ -9,12 +9,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
 import java.util.Comparator;
 import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.common.exception.ServerException;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
@@ -25,73 +28,73 @@ import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 @Table(name = "user")
 public class User {
 
-    /**
-     * Primary Key
-     */
-    @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+	/**
+	 * Primary Key
+	 */
+	@Id
+	@Column(name = "id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer id;
 
-    /**
-     * 사용자 이름
-     */
-    @Column(name = "name", nullable = false)
-    private String name;
+	/**
+	 * 사용자 이름
+	 */
+	@Column(name = "name", nullable = false)
+	private String name;
 
-    /**
-     * sopt org unique id
-     */
-    @Column(name = "orgId", nullable = false)
-    private Integer orgId;
+	/**
+	 * sopt org unique id
+	 */
+	@Column(name = "orgId", nullable = false)
+	private Integer orgId;
 
-    /**
-     * 활동 목록
-     */
-    @Column(name = "activities", columnDefinition = "jsonb")
-    @Type(JsonBinaryType.class)
-    private List<UserActivityVO> activities;
+	/**
+	 * 활동 목록
+	 */
+	@Column(name = "activities", columnDefinition = "jsonb")
+	@Type(JsonBinaryType.class)
+	private List<UserActivityVO> activities;
 
-    /**
-     * 프로필 이미지
-     */
-    @Column(name = "profileImage")
-    private String profileImage;
+	/**
+	 * 프로필 이미지
+	 */
+	@Column(name = "profileImage")
+	private String profileImage;
 
-    /**
-     * 핸드폰 번호
-     */
-    @Column(name = "phone")
-    private String phone;
+	/**
+	 * 핸드폰 번호
+	 */
+	@Column(name = "phone")
+	private String phone;
 
-    @Builder
-    public User(String name, Integer orgId, List<UserActivityVO> activities, String profileImage,
-                String phone) {
-        this.name = name;
-        this.orgId = orgId;
-        this.activities = activities;
-        this.profileImage = profileImage;
-        this.phone = phone;
-    }
+	@Builder
+	public User(String name, Integer orgId, List<UserActivityVO> activities, String profileImage,
+		String phone) {
+		this.name = name;
+		this.orgId = orgId;
+		this.activities = activities;
+		this.profileImage = profileImage;
+		this.phone = phone;
+	}
 
-    public void setUserIdForTest(Integer userId) {
-        this.id = userId;
-    }
+	public void setUserIdForTest(Integer userId) {
+		this.id = userId;
+	}
 
-    public UserActivityVO getRecentActivityVO(){
-        return activities.stream()
-                .filter(userActivityVO -> userActivityVO.getPart() != null)
-                .max(Comparator.comparingInt(UserActivityVO::getGeneration))
-                .orElseThrow(() -> new ServerException(INTERNAL_SERVER_ERROR.getErrorCode()));
-    }
+	public UserActivityVO getRecentActivityVO() {
+		return activities.stream()
+			.filter(userActivityVO -> userActivityVO.getPart() != null)
+			.max(Comparator.comparingInt(UserActivityVO::getGeneration))
+			.orElseThrow(() -> new ServerException(INTERNAL_SERVER_ERROR.getErrorCode()));
+	}
 
-    public void updateUser(String name, Integer orgId, List<UserActivityVO> activities, String profileImage,
-        String phone){
+	public void updateUser(String name, Integer orgId, List<UserActivityVO> activities, String profileImage,
+		String phone) {
 
-        this.name = name;
-        this.orgId = orgId;
-        this.activities = activities;
-        this.profileImage = profileImage;
-        this.phone = phone;
-    }
+		this.name = name;
+		this.orgId = orgId;
+		this.activities = activities;
+		this.profileImage = profileImage;
+		this.phone = phone;
+	}
 }

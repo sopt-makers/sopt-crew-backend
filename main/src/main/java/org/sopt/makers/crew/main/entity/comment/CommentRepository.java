@@ -23,7 +23,7 @@ public interface CommentRepository extends JpaRepository<Comment, Integer>, Comm
 
 	Optional<Comment> findByIdAndPostId(Integer id, Integer postId);
 
-	default Comment findByIdAndPostIdOrThrow(Integer id, Integer postId){
+	default Comment findByIdAndPostIdOrThrow(Integer id, Integer postId) {
 		return findByIdAndPostId(id, postId)
 			.orElseThrow(() -> new BadRequestException(ErrorStatus.NOT_FOUND_COMMENT.getErrorCode()));
 	}

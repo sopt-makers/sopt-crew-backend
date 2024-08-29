@@ -28,7 +28,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
 		ObjectMapper mapper = new ObjectMapper();
-		String jsonResponse = mapper.writeValueAsString(ExceptionResponse.fail(INVALID_INPUT_VALUE_FILTER.getErrorCode()));
+		String jsonResponse = mapper.writeValueAsString(
+			ExceptionResponse.fail(INVALID_INPUT_VALUE_FILTER.getErrorCode()));
 
 		response.getWriter().write(jsonResponse);
 	}
