@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.sopt.makers.crew.main.entity.meeting.Meeting;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -45,4 +45,10 @@ public class MeetingV2GetAllMeetingByOrgUserMeetingDto {
 	@Schema(description = "모임 활성 여부", example = "true")
 	@NotNull
 	private Boolean isActiveMeeting;
+
+	public static MeetingV2GetAllMeetingByOrgUserMeetingDto of(Meeting meeting, Integer userId, Boolean isActiveMeeting) {
+		return new MeetingV2GetAllMeetingByOrgUserMeetingDto(meeting.getId(), meeting.checkMeetingLeader(userId),
+			meeting.getTitle(), meeting.getImageURL().get(0).getUrl(), meeting.getCategory().getValue(), meeting.getMStartDate(),
+			meeting.getMEndDate(), isActiveMeeting);
+	}
 }

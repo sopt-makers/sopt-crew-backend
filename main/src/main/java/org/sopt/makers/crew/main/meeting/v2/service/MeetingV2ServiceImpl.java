@@ -103,18 +103,18 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Optional<User> user = userRepository.findByOrgId(queryDto.getOrgUserId());
 		List<MeetingV2GetAllMeetingByOrgUserMeetingDto> userJoinedList = new ArrayList<>();
 
-		if (!user.isEmpty()) {
+		if (user.isPresent()) {
 			User existUser = user.get();
+
+			// 사용자가 모임장인 경우
 			List<Meeting> myMeetings = meetingRepository.findAllByUserId(existUser.getId());
 
 			userJoinedList = Stream
 				.concat(myMeetings.stream(),
 					applyRepository.findAllByUserIdAndStatus(existUser.getId(), EnApplyStatus.APPROVE)
 						.stream().map(Apply::getMeeting))
-				.map(meeting -> MeetingV2GetAllMeetingByOrgUserMeetingDto.of(meeting.getId(),
-					meeting.checkMeetingLeader(existUser.getId()), meeting.getTitle(),
-					meeting.getImageURL().get(0).getUrl(), meeting.getCategory().getValue(),
-					meeting.getMStartDate(), meeting.getMEndDate(), checkActivityStatus(meeting)))
+				.map(meeting -> MeetingV2GetAllMeetingByOrgUserMeetingDto.of(meeting, existUser.getId(),
+					checkActivityStatus(meeting)))
 				.sorted(Comparator.comparing(MeetingV2GetAllMeetingByOrgUserMeetingDto::getId).reversed())
 				.collect(Collectors.toList());
 		}
@@ -332,7 +332,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		User meetingCreator = userRepository.findByIdOrThrow(meeting.getUserId());
 
-		Applies applies = new Applies(applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
+		Applies applies = new Applies(
+			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
 
 		Boolean isHost = meeting.checkMeetingLeader(user.getId());
 		Boolean isApply = applies.isApply(meetingId, user.getId());
@@ -342,7 +343,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		List<ApplyWholeInfoDto> applyWholeInfoDtos = applies.getAppliesMap().get(meetingId).stream()
 			.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
 			.toList();
-
 
 		return MeetingV2GetMeetingByIdResponseDto.of(meeting, approvedCount, isHost, isApply, isApproved,
 			meetingCreator, applyWholeInfoDtos, time.now());
