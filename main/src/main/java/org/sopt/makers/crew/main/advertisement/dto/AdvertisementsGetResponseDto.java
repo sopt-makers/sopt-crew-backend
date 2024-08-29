@@ -9,10 +9,10 @@ import jakarta.validation.constraints.NotNull;
 public record AdvertisementsGetResponseDto(
 	@Schema(description = "광고 구좌 이미지 객체", example = "")
 	@NotNull
-	List<AdvertisementGetDto> advertisementImages
+	List<AdvertisementGetDto> advertisements
 ) {
-	public static AdvertisementsGetResponseDto of(List<AdvertisementGetDto> advertisementImages) {
+	public static AdvertisementsGetResponseDto of(List<AdvertisementGetDto> advertisements) {
 
-		return new AdvertisementsGetResponseDto(advertisementImages);
+		return new AdvertisementsGetResponseDto(advertisements);
 	}
 }
