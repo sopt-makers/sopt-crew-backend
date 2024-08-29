@@ -24,13 +24,8 @@ public class AdvertisementGetDto {
 	@NotNull
 	private final String advertisementLink;
 
-	@Schema(description = "광고 이미지 순서, 서버에서 정렬해서 전달한다. </br> 프론트에서 확인용으로 사용하기 위함", example = "2")
-	@NotNull
-	private final Long advertisementOrder;
-
 	public static AdvertisementGetDto of(Advertisement advertisement) {
 		return new AdvertisementGetDto(advertisement.getAdvertisementDesktopImageUrl(),
-			advertisement.getAdvertisementMobileImageUrl(), advertisement.getAdvertisementLink(),
-			advertisement.getPriority());
+			advertisement.getAdvertisementMobileImageUrl(), advertisement.getAdvertisementLink());
 	}
 }
