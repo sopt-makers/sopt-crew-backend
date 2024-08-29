@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.advertisement;
 
 import java.security.Principal;
 
-import org.sopt.makers.crew.main.advertisement.dto.AdvertisementGetResponseDto;
+import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ public interface AdvertisementApi {
 			responseCode = "200",
 			description = "성공"),
 	})
-	ResponseEntity<AdvertisementGetResponseDto> getAdvertisement(@RequestParam(name = "category", required = true) AdvertisementCategory category,
+	ResponseEntity<AdvertisementsGetResponseDto> getAdvertisement(@RequestParam(name = "category", required = true) AdvertisementCategory category,
 		Principal principal);
 
 }
