@@ -26,6 +26,7 @@ import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ServerException;
 import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.common.util.CustomPageable;
 import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.common.util.UserPartUtil;
 import org.sopt.makers.crew.main.entity.apply.Applies;
@@ -68,6 +69,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBann
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -227,9 +229,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	public MeetingV2GetAllMeetingDto getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand) {
-
+		Sort sort = Sort.by(Sort.Direction.ASC, "id");
 		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand,
-			PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()), time);
+			new CustomPageable(queryCommand.getPage() - 1, sort), time);
 		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
@@ -239,7 +241,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				allApplies.getAppliedCount(meeting.getId()), time.now()))
 			.toList();
 
-		PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
+		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetings.getPageable().getPageNumber() + 1,
+			meetings.getPageable().getPageSize());
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)meetings.getTotalElements());
 
 		return MeetingV2GetAllMeetingDto.of(meetingResponseDtos, pageMetaDto);
