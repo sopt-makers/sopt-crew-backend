@@ -27,27 +27,45 @@ public class Applies {
 			.collect(Collectors.groupingBy(Apply::getMeetingId));
 	}
 
-	public int getAppliedCount(Integer meetingId){
+	public int getAppliedCount(Integer meetingId) {
 		List<Apply> applies = appliesMap.get(meetingId);
 
-		if(applies == null){
+		if (applies == null) {
 			return 0;
 		}
 		return applies.size();
 	}
 
 	public long getApprovedCount(Integer meetingId) {
+		List<Apply> applies = appliesMap.get(meetingId);
+
+		if (applies == null) {
+			return 0;
+		}
+
 		return appliesMap.get(meetingId).stream()
 			.filter(apply -> apply.getStatus().equals(EnApplyStatus.APPROVE))
 			.count();
 	}
 
 	public Boolean isApply(Integer meetingId, Integer userId) {
+		List<Apply> applies = appliesMap.get(meetingId);
+
+		if (applies == null) {
+			return false;
+		}
+
 		return appliesMap.get(meetingId).stream()
 			.anyMatch(apply -> apply.getUserId().equals(userId));
 	}
 
 	public Boolean isApproved(Integer meetingId, Integer userId) {
+		List<Apply> applies = appliesMap.get(meetingId);
+
+		if (applies == null) {
+			return false;
+		}
+
 		return appliesMap.get(meetingId).stream()
 			.anyMatch(apply -> apply.getUserId().equals(userId)
 				&& apply.getStatus().equals(EnApplyStatus.APPROVE));

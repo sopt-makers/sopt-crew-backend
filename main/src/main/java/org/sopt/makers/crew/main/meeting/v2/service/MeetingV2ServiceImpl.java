@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -80,7 +81,7 @@ import com.opencsv.CSVWriter;
 @Transactional(readOnly = true)
 public class MeetingV2ServiceImpl implements MeetingV2Service {
 
-	private final static int ZERO = 0;
+	private static final int ZERO = 0;
 
 	private final UserRepository userRepository;
 	private final ApplyRepository applyRepository;
@@ -130,33 +131,50 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		return MeetingV2GetAllMeetingByOrgUserDto.of(pagedUserJoinedList, pageMetaDto);
 	}
 
+	/**
+	 * @Note: 최근 활동 여부는 게시글 생성일자를 기준으로 진행한다.
+	 * */
 	@Override
 	public List<MeetingV2GetMeetingBannerResponseDto> getMeetingBanner() {
-		return meetingRepository.findAll()
+
+		List<Meeting> meetings = meetingRepository.findTop20ByOrderByIdDesc();
+		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
+
+		List<Post> posts = postRepository.findAllByMeetingIdIn(meetingIds);
+		List<Post> filterLatestPosts = filterLatestPostsByMeetingId(posts);
+		Map<Integer, Post> postMap = filterLatestPosts.stream()
+			.collect(Collectors.toMap(post -> post.getMeeting().getId(), post -> post));
+
+		Applies applies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
+
+		return getResponseDto(meetings, postMap, applies);
+	}
+
+
+	private List<Post> filterLatestPostsByMeetingId(List<Post> posts) {
+		return posts.stream()
+			.collect(Collectors.groupingBy(Post::getMeetingId,
+				Collectors.maxBy(Comparator.comparing(Post::getCreatedDate))))
+			.values()
 			.stream()
-			.sorted(Comparator.comparing(Meeting::getId).reversed())
-			.limit(20)
+			.flatMap(Optional::stream)
+			.collect(Collectors.toList());
+	}
+
+	private List<MeetingV2GetMeetingBannerResponseDto> getResponseDto(List<Meeting> meetings,
+		Map<Integer, Post> postMap, Applies applies) {
+		return meetings.stream()
 			.map(meeting -> {
-				Optional<Post> recentPost = postRepository.findFirstByMeetingIdOrderByIdDesc(meeting.getId());
-				Optional<LocalDateTime> recentActivityDate = recentPost.map(Post::getCreatedDate);
+				MeetingV2GetMeetingBannerResponseUserDto meetingCreatorDto = MeetingV2GetMeetingBannerResponseUserDto.of(meeting.getUser());
 
-				List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-				Integer applicantCount = applies.size();
-				Integer appliedUserCount = applies.stream()
-					.filter(apply -> apply.getStatus().equals(EnApplyStatus.APPROVE)).toList().size();
+				LocalDateTime recentActivityDate = null;
+				if (postMap.containsKey(meeting.getId())) {
+					recentActivityDate = postMap.get(meeting.getId()).getCreatedDate();
+				}
 
-				User meetingLeader = userRepository.findByIdOrThrow(meeting.getUserId());
-				MeetingV2GetMeetingBannerResponseUserDto meetingLeaderDto = MeetingV2GetMeetingBannerResponseUserDto
-					.of(meetingLeader.getId(), meetingLeader.getName(), meetingLeader.getOrgId(),
-						meetingLeader.getProfileImage());
-
-				return MeetingV2GetMeetingBannerResponseDto.of(meeting.getId(), meeting.getUserId(),
-					meeting.getTitle(), meeting.getCategory(), meeting.getImageURL(),
-					meeting.getMStartDate(), meeting.getMEndDate(), meeting.getStartDate(),
-					meeting.getEndDate(),
-					meeting.getCapacity(), recentActivityDate, meeting.getTargetActiveGeneration(),
-					meeting.getJoinableParts(), applicantCount, appliedUserCount, meetingLeaderDto,
-					meeting.getMeetingStatus(time.now()));
+				return MeetingV2GetMeetingBannerResponseDto.of(meeting, recentActivityDate,
+					applies.getAppliedCount(meeting.getId()), applies.getApprovedCount(meeting.getId()),
+					meetingCreatorDto, time.now());
 			}).toList();
 	}
 
@@ -335,7 +353,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		User meetingCreator = userRepository.findByIdOrThrow(meeting.getUserId());
 
-		Applies applies = new Applies(applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
+		Applies applies = new Applies(
+			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
 
 		Boolean isHost = meeting.checkMeetingLeader(user.getId());
 		Boolean isApply = applies.isApply(meetingId, user.getId());
@@ -345,7 +364,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		List<ApplyWholeInfoDto> applyWholeInfoDtos = applies.getAppliesMap().get(meetingId).stream()
 			.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
 			.toList();
-
 
 		return MeetingV2GetMeetingByIdResponseDto.of(meeting, approvedCount, isHost, isApply, isApproved,
 			meetingCreator, applyWholeInfoDtos, time.now());
