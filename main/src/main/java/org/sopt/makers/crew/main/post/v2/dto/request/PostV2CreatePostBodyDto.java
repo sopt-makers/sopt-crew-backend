@@ -24,7 +24,6 @@ public class PostV2CreatePostBodyDto {
 		required = true,
 		description = "게시글 이미지 리스트"
 	)
-	@NotEmpty
 	private String[] images;
 
 	@Schema(example = "api 가 터졌다고? 깃이 터졌다고?", required = true, description = "게시글 내용")
