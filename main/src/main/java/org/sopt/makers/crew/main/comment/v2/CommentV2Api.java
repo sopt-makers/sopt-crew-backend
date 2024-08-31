@@ -1,8 +1,13 @@
 package org.sopt.makers.crew.main.comment.v2;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import java.security.Principal;
@@ -14,7 +19,9 @@ import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2UpdateCommentBo
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
+import org.sopt.makers.crew.main.common.dto.TempResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -22,12 +29,19 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+@Tag(name = "댓글/대댓글")
 public interface CommentV2Api {
 
 	@Operation(summary = "모임 게시글 댓글 작성")
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "201", description = "성공"),
+		@ApiResponse(
+			responseCode = "201",
+			description = "성공",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = CommentV2CreateCommentResponseDto.class)
+			)),
 	})
 	ResponseEntity<CommentV2CreateCommentResponseDto> createComment(
 		@Valid @RequestBody CommentV2CreateCommentBodyDto requestBody, Principal principal);
@@ -35,7 +49,13 @@ public interface CommentV2Api {
 	@Operation(summary = "모임 게시글 댓글 수정")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "성공"),
+		@ApiResponse(
+			responseCode = "200",
+			description = "성공",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = CommentV2UpdateCommentResponseDto.class)
+			)),
 	})
 	ResponseEntity<CommentV2UpdateCommentResponseDto> updateComment(
 		@PathVariable Integer commentId,
@@ -45,7 +65,14 @@ public interface CommentV2Api {
 	@Operation(summary = "댓글 신고하기")
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "201", description = "성공"),
+		@ApiResponse(
+			responseCode = "201",
+			description = "성공",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = CommentV2ReportCommentResponseDto.class)
+			)
+		),
 	})
 	ResponseEntity<CommentV2ReportCommentResponseDto> reportComment(
 		@PathVariable Integer commentId, Principal principal);
@@ -60,7 +87,9 @@ public interface CommentV2Api {
 	@Operation(summary = "댓글에서 유저 멘션")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "성공"),
+		@ApiResponse(
+			responseCode = "200",
+			description = "성공"),
 	})
 	ResponseEntity<Void> mentionUserInComment(
 		@Valid @RequestBody CommentV2MentionUserInCommentRequestDto requestBody,
@@ -69,7 +98,46 @@ public interface CommentV2Api {
 	@Operation(summary = "모임 게시글 댓글 리스트 조회")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "성공"),
+		@ApiResponse(
+			responseCode = "200",
+			description = "성공"),
 	})
-	ResponseEntity<CommentV2GetCommentsResponseDto> getComments(@Valid @ModelAttribute CommentV2GetCommentsQueryDto requestBody, Principal principal);
+	@Parameters(
+		{
+			@Parameter(name = "page", description = "페이지, default = 1", example = "1", schema = @Schema(type = "integer", format = "int32")),
+			@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50", schema = @Schema(type = "integer", format = "int32")),
+			@Parameter(name = "postId", description = "게시글 id", example = "3", schema = @Schema(type = "integer", format = "int32"))
+		})
+	ResponseEntity<CommentV2GetCommentsResponseDto> getComments(
+		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request,
+		Principal principal);
+
+	@Operation(summary = "[TEMP] 모임 게시글 댓글 리스트 조회")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiResponses(value = {
+		@ApiResponse(
+			responseCode = "200",
+			description = "성공"),
+	})
+	@Parameters({
+		@Parameter(name = "page", description = "페이지, default = 1", example = "1", schema = @Schema(type = "integer", format = "int32")),
+		@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50", schema = @Schema(type = "integer", format = "int32")),
+		@Parameter(name = "postId", description = "게시글 id", example = "3", schema = @Schema(type = "integer", format = "int32"))})
+	ResponseEntity<TempResponseDto<CommentV2GetCommentsResponseDto>> getCommentsTemp(
+		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request,
+		Principal principal);
+
+	@Operation(summary = "모임 게시글 댓글 좋아요 토글")
+	@ResponseStatus(HttpStatus.CREATED)
+	@ApiResponses(value = {
+		@ApiResponse(
+			responseCode = "201",
+			description = "성공",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = CommentV2SwitchCommentLikeResponseDto.class)
+			)),
+	})
+	ResponseEntity<CommentV2SwitchCommentLikeResponseDto> switchCommentLike(Principal principal,
+		@PathVariable Integer commentId);
 }

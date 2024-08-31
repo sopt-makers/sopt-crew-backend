@@ -40,6 +40,7 @@ export class MeetingV1Controller {
   @ApiOperation({
     summary: '모임 지원자 목록 csv 파일 다운로드',
     description: '모임장일때만 지원자 목록 csv 파일 다운로드 가능',
+    deprecated: true,
   })
   @ApiOkResponseCommon(MeetingV1GetApplyListByMeetingCsvFileUrlResponseDto)
   @ApiResponse({
@@ -65,6 +66,7 @@ export class MeetingV1Controller {
 
   @ApiOperation({
     summary: 'Meeting 썸네일 업로드용 Pre-Signed URL 발급',
+    deprecated: true,
   })
   @ApiOkResponseCommon(MeetingV1GetPresignedUrlResponseDto)
   @ApiResponse({
@@ -106,6 +108,7 @@ export class MeetingV1Controller {
   @ApiOperation({
     summary: '모임 수정',
     description: '모임 수정',
+    deprecated: true,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,

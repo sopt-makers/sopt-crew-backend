@@ -1,7 +1,8 @@
 package org.sopt.makers.crew.main.entity.post;
 
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
+
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -21,7 +22,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import org.hibernate.annotations.Type;
-import org.sopt.makers.crew.main.entity.comment.Comment;
+import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.springframework.data.annotation.CreatedDate;
@@ -126,7 +127,9 @@ public class Post {
 		this.viewCount = 0;
 		this.images = images;
 		this.user = user;
+		this.userId = user.getId();
 		this.meeting = meeting;
+		this.meetingId = meeting.getId();
 		this.commentCount = 0;
 		this.likeCount = 0;
 	}
@@ -137,5 +140,25 @@ public class Post {
 
 	public void decreaseCommentCount() {
 		this.commentCount--;
+	}
+
+	public void increaseLikeCount() {
+		this.likeCount++;
+	}
+
+	public void decreaseLikeCount() {
+		this.likeCount--;
+	}
+
+	public void isWriter(Integer userId) {
+		if (!this.userId.equals(userId)) {
+			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+	}
+
+	public void updatePost(String title, String contents, String[] images) {
+		this.title = title;
+		this.contents = contents;
+		this.images = images;
 	}
 }

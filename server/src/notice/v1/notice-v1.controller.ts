@@ -12,7 +12,10 @@ import { ApiOkResponseCommon } from 'src/common/decorator/api-ok-response-common
 export class NoticeV1Controller {
   constructor(private readonly noticeV1Service: NoticeV1Service) {}
 
-  @ApiOperation({ summary: '공지사항 조회' })
+  @ApiOperation({
+    summary: '공지사항 조회',
+    deprecated: true,
+  })
   @ApiOkResponseCommon(NoticeV1GetNoticesResponseDto)
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
@@ -23,7 +26,10 @@ export class NoticeV1Controller {
     return this.noticeV1Service.getNotices({ status: query.status });
   }
 
-  @ApiOperation({ summary: '공지사항 작성' })
+  @ApiOperation({
+    summary: '공지사항 작성',
+    deprecated: true,
+  })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Post()

@@ -29,6 +29,6 @@ export class PageOptionsDto {
   readonly take?: number = 12;
 
   get skip(): number {
-    return (this.page - 1) * this.take;
+    return this.page === 1 ? 0 : 11 + (this.page - 2) * 12;
   }
 }

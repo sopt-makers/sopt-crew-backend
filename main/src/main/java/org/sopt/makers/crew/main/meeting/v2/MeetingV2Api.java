@@ -5,26 +5,38 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
+
 import java.security.Principal;
 import java.util.List;
+
+import org.sopt.makers.crew.main.common.dto.TempResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesCsvQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "모임")
 public interface MeetingV2Api {
@@ -71,4 +83,69 @@ public interface MeetingV2Api {
     ResponseEntity<MeetingGetApplyListResponseDto> findApplyList(@PathVariable Integer meetingId,
                                                                  @ModelAttribute MeetingGetAppliesQueryDto queryCommand,
                                                                  Principal principal);
+
+    @Operation(summary = "모임 전체 조회/검색/필터링", description = "모임 전체 조회/검색/필터링\n")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 지원자/참여자 조회 성공")})
+    @Parameters({
+        @Parameter(name = "page", description = "페이지, default = 1", example = "1", schema = @Schema(type = "integer", format = "int32")),
+        @Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50", schema = @Schema(type = "integer", format = "int32")),
+        @Parameter(name = "category", description = "카테고리", example = "스터디,번개", schema = @Schema(type = "string", format = "string")),
+        @Parameter(name = "status", description = "모임 모집 상태", example = "0,1", schema = @Schema(type = "string", format = "string")),
+        @Parameter(name = "isOnlyActiveGeneration", description = "활동기수만 참여여부", example = "true", schema = @Schema(type = "boolean", format = "boolean")),
+        @Parameter(name = "joinableParts", description = "검색할 활동 파트 다중 선택. OR 조건으로 검색됨 </br> Available values : PM, DESIGN, IOS, ANDROID, SERVER, WEB", example = "PM,DESIGN,IOS,ANDROID,SERVER,WEB", schema = @Schema(type = "array[string]", format = "array[string]")),
+        @Parameter(name = "query", description = "검색 내용", example = "고수스터디 검색", schema = @Schema(type = "string", format = "string")),
+    })
+    ResponseEntity<MeetingV2GetAllMeetingDto> getMeetings(@ModelAttribute MeetingV2GetAllMeetingQueryDto queryCommand,
+        Principal principal);
+
+    @Operation(summary = "[TEMP] 모임 전체 조회/검색/필터링", description = "모임 전체 조회/검색/필터링\n")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 지원자/참여자 조회 성공")})
+    @Parameters({
+        @Parameter(name = "page", description = "페이지, default = 1", example = "1", schema = @Schema(type = "integer", format = "int32")),
+        @Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50", schema = @Schema(type = "integer", format = "int32")),
+        @Parameter(name = "category", description = "카테고리", example = "스터디,번개", schema = @Schema(type = "string", format = "string")),
+        @Parameter(name = "status", description = "모임 모집 상태", example = "0,1", schema = @Schema(type = "string", format = "string")),
+        @Parameter(name = "isOnlyActiveGeneration", description = "활동기수만 참여여부", example = "true", schema = @Schema(type = "boolean", format = "boolean")),
+        @Parameter(name = "joinableParts", description = "검색할 활동 파트 다중 선택. OR 조건으로 검색됨 </br> Available values : PM, DESIGN, IOS, ANDROID, SERVER, WEB", example = "PM,DESIGN,IOS,ANDROID,SERVER,WEB", schema = @Schema(type = "array[string]", format = "array[string]")),
+        @Parameter(name = "query", description = "검색 내용", example = "고수스터디 검색", schema = @Schema(type = "string", format = "string")),
+    })
+    ResponseEntity<TempResponseDto<MeetingV2GetAllMeetingDto>> getMeetingsTemp(@ModelAttribute MeetingV2GetAllMeetingQueryDto queryCommand,
+        Principal principal);
+
+    @Operation(summary = "모임 삭제", description = "모임 삭제합니다.")
+    ResponseEntity<Void> deleteMeeting(@PathVariable Integer meetingId, Principal principal);
+
+    @Operation(summary = "모임 수정", description = "모임 내용을 수정합니다.")
+    ResponseEntity<Void> updateMeeting(@PathVariable Integer meetingId, @RequestBody @Valid MeetingV2CreateMeetingBodyDto requestBody ,Principal principal);
+
+    @Operation(summary = "모임 지원자 상태 변경", description = "모임 지원자의 지원 상태를 변경합니다.")
+    ResponseEntity<Void> updateApplyStatus(@PathVariable Integer meetingId, @RequestBody @Valid ApplyV2UpdateStatusBodyDto requestBody ,Principal principal);
+
+    @Operation(summary = "Meeting 썸네일 업로드용 Pre-Signed URL 발급", description = "Meeting 썸네일 업로드용 Pre-Signed URL 발급합니다.")
+    ResponseEntity<PreSignedUrlResponseDto> createPreSignedUrl(@PathParam("contentType") String contentType ,Principal principal);
+
+    @Operation(summary = "모임 지원자 목록 csv 파일 다운로드", description = "모임 지원자 목록 csv 파일 다운로드")
+    @Parameters({
+        @Parameter(name = "status", description = "0: 대기, 1: 승인된 신청자, 2: 거절된 신청자", example = "0,1", required = true, schema = @Schema(type = "string")),
+        @Parameter(name = "type", description = "0: 지원, 1: 초대", example = "0,1", required = true, schema = @Schema(type = "string")),
+        @Parameter(name = "order", description = "정렬순", example = "desc", schema = @Schema(type = "string", format = "string"))})
+    ResponseEntity<AppliesCsvFileUrlResponseDto> getAppliesCsvFileUrl(
+        @PathVariable Integer meetingId,
+        @ModelAttribute @Valid @Parameter(hidden = true) MeetingGetAppliesCsvQueryDto queryCommand,
+        Principal principal);
+
+    @Operation(summary = "[TEMP] 모임 지원자 목록 csv 파일 다운로드", description = "모임 지원자 목록 csv 파일 다운로드")
+    @Parameters({
+        @Parameter(name = "status", description = "0: 대기, 1: 승인된 신청자, 2: 거절된 신청자", example = "0,1", required = true, schema = @Schema(type = "string")),
+        @Parameter(name = "type", description = "0: 지원, 1: 초대", example = "0,1", required = true, schema = @Schema(type = "string")),
+        @Parameter(name = "order", description = "정렬순", example = "desc", schema = @Schema(type = "string", format = "string"))})
+    ResponseEntity<TempResponseDto<AppliesCsvFileUrlResponseDto>> getAppliesCsvFileUrlTemp(
+        @PathVariable Integer meetingId,
+        @ModelAttribute @Valid @Parameter(hidden = true) MeetingGetAppliesCsvQueryDto queryCommand,
+        Principal principal);
+
+    @Operation(summary = "모임 상세 조회", description = "모임 상세 조회")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 상세 조회 성공"),
+        @ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
+    ResponseEntity<MeetingV2GetMeetingByIdResponseDto> getMeetingById(@PathVariable Integer meetingId, Principal principal);
 }

@@ -4,8 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.FULL_MEETING_CAPACITY;
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_IN_APPLY_PERIOD;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.FULL_MEETING_CAPACITY;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_IN_APPLY_PERIOD;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -104,7 +104,6 @@ public class MeetingV2ServiceTest {
                 .createdGeneration(33)
                 .targetActiveGeneration(33)
                 .joinableParts(MeetingJoinablePart.values())
-                .appliedInfo(new ArrayList<>())
                 .build();
 
         Apply apply = Apply.builder()
@@ -206,7 +205,6 @@ public class MeetingV2ServiceTest {
                 .createdGeneration(33)
                 .targetActiveGeneration(33)
                 .joinableParts(MeetingJoinablePart.values())
-                .appliedInfo(new ArrayList<>())
                 .build();
 
         MeetingV2ApplyMeetingDto requestBody = new MeetingV2ApplyMeetingDto(meeting.getId(), "열심히 하겠습니다.");

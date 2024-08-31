@@ -47,6 +47,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 개수 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(PostV1GetPostCountResponseDto)
   @ApiResponse({
@@ -83,6 +84,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(PostV1GetPostResponseDto)
   @ApiResponse({
@@ -122,6 +124,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '게시글 좋아요 토글',
+    deprecated: true,
   })
   @ApiOkResponseCommon(PostV1SwitchPostLikeResponseDto)
   @ApiBearerAuth()
@@ -136,6 +139,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 신고',
+    deprecated: true,
   })
   @ApiOkResponseCommon(PostV1ReportPostResponseDto)
   @ApiResponse({
@@ -155,6 +159,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 수정',
+    deprecated: true,
   })
   @ApiOkResponseCommon(PostV1UpdatePostResponseDto)
   @ApiResponse({
@@ -180,6 +185,7 @@ export class PostV1Controller {
 
   @ApiOperation({
     summary: '모임 게시글 삭제',
+    deprecated: true,
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))

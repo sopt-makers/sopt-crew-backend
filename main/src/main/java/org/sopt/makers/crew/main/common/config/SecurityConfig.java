@@ -3,9 +3,9 @@ package org.sopt.makers.crew.main.common.config;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import org.sopt.makers.crew.main.common.config.jwt.JwtAuthenticationEntryPoint;
-import org.sopt.makers.crew.main.common.config.jwt.JwtAuthenticationFilter;
-import org.sopt.makers.crew.main.common.config.jwt.JwtTokenProvider;
+import org.sopt.makers.crew.main.common.jwt.JwtAuthenticationEntryPoint;
+import org.sopt.makers.crew.main.common.jwt.JwtAuthenticationFilter;
+import org.sopt.makers.crew.main.common.jwt.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -42,7 +42,9 @@ public class SecurityConfig {
     private static final String[] AUTH_WHITELIST = {
         "/health",
         "/health/v2",
-        "/meeting/v2/org-user/**"
+        "/meeting/v2/org-user/**",
+        "/auth/v2",
+        "/auth/v2/**"
     };
 
     @Bean
@@ -132,7 +134,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(
             Arrays.asList("https://playground.sopt.org/", "http://localhost:3000/",
                 "https://sopt-internal-dev.pages.dev/", "https://crew.api.dev.sopt.org", "https://crew.api.prod.sopt.org"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"));
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(false);
 

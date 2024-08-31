@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.user;
 
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.*;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
 
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
@@ -83,5 +83,15 @@ public class User {
                 .filter(userActivityVO -> userActivityVO.getPart() != null)
                 .max(Comparator.comparingInt(UserActivityVO::getGeneration))
                 .orElseThrow(() -> new ServerException(INTERNAL_SERVER_ERROR.getErrorCode()));
+    }
+
+    public void updateUser(String name, Integer orgId, List<UserActivityVO> activities, String profileImage,
+        String phone){
+
+        this.name = name;
+        this.orgId = orgId;
+        this.activities = activities;
+        this.profileImage = profileImage;
+        this.phone = phone;
     }
 }

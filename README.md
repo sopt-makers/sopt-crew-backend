@@ -1,40 +1,7 @@
 # 설명
 
-- NestJS기반으로 운영되는 모임(Crew) 서버
+- Spring 기반으로 운영되는 모임(Crew) 서버
 - [PlayGround Link](https://playground.sopt.org/group/)
-- [PlayGround Dev Link](https://sopt-internal-dev.pages.dev/group/)
-
-## node_modules 설치
-
-```bash
-npm ci
-```
-
-## 실행하는 법
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## 테스트
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
 
 # 배경
 
@@ -45,23 +12,22 @@ $ npm run test:cov
 # 기술스택
 
 - DB: PostgreSQL
-- DB GUI tool: pgAdmin4
-- ORM: TypeORM
+- ORM: jpa, TypeORM
 - API 문서: Swagger
-- 배포: AWS EC2, Docker Compose
+- 배포: AWS EC2, Docker Compose, Docker hub
 - 인증: JWT
-- 테스트: Jest, Unit5
-- 서버 프레임워크: NestJS, Spring
+- 테스트: JUnit5, Jest 
+- 서버 프레임워크: Spring, NestJS
 - 웹서버 프레임워크: Caddy
-- 언어: typescript, Java
+- 언어: Java, Typescript
 
 # 아키텍처
 
 ## flow
 
 1. Caddy를 통해 HTTPS를 적용하고, HTTP로 들어오는 요청을 HTTPS로 리다이렉트한다.
-2. HTTPS로 들어온 요청을 Caddy가 받아서, Caddy는 요청을 받은 후에 해당 요청을 NodeJS/Spring 서버로 리버스프록시한다.
-3. NodeJS/Spring 서버는 요청을 받아서, 요청에 맞는 Controller를 찾아서 해당 Controller에서 Service를 호출한다.
+2. HTTPS로 들어온 요청을 Caddy가 받아서, Caddy는 요청을 받은 후에 해당 요청을 NestJS/Spring 서버로 리버스프록시한다.
+3. NestJS/Spring 서버는 요청을 받아서, 요청에 맞는 Controller를 찾아서 해당 Controller에서 Service를 호출한다.
 4. Service에서 로직을 처리한 후에, Repository를 통해 DB에 접근한다.
 5. Repository는 DB에 접근해서 데이터를 가져온 후에, Service에게 데이터를 전달한다.
 6. Service는 Repository로부터 받은 데이터를 가공해서 Controller에게 전달한다.
@@ -71,7 +37,7 @@ $ npm run test:cov
 
 ```bash
 .
-├── Dockerfile # docker로 배포할 때 사용하는 파일. 현재는 사용하지 않음
+├── Dockerfile 
 ├── jest.config.ts
 ├── nest-cli.json
 ├── package-lock.json
@@ -161,7 +127,7 @@ bar # 예시 모듈
 ## 환경 변수
 
 - 환경 변수는 dev/prod 환경에 따라 다르게 설정되어야 한다.
-  - Nestjs
+  - NestJS
     - dev 환경: .dev.env
     - prod 환경: .prod.env
   - Spring
@@ -187,8 +153,8 @@ bar # 예시 모듈
 
 ## 배포 전략
 
-- 현재는 수동배포를 진행중이고 Blue-Green 방식의 배포를 진행하고 있지 않는다.
-- 수동배포 이후 짧은 순단(서버 재시작)이 발생하기 때문에 새벽에 배포를 하거나, 사용자가 몰리는 시간대는 피해서 배포를 진행한다. (Prod환경 기준)
+- Blue-Green 방식의 배포 자동화를 구축했다.
+- 그럼에도 불구하고, 사용자가 몰리는 시간대는 피해서 배포를 진행한다. (Prod환경 기준)
 - Prod환경의 경우는 `main` 브랜치를, Dev환경의 경우는 `develop` 브랜치를 기준으로 배포를 진행한다.
 
 ## 배포 정보
@@ -196,7 +162,8 @@ bar # 예시 모듈
 - 배포 서버: AWS EC2
 - 배포 툴: Docker Compose
 
-## 배포 방법
+## 수동 배포 방법
+- 현재는 배포 자동화가 되어있다.
 
 ```bash
 # Prod 배포
@@ -229,6 +196,19 @@ $ sudo docker image prune
 7. 리뷰를 받은 후에 PR을 develop에 merge한다.
 8. develop에 merge된 후에 develop환경 배포를 진행한다.
 
-## 커밋 컨벤션
+## 🙏 Commit Convention
+- <a href="https://udacity.github.io/git-styleguide/">유다시티 컨벤션
 
-TBD
+```
+feat: 새로운 기능 구현
+add: 기능구현까지는 아니지만 새로운 파일이 추가된 경우
+del: 기존 코드를 삭제한 경우
+fix: 버그, 오류 해결
+docs: README나 WIKI 등의 문서 작업
+style: 코드가 아닌 스타일 변경을 하는 경우
+refactor: 리팩토링 작업
+test: 테스트 코드 추가, 테스트 코드 리팩토링
+chore: 코드 수정, 내부 파일 수정
+```
+
+## 기여

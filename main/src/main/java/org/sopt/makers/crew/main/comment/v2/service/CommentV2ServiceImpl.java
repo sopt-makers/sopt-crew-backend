@@ -1,6 +1,8 @@
 package org.sopt.makers.crew.main.comment.v2.service;
 
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.*;
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE;
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_PUSH_NOTIFICATION_TITLE;
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,15 +19,20 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
+import org.sopt.makers.crew.main.comment.v2.dto.response.ReplyDto;
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.common.exception.ErrorStatus;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
-import org.sopt.makers.crew.main.common.response.ErrorStatus;
+import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.common.util.MentionSecretStringRemover;
 import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.comment.Comments;
+import org.sopt.makers.crew.main.entity.like.Like;
 import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.like.MyLikes;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -44,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommentV2ServiceImpl implements CommentV2Service {
+
 	private static final int IS_REPLY_COMMENT = 1;
 
 	private final PostRepository postRepository;
@@ -79,7 +87,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		int order = 0;
 		Integer parentId = 0;
 
-		boolean isReplyComment = !requestBody.isParent();
+		boolean isReplyComment = !requestBody.getIsParent();
 		if (isReplyComment) {
 			validateParentCommentId(requestBody);
 			depth = 1;
@@ -160,15 +168,15 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 		List<Comment> comments = commentRepository.findAllByPostIdOrderByCreatedDate(postId);
 
-		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndPostIdNotNull(userId));
+		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndCommentIdNotNull(userId));
 
-		Map<Integer, List<CommentDto>> replyMap = new HashMap<>();
+		Map<Integer, List<ReplyDto>> replyMap = new HashMap<>();
 		comments.stream()
 			.filter(comment -> !comment.isParentComment())
 			.forEach(
 				comment -> replyMap.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>())
-					.add(CommentDto.of(comment, myLikes.isLikeComment(comment.getId()),
-						comment.isWriter(userId), null)));
+					.add(ReplyDto.of(comment, myLikes.isLikeComment(comment.getId()),
+						comment.isWriter(userId))));
 
 		List<CommentDto> commentDtos = comments.stream()
 			.filter(Comment::isParentComment)
@@ -177,7 +185,9 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 				replyMap.get(comment.getId())))
 			.toList();
 
-		return CommentV2GetCommentsResponseDto.of(commentDtos);
+		PageMetaDto pageMetaDto = new PageMetaDto(new PageOptionsDto(1, 12), 30);
+
+		return CommentV2GetCommentsResponseDto.of(commentDtos, pageMetaDto);
 	}
 
 	/**
@@ -191,20 +201,17 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 	 */
 	@Override
 	@Transactional
-	public CommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId)
-		throws BadRequestException {
+	public CommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId) {
 		Comment comment = commentRepository.findByIdOrThrow(commentId);
-		User user = userRepository.findByIdOrThrow(userId);
 
-		Optional<Report> existingReport = reportRepository.findByCommentAndUser(comment, user);
-
-		if (existingReport.isPresent()) {
+		if (reportRepository.existsByCommentIdAndUserId(commentId, userId)) {
 			throw new BadRequestException(ErrorStatus.ALREADY_REPORTED_COMMENT.getErrorCode());
 		}
 
 		Report report = Report.builder()
+			.userId(userId)
 			.comment(comment)
-			.user(user)
+			.commentId(commentId)
 			.build();
 
 		Report savedReport = reportRepository.save(report);
@@ -248,7 +255,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		String pushNotificationContent = "\"" + requestBody.getContent() + "\"";
 		String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
-		String[] userOrgIds = requestBody.getUserIds().stream()
+		String[] userOrgIds = requestBody.getOrgIds().stream()
 			.map(Object::toString)
 			.toArray(String[]::new);
 
@@ -264,5 +271,31 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		);
 
 		pushNotificationService.sendPushNotification(pushRequestDto);
+	}
+
+	@Override
+	@Transactional
+	public CommentV2SwitchCommentLikeResponseDto switchCommentToggle(Integer commentId,
+		Integer userId) {
+
+		Comment comment = commentRepository.findByIdOrThrow(commentId);
+
+		boolean isLike = likeRepository.existsByUserIdAndCommentId(userId, commentId);
+
+		if (isLike) {
+			likeRepository.deleteByUserIdAndCommentId(userId, commentId);
+			comment.decreaseLikeCount();
+			return CommentV2SwitchCommentLikeResponseDto.of(false);
+		}
+
+		Like like = Like.builder()
+			.userId(userId)
+			.commentId(commentId)
+			.build();
+
+		likeRepository.save(like);
+		comment.increaseLikeCount();
+
+		return CommentV2SwitchCommentLikeResponseDto.of(true);
 	}
 }

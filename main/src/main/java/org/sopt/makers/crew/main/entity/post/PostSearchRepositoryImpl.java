@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.entity.post;
 
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_FOUND_POST;
 import static org.sopt.makers.crew.main.entity.comment.QComment.comment;
 import static org.sopt.makers.crew.main.entity.like.QLike.like;
 import static org.sopt.makers.crew.main.entity.meeting.QMeeting.meeting;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.response.CommenterThumbnails;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
@@ -41,15 +43,59 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
                                                     Integer userId) {
         Integer meetingId = queryCommand.getMeetingId().orElse(null);
 
-        List<PostDetailResponseDto> content = getContent(pageable, meetingId, userId);
+        List<PostDetailResponseDto> content = getContentList(pageable, meetingId, userId);
         JPAQuery<Long> countQuery = getCount(meetingId);
 
         return PageableExecutionUtils.getPage(content,
                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
     }
 
-    private List<PostDetailResponseDto> getContent(Pageable pageable, Integer meetingId,
-                                                   Integer userId) {
+    @Override
+    public PostDetailBaseDto findPost(Integer userId, Integer postId) {
+        PostDetailBaseDto postDetail = queryFactory
+                .select(new QPostDetailBaseDto(
+                        post.id,
+                        post.title,
+                        post.contents,
+                        post.createdDate,
+                        post.images,
+                        new QPostWriterInfoDto(
+                                post.user.id,
+                                post.user.orgId,
+                                post.user.name,
+                                post.user.profileImage
+                        ),
+                        post.likeCount,
+                        ExpressionUtils.as(
+                                JPAExpressions.selectFrom(like)
+                                        .where(like.postId.eq(post.id).and(like.userId.eq(userId)))
+                                        .exists()
+                                , "isLiked"
+                        ),
+                        post.viewCount,
+                        post.commentCount,
+                        new QPostMeetingDto(
+                                post.meeting.id,
+                                post.meeting.title,
+                                post.meeting.category,
+                                post.meeting.imageURL
+                        )
+                ))
+                .from(post)
+                .innerJoin(post.meeting, meeting)
+                .innerJoin(post.user, user)
+                .where(post.id.eq(postId))
+                .fetchFirst();
+
+        if (postDetail == null) {
+            throw new BadRequestException(NOT_FOUND_POST.getErrorCode());
+        }
+
+        return postDetail;
+    }
+
+    private List<PostDetailResponseDto> getContentList(Pageable pageable, Integer meetingId,
+                                                       Integer userId) {
         List<PostDetailResponseDto> responseDtos = new ArrayList<>();
 
         List<PostDetailBaseDto> postDetailList = queryFactory
@@ -77,7 +123,8 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
                         new QPostMeetingDto(
                                 post.meeting.id,
                                 post.meeting.title,
-                                post.meeting.category
+                                post.meeting.category,
+                                post.meeting.imageURL
                         )
                 ))
                 .from(post)

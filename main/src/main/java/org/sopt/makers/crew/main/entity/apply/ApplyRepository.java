@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.apply;
 
-import static org.sopt.makers.crew.main.common.response.ErrorStatus.NOT_FOUND_APPLY;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_FOUND_APPLY;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,9 +18,21 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
     List<Apply> findAllByUserIdAndStatus(@Param("userId") Integer userId,
                                          @Param("statusValue") EnApplyStatus statusValue);
 
+    @Query("select a from Apply a join fetch a.meeting m join fetch m.user u where a.userId = :userId")
+    List<Apply> findAllByUserId(@Param("userId") Integer userId);
+
+    @Query("select a "
+        + "from Apply a "
+        + "join fetch a.user u "
+        + "where a.meetingId = :meetingId "
+        + "and a.status in :statuses order by :order")
+    List<Apply> findAllByMeetingIdWithUser(@Param("meetingId") Integer meetingId, @Param("statuses") List<EnApplyStatus> statuses, @Param("order") String order);
+
     List<Apply> findAllByMeetingIdAndStatus(Integer meetingId, EnApplyStatus statusValue);
 
     List<Apply> findAllByMeetingId(Integer meetingId);
+
+    List<Apply> findAllByMeetingIdIn(List<Integer> meetingIds);
 
     boolean existsByMeetingIdAndUserId(Integer meetingId, Integer userId);
 
@@ -29,11 +41,14 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
     @Query("delete from Apply a where a.meeting.id = :meetingId and a.userId = :userId")
     void deleteByMeetingIdAndUserId(@Param("meetingId") Integer meetingId, @Param("userId") Integer userId);
 
-    Optional<Apply> findById(Integer applyId);
-
     default Apply findByIdOrThrow(Integer applyId) {
         return findById(applyId)
                 .orElseThrow(() -> new BadRequestException(NOT_FOUND_APPLY.getErrorCode()));
     }
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("DELETE FROM Apply a WHERE a.meetingId = :meetingId")
+    void deleteAllByMeetingIdQuery(Integer meetingId);
 
 }

@@ -15,6 +15,7 @@ export class UserV1Controller {
   @ApiOperation({
     summary: '유저 본인 프로필 조회',
     description: '유저 본인 프로필 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(UserV1GetUserOwnProfileResponseDto)
   @ApiBearerAuth()

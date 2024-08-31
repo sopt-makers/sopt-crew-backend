@@ -18,6 +18,7 @@ export class AuthV0Controller {
   @ApiOperation({
     summary: '로그인/회원가입',
     description: '로그인/회원가입',
+    deprecated: true,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,

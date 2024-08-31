@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "댓글 업데이트 request body dto")
+@Schema(description = "댓글 수정 request body dto")
 public class CommentV2UpdateCommentBodyDto {
 
-  @Schema(example = "알고보면 쓸데있는 개발 프로세스", description = "댓글 내용")
-  @NotEmpty
-  private String contents;
+	@Schema(example = "알고보면 쓸데있는 개발 프로세스", description = "댓글 내용")
+	@NotEmpty
+	private String contents;
 
 }

@@ -47,6 +47,7 @@ export class MeetingV0Controller {
   @ApiOperation({
     summary: '모임 지원자 상태 변경',
     description: '모임 지원자 상태 변경',
+    deprecated: true,
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
@@ -68,6 +69,7 @@ export class MeetingV0Controller {
     summary: '모임 지원자/참여자 조회',
     description:
       '모임 지원자/참여자 조회 (모임장이면 지원자, 아니면 참여자 조회)',
+    deprecated: true,
   })
   @ApiOkResponseCommon(MeetingV0GetApplyListByMeetingResponseDto)
   @ApiResponse({
@@ -115,6 +117,7 @@ export class MeetingV0Controller {
   @ApiOperation({
     summary: '모임 상세 조회',
     description: '모임 상세 조회',
+    deprecated: true,
   })
   @ApiOkResponseCommon(MeetingV0GetMeetingByIdResponseDto)
   @ApiResponse({
@@ -136,6 +139,7 @@ export class MeetingV0Controller {
   @ApiOperation({
     summary: '모임 전체 조회/검색/필터링',
     description: '모임 전체 조회/검색/필터링',
+    deprecated: true
   })
   @ApiOkResponseCommon(MeetingV0GetAllMeetingsResponseDto)
   @Get('/')
@@ -148,6 +152,7 @@ export class MeetingV0Controller {
   @ApiOperation({
     summary: '모임 삭제',
     description: '모임 삭제',
+    deprecated: true,
   })
   @ApiResponse({
     status: HttpStatus.OK,

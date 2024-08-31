@@ -1,9 +1,10 @@
 package org.sopt.makers.crew.main.entity.meeting;
 
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
 import io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -26,7 +27,8 @@ import lombok.NoArgsConstructor;
 
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
-import org.sopt.makers.crew.main.entity.apply.Apply;
+import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.common.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.meeting.converter.MeetingCategoryConverter;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
@@ -77,7 +79,6 @@ public class Meeting {
 	 */
 	@Column(name = "imageURL", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
-	//@JdbcTypeCode(SqlTypes.JSON)
 	private List<ImageUrlVO> imageURL;
 
 	/**
@@ -174,7 +175,7 @@ public class Meeting {
 	private MeetingJoinablePart[] joinableParts;
 
 	@Builder
-	public Meeting(User user, Integer userId, List<Apply> appliedInfo, String title, MeetingCategory category,
+	public Meeting(User user, Integer userId, String title, MeetingCategory category,
 		List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
 		String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
 		String leaderDesc, String targetDesc, String note, Boolean isMentorNeeded,
@@ -207,8 +208,8 @@ public class Meeting {
 	 *
 	 * @return 모임 모집상태
 	 */
-	public Integer getMeetingStatus() {
-		LocalDateTime now = LocalDateTime.now();
+	public Integer getMeetingStatus(LocalDateTime now) {
+
 		if (now.isBefore(startDate)) {
 			return EnMeetingStatus.BEFORE_START.getValue();
 		} else if (now.isBefore(endDate)) {
@@ -217,4 +218,42 @@ public class Meeting {
 			return EnMeetingStatus.RECRUITMENT_COMPLETE.getValue();
 		}
 	}
+
+	public void validateMeetingCreator(Integer requestUserId) {
+		if (Boolean.FALSE.equals(checkMeetingLeader(requestUserId))) {
+			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+	}
+
+	public Boolean checkMeetingLeader(Integer userId) {
+		return this.userId.equals(userId);
+	}
+
+	public void validateCapacity(int approvedCount) {
+		if (approvedCount >= this.capacity) {
+			throw new BadRequestException(FULL_MEETING_CAPACITY.getErrorCode());
+		}
+	}
+
+	public void updateMeeting(Meeting updateMeeting) {
+
+		this.title = updateMeeting.getTitle();
+		this.category = updateMeeting.getCategory();
+		this.imageURL = updateMeeting.getImageURL();
+		this.startDate = updateMeeting.getStartDate();
+		this.endDate = updateMeeting.getEndDate();
+		this.capacity = updateMeeting.getCapacity();
+		this.desc = updateMeeting.getDesc();
+		this.processDesc = updateMeeting.getProcessDesc();
+		this.mStartDate = updateMeeting.mStartDate;
+		this.mEndDate = updateMeeting.getMEndDate();
+		this.leaderDesc = updateMeeting.getLeaderDesc();
+		this.targetDesc = updateMeeting.getTargetDesc();
+		this.note = updateMeeting.getNote();
+		this.isMentorNeeded = updateMeeting.getIsMentorNeeded();
+		this.canJoinOnlyActiveGeneration = updateMeeting.getCanJoinOnlyActiveGeneration();
+		this.targetActiveGeneration = updateMeeting.getTargetActiveGeneration();
+		this.joinableParts = updateMeeting.getJoinableParts();
+	}
+
 }

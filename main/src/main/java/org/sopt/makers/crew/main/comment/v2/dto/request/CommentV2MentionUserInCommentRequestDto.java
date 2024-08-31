@@ -14,18 +14,15 @@ import lombok.Getter;
 @Schema(description = "댓글에서 유저 언급 request body dto")
 public class CommentV2MentionUserInCommentRequestDto {
 
-	/**
-	 * 주의!! : 필드명은 userIds 이지만 실제 요청받는 값은 orgId 입니다.
-	 */
-
-	@Schema(example = "[111, 112, 113]", required = true, description = "언급할 유저 ID")
+	@Schema(example = "[111, 112, 113]", description = "메이커스 프로덕트에서 범용적으로 사용하는 userId")
 	@NotEmpty
-	private List<Integer> userIds;
+	private List<Integer> orgIds;
 
-	@Schema(example = "1", required = true, description = "게시글 ID")
+	@Schema(example = "1", description = "게시글 ID")
 	@NotNull
 	private Integer postId;
 
-	@Schema(example = "멘션내용~~", required = true, description = "멘션 내용")
+	@Schema(example = "멘션내용~~", description = "멘션 내용")
+	@NotNull
 	private String content;
 }
