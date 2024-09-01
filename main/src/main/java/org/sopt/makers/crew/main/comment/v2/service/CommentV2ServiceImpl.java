@@ -235,7 +235,8 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		Post post = postRepository.findByIdOrThrow(comment.getPostId());
 		post.decreaseCommentCount();
 
-		Comments childComments = new Comments(commentRepository.findAllByParentIdOrderByOrderDesc(comment.getId()));
+		Comments childComments = new Comments(
+			commentRepository.findAllByParentIdAndDepthOrderByOrderDesc(comment.getId(), IS_REPLY_COMMENT));
 
 		if (comment.getDepth() == IS_REPLY_COMMENT || !childComments.hasChild()) {
 			commentRepository.delete(comment);
