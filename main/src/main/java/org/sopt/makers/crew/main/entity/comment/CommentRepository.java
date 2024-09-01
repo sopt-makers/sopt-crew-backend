@@ -19,7 +19,7 @@ public interface CommentRepository extends JpaRepository<Comment, Integer>, Comm
 
 	Optional<Comment> findFirstByParentIdOrderByOrderDesc(Integer parentId);
 
-	List<Comment> findAllByParentIdOrderByOrderDesc(Integer parentId);
+	List<Comment> findAllByParentIdAndDepthOrderByOrderDesc(Integer parentId, int depth);
 
 	Optional<Comment> findByIdAndPostId(Integer id, Integer postId);
 
