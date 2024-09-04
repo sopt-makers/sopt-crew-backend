@@ -102,19 +102,6 @@ public class CommentV2Controller implements CommentV2Api {
 	}
 
 	@Override
-	@GetMapping("/temp")
-	public ResponseEntity<TempResponseDto<CommentV2GetCommentsResponseDto>> getCommentsTemp(
-		@Valid @ModelAttribute @Parameter(hidden = true) CommentV2GetCommentsQueryDto request,
-		Principal principal) {
-
-		Integer userId = UserUtil.getUserId(principal);
-		CommentV2GetCommentsResponseDto commentDtos = commentV2Service.getComments(request.getPostId(),
-			request.getPage(), request.getTake(), userId);
-
-		return ResponseEntity.status(HttpStatus.OK).body(TempResponseDto.of(commentDtos));
-	}
-
-	@Override
 	@PostMapping("/{commentId}/like")
 	public ResponseEntity<CommentV2SwitchCommentLikeResponseDto> switchCommentLike(
 		Principal principal,
