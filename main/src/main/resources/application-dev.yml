@@ -67,3 +67,24 @@ playground:
   server:
     url: ${DEV_PLAYGROUND_URL}
     endpoint: ${PLAYGROUND_ENDPOINT}
+
+management:
+  endpoints:
+    enabled-by-default: false
+    jmx:
+      exposure:
+        exclude: "*"
+    web:
+      exposure:
+        include: info, health, prometheus
+  endpoint:
+    health:
+      enabled: true
+    info:
+      enabled: true
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
