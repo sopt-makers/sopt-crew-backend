@@ -189,23 +189,6 @@ public class MeetingV2Controller implements MeetingV2Api {
 	}
 
 	@Override
-	@GetMapping("/{meetingId}/list/csv/temp")
-	public ResponseEntity<TempResponseDto<AppliesCsvFileUrlResponseDto>> getAppliesCsvFileUrlTemp(
-		@PathVariable Integer meetingId,
-		@ModelAttribute @Valid MeetingGetAppliesCsvQueryDto queryCommand,
-		Principal principal) {
-		Integer userId = UserUtil.getUserId(principal);
-
-		// TODO: FE 에서 request 값 변경하도록 요청 필요
-		List<Integer> statuses = List.of(0, 1, 2);
-
-		AppliesCsvFileUrlResponseDto responseDto = meetingV2Service.getAppliesCsvFileUrl(meetingId, statuses,
-			queryCommand.getOrder(), userId);
-
-		return ResponseEntity.ok(TempResponseDto.of(responseDto));
-	}
-
-	@Override
 	@GetMapping("/{meetingId}")
 	public ResponseEntity<MeetingV2GetMeetingByIdResponseDto> getMeetingById(@PathVariable Integer meetingId,
 		Principal principal) {
