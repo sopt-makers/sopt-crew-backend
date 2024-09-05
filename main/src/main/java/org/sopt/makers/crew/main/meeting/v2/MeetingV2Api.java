@@ -134,16 +134,6 @@ public interface MeetingV2Api {
         @ModelAttribute @Valid @Parameter(hidden = true) MeetingGetAppliesCsvQueryDto queryCommand,
         Principal principal);
 
-    @Operation(summary = "[TEMP] 모임 지원자 목록 csv 파일 다운로드", description = "모임 지원자 목록 csv 파일 다운로드")
-    @Parameters({
-        @Parameter(name = "status", description = "0: 대기, 1: 승인된 신청자, 2: 거절된 신청자", example = "0,1", required = true, schema = @Schema(type = "string")),
-        @Parameter(name = "type", description = "0: 지원, 1: 초대", example = "0,1", required = true, schema = @Schema(type = "string")),
-        @Parameter(name = "order", description = "정렬순", example = "desc", schema = @Schema(type = "string", format = "string"))})
-    ResponseEntity<TempResponseDto<AppliesCsvFileUrlResponseDto>> getAppliesCsvFileUrlTemp(
-        @PathVariable Integer meetingId,
-        @ModelAttribute @Valid @Parameter(hidden = true) MeetingGetAppliesCsvQueryDto queryCommand,
-        Principal principal);
-
     @Operation(summary = "모임 상세 조회", description = "모임 상세 조회")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 상세 조회 성공"),
         @ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
