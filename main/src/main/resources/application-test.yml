@@ -73,6 +73,8 @@ playground:
 
 
 management:
+  server:
+    port: ${ACTUATOR_PORT}
   endpoints:
     enabled-by-default: false
     jmx:
@@ -81,6 +83,7 @@ management:
     web:
       exposure:
         include: info, health, prometheus
+      base-path: ${ACTUATOR_PATH}
   endpoint:
     health:
       enabled: true
