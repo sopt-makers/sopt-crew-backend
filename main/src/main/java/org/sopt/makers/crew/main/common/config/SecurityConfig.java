@@ -45,13 +45,16 @@ public class SecurityConfig {
 		"/swagger-ui/swagger-ui.css",
 	};
 
-	private static final String[] AUTH_WHITELIST = {
-		"/health",
-		"/health/v2",
-		"/meeting/v2/org-user/**",
-		"/auth/v2",
-		"/auth/v2/**"
-	};
+	private String[] getAuthWhitelist() {
+		return new String[] {
+			"/health",
+			"/health/v2",
+			"/meeting/v2/org-user/**",
+			"/auth/v2",
+			"/auth/v2/**",
+			actuatorEndPoint + "/health"
+		};
+	}
 
 	@Bean
 	@Profile("dev")
@@ -68,10 +71,9 @@ public class SecurityConfig {
 						.map(AntPathRequestMatcher::antMatcher)
 						.toArray(AntPathRequestMatcher[]::new)).permitAll()
 					.requestMatchers(Stream
-						.of(AUTH_WHITELIST)
+						.of(getAuthWhitelist())
 						.map(AntPathRequestMatcher::antMatcher)
 						.toArray(AntPathRequestMatcher[]::new)).permitAll()
-					.requestMatchers(new AntPathRequestMatcher(actuatorEndPoint + "/health")).permitAll()
 					.anyRequest().authenticated())
 			.addFilterBefore(
 				new JwtAuthenticationFilter(this.jwtTokenProvider,
@@ -97,10 +99,9 @@ public class SecurityConfig {
 						.map(AntPathRequestMatcher::antMatcher)
 						.toArray(AntPathRequestMatcher[]::new)).permitAll()
 					.requestMatchers(Stream
-						.of(AUTH_WHITELIST)
+						.of(getAuthWhitelist())
 						.map(AntPathRequestMatcher::antMatcher)
 						.toArray(AntPathRequestMatcher[]::new)).permitAll()
-					.requestMatchers(new AntPathRequestMatcher(actuatorEndPoint + "/health")).permitAll()
 					.anyRequest().authenticated())
 			.addFilterBefore(
 				new JwtAuthenticationFilter(this.jwtTokenProvider,
@@ -126,10 +127,9 @@ public class SecurityConfig {
 						.map(AntPathRequestMatcher::antMatcher)
 						.toArray(AntPathRequestMatcher[]::new)).permitAll()
 					.requestMatchers(Stream
-						.of(AUTH_WHITELIST)
+						.of(getAuthWhitelist())
 						.map(AntPathRequestMatcher::antMatcher)
 						.toArray(AntPathRequestMatcher[]::new)).permitAll()
-					.requestMatchers(new AntPathRequestMatcher(actuatorEndPoint + "/health")).permitAll()
 					.anyRequest().authenticated())
 			.addFilterBefore(
 				new JwtAuthenticationFilter(this.jwtTokenProvider,
