@@ -13,15 +13,15 @@ import lombok.Setter;
 @Setter
 public class MeetingV2GetAllMeetingQueryDto extends PageOptionsDto {
 
-
 	List<String> category;
 
 	List<String> status;
+
 	@NotNull
 	Boolean isOnlyActiveGeneration;
-	@NotNull
+
 	MeetingJoinablePart[] joinableParts;
-	@NotNull
+
 	String query;
 
 	public MeetingV2GetAllMeetingQueryDto(Integer page, Integer take) {
