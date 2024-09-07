@@ -36,7 +36,7 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	@Schema(example = "false", description = "활동기수만 지원 가능 여부")
 	@NotNull
 	Boolean canJoinOnlyActiveGeneration,
-	@Schema(example = "2", description = "모임 활동 상태", type = "number", allowableValues = {"1", "2", "3"})
+	@Schema(example = "2", description = "모임 활동 상태", type = "number", allowableValues = {"0", "1", "2"})
 	@NotNull
 	Integer status,
 	/**

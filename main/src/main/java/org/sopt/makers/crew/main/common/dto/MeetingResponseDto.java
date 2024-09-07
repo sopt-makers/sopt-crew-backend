@@ -44,7 +44,7 @@ public class MeetingResponseDto {
 	@Schema(example = "false", description = "활동기수만 지원 가능 여부")
 	@NotNull
 	private final Boolean canJoinOnlyActiveGeneration;
-	@Schema(example = "2", description = "모임 활동 상태")
+	@Schema(example = "2", description = "모임 활동 상태", type = "number", allowableValues = {"0", "1", "2"})
 	@NotNull
 	private final Integer status;
 	/**
