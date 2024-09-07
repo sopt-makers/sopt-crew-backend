@@ -11,10 +11,10 @@ import org.sopt.makers.crew.main.common.jwt.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -57,65 +57,8 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	@Profile("dev")
-	SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf((csrfConfig) -> csrfConfig.disable())
-			.cors(Customizer.withDefaults())
-			.sessionManagement(
-				(sessionManagement) -> sessionManagement.sessionCreationPolicy(
-					SessionCreationPolicy.STATELESS))
-			.authorizeHttpRequests(
-				authorize -> authorize
-					.requestMatchers(Stream
-						.of(SWAGGER_URL)
-						.map(AntPathRequestMatcher::antMatcher)
-						.toArray(AntPathRequestMatcher[]::new)).permitAll()
-					.requestMatchers(Stream
-						.of(getAuthWhitelist())
-						.map(AntPathRequestMatcher::antMatcher)
-						.toArray(AntPathRequestMatcher[]::new)).permitAll()
-					.anyRequest().authenticated())
-			.addFilterBefore(
-				new JwtAuthenticationFilter(this.jwtTokenProvider,
-					this.jwtAuthenticationEntryPoint),
-				UsernamePasswordAuthenticationFilter.class)
-			.exceptionHandling(exceptionHandling -> exceptionHandling
-				.authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
-		return http.build();
-	}
-
-	@Bean
-	@Profile("test")
-	SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf((csrfConfig) -> csrfConfig.disable())
-			.cors(Customizer.withDefaults())
-			.sessionManagement(
-				(sessionManagement) -> sessionManagement.sessionCreationPolicy(
-					SessionCreationPolicy.STATELESS))
-			.authorizeHttpRequests(
-				authorize -> authorize
-					.requestMatchers(Stream
-						.of(SWAGGER_URL)
-						.map(AntPathRequestMatcher::antMatcher)
-						.toArray(AntPathRequestMatcher[]::new)).permitAll()
-					.requestMatchers(Stream
-						.of(getAuthWhitelist())
-						.map(AntPathRequestMatcher::antMatcher)
-						.toArray(AntPathRequestMatcher[]::new)).permitAll()
-					.anyRequest().authenticated())
-			.addFilterBefore(
-				new JwtAuthenticationFilter(this.jwtTokenProvider,
-					this.jwtAuthenticationEntryPoint),
-				UsernamePasswordAuthenticationFilter.class)
-			.exceptionHandling(exceptionHandling -> exceptionHandling
-				.authenticationEntryPoint(this.jwtAuthenticationEntryPoint));
-		return http.build();
-	}
-
-	@Bean
-	@Profile("prod")
-	SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf((csrfConfig) -> csrfConfig.disable())
+	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http.csrf(AbstractHttpConfigurer::disable)
 			.cors(Customizer.withDefaults())
 			.sessionManagement(
 				(sessionManagement) -> sessionManagement.sessionCreationPolicy(
@@ -144,9 +87,13 @@ public class SecurityConfig {
 	CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(
-			Arrays.asList("https://playground.sopt.org/", "http://localhost:3000/",
-				"https://sopt-internal-dev.pages.dev/", "https://crew.api.dev.sopt.org",
-				"https://crew.api.prod.sopt.org"));
+			Arrays.asList(
+				"https://playground.sopt.org/",
+				"http://localhost:3000/",
+				"https://sopt-internal-dev.pages.dev/",
+				"https://crew.api.dev.sopt.org",
+				"https://crew.api.prod.sopt.org"
+			));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"));
 		configuration.addAllowedHeader("*");
 		configuration.setAllowCredentials(false);
