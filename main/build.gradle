@@ -78,6 +78,9 @@ dependencies {
 
     // csv 관련
     implementation 'com.opencsv:opencsv:5.5.2'
+
+    // prometheus
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {

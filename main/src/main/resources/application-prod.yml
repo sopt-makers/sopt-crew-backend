@@ -66,3 +66,28 @@ playground:
   server:
     url: ${PROD_PLAYGROUND_URL}
     endpoint: ${PLAYGROUND_ENDPOINT}
+
+
+management:
+  server:
+    port: ${ACTUATOR_PORT}
+  endpoints:
+    enabled-by-default: false
+    jmx:
+      exposure:
+        exclude: "*"
+    web:
+      exposure:
+        include: info, health, prometheus
+      base-path: ${ACTUATOR_PATH}
+  endpoint:
+    health:
+      enabled: true
+    info:
+      enabled: true
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
