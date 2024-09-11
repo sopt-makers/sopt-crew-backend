@@ -96,7 +96,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 
 		List<MeetingV2GetCreatedMeetingByUserResponseDto> meetingByUserDtos = meetings.stream()
 			.map(meeting -> MeetingV2GetCreatedMeetingByUserResponseDto.of(meeting, meetingCreator,
-				applies.getAppliedCount(meeting.getId()), time.now()))
+				applies.getApprovedCount(meeting.getId()), time.now()))
 			.toList();
 
 		return UserV2GetCreatedMeetingByUserResponseDto.of(meetingByUserDtos);
@@ -113,7 +113,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 			.map(apply -> ApplyV2GetAppliedMeetingByUserResponseDto.of(
 				apply.getId(), apply.getStatus().getValue(),
 				MeetingV2GetCreatedMeetingByUserResponseDto.of(apply.getMeeting(), apply.getMeeting().getUser(),
-					allApplies.getAppliedCount(apply.getMeetingId()), time.now())
+					allApplies.getApprovedCount(apply.getMeetingId()), time.now())
 			)).toList();
 
 		return UserV2GetAppliedMeetingByUserResponseDto.of(appliedMeetingByUserDtos);

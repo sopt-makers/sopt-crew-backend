@@ -36,14 +36,14 @@ public class Applies {
 		return applies.size();
 	}
 
-	public long getApprovedCount(Integer meetingId) {
+	public int getApprovedCount(Integer meetingId) {
 		List<Apply> applies = appliesMap.get(meetingId);
 
 		if (applies == null) {
 			return 0;
 		}
 
-		return appliesMap.get(meetingId).stream()
+		return (int) appliesMap.get(meetingId).stream()
 			.filter(apply -> apply.getStatus().equals(EnApplyStatus.APPROVE))
 			.count();
 	}
