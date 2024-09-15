@@ -29,7 +29,7 @@ import com.zaxxer.hikari.HikariDataSource;
 	entityManagerFactoryRef = "secondEntityManagerFactory",
 	transactionManagerRef = "secondTransactionManager"
 )
-@Profile("!test")
+@Profile({"dev", "prod"})
 public class PlaygroundDataSourceConfig {
 	@Bean
 	@ConfigurationProperties("spring.playground-datasource")

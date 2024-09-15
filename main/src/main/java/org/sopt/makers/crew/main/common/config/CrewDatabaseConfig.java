@@ -29,7 +29,7 @@ import com.zaxxer.hikari.HikariDataSource;
 	entityManagerFactoryRef = "primaryEntityManagerFactory", // EntityManager의 이름
 	transactionManagerRef = "primaryTransactionManager" // 트랜잭션 매니저의 이름
 )
-@Profile("!test")
+@Profile({"dev", "prod"})
 public class CrewDatabaseConfig {
 
 	@Bean
