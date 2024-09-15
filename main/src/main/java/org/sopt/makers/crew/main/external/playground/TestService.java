@@ -17,10 +17,10 @@ public class TestService {
 	private final MemberBlockRepository memberBlockRepository;
 
 	@GetMapping
-	public void test1() {
+	public List<MemberBlock> test1() {
 		// TODO: 해당 API는 차단 기능 구현할 때 참고용으로 만들었으며, 삭제가 필요하다.
 		List<MemberBlock> all = memberBlockRepository.findAll();
 
-		all.get(0);
+		return all;
 	}
 }

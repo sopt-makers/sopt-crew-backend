@@ -10,10 +10,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "member_block")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberBlock {
 
