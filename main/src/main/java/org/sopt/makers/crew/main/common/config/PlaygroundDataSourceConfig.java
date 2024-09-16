@@ -7,7 +7,6 @@ import java.util.Objects;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -20,8 +19,6 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.zaxxer.hikari.HikariDataSource;
-
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
@@ -29,7 +26,7 @@ import com.zaxxer.hikari.HikariDataSource;
 	entityManagerFactoryRef = "secondEntityManagerFactory",
 	transactionManagerRef = "secondTransactionManager"
 )
-@Profile({"dev", "prod"})
+@Profile({"local", "dev", "prod"})
 public class PlaygroundDataSourceConfig {
 	@Bean
 	@ConfigurationProperties("spring.playground-datasource")

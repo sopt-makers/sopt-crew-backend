@@ -20,8 +20,6 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.zaxxer.hikari.HikariDataSource;
-
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
@@ -29,7 +27,7 @@ import com.zaxxer.hikari.HikariDataSource;
 	entityManagerFactoryRef = "primaryEntityManagerFactory", // EntityManager의 이름
 	transactionManagerRef = "primaryTransactionManager" // 트랜잭션 매니저의 이름
 )
-@Profile({"dev", "prod"})
+@Profile({"local", "dev", "prod"})
 public class CrewDatabaseConfig {
 
 	@Bean

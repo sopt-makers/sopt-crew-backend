@@ -8,9 +8,13 @@ spring:
     import: application-secret.properties
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${LOCAL_DB_HOST}:${LOCAL_DB_PORT}/${LOCAL_DB_NAME}?currentSchema=${LOCAL_DB_SCHEMA}
+    jdbc-url: jdbc:postgresql://${LOCAL_DB_HOST}:${LOCAL_DB_PORT}/${LOCAL_DB_NAME}?currentSchema=${LOCAL_DB_SCHEMA}
     username: ${LOCAL_DB_USERNAME}
     password: ${LOCAL_DB_PASSWORD}
+  playground-datasource:
+    jdbc-url: jdbc:postgresql://${LOCAL_DB_HOST}:${LOCAL_DB_PORT}/${LOCAL_PLAYGROUND_DB_NAME}?currentSchema=${LOCAL_PLAYGROUND_DB_SCHEMA}
+    username: ${LOCAL_PLAYGROUND_DB_USERNAME}
+    password: ${LOCAL_PLAYGROUND_DB_PASSWORD}
   jpa:
     open-in-view: false
     hibernate:
