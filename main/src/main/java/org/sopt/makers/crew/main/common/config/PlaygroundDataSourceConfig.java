@@ -51,7 +51,7 @@ public class PlaygroundDataSourceConfig {
 
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-		//properties.put("hibernate.hbm2ddl.auto", "validate");
+		properties.put("hibernate.hbm2ddl.auto", "validate");
 		properties.put("hibernate.format_sql", true);
 		properties.put("hibernate.physical_naming_strategy", "org.sopt.makers.crew.main.common.config.CamelCaseNamingStrategy");
 		properties.put("hibernate.globally_quoted_identifiers", true);
