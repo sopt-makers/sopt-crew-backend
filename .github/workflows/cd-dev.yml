@@ -32,14 +32,14 @@ jobs:
 
       - name: docker image 빌드 및 푸시 (Spring)
         run: |
-          docker build --platform linux/amd64 -t makerscrew/main .
-          docker push makerscrew/main
+          docker build --platform linux/amd64 -t makerscrew/main:develop .
+          docker push makerscrew/main:develop
         working-directory: ${{ env.working-directory-spring }}
 
       - name: docker image 빌드 및 푸시 (nestjs)
         run: |
-          docker build --platform linux/amd64 -t makerscrew/server .
-          docker push makerscrew/server
+          docker build --platform linux/amd64 -t makerscrew/server:develop .
+          docker push makerscrew/server:develop
         working-directory: ${{ env.working-directory-nestjs }}
 
       - name: 도커 컨테이너 실행
