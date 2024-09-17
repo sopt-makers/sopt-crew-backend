@@ -29,7 +29,7 @@ public class MemberBlock {
 	@NotNull
 	@Column(name = "is_blocked")
 	private Boolean isBlocked = true;
-	@Column(name = "blocked_id")
+	@Column(name = "blocked_member_id")
 	private Long blockedId;
 	@Column(name = "blocker_id")
 	private Long blockerId;
