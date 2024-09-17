@@ -5,6 +5,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
+import org.sopt.makers.crew.main.common.dto.TempResponseDto;
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
@@ -52,11 +53,27 @@ public class UserV2Controller implements UserV2Api {
 	}
 
 	@Override
+	@GetMapping("/profile/me/temp")
+	public ResponseEntity<TempResponseDto<UserV2GetUserOwnProfileResponseDto>> getUserOwnProfileTemp(
+		Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok().body(TempResponseDto.of(userV2Service.getUserOwnProfile(userId)));
+	}
+
+	@Override
 	@GetMapping("/apply")
 	public ResponseEntity<UserV2GetAppliedMeetingByUserResponseDto> getAppliedMeetingByUser(Principal principal) {
 
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.ok().body(userV2Service.getAppliedMeetingByUser(userId));
+	}
+
+	@Override
+	@GetMapping("/apply/temp")
+	public ResponseEntity<TempResponseDto<UserV2GetAppliedMeetingByUserResponseDto>> getAppliedMeetingByUserTemp(
+		Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok().body(TempResponseDto.of(userV2Service.getAppliedMeetingByUser(userId)));
 	}
 
 	@Override
@@ -67,5 +84,12 @@ public class UserV2Controller implements UserV2Api {
 		return ResponseEntity.ok().body(userV2Service.getCreatedMeetingByUser(userId));
 	}
 
+	@Override
+	@GetMapping("/meeting/temp")
+	public ResponseEntity<TempResponseDto<UserV2GetCreatedMeetingByUserResponseDto>> getCreatedMeetingByUserTemp(
+		Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok().body(TempResponseDto.of(userV2Service.getCreatedMeetingByUser(userId)));
+	}
 
 }

@@ -44,9 +44,9 @@ public class MeetingResponseDto {
 	@Schema(example = "false", description = "활동기수만 지원 가능 여부")
 	@NotNull
 	private final Boolean canJoinOnlyActiveGeneration;
-	@Schema(example = "2", description = "모임 활동 상태")
+	@Schema(example = "2", description = "모임 활동 상태", type = "integer", allowableValues = {"0", "1", "2"})
 	@NotNull
-	private final Integer status;
+	private final int status;
 	/**
 	 * 썸네일 이미지
 	 *
@@ -58,10 +58,10 @@ public class MeetingResponseDto {
 	@Schema(example = "false", description = "멘토 필요 여부")
 	@NotNull
 	private final Boolean isMentorNeeded;
-	@Schema(description = "모임 활동 시작일", example = "2024-07-31T15:30:00")
+	@Schema(description = "모임 활동 시작일", example = "2024-07-31T15:30:00", name = "mStartDate")
 	@NotNull
 	private final LocalDateTime mStartDate;
-	@Schema(description = "모임 활동 종료일", example = "2024-08-25T15:30:00")
+	@Schema(description = "모임 활동 종료일", example = "2024-08-25T15:30:00", name = "mEndDate")
 	@NotNull
 	private final LocalDateTime mEndDate;
 	@Schema(description = "모집 인원", example = "20")
@@ -101,7 +101,15 @@ public class MeetingResponseDto {
 		this.appliedCount = appliedCount;
 	}
 
-	public static MeetingResponseDto of(Meeting meeting, User meetingCreator, int appliedCount, LocalDateTime now){
+	public LocalDateTime getmStartDate() {
+		return mStartDate;
+	}
+
+	public LocalDateTime getmEndDate() {
+		return mEndDate;
+	}
+
+	public static MeetingResponseDto of(Meeting meeting, User meetingCreator, int appliedCount, LocalDateTime now) {
 		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meetingCreator);
 		boolean canJoinOnlyActiveGeneration = meeting.getTargetActiveGeneration() == CrewConst.ACTIVE_GENERATION
 			&& meeting.getCanJoinOnlyActiveGeneration();
@@ -109,6 +117,7 @@ public class MeetingResponseDto {
 		return new MeetingResponseDto(meeting.getId(), meeting.getTitle(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory(),
 			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), meeting.getImageURL(),
-			meeting.getIsMentorNeeded(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(), creatorDto, appliedCount);
+			meeting.getIsMentorNeeded(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(),
+			creatorDto, appliedCount);
 	}
 }

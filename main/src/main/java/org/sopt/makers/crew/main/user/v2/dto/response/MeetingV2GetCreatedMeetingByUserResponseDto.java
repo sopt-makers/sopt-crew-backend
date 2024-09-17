@@ -36,9 +36,9 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	@Schema(example = "false", description = "활동기수만 지원 가능 여부")
 	@NotNull
 	Boolean canJoinOnlyActiveGeneration,
-	@Schema(example = "2", description = "모임 활동 상태")
+	@Schema(example = "2", description = "모임 활동 상태", type = "integer", allowableValues = {"0", "1", "2"})
 	@NotNull
-	Integer status,
+	int status,
 	/**
 	 * 썸네일 이미지
 	 *
@@ -66,7 +66,8 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	@NotNull
 	int appliedCount
 ) {
-	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, User meetingCreator, int appliedCount, LocalDateTime now) {
+	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, User meetingCreator, int appliedCount,
+		LocalDateTime now) {
 		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meetingCreator);
 		boolean canJoinOnlyActiveGeneration = meeting.getTargetActiveGeneration() == CrewConst.ACTIVE_GENERATION
 			&& meeting.getCanJoinOnlyActiveGeneration();
@@ -74,7 +75,8 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 		return new MeetingV2GetCreatedMeetingByUserResponseDto(meeting.getId(), meeting.getTitle(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory().getValue(),
 			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), meeting.getImageURL(),
-			meeting.getIsMentorNeeded(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(), creatorDto, appliedCount);
+			meeting.getIsMentorNeeded(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(),
+			creatorDto, appliedCount);
 	}
 
 }

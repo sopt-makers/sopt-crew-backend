@@ -8,9 +8,9 @@ public record ApplyV2GetAppliedMeetingByUserResponseDto(
 	@Schema(description = "신청 id", example = "130")
 	@NotNull
 	Integer id,
-	@Schema(description = "신청 상태", example = "1")
+	@Schema(description = "신청 상태", example = "1", type = "integer", allowableValues = {"0", "1", "2"})
 	@NotNull
-	Integer status,
+	int status,
 	@Schema(description = "신청 모임 정보")
 	@NotNull
 	MeetingV2GetCreatedMeetingByUserResponseDto meeting

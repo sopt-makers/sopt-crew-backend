@@ -106,9 +106,9 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final MeetingJoinablePart[] joinableParts;
 
-	@Schema(description = "모임 상태, 0: 모집전, 1: 모집중, 2: 모집종료", example = "1")
+	@Schema(description = "모임 상태, 0: 모집전, 1: 모집중, 2: 모집종료", example = "1", type = "integer", allowableValues = {"0", "1", "2"})
 	@NotNull
-	private final Integer status;
+	private final int status;
 
 	@Schema(description = "승인된 신청 수", example = "7")
 	@NotNull
