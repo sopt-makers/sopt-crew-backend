@@ -132,10 +132,10 @@ public class PostV2ServiceImpl implements PostV2Service {
 
 	@Override
 	@Transactional(readOnly = true)
-	public PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, Integer userId) {
+	public PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, User user) {
 		Sort sort = Sort.by(Sort.Direction.ASC, "id");
 		Page<PostDetailResponseDto> meetingPostListDtos = postRepository.findPostList(queryCommand,
-			new CustomPageable(queryCommand.getPage() - 1, sort), userId);
+			new CustomPageable(queryCommand.getPage() - 1, sort), user);
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetingPostListDtos.getPageable().getPageNumber() + 1,
 			meetingPostListDtos.getPageable().getPageSize());

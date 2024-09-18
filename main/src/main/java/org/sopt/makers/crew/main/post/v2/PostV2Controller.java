@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.common.util.UserUtil;
+import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
@@ -17,6 +18,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.service.PostV2Service;
+import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PostV2Controller implements PostV2Api {
 
     private final PostV2Service postV2Service;
+    private final UserV2Service userV2Service;
 
     @Override
     @PostMapping()
@@ -53,8 +56,8 @@ public class PostV2Controller implements PostV2Api {
     public ResponseEntity<PostV2GetPostsResponseDto> getPosts(
             @ModelAttribute @Parameter(hidden = true) PostGetPostsCommand queryCommand,
             Principal principal) {
-        Integer userId = UserUtil.getUserId(principal);
-        return ResponseEntity.ok(postV2Service.getPosts(queryCommand, userId));
+        User user = userV2Service.getUserByPrincipal(principal);
+        return ResponseEntity.ok(postV2Service.getPosts(queryCommand, user));
     }
 
     @Override
