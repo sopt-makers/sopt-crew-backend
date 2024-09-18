@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.user.v2.service;
 
+import java.security.Principal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.sopt.makers.crew.main.common.exception.BaseException;
 import org.sopt.makers.crew.main.common.util.Time;
+import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
@@ -117,5 +119,10 @@ public class UserV2ServiceImpl implements UserV2Service {
 			)).toList();
 
 		return UserV2GetAppliedMeetingByUserResponseDto.of(appliedMeetingByUserDtos);
+	}
+
+	@Override
+	public User getUserByPrincipal(Principal principal) {
+		return userRepository.findByIdOrThrow(UserUtil.getUserId(principal));
 	}
 }
