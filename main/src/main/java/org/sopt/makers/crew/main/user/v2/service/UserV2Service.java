@@ -1,7 +1,9 @@
 package org.sopt.makers.crew.main.user.v2.service;
 
+import java.security.Principal;
 import java.util.List;
 
+import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAppliedMeetingByUserResponseDto;
@@ -20,5 +22,5 @@ public interface UserV2Service {
 
 	UserV2GetCreatedMeetingByUserResponseDto getCreatedMeetingByUser(Integer userId);
 
-
+	User getUserByPrincipal(Principal principal);
 }
