@@ -1,9 +1,7 @@
 package org.sopt.makers.crew.main.post.v2;
 
-import io.swagger.v3.oas.annotations.Parameter;
-import jakarta.validation.Valid;
 import java.security.Principal;
-import lombok.RequiredArgsConstructor;
+
 import org.sopt.makers.crew.main.common.util.UserUtil;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
@@ -33,92 +31,94 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/post/v2")
 @RequiredArgsConstructor
 public class PostV2Controller implements PostV2Api {
 
-    private final PostV2Service postV2Service;
-    private final UserV2Service userV2Service;
+	private final PostV2Service postV2Service;
+	private final UserV2Service userV2Service;
 
-    @Override
-    @PostMapping()
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<PostV2CreatePostResponseDto> createPost(
-            @Valid @RequestBody PostV2CreatePostBodyDto requestBody, Principal principal) {
-        Integer userId = UserUtil.getUserId(principal);
-        return ResponseEntity.ok(postV2Service.createPost(requestBody, userId));
-    }
+	@Override
+	@PostMapping()
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<PostV2CreatePostResponseDto> createPost(
+		@Valid @RequestBody PostV2CreatePostBodyDto requestBody, Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(postV2Service.createPost(requestBody, userId));
+	}
 
-    @Override
-    @GetMapping()
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<PostV2GetPostsResponseDto> getPosts(
-            @ModelAttribute @Parameter(hidden = true) PostGetPostsCommand queryCommand,
-            Principal principal) {
-        User user = userV2Service.getUserByPrincipal(principal);
-        return ResponseEntity.ok(postV2Service.getPosts(queryCommand, user));
-    }
+	@Override
+	@GetMapping()
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<PostV2GetPostsResponseDto> getPosts(
+		@ModelAttribute @Parameter(hidden = true) PostGetPostsCommand queryCommand, Principal principal) {
+		User user = userV2Service.getUserByPrincipal(principal);
+		return ResponseEntity.ok(postV2Service.getPosts(queryCommand, user));
+	}
 
-    @Override
-    @PostMapping("/mention")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Void> mentionUserInPost(
-            @Valid @RequestBody PostV2MentionUserInPostRequestDto requestBody, Principal principal) {
-        Integer userId = UserUtil.getUserId(principal);
-        postV2Service.mentionUserInPost(requestBody, userId);
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
+	@Override
+	@PostMapping("/mention")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<Void> mentionUserInPost(@Valid @RequestBody PostV2MentionUserInPostRequestDto requestBody,
+		Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		postV2Service.mentionUserInPost(requestBody, userId);
+		return ResponseEntity.status(HttpStatus.OK).build();
+	}
 
-    @Override
-    @GetMapping("/{postId}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<PostDetailBaseDto> getPost(@PathVariable Integer postId, Principal principal) {
-        Integer userId = UserUtil.getUserId(principal);
-        return ResponseEntity.ok(postV2Service.getPost(userId, postId));
-    }
+	@Override
+	@GetMapping("/{postId}")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<PostDetailBaseDto> getPost(@PathVariable Integer postId, Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(postV2Service.getPost(userId, postId));
+	}
 
-    @Override
-    @GetMapping("/count")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<PostV2GetPostCountResponseDto> getPostCount(@RequestParam Integer meetingId) {
-        return ResponseEntity.ok(postV2Service.getPostCount(meetingId));
-    }
+	@Override
+	@GetMapping("/count")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<PostV2GetPostCountResponseDto> getPostCount(@RequestParam Integer meetingId) {
+		return ResponseEntity.ok(postV2Service.getPostCount(meetingId));
+	}
 
-    @Override
-    @DeleteMapping("/{postId}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Void> deletePost(@PathVariable Integer postId, Principal principal) {
-        Integer userId = UserUtil.getUserId(principal);
-        postV2Service.deletePost(postId, userId);
-        return ResponseEntity.ok().build();
-    }
+	@Override
+	@DeleteMapping("/{postId}")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<Void> deletePost(@PathVariable Integer postId, Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		postV2Service.deletePost(postId, userId);
+		return ResponseEntity.ok().build();
+	}
 
-    @Override
-    @PutMapping("/{postId}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<PostV2UpdatePostResponseDto> updatePost(@PathVariable Integer postId,
-                                                                  @RequestBody PostV2UpdatePostBodyDto requestBody,
-                                                                  Principal principal) {
-        Integer userId = UserUtil.getUserId(principal);
-        return ResponseEntity.ok(postV2Service.updatePost(postId, requestBody, userId));
-    }
+	@Override
+	@PutMapping("/{postId}")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<PostV2UpdatePostResponseDto> updatePost(@PathVariable Integer postId,
+		@RequestBody PostV2UpdatePostBodyDto requestBody, Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(postV2Service.updatePost(postId, requestBody, userId));
+	}
 
-    @Override
-    @PostMapping("/{postId}/report")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<PostV2ReportResponseDto> reportPost(@PathVariable Integer postId, Principal principal) {
-        Integer userId = UserUtil.getUserId(principal);
-        return ResponseEntity.status(HttpStatus.CREATED).body(postV2Service.reportPost(postId, userId));
-    }
+	@Override
+	@PostMapping("/{postId}/report")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<PostV2ReportResponseDto> reportPost(@PathVariable Integer postId, Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.status(HttpStatus.CREATED).body(postV2Service.reportPost(postId, userId));
+	}
 
-    @Override
-    @PostMapping("/{postId}/like")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<PostV2SwitchPostLikeResponseDto> switchPostLike(@PathVariable Integer postId,
-                                                                          Principal principal) {
-        Integer userId = UserUtil.getUserId(principal);
-        return ResponseEntity.status(HttpStatus.CREATED).body(postV2Service.switchPostLike(postId, userId));
-    }
+	@Override
+	@PostMapping("/{postId}/like")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<PostV2SwitchPostLikeResponseDto> switchPostLike(@PathVariable Integer postId,
+		Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.status(HttpStatus.CREATED).body(postV2Service.switchPostLike(postId, userId));
+	}
 
 }

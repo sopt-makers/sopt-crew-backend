@@ -1,26 +1,17 @@
 package org.sopt.makers.crew.main.entity.post;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_FOUND_POST;
-import static org.sopt.makers.crew.main.entity.comment.QComment.comment;
-import static org.sopt.makers.crew.main.entity.like.QLike.like;
-import static org.sopt.makers.crew.main.entity.meeting.QMeeting.meeting;
-import static org.sopt.makers.crew.main.entity.post.QPost.post;
-import static org.sopt.makers.crew.main.entity.user.QUser.user;
-
-import com.querydsl.core.group.GroupBy;
-import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.impl.JPAQuery;
-import com.querydsl.jpa.impl.JPAQueryFactory;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.entity.comment.QComment.*;
+import static org.sopt.makers.crew.main.entity.like.QLike.*;
+import static org.sopt.makers.crew.main.entity.meeting.QMeeting.*;
+import static org.sopt.makers.crew.main.entity.post.QPost.*;
+import static org.sopt.makers.crew.main.entity.user.QUser.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import lombok.RequiredArgsConstructor;
 
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.entity.user.QUser;
@@ -38,6 +29,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
+import com.querydsl.core.group.GroupBy;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+
+import lombok.RequiredArgsConstructor;
+
 @Repository
 @RequiredArgsConstructor
 public class PostSearchRepositoryImpl implements PostSearchRepository {
@@ -50,27 +50,20 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 
 		JPAQuery<Long> countQuery = getCount(meetingId);
 
-		return PageableExecutionUtils.getPage(content,
-			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
+		return PageableExecutionUtils.getPage(content, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()),
+			countQuery::fetchFirst);
 	}
 
 	@Override
 	public PostDetailBaseDto findPost(Integer userId, Integer postId) {
-		PostDetailBaseDto postDetail = queryFactory
-			.select(new QPostDetailBaseDto(
-				post.id, post.title, post.contents, post.createdDate, post.images,
-				new QPostWriterInfoDto(post.user.id, post.user.orgId, post.user.name, post.user.profileImage),
-				post.likeCount,
-				ExpressionUtils.as(
-					JPAExpressions.selectFrom(like)
-						.where(like.postId.eq(post.id).and(like.userId.eq(userId)))
-						.exists()
-					, "isLiked"
-				),
-				post.viewCount, post.commentCount,
-				new QPostMeetingDto(post.meeting.id, post.meeting.title, post.meeting.category, post.meeting.imageURL,
-					post.meeting.desc)
-			))
+		PostDetailBaseDto postDetail = queryFactory.select(
+				new QPostDetailBaseDto(post.id, post.title, post.contents, post.createdDate, post.images,
+					new QPostWriterInfoDto(post.user.id, post.user.orgId, post.user.name, post.user.profileImage),
+					post.likeCount, ExpressionUtils.as(
+					JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists(),
+					"isLiked"), post.viewCount, post.commentCount,
+					new QPostMeetingDto(post.meeting.id, post.meeting.title, post.meeting.category, post.meeting.imageURL,
+						post.meeting.desc)))
 			.from(post)
 			.innerJoin(post.meeting, meeting)
 			.innerJoin(post.user, user)
@@ -85,54 +78,41 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 	}
 
 	private List<PostDetailResponseDto> getContentList(Pageable pageable, Integer meetingId, User user) {
-		List<PostDetailBaseDto> postDetails = queryFactory
-				.select(
-						new QPostDetailBaseDto(
-								post.id,
-								post.title,
-								post.contents,
-								post.createdDate,
-								post.images,
-								new QPostWriterInfoDto(post.user.id, post.user.orgId, post.user.name, post.user.profileImage),
-								post.likeCount,
-								ExpressionUtils.as(
-										JPAExpressions.selectFrom(like)
-												.where(like.postId.eq(post.id).and(like.userId.eq(user.getId())))
-												.exists(), "isLiked"
-								),
-								post.viewCount,
-								post.commentCount,
-								new QPostMeetingDto(post.meeting.id, post.meeting.title, post.meeting.category, post.meeting.imageURL, post.meeting.desc)
-						)
-				)
-				.from(post)
-				.innerJoin(post.user, QUser.user)
-				.innerJoin(post.meeting, meeting)
-				.where(meetingIdEq(meetingId))
-				.orderBy(post.id.desc())
-				.offset(pageable.getOffset())
-				.limit(pageable.getPageSize())
-				.fetch();
+		List<PostDetailBaseDto> postDetails = queryFactory.select(
+				new QPostDetailBaseDto(post.id, post.title, post.contents, post.createdDate, post.images,
+					new QPostWriterInfoDto(post.user.id, post.user.orgId, post.user.name, post.user.profileImage),
+					post.likeCount, ExpressionUtils.as(JPAExpressions.selectFrom(like)
+					.where(like.postId.eq(post.id).and(like.userId.eq(user.getId())))
+					.exists(), "isLiked"), post.viewCount, post.commentCount,
+					new QPostMeetingDto(post.meeting.id, post.meeting.title, post.meeting.category, post.meeting.imageURL,
+						post.meeting.desc)))
+			.from(post)
+			.innerJoin(post.user, QUser.user)
+			.innerJoin(post.meeting, meeting)
+			.where(meetingIdEq(meetingId))
+			.orderBy(post.id.desc())
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize())
+			.fetch();
 
 		// 모든 게시글 ID를 추출
-		List<Integer> postIds = postDetails.stream()
-				.map(PostDetailBaseDto::getId)
-				.collect(Collectors.toList());
+		List<Integer> postIds = postDetails.stream().map(PostDetailBaseDto::getId).collect(Collectors.toList());
 
 		// 게시글 ID 리스트를 사용하여 모든 댓글 작성자의 프로필 이미지를 조회
-		Map<Integer, List<String>> commenterThumbnailsMap = queryFactory
-				.select(comment.post.id, comment.user.profileImage)
-				.from(comment)
-				.where(comment.post.id.in(postIds))
-				.groupBy(comment.post.id, comment.user.id, comment.user.profileImage)
-				.orderBy(comment.post.id.asc(), comment.user.id.asc())
-				.limit(3)
-				.transform(GroupBy.groupBy(comment.post.id).as(GroupBy.list(comment.user.profileImage)));
+		Map<Integer, List<String>> commenterThumbnailsMap = queryFactory.select(comment.post.id,
+				comment.user.profileImage)
+			.from(comment)
+			.where(comment.post.id.in(postIds))
+			.groupBy(comment.post.id, comment.user.id, comment.user.profileImage)
+			.orderBy(comment.post.id.asc(), comment.user.id.asc())
+			.limit(3)
+			.transform(GroupBy.groupBy(comment.post.id).as(GroupBy.list(comment.user.profileImage)));
 
 		// 각 게시글별로 댓글 작성자의 프로필 이미지 리스트를 설정
 		List<PostDetailResponseDto> responseDtos = new ArrayList<>();
 		for (PostDetailBaseDto postDetail : postDetails) {
-			CommenterThumbnails commenterThumbnails = new CommenterThumbnails(commenterThumbnailsMap.getOrDefault(postDetail.getId(), Collections.emptyList()));
+			CommenterThumbnails commenterThumbnails = new CommenterThumbnails(
+				commenterThumbnailsMap.getOrDefault(postDetail.getId(), Collections.emptyList()));
 			responseDtos.add(PostDetailResponseDto.of(postDetail, commenterThumbnails));
 		}
 
@@ -140,10 +120,7 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 	}
 
 	private JPAQuery<Long> getCount(Integer meetingId) {
-		return queryFactory
-			.select(post.count())
-			.from(post)
-			.where(meetingIdEq(meetingId));
+		return queryFactory.select(post.count()).from(post).where(meetingIdEq(meetingId));
 	}
 
 	private BooleanExpression meetingIdEq(Integer meetingId) {
