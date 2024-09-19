@@ -139,7 +139,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	 *
 	 * @param queryCommand 게시글 조회를 위한 쿼리 명령 객체
 	 * @param user 게시글을 조회하는 사용자 정보
-	 * @return 게시글 정보와 페이지 메타 정보를 포함한 응답 DTO
+	 * @return 게시글 정보(게시글 객체 + 댓글 단 사람의 썸네일 + 차단된 유저의 게시물 여부)와 페이지 메타 정보를 포함한 응답 DTO
 	 * @apiNote 사용자가 차단한 유저의 게시물은 해당 게시물에 대한 차단 여부를 함께 반환
 	 */
 	@Override
@@ -154,13 +154,17 @@ public class PostV2ServiceImpl implements PostV2Service {
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto,
 			(int)meetingPostListDtos.getTotalElements());
 
+		// 조회된 게시물의 작성자들의 플그 ID 리스트 가져오기
+		List<Long> userOrgIds = meetingPostListDtos.getContent().stream()
+				.map(postDetail -> postDetail.getUser().getOrgId().longValue())
+				.collect(Collectors.toList());
+
+		// 한 번의 호출로 현재 유저(차단자)가 위 플그 ID에 대한 차단 여부를 확인
+		Map<Long, Boolean> blockedPostMap = memberBlockService.getBlockedUsers(user.getOrgId().longValue(), userOrgIds);
+
 		List<PostDetailWithBlockStatusResponseDto> responseDtos = meetingPostListDtos.getContent().stream()
 				.map(postDetail -> {
-					boolean isBlockedPost = memberBlockService.isBlockedPost(
-							postDetail.getUser().getOrgId().longValue(),
-							user.getOrgId().longValue()
-					);
-
+					boolean isBlockedPost = blockedPostMap.getOrDefault(postDetail.getUser().getOrgId().longValue(), false);
 					return PostDetailWithBlockStatusResponseDto.of(postDetail, isBlockedPost);
 				})
 				.collect(Collectors.toList());
