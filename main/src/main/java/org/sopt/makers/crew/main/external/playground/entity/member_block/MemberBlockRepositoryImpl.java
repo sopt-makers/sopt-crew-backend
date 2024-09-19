@@ -1,13 +1,16 @@
 package org.sopt.makers.crew.main.external.playground.entity.member_block;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Qualifier;
+    import org.springframework.stereotype.Repository;
 
-@RequiredArgsConstructor
 @Repository
 public class MemberBlockRepositoryImpl implements MemberBlockSearchRepository {
     private final JPAQueryFactory queryFactory;
+
+    public MemberBlockRepositoryImpl(@Qualifier("playgroundQueryFactory") JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     @Override
     public boolean existsBlockedPost(Long blockedMember, Long blocker, boolean isBlocked) {
