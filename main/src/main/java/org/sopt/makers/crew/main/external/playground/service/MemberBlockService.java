@@ -4,5 +4,5 @@ import java.util.List;
 import java.util.Map;
 
 public interface MemberBlockService {
-    Map<Long, Boolean> getBlockedUsers(Long blockerOrgId, List<Long> blockedUserOrgIds);
+    Map<Long, Boolean> getBlockedUsers(Long blockerOrgId, List<Long> userOrgIds);
 }

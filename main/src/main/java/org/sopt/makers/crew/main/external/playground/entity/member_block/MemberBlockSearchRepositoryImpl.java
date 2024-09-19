@@ -18,7 +18,7 @@ public class MemberBlockSearchRepositoryImpl implements MemberBlockSearchReposit
     }
 
     @Override
-    public Map<Long, Boolean> checkBlockedUsers(Long blockerOrgId, List<Long> blockedUserOrgIds) {
+    public Map<Long, Boolean> checkBlockedUsers(Long blockerOrgId, List<Long> userOrgIds) {
         QMemberBlock memberBlock = QMemberBlock.memberBlock;
 
         // 한 번의 쿼리로 여러 유저의 차단 여부를 확인
@@ -26,7 +26,7 @@ public class MemberBlockSearchRepositoryImpl implements MemberBlockSearchReposit
                 .select(memberBlock.blockedMember, memberBlock.isBlocked)
                 .from(memberBlock)
                 .where(memberBlock.blocker.eq(blockerOrgId)
-                        .and(memberBlock.blockedMember.in(blockedUserOrgIds)))
+                        .and(memberBlock.blockedMember.in(userOrgIds)))
                 .fetch();
 
         // 결과를 Map으로 변환

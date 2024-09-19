@@ -4,5 +4,5 @@ import java.util.List;
 import java.util.Map;
 
 public interface MemberBlockSearchRepository {
-    Map<Long, Boolean> checkBlockedUsers(Long blockerOrgId, List<Long> blockedUserOrgIds);
+    Map<Long, Boolean> checkBlockedUsers(Long blockerOrgId, List<Long> userOrgIds);
 }
