@@ -10,10 +10,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Repository
-public class MemberBlockRepositoryImpl implements MemberBlockSearchRepository {
+public class MemberBlockSearchRepositoryImpl implements MemberBlockSearchRepository {
     private final JPAQueryFactory queryFactory;
 
-    public MemberBlockRepositoryImpl(@Qualifier("playgroundQueryFactory") JPAQueryFactory queryFactory) {
+    public MemberBlockSearchRepositoryImpl(@Qualifier("playgroundQueryFactory") JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
     }
 
