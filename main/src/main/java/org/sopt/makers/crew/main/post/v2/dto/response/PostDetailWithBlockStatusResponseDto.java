@@ -12,7 +12,7 @@ public class PostDetailWithBlockStatusResponseDto {
 
     @Schema(description = "게시글의 기본 정보 + 댓글 썸네일 이미지 리스트 정보을 담고 있는 DTO", example = "")
     @NotNull
-    private final PostDetailResponseDto postDetailResponseDto;
+    private final PostDetailResponseDto postDetail;
 
     @Schema(description = "차단된 유저의 게시물인지 여부", example = "false")
     @NotNull
