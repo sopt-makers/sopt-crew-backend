@@ -10,7 +10,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-@Schema(name = "PostDetailResponseDto", description = "게시글 객체 Dto")
+@Schema(name = "PostDetailResponseDto", description = "게시글의 기본 정보 + 댓글 썸네일 이미지 리스트 정보을 담고 있는 DTO")
 public class PostDetailResponseDto {
 
     @Schema(description = "게시글 id", example = "1")
@@ -61,11 +61,7 @@ public class PostDetailResponseDto {
     @NotNull
     private final List<String> commenterThumbnails;
 
-    @Schema(description = "차단된 유저의 게시물인지 여부", example = "false")
-    @NotNull
-    private final boolean isBlockedPost;
-
-    public static PostDetailResponseDto of(PostDetailBaseDto postDetail, CommenterThumbnails postTopCommenterThumbnails, boolean isBlockedPost) {
+    public static PostDetailResponseDto of(PostDetailBaseDto postDetail, CommenterThumbnails postTopCommenterThumbnails) {
         return PostDetailResponseDto.of(
                 postDetail.getId(),
                 postDetail.getTitle(),
@@ -78,8 +74,7 @@ public class PostDetailResponseDto {
                 postDetail.getViewCount(),
                 postDetail.getCommentCount(),
                 postDetail.getMeeting(),
-                postTopCommenterThumbnails.getCommenterThumbnails(),
-                isBlockedPost
+                postTopCommenterThumbnails.getCommenterThumbnails()
         );
     }
 }
