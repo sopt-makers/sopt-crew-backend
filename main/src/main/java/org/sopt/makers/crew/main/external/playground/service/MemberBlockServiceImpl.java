@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.external.playground.entity.member_block.MemberBlockRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class MemberBlockServiceImpl implements MemberBlockService {
@@ -11,7 +14,7 @@ public class MemberBlockServiceImpl implements MemberBlockService {
     private final MemberBlockRepository memberBlockRepository;
 
     @Override
-    public boolean isBlockedPost(Long blockedUserOrgId, Long blockerOrgId) {
-        return memberBlockRepository.existsBlockedPost(blockedUserOrgId, blockerOrgId, true);
+    public Map<Long, Boolean> getBlockedUsers(Long blockerOrgId, List<Long> blockedUserOrgIds) {
+        return memberBlockRepository.checkBlockedUsers(blockerOrgId, blockedUserOrgIds);
     }
 }
