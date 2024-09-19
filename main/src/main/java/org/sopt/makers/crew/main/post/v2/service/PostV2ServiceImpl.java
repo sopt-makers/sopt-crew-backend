@@ -9,6 +9,8 @@ import static org.sopt.makers.crew.main.internal.notification.PushNotificationEn
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +35,7 @@ import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
 import org.sopt.makers.crew.main.internal.notification.PushNotificationService;
 import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
@@ -41,6 +44,7 @@ import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequ
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailWithBlockStatusResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
@@ -49,7 +53,6 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeRespon
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,6 +71,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	private final ReportRepository reportRepository;
 
 	private final PushNotificationService pushNotificationService;
+	private final MemberBlockService memberBlockService;
 
 	@Value("${push-notification.web-url}")
 	private String pushWebUrl;
@@ -130,6 +134,14 @@ public class PostV2ServiceImpl implements PostV2Service {
 		return PostV2CreatePostResponseDto.of(savedPost.getId());
 	}
 
+	/**
+	 * 모일 게시글 리스트 페이지네이션 조회 (12개)
+	 *
+	 * @param queryCommand 게시글 조회를 위한 쿼리 명령 객체
+	 * @param user 게시글을 조회하는 사용자 정보
+	 * @return 게시글 정보와 페이지 메타 정보를 포함한 응답 DTO
+	 * @apiNote 사용자가 차단한 유저의 게시물은 해당 게시물에 대한 차단 여부를 함께 반환
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, User user) {
@@ -142,7 +154,18 @@ public class PostV2ServiceImpl implements PostV2Service {
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto,
 			(int)meetingPostListDtos.getTotalElements());
 
-		return PostV2GetPostsResponseDto.of(meetingPostListDtos.getContent(), pageMetaDto);
+		List<PostDetailWithBlockStatusResponseDto> responseDtos = meetingPostListDtos.getContent().stream()
+				.map(postDetail -> {
+					boolean isBlockedPost = memberBlockService.isBlockedPost(
+							postDetail.getUser().getOrgId().longValue(),
+							user.getOrgId().longValue()
+					);
+
+					return PostDetailWithBlockStatusResponseDto.of(postDetail, isBlockedPost);
+				})
+				.collect(Collectors.toList());
+
+		return PostV2GetPostsResponseDto.of(responseDtos, pageMetaDto);
 	}
 
 	/**
