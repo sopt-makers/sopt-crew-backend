@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 @Getter
-@Schema(name = "PostDetailBaseDto", description = "게시글 객체 Dto")
+@Schema(name = "PostDetailBaseDto", description = "게시글의 기본 정보를 담고 있는 Dto")
 public class PostDetailBaseDto {
 
     @Schema(description = "게시글 id", example = "1")
