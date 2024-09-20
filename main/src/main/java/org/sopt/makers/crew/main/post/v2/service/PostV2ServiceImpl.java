@@ -45,6 +45,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
+import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -68,6 +69,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 
 	private final PushNotificationService pushNotificationService;
 	private final MemberBlockService memberBlockService;
+	private final UserV2Service userV2Service;
 
 	@Value("${push-notification.web-url}")
 	private String pushWebUrl;
@@ -129,16 +131,16 @@ public class PostV2ServiceImpl implements PostV2Service {
 	 * 모일 게시글 리스트 페이지네이션 조회 (12개)
 	 *
 	 * @param queryCommand 게시글 조회를 위한 쿼리 명령 객체
-	 * @param user 게시글을 조회하는 사용자 정보
+	 * @param userId 게시글을 조회하는 사용자 id
 	 * @return 게시글 정보(게시글 객체 + 댓글 단 사람의 썸네일 + 차단된 유저의 게시물 여부)와 페이지 메타 정보를 포함한 응답 DTO
 	 * @apiNote 사용자가 차단한 유저의 게시물은 해당 게시물에 대한 차단 여부를 함께 반환
 	 */
 	@Override
 	@Transactional(readOnly = true)
-	public PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, User user) {
+	public PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, Integer userId) {
 		Sort sort = Sort.by(Sort.Direction.ASC, "id");
 		Page<PostDetailResponseDto> meetingPostListDtos = postRepository.findPostList(queryCommand,
-			new CustomPageable(queryCommand.getPage() - 1, sort), user.getId());
+			new CustomPageable(queryCommand.getPage() - 1, sort), userId);
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetingPostListDtos.getPageable().getPageNumber() + 1,
 			meetingPostListDtos.getPageable().getPageSize());
@@ -150,8 +152,11 @@ public class PostV2ServiceImpl implements PostV2Service {
 			.map(postDetail -> postDetail.getUser().getOrgId().longValue())
 			.collect(Collectors.toList());
 
+		User user = userV2Service.getUserByUserId(userId);
+		Long orgId = user.getOrgId().longValue();
+
 		// 한 번의 호출로 현재 유저(차단자)가 위 플그 ID에 대한 차단 여부를 확인
-		Map<Long, Boolean> blockedPostMap = memberBlockService.getBlockedUsers(user.getOrgId().longValue(), userOrgIds);
+		Map<Long, Boolean> blockedPostMap = memberBlockService.getBlockedUsers(orgId, userOrgIds);
 
 		List<PostDetailWithBlockStatusResponseDto> responseDtos = meetingPostListDtos.getContent()
 			.stream()

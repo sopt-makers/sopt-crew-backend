@@ -1,6 +1,5 @@
 package org.sopt.makers.crew.main.post.v2.service;
 
-import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
@@ -17,7 +16,7 @@ public interface PostV2Service {
 
 	PostV2CreatePostResponseDto createPost(PostV2CreatePostBodyDto requestBody, Integer userId);
 
-	PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, User user);
+	PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, Integer userId);
 
 	PostDetailBaseDto getPost(Integer userId, Integer postId);
 
