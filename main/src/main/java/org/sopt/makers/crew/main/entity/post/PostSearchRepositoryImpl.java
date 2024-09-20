@@ -14,8 +14,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
-import org.sopt.makers.crew.main.entity.user.QUser;
-import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.response.CommenterThumbnails;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
@@ -44,9 +42,10 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public Page<PostDetailResponseDto> findPostList(PostGetPostsCommand queryCommand, Pageable pageable, User user) {
+	public Page<PostDetailResponseDto> findPostList(PostGetPostsCommand queryCommand, Pageable pageable,
+		Integer userId) {
 		Integer meetingId = queryCommand.getMeetingId().orElse(null);
-		List<PostDetailResponseDto> content = getContentList(pageable, meetingId, user);
+		List<PostDetailResponseDto> content = getContentList(pageable, meetingId, userId);
 
 		JPAQuery<Long> countQuery = getCount(meetingId);
 
@@ -77,17 +76,17 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 		return postDetail;
 	}
 
-	private List<PostDetailResponseDto> getContentList(Pageable pageable, Integer meetingId, User user) {
+	private List<PostDetailResponseDto> getContentList(Pageable pageable, Integer meetingId, Integer userId) {
 		List<PostDetailBaseDto> postDetails = queryFactory.select(
 				new QPostDetailBaseDto(post.id, post.title, post.contents, post.createdDate, post.images,
 					new QPostWriterInfoDto(post.user.id, post.user.orgId, post.user.name, post.user.profileImage),
-					post.likeCount, ExpressionUtils.as(JPAExpressions.selectFrom(like)
-					.where(like.postId.eq(post.id).and(like.userId.eq(user.getId())))
-					.exists(), "isLiked"), post.viewCount, post.commentCount,
+					post.likeCount, ExpressionUtils.as(
+					JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists(),
+					"isLiked"), post.viewCount, post.commentCount,
 					new QPostMeetingDto(post.meeting.id, post.meeting.title, post.meeting.category, post.meeting.imageURL,
 						post.meeting.desc)))
 			.from(post)
-			.innerJoin(post.user, QUser.user)
+			.innerJoin(post.user, user)
 			.innerJoin(post.meeting, meeting)
 			.where(meetingIdEq(meetingId))
 			.orderBy(post.id.desc())
@@ -126,5 +125,4 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 	private BooleanExpression meetingIdEq(Integer meetingId) {
 		return meetingId == null ? null : post.meetingId.eq(meetingId);
 	}
-
 }

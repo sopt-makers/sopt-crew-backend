@@ -138,7 +138,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	public PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, User user) {
 		Sort sort = Sort.by(Sort.Direction.ASC, "id");
 		Page<PostDetailResponseDto> meetingPostListDtos = postRepository.findPostList(queryCommand,
-			new CustomPageable(queryCommand.getPage() - 1, sort), user);
+			new CustomPageable(queryCommand.getPage() - 1, sort), user.getId());
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetingPostListDtos.getPageable().getPageNumber() + 1,
 			meetingPostListDtos.getPageable().getPageSize());
