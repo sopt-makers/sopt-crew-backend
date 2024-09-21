@@ -1,5 +1,3 @@
-
-
 server:
   port: 4000
 
@@ -10,10 +8,10 @@ spring:
     import: application-secret.properties
   datasource:
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    jdbc-url: jdbc:tc:postgresql:///test-database/crew
+    jdbc-url: jdbc:tc:postgresql:///crew
 
   playground-datasource:
-    jdbc-url: jdbc:tc:postgresql:///test-database/playground
+    jdbc-url: jdbc:tc:postgresql:///playground
   jpa:
     open-in-view: false
     hibernate:
@@ -65,7 +63,7 @@ push-notification:
   push-server-url: ${DEV_PUSH_SERVER_URL}
 
 notice:
-  secret-key : ${NOTICE_SECRET_KEY}
+  secret-key: ${NOTICE_SECRET_KEY}
 
 playground:
   server:
