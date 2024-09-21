@@ -113,7 +113,7 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 			CommenterThumbnails commenterThumbnails = new CommenterThumbnails(
 				commenterThumbnailsMap.getOrDefault(postDetail.getId(), Collections.emptyList()));
 			responseDtos.add(
-				PostDetailResponseDto.of(postDetail, commenterThumbnails, null)); // 이 부분을 기본값을 null로 할지 false로 할지 고민 필요
+				PostDetailResponseDto.of(postDetail, commenterThumbnails, false));
 		}
 
 		return responseDtos;
