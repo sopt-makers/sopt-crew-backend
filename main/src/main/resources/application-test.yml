@@ -1,3 +1,5 @@
+
+
 server:
   port: 4000
 
@@ -8,16 +10,15 @@ spring:
     import: application-secret.properties
   datasource:
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    jdbc-url: jdbc:tc:postgresql:///crew
-
-  playground-datasource:
-    jdbc-url: jdbc:tc:postgresql:///playground
+    url: jdbc:tc:postgresql:///test-database
+  #    username: root
+  #    password:
   jpa:
     open-in-view: false
     hibernate:
       naming:
         physical-strategy: org.sopt.makers.crew.main.common.config.CamelCaseNamingStrategy
-      ddl-auto: none
+      ddl-auto: create-drop
     properties:
       hibernate:
         show_sql: true
@@ -63,7 +64,7 @@ push-notification:
   push-server-url: ${DEV_PUSH_SERVER_URL}
 
 notice:
-  secret-key: ${NOTICE_SECRET_KEY}
+  secret-key : ${NOTICE_SECRET_KEY}
 
 playground:
   server:
@@ -94,8 +95,3 @@ management:
     metrics:
       export:
         enabled: true
-
-logging:
-  level:
-    org.hibernate.SQL: DEBUG    # Hibernate의 SQL 쿼리 로그 레벨 설정
-    org.hibernate.type: TRACE   # SQL 파라미터 바인딩을 보기 위한 타입 정보 로그 출력
