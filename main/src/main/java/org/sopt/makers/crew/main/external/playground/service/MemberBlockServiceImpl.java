@@ -16,6 +16,7 @@ public class MemberBlockServiceImpl implements MemberBlockService {
 
 	@Override
 	public Map<Long, Boolean> getBlockedUsers(Long blockerOrgId, List<Long> userOrgIds) {
-		return memberBlockRepository.checkBlockedUsers(blockerOrgId, userOrgIds);
+		//return memberBlockRepository.checkBlockedUsers(blockerOrgId, userOrgIds);
+		return null;
 	}
 }
