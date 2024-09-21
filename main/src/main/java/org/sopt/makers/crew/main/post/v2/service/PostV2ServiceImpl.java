@@ -145,7 +145,6 @@ public class PostV2ServiceImpl implements PostV2Service {
 			meetingPostListDtos.getPageable().getPageSize());
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)meetingPostListDtos.getTotalElements());
 
-		// 조회된 게시물의 작성자들의 플그 ID 리스트 가져오기
 		List<Long> userOrgIds = meetingPostListDtos.getContent()
 			.stream()
 			.map(postDetail -> postDetail.getUser().getOrgId().longValue())
@@ -154,30 +153,11 @@ public class PostV2ServiceImpl implements PostV2Service {
 		User user = userV2Service.getUserByUserId(userId);
 		Long orgId = user.getOrgId().longValue();
 
-		// 한 번의 호출로 현재 유저(차단자)가 위 플그 ID에 대한 차단 여부를 확인
 		Map<Long, Boolean> blockedPostMap = memberBlockService.getBlockedUsers(orgId, userOrgIds);
 
-		// PostDetailResponseDto를 차단 여부와 함께 생성
 		List<PostDetailResponseDto> responseDtos = meetingPostListDtos.getContent()
 			.stream()
-			.map(postDetail -> {
-				boolean isBlockedPost = blockedPostMap.getOrDefault(postDetail.getUser().getOrgId().longValue(), false);
-				return PostDetailResponseDto.of(
-					postDetail.getId(),
-					postDetail.getTitle(),
-					postDetail.getContents(),
-					postDetail.getCreatedDate(),
-					postDetail.getImages(),
-					postDetail.getUser(),
-					postDetail.getLikeCount(),
-					postDetail.getIsLiked(),
-					postDetail.getViewCount(),
-					postDetail.getCommentCount(),
-					postDetail.getMeeting(),
-					postDetail.getCommenterThumbnails(),
-					isBlockedPost
-				);
-			})
+			.map(postDetail -> toPostDetailResponseDto(postDetail, blockedPostMap))
 			.collect(Collectors.toList());
 
 		return PostV2GetPostsResponseDto.of(responseDtos, pageMetaDto);
@@ -328,5 +308,25 @@ public class PostV2ServiceImpl implements PostV2Service {
 		post.decreaseLikeCount();
 
 		return PostV2SwitchPostLikeResponseDto.of(false);
+	}
+
+	private PostDetailResponseDto toPostDetailResponseDto(PostDetailResponseDto postDetail,
+		Map<Long, Boolean> blockedPostMap) {
+		boolean isBlockedPost = blockedPostMap.getOrDefault(postDetail.getUser().getOrgId().longValue(), false);
+		return PostDetailResponseDto.of(
+			postDetail.getId(),
+			postDetail.getTitle(),
+			postDetail.getContents(),
+			postDetail.getCreatedDate(),
+			postDetail.getImages(),
+			postDetail.getUser(),
+			postDetail.getLikeCount(),
+			postDetail.getIsLiked(),
+			postDetail.getViewCount(),
+			postDetail.getCommentCount(),
+			postDetail.getMeeting(),
+			postDetail.getCommenterThumbnails(),
+			isBlockedPost
+		);
 	}
 }
