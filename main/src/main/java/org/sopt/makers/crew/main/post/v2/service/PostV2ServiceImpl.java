@@ -38,7 +38,6 @@ import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequ
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
-import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailWithBlockStatusResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
@@ -158,11 +157,26 @@ public class PostV2ServiceImpl implements PostV2Service {
 		// 한 번의 호출로 현재 유저(차단자)가 위 플그 ID에 대한 차단 여부를 확인
 		Map<Long, Boolean> blockedPostMap = memberBlockService.getBlockedUsers(orgId, userOrgIds);
 
-		List<PostDetailWithBlockStatusResponseDto> responseDtos = meetingPostListDtos.getContent()
+		// PostDetailResponseDto를 차단 여부와 함께 생성
+		List<PostDetailResponseDto> responseDtos = meetingPostListDtos.getContent()
 			.stream()
 			.map(postDetail -> {
 				boolean isBlockedPost = blockedPostMap.getOrDefault(postDetail.getUser().getOrgId().longValue(), false);
-				return PostDetailWithBlockStatusResponseDto.of(postDetail, isBlockedPost);
+				return PostDetailResponseDto.of(
+					postDetail.getId(),
+					postDetail.getTitle(),
+					postDetail.getContents(),
+					postDetail.getCreatedDate(),
+					postDetail.getImages(),
+					postDetail.getUser(),
+					postDetail.getLikeCount(),
+					postDetail.getIsLiked(),
+					postDetail.getViewCount(),
+					postDetail.getCommentCount(),
+					postDetail.getMeeting(),
+					postDetail.getCommenterThumbnails(),
+					isBlockedPost
+				);
 			})
 			.collect(Collectors.toList());
 
