@@ -14,18 +14,18 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.context.jdbc.SqlGroup;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-@DataJpaTest
+@SpringBootTest
 @ActiveProfiles("test")
-@Import(TestConfig.class)
+@Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SqlGroup({
         @Sql(value = "/sql/apply-repository-test-data.sql", executionPhase = ExecutionPhase.BEFORE_TEST_METHOD),

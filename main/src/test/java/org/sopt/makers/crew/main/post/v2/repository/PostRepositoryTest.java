@@ -3,21 +3,18 @@ package org.sopt.makers.crew.main.post.v2.repository;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
-import org.sopt.makers.crew.main.common.config.TestConfig;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.context.jdbc.SqlGroup;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-@DataJpaTest
+@SpringBootTest
 @ActiveProfiles("test")
-@Import(TestConfig.class)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Testcontainers
 @SqlGroup({
 	@Sql(value = "/sql/post-repository-test-data.sql", executionPhase = ExecutionPhase.BEFORE_TEST_METHOD),
 	@Sql(value = "/sql/delete-all-data.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)

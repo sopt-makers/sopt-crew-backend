@@ -2,9 +2,9 @@
 DELETE FROM "apply";
 DELETE FROM "comment";
 DELETE FROM "like";
+DELETE FROM "post";
 DELETE FROM "meeting";
 DELETE FROM "notice";
-DELETE FROM "post";
 DELETE FROM "user";
 
 -- 시퀀스 초기화

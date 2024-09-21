@@ -36,6 +36,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation group: 'org.postgresql', name: 'postgresql', version: '42.6.0'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.postgresql:postgresql:42.3.0'
 
     // jsonb 타입 핸들링 위함
     implementation 'io.hypersistence:hypersistence-utils-hibernate-62:3.6.0'
