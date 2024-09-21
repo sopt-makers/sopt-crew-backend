@@ -61,11 +61,15 @@ public class PostDetailResponseDto {
 	@NotNull
 	private final List<String> commenterThumbnails;
 
+	@Schema(description = "차단된 유저의 게시물인지 여부", example = "false")
+	@NotNull
+	private final Boolean isBlockedPost;
+
 	public static PostDetailResponseDto of(PostDetailBaseDto postDetail,
-		CommenterThumbnails postTopCommenterThumbnails) {
+		CommenterThumbnails postTopCommenterThumbnails, Boolean isBlockedPost) {
 		return PostDetailResponseDto.of(postDetail.getId(), postDetail.getTitle(), postDetail.getContents(),
 			postDetail.getCreatedDate(), postDetail.getImages(), postDetail.getUser(), postDetail.getLikeCount(),
 			postDetail.getIsLiked(), postDetail.getViewCount(), postDetail.getCommentCount(), postDetail.getMeeting(),
-			postTopCommenterThumbnails.getCommenterThumbnails());
+			postTopCommenterThumbnails.getCommenterThumbnails(), isBlockedPost);
 	}
 }
