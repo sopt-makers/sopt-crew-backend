@@ -54,9 +54,13 @@ public class CommentDto {
 	@NotNull
 	private final List<ReplyDto> replies;
 
+	@Schema(description = "차단여부", example = "false")
+	@NotNull
+	private final Boolean isBlockedComment;
+
 	@QueryProjection
 	public CommentDto(Integer id, String contents, CommentWriterDto user, LocalDateTime createdDate, int likeCount,
-		boolean isLiked, boolean isWriter, int order, List<ReplyDto> replies) {
+		boolean isLiked, boolean isWriter, int order, List<ReplyDto> replies, Boolean isBlockedComment) {
 		this.id = id;
 		this.contents = contents;
 		this.user = user;
@@ -66,9 +70,11 @@ public class CommentDto {
 		this.isWriter = isWriter;
 		this.order = order;
 		this.replies = replies;
+		this.isBlockedComment = isBlockedComment;
 	}
 
-	public static CommentDto of(Comment comment, boolean isLiked, boolean isWriter, List<ReplyDto> replies) {
+	public static CommentDto of(Comment comment, boolean isLiked, boolean isWriter, List<ReplyDto> replies,
+		Boolean isBlockedComment) {
 		Integer userId = comment.getUser() == null ? null : comment.getUser().getId();
 		Integer orgId = comment.getUser() == null ? null : comment.getUser().getOrgId();
 		String userName = comment.getUser() == null ? null : comment.getUser().getName();
@@ -77,6 +83,6 @@ public class CommentDto {
 		return new CommentDto(comment.getId(), comment.getContents(),
 			new CommentWriterDto(userId, orgId, userName,
 				profileImage), comment.getCreatedDate(), comment.getLikeCount(),
-			isLiked, isWriter, comment.getOrder(), replies);
+			isLiked, isWriter, comment.getOrder(), replies, isBlockedComment);
 	}
 }
