@@ -165,7 +165,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Map<Integer, Post> postMap, Applies applies) {
 		return meetings.stream()
 			.map(meeting -> {
-				MeetingV2GetMeetingBannerResponseUserDto meetingCreatorDto = MeetingV2GetMeetingBannerResponseUserDto.of(meeting.getUser());
+				MeetingV2GetMeetingBannerResponseUserDto meetingCreatorDto = MeetingV2GetMeetingBannerResponseUserDto.of(
+					meeting.getUser());
 
 				LocalDateTime recentActivityDate = null;
 				if (postMap.containsKey(meeting.getId())) {
@@ -361,9 +362,12 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Boolean isApproved = applies.isApproved(meetingId, user.getId());
 		long approvedCount = applies.getApprovedCount(meetingId);
 
-		List<ApplyWholeInfoDto> applyWholeInfoDtos = applies.getAppliesMap().get(meetingId).stream()
-			.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
-			.toList();
+		List<ApplyWholeInfoDto> applyWholeInfoDtos = new ArrayList<>();
+		if (applies.hasApplies(meetingId)) {
+			applyWholeInfoDtos = applies.getAppliesMap().get(meetingId).stream()
+				.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
+				.toList();
+		}
 
 		return MeetingV2GetMeetingByIdResponseDto.of(meeting, approvedCount, isHost, isApply, isApproved,
 			meetingCreator, applyWholeInfoDtos, time.now());

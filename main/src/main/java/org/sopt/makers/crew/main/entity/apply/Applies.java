@@ -87,7 +87,7 @@ public class Applies {
 				&& apply.getStatus().equals(EnApplyStatus.APPROVE));
 	}
 
-	private boolean hasApplies(Integer meetingId) {
+	public boolean hasApplies(Integer meetingId) {
 		return appliesMap.containsKey(meetingId);
 	}
 }
