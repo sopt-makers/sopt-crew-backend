@@ -2,16 +2,14 @@ package org.sopt.makers.crew.main.comment.v2.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.sopt.makers.crew.main.entity.comment.Comment;
-import org.sopt.makers.crew.main.entity.user.User;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.querydsl.core.annotations.QueryProjection;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.Getter;
 
 @Getter
@@ -55,12 +53,13 @@ public class CommentDto {
 	private final List<ReplyDto> replies;
 
 	@Schema(description = "차단여부", example = "false")
+	@Getter(AccessLevel.NONE)
 	@NotNull
-	private final Boolean isBlockedComment;
+	private final boolean isBlockedComment;
 
 	@QueryProjection
 	public CommentDto(Integer id, String contents, CommentWriterDto user, LocalDateTime createdDate, int likeCount,
-		boolean isLiked, boolean isWriter, int order, List<ReplyDto> replies, Boolean isBlockedComment) {
+		boolean isLiked, boolean isWriter, int order, List<ReplyDto> replies, boolean isBlockedComment) {
 		this.id = id;
 		this.contents = contents;
 		this.user = user;
@@ -74,7 +73,7 @@ public class CommentDto {
 	}
 
 	public static CommentDto of(Comment comment, boolean isLiked, boolean isWriter, List<ReplyDto> replies,
-		Boolean isBlockedComment) {
+		boolean isBlockedComment) {
 		Integer userId = comment.getUser() == null ? null : comment.getUser().getId();
 		Integer orgId = comment.getUser() == null ? null : comment.getUser().getOrgId();
 		String userName = comment.getUser() == null ? null : comment.getUser().getName();
@@ -84,5 +83,9 @@ public class CommentDto {
 			new CommentWriterDto(userId, orgId, userName,
 				profileImage), comment.getCreatedDate(), comment.getLikeCount(),
 			isLiked, isWriter, comment.getOrder(), replies, isBlockedComment);
+	}
+
+	public boolean getIsBlockedComment() {
+		return isBlockedComment;
 	}
 }
