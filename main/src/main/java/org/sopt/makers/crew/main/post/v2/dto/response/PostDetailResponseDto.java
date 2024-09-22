@@ -5,6 +5,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -63,6 +64,7 @@ public class PostDetailResponseDto {
 
 	@Schema(description = "차단된 유저의 게시물인지 여부", example = "false")
 	@NotNull
+	@Getter(AccessLevel.NONE)
 	private final boolean isBlockedPost;
 
 	public static PostDetailResponseDto of(PostDetailBaseDto postDetail,
@@ -71,5 +73,9 @@ public class PostDetailResponseDto {
 			postDetail.getCreatedDate(), postDetail.getImages(), postDetail.getUser(), postDetail.getLikeCount(),
 			postDetail.getIsLiked(), postDetail.getViewCount(), postDetail.getCommentCount(), postDetail.getMeeting(),
 			postTopCommenterThumbnails.getCommenterThumbnails(), isBlockedPost);
+	}
+
+	public boolean getIsBlockedPost() {
+		return isBlockedPost;
 	}
 }
