@@ -1,10 +1,14 @@
 package org.sopt.makers.crew.main.comment.v2.dto.response;
 
 import java.time.LocalDateTime;
+
 import org.sopt.makers.crew.main.entity.comment.Comment;
+
 import com.querydsl.core.annotations.QueryProjection;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.Getter;
 
 @Getter
@@ -44,12 +48,13 @@ public class ReplyDto {
 	private final int order;
 
 	@Schema(description = "차단여부", example = "false")
+	@Getter(AccessLevel.NONE)
 	@NotNull
-	private final Boolean isBlockedComment;
+	private final boolean isBlockedComment;
 
 	@QueryProjection
 	public ReplyDto(Integer id, String contents, CommentWriterDto user, LocalDateTime createdDate, int likeCount,
-		Boolean isLiked, Boolean isWriter, int order, Boolean isBlockedComment) {
+		Boolean isLiked, Boolean isWriter, int order, boolean isBlockedComment) {
 		this.id = id;
 		this.contents = contents;
 		this.user = user;
@@ -61,10 +66,14 @@ public class ReplyDto {
 		this.isBlockedComment = isBlockedComment;
 	}
 
-	public static ReplyDto of(Comment comment, boolean isLiked, boolean isWriter,  boolean isBlockedComment) {
+	public static ReplyDto of(Comment comment, boolean isLiked, boolean isWriter, boolean isBlockedComment) {
 		return new ReplyDto(comment.getId(), comment.getContents(),
 			new CommentWriterDto(comment.getUser().getId(), comment.getUser().getOrgId(), comment.getUser().getName(),
 				comment.getUser().getProfileImage()), comment.getCreatedDate(), comment.getLikeCount(),
 			isLiked, isWriter, comment.getOrder(), isBlockedComment);
+	}
+
+	public boolean getIsBlockedComment() {
+		return isBlockedComment;
 	}
 }
