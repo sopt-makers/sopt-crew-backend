@@ -24,4 +24,12 @@ public class MemberBlockServiceImpl implements MemberBlockService {
 			.filter(memberBlock -> userOrgIds.contains(memberBlock.getBlockedMember()))
 			.collect(Collectors.toMap(MemberBlock::getBlockedMember, memberBlock -> true));
 	}
+
+	@Override
+	public Map<Long, Boolean> getBlockedUsers(Long blockerOrgId) {
+		List<MemberBlock> memberBlocks = memberBlockRepository.findAllByBlockerAndIsBlockedTrue(blockerOrgId);
+
+		return memberBlocks.stream()
+			.collect(Collectors.toMap(MemberBlock::getBlockedMember, memberBlock -> true));
+	}
 }
