@@ -183,8 +183,12 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 			.filter(comment -> !comment.isParentComment())
 			.forEach(
 				comment -> {
-					boolean isBlockedComment = blockedUsers.getOrDefault(comment.getUser().getOrgId().longValue(),
-						false);
+					boolean isBlockedComment = false;
+					if (comment.getUserId() != null) {
+						isBlockedComment = blockedUsers.getOrDefault(comment.getUser().getOrgId().longValue(),
+							false);
+					}
+
 					replyMap.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>())
 						.add(ReplyDto.of(comment, myLikes.isLikeComment(comment.getId()),
 							comment.isWriter(userId), isBlockedComment));
@@ -193,8 +197,12 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		List<CommentDto> commentDtos = comments.stream()
 			.filter(Comment::isParentComment)
 			.map(comment -> {
-				boolean isBlockedComment = blockedUsers.getOrDefault(comment.getUser().getOrgId().longValue(),
-					false);
+				boolean isBlockedComment = false;
+				if (comment.getUserId() != null) {
+					isBlockedComment = blockedUsers.getOrDefault(comment.getUser().getOrgId().longValue(),
+						false);
+				}
+
 				return CommentDto.of(comment, myLikes.isLikeComment(comment.getId()),
 					comment.isWriter(userId),
 					replyMap.get(comment.getId()), isBlockedComment);
