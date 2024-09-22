@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.RequiredArgsConstructor;
-
 import org.sopt.makers.crew.main.common.exception.BaseException;
 import org.sopt.makers.crew.main.common.util.Time;
 import org.sopt.makers.crew.main.entity.apply.Applies;
@@ -28,6 +26,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -45,19 +45,12 @@ public class UserV2ServiceImpl implements UserV2Service {
 
 		List<Meeting> myMeetings = meetingRepository.findAllByUserId(user.getId());
 
-		List<UserV2GetAllMeetingByUserMeetingDto> userJoinedList = Stream.concat(
-				myMeetings.stream(),
+		List<UserV2GetAllMeetingByUserMeetingDto> userJoinedList = Stream.concat(myMeetings.stream(),
 				applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE)
 					.stream()
-					.map(apply -> apply.getMeeting())
-			)
-			.map(meeting -> UserV2GetAllMeetingByUserMeetingDto.of(
-				meeting.getId(),
-				meeting.getTitle(),
-				meeting.getDesc(),
-				meeting.getImageURL().get(0).getUrl(),
-				meeting.getCategory().getValue()
-			))
+					.map(apply -> apply.getMeeting()))
+			.map(meeting -> UserV2GetAllMeetingByUserMeetingDto.of(meeting.getId(), meeting.getTitle(),
+				meeting.getDesc(), meeting.getImageURL().get(0).getUrl(), meeting.getCategory().getValue()))
 			.sorted(Comparator.comparing(UserV2GetAllMeetingByUserMeetingDto::getId).reversed())
 			.collect(Collectors.toList());
 
@@ -110,12 +103,16 @@ public class UserV2ServiceImpl implements UserV2Service {
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
 
 		List<ApplyV2GetAppliedMeetingByUserResponseDto> appliedMeetingByUserDtos = myApplies.stream()
-			.map(apply -> ApplyV2GetAppliedMeetingByUserResponseDto.of(
-				apply.getId(), apply.getStatus().getValue(),
+			.map(apply -> ApplyV2GetAppliedMeetingByUserResponseDto.of(apply.getId(), apply.getStatus().getValue(),
 				MeetingV2GetCreatedMeetingByUserResponseDto.of(apply.getMeeting(), apply.getMeeting().getUser(),
-					allApplies.getApprovedCount(apply.getMeetingId()), time.now())
-			)).toList();
+					allApplies.getApprovedCount(apply.getMeetingId()), time.now())))
+			.toList();
 
 		return UserV2GetAppliedMeetingByUserResponseDto.of(appliedMeetingByUserDtos);
+	}
+
+	@Override
+	public User getUserByUserId(Integer userId) {
+		return userRepository.findByIdOrThrow(userId);
 	}
 }

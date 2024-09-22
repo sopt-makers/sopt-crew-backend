@@ -1,5 +1,3 @@
-CREATE TYPE meeting_joinableparts_enum AS ENUM ('PM', 'DESIGN', 'IOS', 'ANDROID', 'SERVER', 'WEB');
-
 INSERT INTO "user" (id, name, "orgId", activities, "profileImage", phone)
 VALUES (1, '김삼순', 1001,
         '[{"part": "서버", "generation": 33}, {"part": "iOS", "generation": 32}]',
@@ -13,30 +11,6 @@ VALUES (1, '김삼순', 1001,
        (4, '이영지', 1004,
         '[{"part": "iOS", "generation": 32}, {"part": "안드로이드", "generation": 29}]',
         'profile4.jpg', '010-5555-5555');
-
-create table "meeting" (
-                           "canJoinOnlyActiveGeneration" boolean not null,
-                           "capacity" integer not null,
-                           "createdGeneration" integer not null,
-                           "id" serial not null,
-                           "isMentorNeeded" boolean not null,
-                           "targetActiveGeneration" integer,
-                           "userId" integer,
-                           "endDate" TIMESTAMP not null,
-                           "mEndDate" TIMESTAMP not null,
-                           "mStartDate" TIMESTAMP not null,
-                           "startDate" TIMESTAMP not null,
-                           "category" varchar(255) not null,
-                           "desc" varchar(255) not null,
-                           "leaderDesc" varchar(255) not null,
-                           "note" varchar(255),
-                           "processDesc" varchar(255) not null,
-                           "targetDesc" varchar(255) not null,
-                           "title" varchar(255) not null,
-                           "imageURL" jsonb,
-                           "joinableParts" meeting_joinableparts_enum[],
-                           primary key ("id")
-);
 
 INSERT INTO meeting (id, "userId", title, category, "imageURL", "startDate", "endDate", capacity,
                        "desc", "processDesc", "mStartDate", "mEndDate", "leaderDesc", "targetDesc",

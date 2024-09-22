@@ -1,16 +1,12 @@
 package org.sopt.makers.crew.main.post.v2.service;
 
-import static java.util.stream.Collectors.toList;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.ALREADY_REPORTED_POST;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.MAX_IMAGE_UPLOAD_EXCEEDED;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_POST_MENTION_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_POST_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
+import static java.util.stream.Collectors.*;
+import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.*;
 
 import java.util.List;
-
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.common.exception.BadRequestException;
 import org.sopt.makers.crew.main.common.exception.ForbiddenException;
@@ -33,6 +29,7 @@ import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
 import org.sopt.makers.crew.main.internal.notification.PushNotificationService;
 import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
@@ -47,12 +44,14 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
+import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -68,6 +67,8 @@ public class PostV2ServiceImpl implements PostV2Service {
 	private final ReportRepository reportRepository;
 
 	private final PushNotificationService pushNotificationService;
+	private final MemberBlockService memberBlockService;
+	private final UserV2Service userV2Service;
 
 	@Value("${push-notification.web-url}")
 	private String pushWebUrl;
@@ -82,16 +83,14 @@ public class PostV2ServiceImpl implements PostV2Service {
 	 */
 	@Override
 	@Transactional
-	public PostV2CreatePostResponseDto createPost(PostV2CreatePostBodyDto requestBody,
-		Integer userId) {
+	public PostV2CreatePostResponseDto createPost(PostV2CreatePostBodyDto requestBody, Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
 		User user = userRepository.findByIdOrThrow(userId);
 
 		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 
 		boolean isInMeeting = applies.stream()
-			.anyMatch(apply -> apply.getUserId().equals(userId)
-				&& apply.getStatus().equals(EnApplyStatus.APPROVE));
+			.anyMatch(apply -> apply.getUserId().equals(userId) && apply.getStatus().equals(EnApplyStatus.APPROVE));
 
 		boolean isMeetingCreator = meeting.getUserId().equals(userId);
 
@@ -109,27 +108,32 @@ public class PostV2ServiceImpl implements PostV2Service {
 
 		Post savedPost = postRepository.save(post);
 
-		List<String> userIdList = applyRepository.findAllByMeetingIdAndStatus(meeting.getId(),
-				EnApplyStatus.APPROVE)
+		List<String> userIdList = applyRepository.findAllByMeetingIdAndStatus(meeting.getId(), EnApplyStatus.APPROVE)
 			.stream()
 			.map(apply -> String.valueOf(apply.getUser().getOrgId()))
 			.collect(toList());
 
 		String[] userIds = userIdList.toArray(new String[0]);
-		String pushNotificationContent = String.format("[%s의 새 글] : \"%s\"",
-			user.getName(), post.getTitle());
+		String pushNotificationContent = String.format("[%s의 새 글] : \"%s\"", user.getName(), post.getTitle());
 		String pushNotificationWeblink = pushWebUrl + "/detail?id=" + meeting.getId();
 
 		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(userIds,
-			NEW_POST_PUSH_NOTIFICATION_TITLE.getValue(),
-			pushNotificationContent,
-			PUSH_NOTIFICATION_CATEGORY.getValue(), pushNotificationWeblink);
+			NEW_POST_PUSH_NOTIFICATION_TITLE.getValue(), pushNotificationContent, PUSH_NOTIFICATION_CATEGORY.getValue(),
+			pushNotificationWeblink);
 
 		pushNotificationService.sendPushNotification(pushRequestDto);
 
 		return PostV2CreatePostResponseDto.of(savedPost.getId());
 	}
 
+	/**
+	 * 모일 게시글 리스트 페이지네이션 조회 (12개)
+	 *
+	 * @param queryCommand 게시글 조회를 위한 쿼리 명령 객체
+	 * @param userId 게시글을 조회하는 사용자 id
+	 * @return 게시글 정보(게시글 객체 + 댓글 단 사람의 썸네일 + 차단된 유저의 게시물 여부)와 페이지 메타 정보를 포함한 응답 DTO
+	 * @apiNote 사용자가 차단한 유저의 게시물은 해당 게시물에 대한 차단 여부를 함께 반환
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, Integer userId) {
@@ -139,10 +143,24 @@ public class PostV2ServiceImpl implements PostV2Service {
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetingPostListDtos.getPageable().getPageNumber() + 1,
 			meetingPostListDtos.getPageable().getPageSize());
-		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto,
-			(int)meetingPostListDtos.getTotalElements());
+		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)meetingPostListDtos.getTotalElements());
 
-		return PostV2GetPostsResponseDto.of(meetingPostListDtos.getContent(), pageMetaDto);
+		List<Long> userOrgIds = meetingPostListDtos.getContent()
+			.stream()
+			.map(postDetail -> postDetail.getUser().getOrgId().longValue())
+			.collect(Collectors.toList());
+
+		User user = userV2Service.getUserByUserId(userId);
+		Long orgId = user.getOrgId().longValue();
+
+		Map<Long, Boolean> blockedPostMap = memberBlockService.getBlockedUsers(orgId, userOrgIds);
+
+		List<PostDetailResponseDto> responseDtos = meetingPostListDtos.getContent()
+			.stream()
+			.map(postDetail -> toPostDetailResponseDto(postDetail, blockedPostMap))
+			.collect(Collectors.toList());
+
+		return PostV2GetPostsResponseDto.of(responseDtos, pageMetaDto);
 	}
 
 	/**
@@ -162,21 +180,14 @@ public class PostV2ServiceImpl implements PostV2Service {
 		User user = userRepository.findByIdOrThrow(userId);
 		Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
 
-		String pushNotificationContent = String.format("[%s의 글] : \"%s\"",
-			user.getName(), post.getTitle());
+		String pushNotificationContent = String.format("[%s의 글] : \"%s\"", user.getName(), post.getTitle());
 		String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
 
-		String[] userOrgIds = requestBody.getOrgIds().stream()
-			.map(Object::toString)
-			.toArray(String[]::new);
+		String[] userOrgIds = requestBody.getOrgIds().stream().map(Object::toString).toArray(String[]::new);
 
-		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(
-			userOrgIds,
-			NEW_POST_MENTION_PUSH_NOTIFICATION_TITLE.getValue(),
-			pushNotificationContent,
-			PUSH_NOTIFICATION_CATEGORY.getValue(),
-			pushNotificationWeblink
-		);
+		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(userOrgIds,
+			NEW_POST_MENTION_PUSH_NOTIFICATION_TITLE.getValue(), pushNotificationContent,
+			PUSH_NOTIFICATION_CATEGORY.getValue(), pushNotificationWeblink);
 
 		pushNotificationService.sendPushNotification(pushRequestDto);
 	}
@@ -235,8 +246,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 		post.updatePost(requestBody.getTitle(), requestBody.getContents(), requestBody.getImages());
 
 		return PostV2UpdatePostResponseDto.of(post.getId(), post.getTitle(), post.getContents(),
-			String.valueOf(time.now()),
-			post.getImages());
+			String.valueOf(time.now()), post.getImages());
 	}
 
 	/**
@@ -258,11 +268,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 			throw new BadRequestException(ALREADY_REPORTED_POST.getErrorCode());
 		}
 
-		Report report = Report.builder()
-			.post(post)
-			.postId(postId)
-			.userId(userId)
-			.build();
+		Report report = Report.builder().post(post).postId(postId).userId(userId).build();
 
 		Report savedReport = reportRepository.save(report);
 
@@ -288,10 +294,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 
 		// 취소된 좋아요 정보가 없을 경우
 		if (deletedLikes == 0) {
-			Like newLike = Like.builder()
-				.postId(postId)
-				.userId(userId)
-				.build();
+			Like newLike = Like.builder().postId(postId).userId(userId).build();
 
 			likeRepository.save(newLike);
 
@@ -305,5 +308,25 @@ public class PostV2ServiceImpl implements PostV2Service {
 		post.decreaseLikeCount();
 
 		return PostV2SwitchPostLikeResponseDto.of(false);
+	}
+
+	private PostDetailResponseDto toPostDetailResponseDto(PostDetailResponseDto postDetail,
+		Map<Long, Boolean> blockedPostMap) {
+		boolean isBlockedPost = blockedPostMap.getOrDefault(postDetail.getUser().getOrgId().longValue(), false);
+		return PostDetailResponseDto.of(
+			postDetail.getId(),
+			postDetail.getTitle(),
+			postDetail.getContents(),
+			postDetail.getCreatedDate(),
+			postDetail.getImages(),
+			postDetail.getUser(),
+			postDetail.getLikeCount(),
+			postDetail.getIsLiked(),
+			postDetail.getViewCount(),
+			postDetail.getCommentCount(),
+			postDetail.getMeeting(),
+			postDetail.getCommenterThumbnails(),
+			isBlockedPost
+		);
 	}
 }
