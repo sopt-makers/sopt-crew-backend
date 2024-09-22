@@ -28,6 +28,10 @@ public class Applies {
 	}
 
 	public int getAppliedCount(Integer meetingId) {
+		if (!hasApplies(meetingId)) {
+			return 0;
+		}
+
 		List<Apply> applies = appliesMap.get(meetingId);
 
 		if (applies == null) {
@@ -37,18 +41,26 @@ public class Applies {
 	}
 
 	public int getApprovedCount(Integer meetingId) {
+		if (!hasApplies(meetingId)) {
+			return 0;
+		}
+
 		List<Apply> applies = appliesMap.get(meetingId);
 
 		if (applies == null) {
 			return 0;
 		}
 
-		return (int) appliesMap.get(meetingId).stream()
+		return (int)appliesMap.get(meetingId).stream()
 			.filter(apply -> apply.getStatus().equals(EnApplyStatus.APPROVE))
 			.count();
 	}
 
 	public Boolean isApply(Integer meetingId, Integer userId) {
+		if (!hasApplies(meetingId)) {
+			return false;
+		}
+
 		List<Apply> applies = appliesMap.get(meetingId);
 
 		if (applies == null) {
@@ -60,6 +72,10 @@ public class Applies {
 	}
 
 	public Boolean isApproved(Integer meetingId, Integer userId) {
+		if (!hasApplies(meetingId)) {
+			return false;
+		}
+
 		List<Apply> applies = appliesMap.get(meetingId);
 
 		if (applies == null) {
@@ -69,5 +85,9 @@ public class Applies {
 		return appliesMap.get(meetingId).stream()
 			.anyMatch(apply -> apply.getUserId().equals(userId)
 				&& apply.getStatus().equals(EnApplyStatus.APPROVE));
+	}
+
+	public boolean hasApplies(Integer meetingId) {
+		return appliesMap.containsKey(meetingId);
 	}
 }

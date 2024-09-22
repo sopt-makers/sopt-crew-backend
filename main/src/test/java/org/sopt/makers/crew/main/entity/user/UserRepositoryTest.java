@@ -2,17 +2,19 @@ package org.sopt.makers.crew.main.entity.user;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.sopt.makers.crew.main.common.config.TestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-@DataJpaTest
+@SpringBootTest
+@Testcontainers
 @ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(TestConfig.class)
+@SqlGroup({
+    @Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+})
 public class UserRepositoryTest {
 
     @Autowired
@@ -25,9 +27,10 @@ public class UserRepositoryTest {
 
         // when
         User savedUser = userRepository.save(user);
+        User foundUser = userRepository.findByIdOrThrow(savedUser.getId());
 
         // then
-        Assertions.assertThat(savedUser)
+        Assertions.assertThat(foundUser)
                 .extracting("name", "phone")
                 .containsExactly(user.getName(), user.getPhone());
     }

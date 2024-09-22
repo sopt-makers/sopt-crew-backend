@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface PostSearchRepository {
-    Page<PostDetailResponseDto> findPostList(PostGetPostsCommand queryCommand, Pageable pageable, Integer userId);
+	Page<PostDetailResponseDto> findPostList(PostGetPostsCommand queryCommand, Pageable pageable, Integer userId);
 
-    PostDetailBaseDto findPost(Integer userId, Integer postId);
+	PostDetailBaseDto findPost(Integer userId, Integer postId);
 }
