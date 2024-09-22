@@ -1,5 +1,9 @@
 package org.sopt.makers.crew.main.common.constant;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CrewConst {
 
 	/**
@@ -15,8 +19,4 @@ public final class CrewConst {
 
 	public static final String ORDER_ASC = "asc";
 	public static final String ORDER_DESC = "desc";
-
-	private CrewConst() {
-
-	}
 }
