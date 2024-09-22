@@ -41,6 +41,7 @@ import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
 import org.sopt.makers.crew.main.internal.notification.PushNotificationService;
 import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,6 +60,8 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 	private final CommentRepository commentRepository;
 	private final ReportRepository reportRepository;
 	private final LikeRepository likeRepository;
+
+	private final MemberBlockService memberBlockService;
 
 	private final PushNotificationService pushNotificationService;
 
@@ -168,21 +171,34 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 		List<Comment> comments = commentRepository.findAllByPostIdOrderByCreatedDate(postId);
 
+		User user = userRepository.findByIdOrThrow(userId);
+		Long orgId = user.getOrgId().longValue();
+
+		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgId);
+
 		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndCommentIdNotNull(userId));
 
 		Map<Integer, List<ReplyDto>> replyMap = new HashMap<>();
 		comments.stream()
 			.filter(comment -> !comment.isParentComment())
 			.forEach(
-				comment -> replyMap.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>())
-					.add(ReplyDto.of(comment, myLikes.isLikeComment(comment.getId()),
-						comment.isWriter(userId))));
+				comment -> {
+					boolean isBlockedComment = blockedUsers.getOrDefault(comment.getUser().getOrgId().longValue(),
+						false);
+					replyMap.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>())
+						.add(ReplyDto.of(comment, myLikes.isLikeComment(comment.getId()),
+							comment.isWriter(userId), isBlockedComment));
+				});
 
 		List<CommentDto> commentDtos = comments.stream()
 			.filter(Comment::isParentComment)
-			.map(comment -> CommentDto.of(comment, myLikes.isLikeComment(comment.getId()),
-				comment.isWriter(userId),
-				replyMap.get(comment.getId())))
+			.map(comment -> {
+				boolean isBlockedComment = blockedUsers.getOrDefault(comment.getUser().getOrgId().longValue(),
+					false);
+				return CommentDto.of(comment, myLikes.isLikeComment(comment.getId()),
+					comment.isWriter(userId),
+					replyMap.get(comment.getId()), isBlockedComment);
+			})
 			.toList();
 
 		PageMetaDto pageMetaDto = new PageMetaDto(new PageOptionsDto(1, 12), 30);
