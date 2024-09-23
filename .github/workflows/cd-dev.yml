@@ -38,7 +38,7 @@ jobs:
 
       - name: docker image 빌드 및 푸시 (nestjs)
         run: |
-          docker build --platform linux/amd64 -t makerscrew/server:develop .
+          docker build --platform linux/amd64 -t makerscrew/server:develop --build-arg SPRING_PROFILES_ACTIVE=dev .
           docker push makerscrew/server:develop
         working-directory: ${{ env.working-directory-nestjs }}
 
