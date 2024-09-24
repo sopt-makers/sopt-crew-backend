@@ -32,7 +32,7 @@ jobs:
 
       - name: docker image 빌드 및 푸시 (Spring)
         run: |
-          docker build --platform linux/amd64 -t makerscrew/main:production --build-arg SPRING_PROFILES_ACTIVE=prod .
+          docker build --platform linux/amd64 -t makerscrew/main:production .
           docker push makerscrew/main:production
         working-directory: ${{ env.working-directory-spring }}
 
