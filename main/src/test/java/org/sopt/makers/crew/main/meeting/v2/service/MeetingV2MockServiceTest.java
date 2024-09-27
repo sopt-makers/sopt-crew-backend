@@ -39,7 +39,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 
 @ExtendWith(MockitoExtension.class)
-public class MeetingV2ServiceTest {
+public class MeetingV2MockServiceTest {
     @InjectMocks
     private MeetingV2ServiceImpl meetingV2Service;
     @Mock
