@@ -46,6 +46,7 @@ public class CrewDatabaseConfig {
 
 	@Bean(name = "primaryEntityManagerFactory")
 	@Primary
+	@Profile({"local", "dev", "prod"})
 	public LocalContainerEntityManagerFactoryBean primaryEntityManagerFactory() {
 		DataSource dataSource = primaryDatasourceProperties();
 
@@ -66,6 +67,39 @@ public class CrewDatabaseConfig {
 		if (Arrays.stream(activeProfiles).anyMatch(profile -> profile.equals(System.getProperty("spring.profiles.active")))) {
 			properties.put("hibernate.hbm2ddl.auto", "validate");
 		}
+		em.setJpaPropertyMap(properties);
+
+		return em;
+	}
+
+	@Bean(name = "primaryEntityManagerFactory")
+	@Primary
+	@Profile({"test"})
+	public LocalContainerEntityManagerFactoryBean primaryEntityManagerTestFactory() {
+		DataSource dataSource = primaryDatasourceProperties();
+
+		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+		em.setDataSource(dataSource);
+		em.setPackagesToScan("org.sopt.makers.crew.main.entity");
+
+		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+		vendorAdapter.setShowSql(true);
+		em.setJpaVendorAdapter(vendorAdapter);
+
+		Map<String, Object> properties = new HashMap<>();
+		properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+		properties.put("hibernate.format_sql", true);
+		properties.put("hibernate.physical_naming_strategy",
+			"org.sopt.makers.crew.main.common.config.CamelCaseNamingStrategy");
+
+		String[] activeProfiles = {"local", "dev", "prod"};
+		if (Arrays.stream(activeProfiles)
+			.anyMatch(profile -> profile.equals(System.getProperty("spring.profiles.active")))) {
+			properties.put("hibernate.hbm2ddl.auto", "validate");
+		} else {
+			properties.put("hibernate.hbm2ddl.auto", "create");
+		}
+
 		em.setJpaPropertyMap(properties);
 
 		return em;
