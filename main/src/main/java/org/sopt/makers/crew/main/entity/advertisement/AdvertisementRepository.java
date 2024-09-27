@@ -11,10 +11,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface AdvertisementRepository extends JpaRepository<Advertisement, Integer> {
 
-	List<Advertisement> findTop6ByAdvertisementCategoryAndAdvertisementEndDateAfterAndAdvertisementStartDateBeforeOrderByPriority(
-		AdvertisementCategory advertisementCategory, LocalDateTime now1,
-		LocalDateTime now2);    // 해당 부분 spring data jpa 코드 삭제해도 될까요?
-
 	@Query("SELECT a FROM Advertisement a " +
 		"WHERE a.isSponsoredContent = :isSponsored " +
 		"AND a.advertisementCategory = :category " +
