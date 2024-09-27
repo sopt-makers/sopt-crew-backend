@@ -55,10 +55,14 @@ public class Advertisement {
 	@NotNull
 	private LocalDateTime advertisementEndDate;
 
+	@NotNull
+	private boolean isSponsoredContent;
+
 	@Builder
-	private Advertisement(String advertisementDesktopImageUrl, String advertisementMobileImageUrl, String advertisementLink,
+	private Advertisement(String advertisementDesktopImageUrl, String advertisementMobileImageUrl,
+		String advertisementLink,
 		AdvertisementCategory advertisementCategory, Long priority, LocalDateTime advertisementStartDate,
-		LocalDateTime advertisementEndDate) {
+		LocalDateTime advertisementEndDate, boolean isSponsoredContent) {
 		this.advertisementDesktopImageUrl = advertisementDesktopImageUrl;
 		this.advertisementMobileImageUrl = advertisementMobileImageUrl;
 		this.advertisementLink = advertisementLink;
@@ -66,5 +70,6 @@ public class Advertisement {
 		this.priority = priority;
 		this.advertisementStartDate = advertisementStartDate;
 		this.advertisementEndDate = advertisementEndDate;
+		this.isSponsoredContent = isSponsoredContent;
 	}
 }
