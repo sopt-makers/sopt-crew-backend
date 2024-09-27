@@ -27,7 +27,7 @@ public class AdvertisementService {
 	public AdvertisementsGetResponseDto getAdvertisement(AdvertisementCategory advertisementCategory) {
 		LocalDateTime now = time.now();
 
-		int maxItems = getMaxItemsByCategory(advertisementCategory);
+		int maxItems = advertisementCategory.getMaxItems();
 		Pageable pageable = PageRequest.of(0, maxItems);
 
 		List<Advertisement> advertisements = advertisementRepository.findAdvertisementsByDateAndType(
@@ -46,13 +46,6 @@ public class AdvertisementService {
 			pageable);
 
 		return createResponseDto(advertisements);
-	}
-
-	private int getMaxItemsByCategory(AdvertisementCategory category) {
-		return switch (category) {
-			case POST -> 6;
-			case MEETING -> 1;
-		};
 	}
 
 	private AdvertisementsGetResponseDto createResponseDto(List<Advertisement> advertisements) {
