@@ -1,3 +1,13 @@
+drop table if exists "advertisement" cascade;
+drop table if exists "apply" cascade;
+drop table if exists "comment" cascade;
+drop table if exists "like" cascade;
+drop table if exists "meeting" cascade;
+drop table if exists "notice" cascade;
+drop table if exists "post" cascade;
+drop table if exists "report" cascade;
+drop table if exists "user" cascade;
+
 DROP TYPE IF EXISTS meeting_joinableparts_enum;
 
 create type meeting_joinableparts_enum as enum ('PM', 'DESIGN', 'IOS', 'ANDROID', 'SERVER', 'WEB');
@@ -15,9 +25,6 @@ create table if not exists "user"
     activities     jsonb,
     phone          varchar
 );
-
--- alter table "user"
---     owner to songmingyu;
 
 create table if not exists meeting
 (
@@ -40,8 +47,7 @@ create table if not exists meeting
     "processDesc"                 varchar   not null,
     "mStartDate"                  timestamp not null,
     "mEndDate"                    timestamp not null,
-    "leaderDesc"                  varchar   not null,
-    "targetDesc"                  varchar   not null,
+    "leaderDesc"                  varchar,
     note                          varchar,
     "isMentorNeeded"              boolean   not null,
     "canJoinOnlyActiveGeneration" boolean   not null,
@@ -68,9 +74,6 @@ create table if not exists apply
     "appliedDate" timestamp         not null,
     status        integer default 0 not null
 );
-
--- alter table apply
---     owner to songmingyu;
 
 create index if not exists "meetingId_index"
     on apply ("meetingId");
@@ -115,9 +118,6 @@ create table if not exists post
     images         text[],
     "commentCount" integer default 0 not null
 );
-
--- alter table post
---     owner to songmingyu;
 
 create table if not exists comment
 (
@@ -184,7 +184,7 @@ create table if not exists report
     on delete cascade
 );
 
-create table if not exists advertisement
+create table if not exists "advertisement"
 (
     id                             serial
     primary key,
@@ -197,5 +197,6 @@ create table if not exists advertisement
     check (("advertisementCategory")::text = ANY
 ((ARRAY ['POST'::character varying, 'MEETING'::character varying])::text[])),
     "advertisementDesktopImageUrl" varchar(255),
-    "advertisementMobileImageUrl"  varchar(255)
+    "advertisementMobileImageUrl"  varchar(255),
+    "isSponsoredContent"           boolean default false not null
     );

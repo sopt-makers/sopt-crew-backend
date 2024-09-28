@@ -126,14 +126,8 @@ public class Meeting {
 	/**
 	 * 개설자 소개
 	 */
-	@Column(name = "leaderDesc", nullable = false)
+	@Column(name = "leaderDesc")
 	private String leaderDesc;
-
-	/**
-	 * 모집 대상
-	 */
-	@Column(name = "targetDesc", nullable = false)
-	private String targetDesc;
 
 	/**
 	 * 유의 사항
@@ -194,7 +188,6 @@ public class Meeting {
 		this.mStartDate = mStartDate;
 		this.mEndDate = mEndDate;
 		this.leaderDesc = leaderDesc;
-		this.targetDesc = targetDesc;
 		this.note = note;
 		this.isMentorNeeded = isMentorNeeded;
 		this.canJoinOnlyActiveGeneration = canJoinOnlyActiveGeneration;
@@ -248,7 +241,6 @@ public class Meeting {
 		this.mStartDate = updateMeeting.mStartDate;
 		this.mEndDate = updateMeeting.getMEndDate();
 		this.leaderDesc = updateMeeting.getLeaderDesc();
-		this.targetDesc = updateMeeting.getTargetDesc();
 		this.note = updateMeeting.getNote();
 		this.isMentorNeeded = updateMeeting.getIsMentorNeeded();
 		this.canJoinOnlyActiveGeneration = updateMeeting.getCanJoinOnlyActiveGeneration();

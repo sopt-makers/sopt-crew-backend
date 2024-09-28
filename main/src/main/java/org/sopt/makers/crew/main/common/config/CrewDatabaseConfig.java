@@ -60,10 +60,17 @@ public class CrewDatabaseConfig {
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 		properties.put("hibernate.format_sql", true);
-		properties.put("hibernate.physical_naming_strategy", "org.sopt.makers.crew.main.common.config.CamelCaseNamingStrategy");
+		properties.put("hibernate.physical_naming_strategy",
+			"org.sopt.makers.crew.main.common.config.CamelCaseNamingStrategy");
+
+		/**
+		 * local, dev, prod 환경은 validate 로 한다.
+		 * test 환경일 경우, none(기본값) 으로 한다. schema.sql 을 사용하여 테이블을 생성한다. (하단 코드 참고)
+		 */
 
 		String[] activeProfiles = {"local", "dev", "prod"};
-		if (Arrays.stream(activeProfiles).anyMatch(profile -> profile.equals(System.getProperty("spring.profiles.active")))) {
+		if (Arrays.stream(activeProfiles)
+			.anyMatch(profile -> profile.equals(System.getProperty("spring.profiles.active")))) {
 			properties.put("hibernate.hbm2ddl.auto", "validate");
 		}
 		em.setJpaPropertyMap(properties);
@@ -91,14 +98,14 @@ public class CrewDatabaseConfig {
 		return args -> executeSchemaSql();
 	}
 
-	private void executeSchemaSql() {
+	private void executeSchemaSql() throws Exception {
 		Resource resource = resourceLoader.getResource("classpath:schema.sql");
 		ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
 		databasePopulator.addScript(resource);
 		try {
 			databasePopulator.populate(primaryDatasourceProperties().getConnection());
 		} catch (Exception e) {
-			System.out.println(e);
+			throw e;
 		}
 	}
 }

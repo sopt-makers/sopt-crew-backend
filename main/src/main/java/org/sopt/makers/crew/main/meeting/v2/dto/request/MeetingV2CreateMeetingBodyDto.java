@@ -61,12 +61,7 @@ public class MeetingV2CreateMeetingBodyDto {
 	private String mEndDate;
 
 	@Schema(example = "안녕하세요 기획 파트 000입니다", description = "개설자 소개")
-	@NotNull
 	private String leaderDesc;
-
-	@Schema(example = "개발 모르는 사람도 환영", description = "모집 대상 소개")
-	@NotNull
-	private String targetDesc;
 
 	@Schema(example = "유의할 사항", description = "유의할 사항")
 	private String note;
