@@ -24,8 +24,8 @@ create table if not exists "user"
     "profileImage" varchar,
     activities     jsonb,
     phone          varchar,
-    "createdAt"    timestamp default CURRENT_TIMESTAMP,
-    "updatedAt"    timestamp default CURRENT_TIMESTAMP
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists meeting
@@ -56,8 +56,8 @@ create table if not exists meeting
     "targetActiveGeneration"      integer,
     "joinableParts"               meeting_joinableparts_enum[],
     "createdGeneration"           integer   default 32,
-    "createdAt"                   timestamp default CURRENT_TIMESTAMP,
-    "updatedAt"                   timestamp default CURRENT_TIMESTAMP
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists apply
@@ -77,8 +77,8 @@ create table if not exists apply
     content       varchar             not null,
     "appliedDate" timestamp           not null,
     status        integer   default 0 not null,
-    "createdAt"   timestamp default CURRENT_TIMESTAMP,
-    "updatedAt"   timestamp default CURRENT_TIMESTAMP
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create index if not exists "meetingId_index"
@@ -100,8 +100,8 @@ create table if not exists notice
     "createdDate"     timestamp not null,
     "exposeStartDate" timestamp not null,
     "exposeEndDate"   timestamp not null,
-    "createdAt"       timestamp default CURRENT_TIMESTAMP,
-    "updatedAt"       timestamp default CURRENT_TIMESTAMP
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists post
@@ -125,8 +125,8 @@ create table if not exists post
     "viewCount"    integer   default 0 not null,
     images         text[],
     "commentCount" integer   default 0 not null,
-    "createdAt"    timestamp default CURRENT_TIMESTAMP,
-    "updatedAt"    timestamp default CURRENT_TIMESTAMP
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists comment
@@ -150,8 +150,8 @@ create table if not exists comment
     references post
     on delete cascade,
     "parentId"    integer,
-    "createdAt"   timestamp default CURRENT_TIMESTAMP,
-    "updatedAt"   timestamp default CURRENT_TIMESTAMP
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists "like"
@@ -173,8 +173,8 @@ create table if not exists "like"
     constraint "FK_d86e0a3eeecc21faa0da415a18a"
     references comment
     on delete cascade,
-    "createdAt"   timestamp default CURRENT_TIMESTAMP,
-    "updatedAt"   timestamp default CURRENT_TIMESTAMP
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists report
@@ -196,8 +196,8 @@ create table if not exists report
     constraint "FK_4b6fe2df37305bc075a4a16d3ea"
     references post
     on delete cascade,
-    "createdAt"   timestamp default CURRENT_TIMESTAMP,
-    "updatedAt"   timestamp default CURRENT_TIMESTAMP
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists advertisement
@@ -215,6 +215,6 @@ create table if not exists advertisement
     "advertisementDesktopImageUrl" varchar(255),
     "advertisementMobileImageUrl"  varchar(255),
     "isSponsoredContent"           boolean   default false not null,
-    "createdAt"                    timestamp default CURRENT_TIMESTAMP,
-    "updatedAt"                    timestamp default CURRENT_TIMESTAMP
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
     );
