@@ -14,7 +14,6 @@ import jakarta.websocket.server.PathParam;
 import java.security.Principal;
 import java.util.List;
 
-import org.sopt.makers.crew.main.common.dto.TempResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesCsvQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
@@ -35,7 +34,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "모임")
 public interface MeetingV2Api {

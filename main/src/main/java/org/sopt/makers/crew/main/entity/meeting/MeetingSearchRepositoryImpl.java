@@ -8,8 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.sopt.makers.crew.main.common.constant.CrewConst;
-import org.sopt.makers.crew.main.common.util.Time;
+import org.sopt.makers.crew.main.global.constant.CrewConst;
+import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;

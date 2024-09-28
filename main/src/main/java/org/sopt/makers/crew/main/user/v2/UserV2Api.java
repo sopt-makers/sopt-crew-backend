@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.security.Principal;
 import java.util.List;
 
-import org.sopt.makers.crew.main.common.dto.TempResponseDto;
+import org.sopt.makers.crew.main.global.dto.TempResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAppliedMeetingByUserResponseDto;

@@ -1,7 +1,7 @@
 package org.sopt.makers.crew.main.entity.meeting.enums;
 
 import java.util.Arrays;
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 
 public enum MeetingCategory {
     STUDY("스터디"),

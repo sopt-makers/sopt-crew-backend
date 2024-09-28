@@ -23,7 +23,9 @@ create table if not exists "user"
     "orgId"        integer not null,
     "profileImage" varchar,
     activities     jsonb,
-    phone          varchar
+    phone          varchar,
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists meeting
@@ -53,7 +55,9 @@ create table if not exists meeting
     "canJoinOnlyActiveGeneration" boolean   not null,
     "targetActiveGeneration"      integer,
     "joinableParts"               meeting_joinableparts_enum[],
-    "createdGeneration"           integer default 32
+    "createdGeneration"           integer   default 32,
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists apply
@@ -61,18 +65,20 @@ create table if not exists apply
     id            serial
     constraint "PK_c61ed680472aa0f58499175d902"
     primary key,
-    type          integer default 0 not null,
-    "meetingId"   integer           not null
+    type          integer   default 0 not null,
+    "meetingId"   integer             not null
     constraint "FK_b130d23f4642d1ef51c6e54d257"
     references meeting
     on delete cascade,
-    "userId"      integer           not null
+    "userId"      integer             not null
     constraint "FK_359c8244808809db5ee96ed066e"
     references "user"
     on delete cascade,
-    content       varchar           not null,
-    "appliedDate" timestamp         not null,
-    status        integer default 0 not null
+    content       varchar             not null,
+    "appliedDate" timestamp           not null,
+    status        integer   default 0 not null,
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create index if not exists "meetingId_index"
@@ -93,7 +99,9 @@ create table if not exists notice
     contents          varchar   not null,
     "createdDate"     timestamp not null,
     "exposeStartDate" timestamp not null,
-    "exposeEndDate"   timestamp not null
+    "exposeEndDate"   timestamp not null,
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists post
@@ -103,20 +111,22 @@ create table if not exists post
     primary key
     constraint "UQ_be5fda3aac270b134ff9c21cdee"
     unique,
-    contents       varchar           not null,
-    "createdDate"  timestamp         not null,
-    "updatedDate"  timestamp         not null,
-    "likeCount"    integer default 0 not null,
-    "userId"       integer           not null
+    contents       varchar             not null,
+    "createdDate"  timestamp           not null,
+    "updatedDate"  timestamp           not null,
+    "likeCount"    integer   default 0 not null,
+    "userId"       integer             not null
     constraint "FK_5c1cf55c308037b5aca1038a131"
     references "user",
-    "meetingId"    integer           not null
+    "meetingId"    integer             not null
     constraint "FK_85e980cf9166f5337c0b2b76bc0"
     references meeting,
-    title          varchar           not null,
-    "viewCount"    integer default 0 not null,
+    title          varchar             not null,
+    "viewCount"    integer   default 0 not null,
     images         text[],
-    "commentCount" integer default 0 not null
+    "commentCount" integer   default 0 not null,
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists comment
@@ -126,20 +136,22 @@ create table if not exists comment
     primary key
     constraint "UQ_0b0e4bbc8415ec426f87f3a88e2"
     unique,
-    contents      varchar           not null,
-    depth         integer default 0 not null,
-    "order"       integer default 0 not null,
-    "createdDate" timestamp         not null,
-    "updatedDate" timestamp         not null,
-    "likeCount"   integer default 0 not null,
+    contents      varchar             not null,
+    depth         integer   default 0 not null,
+    "order"       integer   default 0 not null,
+    "createdDate" timestamp           not null,
+    "updatedDate" timestamp           not null,
+    "likeCount"   integer   default 0 not null,
     "userId"      integer
     constraint "FK_c0354a9a009d3bb45a08655ce3b"
     references "user",
-    "postId"      integer           not null
+    "postId"      integer             not null
     constraint "FK_94a85bb16d24033a2afdd5df060"
     references post
     on delete cascade,
-    "parentId"    integer
+    "parentId"    integer,
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists "like"
@@ -160,7 +172,9 @@ create table if not exists "like"
     "commentId"   integer
     constraint "FK_d86e0a3eeecc21faa0da415a18a"
     references comment
-    on delete cascade
+    on delete cascade,
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists report
@@ -181,10 +195,12 @@ create table if not exists report
     "postId"      integer
     constraint "FK_4b6fe2df37305bc075a4a16d3ea"
     references post
-    on delete cascade
+    on delete cascade,
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
-create table if not exists "advertisement"
+create table if not exists advertisement
 (
     id                             serial
     primary key,
@@ -198,5 +214,7 @@ create table if not exists "advertisement"
 ((ARRAY ['POST'::character varying, 'MEETING'::character varying])::text[])),
     "advertisementDesktopImageUrl" varchar(255),
     "advertisementMobileImageUrl"  varchar(255),
-    "isSponsoredContent"           boolean default false not null
+    "isSponsoredContent"           boolean   default false not null,
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
     );

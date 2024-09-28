@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.entity.comment;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.common.util.MentionSecretStringRemover;
+import org.sopt.makers.crew.main.global.util.MentionSecretStringRemover;
 
 import lombok.RequiredArgsConstructor;
 

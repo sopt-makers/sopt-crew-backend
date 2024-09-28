@@ -1,10 +1,10 @@
 package org.sopt.makers.crew.main.entity.apply;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_FOUND_APPLY;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_APPLY;
 
 import java.util.List;
-import java.util.Optional;
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
+
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

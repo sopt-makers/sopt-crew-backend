@@ -7,7 +7,7 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2GetCommentsRes
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 
 public interface CommentV2Service {
 

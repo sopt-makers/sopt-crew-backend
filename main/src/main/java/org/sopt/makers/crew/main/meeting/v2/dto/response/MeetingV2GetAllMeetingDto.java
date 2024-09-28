@@ -2,8 +2,8 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.common.dto.MeetingResponseDto;
-import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.sopt.makers.crew.main.common.exception.BaseException;
-import org.sopt.makers.crew.main.common.util.Time;
+import org.sopt.makers.crew.main.global.exception.BaseException;
+import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;

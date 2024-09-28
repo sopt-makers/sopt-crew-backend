@@ -1,7 +1,6 @@
 package org.sopt.makers.crew.main.comment.v2;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import java.security.Principal;
@@ -18,8 +17,7 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentR
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.service.CommentV2Service;
-import org.sopt.makers.crew.main.common.dto.TempResponseDto;
-import org.sopt.makers.crew.main.common.util.UserUtil;
+import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;

@@ -8,7 +8,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import org.sopt.makers.crew.main.common.util.UserUtil;
+import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesCsvQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
