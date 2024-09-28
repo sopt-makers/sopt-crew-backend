@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
+import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.meeting.converter.MeetingCategoryConverter;
@@ -42,7 +43,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "meeting")
-public class Meeting {
+public class Meeting extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

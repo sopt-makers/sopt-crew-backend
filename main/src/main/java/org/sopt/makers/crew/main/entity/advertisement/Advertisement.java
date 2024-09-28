@@ -5,6 +5,7 @@ import static jakarta.persistence.GenerationType.*;
 import java.time.LocalDateTime;
 
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
+import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import jakarta.persistence.Entity;
@@ -25,7 +26,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "advertisement")
-public class Advertisement {
+public class Advertisement extends BaseTimeEntity {
 	/**
 	 * Primary Key
 	 */

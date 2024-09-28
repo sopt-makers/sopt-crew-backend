@@ -21,6 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.entity.apply.enums.ApplyStatusConverter;
 import org.sopt.makers.crew.main.entity.apply.enums.ApplyTypeConverter;
@@ -36,7 +37,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "apply")
-public class Apply {
+public class Apply extends BaseTimeEntity {
 
 	/**
 	 * Primary Key
