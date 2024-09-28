@@ -5,6 +5,7 @@ import static jakarta.persistence.GenerationType.*;
 import java.time.LocalDateTime;
 
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
+import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import jakarta.persistence.Entity;
@@ -23,9 +24,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
 @Table(name = "advertisement")
-public class Advertisement {
+public class Advertisement extends BaseTimeEntity {
 	/**
 	 * Primary Key
 	 */
@@ -55,10 +55,14 @@ public class Advertisement {
 	@NotNull
 	private LocalDateTime advertisementEndDate;
 
+	@NotNull
+	private boolean isSponsoredContent;
+
 	@Builder
-	private Advertisement(String advertisementDesktopImageUrl, String advertisementMobileImageUrl, String advertisementLink,
+	private Advertisement(String advertisementDesktopImageUrl, String advertisementMobileImageUrl,
+		String advertisementLink,
 		AdvertisementCategory advertisementCategory, Long priority, LocalDateTime advertisementStartDate,
-		LocalDateTime advertisementEndDate) {
+		LocalDateTime advertisementEndDate, boolean isSponsoredContent) {
 		this.advertisementDesktopImageUrl = advertisementDesktopImageUrl;
 		this.advertisementMobileImageUrl = advertisementMobileImageUrl;
 		this.advertisementLink = advertisementLink;
@@ -66,5 +70,6 @@ public class Advertisement {
 		this.priority = priority;
 		this.advertisementStartDate = advertisementStartDate;
 		this.advertisementEndDate = advertisementEndDate;
+		this.isSponsoredContent = isSponsoredContent;
 	}
 }

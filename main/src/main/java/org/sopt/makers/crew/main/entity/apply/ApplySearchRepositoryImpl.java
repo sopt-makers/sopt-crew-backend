@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.apply;
 
-import static org.sopt.makers.crew.main.common.constant.CrewConst.*;
+import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.entity.apply.QApply.apply;
 import static org.sopt.makers.crew.main.entity.user.QUser.user;
 

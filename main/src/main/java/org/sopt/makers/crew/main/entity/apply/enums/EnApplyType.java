@@ -1,9 +1,7 @@
 package org.sopt.makers.crew.main.entity.apply.enums;
 
 import java.util.Arrays;
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
-import org.sopt.makers.crew.main.common.exception.BaseException;
-import org.springframework.http.HttpStatus;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 
 /** 지원 구분 */
 public enum EnApplyType {

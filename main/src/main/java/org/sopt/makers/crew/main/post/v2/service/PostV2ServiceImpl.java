@@ -1,19 +1,19 @@
 package org.sopt.makers.crew.main.post.v2.service;
 
 import static java.util.stream.Collectors.*;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
-import org.sopt.makers.crew.main.common.exception.ForbiddenException;
-import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
-import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.common.util.CustomPageable;
-import org.sopt.makers.crew.main.common.util.Time;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
+import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.util.CustomPageable;
+import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;

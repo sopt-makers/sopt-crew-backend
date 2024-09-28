@@ -2,14 +2,13 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import java.util.Comparator;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
-import org.sopt.makers.crew.main.common.util.UserUtil;
+import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 
 @Getter

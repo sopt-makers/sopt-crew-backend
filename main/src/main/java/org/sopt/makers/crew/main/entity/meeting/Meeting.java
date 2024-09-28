@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.meeting;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
 import io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType;
@@ -27,8 +27,9 @@ import lombok.NoArgsConstructor;
 
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
-import org.sopt.makers.crew.main.common.exception.ForbiddenException;
+import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.meeting.converter.MeetingCategoryConverter;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
@@ -40,9 +41,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
 @Table(name = "meeting")
-public class Meeting {
+public class Meeting extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -126,14 +126,8 @@ public class Meeting {
 	/**
 	 * 개설자 소개
 	 */
-	@Column(name = "leaderDesc", nullable = false)
+	@Column(name = "leaderDesc")
 	private String leaderDesc;
-
-	/**
-	 * 모집 대상
-	 */
-	@Column(name = "targetDesc", nullable = false)
-	private String targetDesc;
 
 	/**
 	 * 유의 사항
@@ -194,7 +188,6 @@ public class Meeting {
 		this.mStartDate = mStartDate;
 		this.mEndDate = mEndDate;
 		this.leaderDesc = leaderDesc;
-		this.targetDesc = targetDesc;
 		this.note = note;
 		this.isMentorNeeded = isMentorNeeded;
 		this.canJoinOnlyActiveGeneration = canJoinOnlyActiveGeneration;
@@ -248,7 +241,6 @@ public class Meeting {
 		this.mStartDate = updateMeeting.mStartDate;
 		this.mEndDate = updateMeeting.getMEndDate();
 		this.leaderDesc = updateMeeting.getLeaderDesc();
-		this.targetDesc = updateMeeting.getTargetDesc();
 		this.note = updateMeeting.getNote();
 		this.isMentorNeeded = updateMeeting.getIsMentorNeeded();
 		this.canJoinOnlyActiveGeneration = updateMeeting.getCanJoinOnlyActiveGeneration();

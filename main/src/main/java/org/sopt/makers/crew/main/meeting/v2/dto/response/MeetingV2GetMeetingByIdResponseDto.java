@@ -3,7 +3,7 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.sopt.makers.crew.main.common.dto.MeetingCreatorDto;
+import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
@@ -68,12 +68,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	private final LocalDateTime mEndDate;
 
 	@Schema(description = "개설자 소개", example = "개설자 소개 입니다.")
-	@NotNull
 	private final String leaderDesc;
-
-	@Schema(description = "모집 대상 소개", example = "모집 대상 소개입니다.")
-	@NotNull
-	private final String targetDesc;
 
 	@Schema(description = "유의사항", example = "유의사항입니다.")
 	@NotNull
@@ -145,7 +140,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 		return new MeetingV2GetMeetingByIdResponseDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(),
 			meeting.getCategory().getValue(), meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(),
 			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getMStartDate(),
-			meeting.getMEndDate(), meeting.getLeaderDesc(), meeting.getTargetDesc(), meeting.getNote(),
+			meeting.getMEndDate(), meeting.getLeaderDesc(), meeting.getNote(),
 			meeting.getIsMentorNeeded(), meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meetingStatus,
 			approvedCount, isHost, isApply, isApproved, meetingCreatorDto, appliedInfo);

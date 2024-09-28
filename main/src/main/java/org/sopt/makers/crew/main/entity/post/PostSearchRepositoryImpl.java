@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.post;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import static org.sopt.makers.crew.main.entity.comment.QComment.*;
 import static org.sopt.makers.crew.main.entity.like.QLike.*;
 import static org.sopt.makers.crew.main.entity.meeting.QMeeting.*;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.response.CommenterThumbnails;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;

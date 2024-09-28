@@ -13,7 +13,7 @@ VALUES (1, '김삼순', 1001,
         'profile4.jpg', '010-5555-5555');
 
 INSERT INTO meeting (id, "userId", title, category, "imageURL", "startDate", "endDate", capacity,
-                       "desc", "processDesc", "mStartDate", "mEndDate", "leaderDesc", "targetDesc",
+                       "desc", "processDesc", "mStartDate", "mEndDate", "leaderDesc",
                        note, "isMentorNeeded", "canJoinOnlyActiveGeneration", "createdGeneration",
                        "targetActiveGeneration", "joinableParts")
 VALUES (1, 1, '스터디 구합니다1', '행사',
@@ -21,10 +21,10 @@ VALUES (1, 1, '스터디 구합니다1', '행사',
         '2024-05-19 00:00:00.000000', '2024-05-24 23:59:59.000000', 10,
         '스터디 설명입니다.', '스터디 진행방식입니다.',
         '2024-05-29 00:00:00.000000', '2024-05-31 00:00:00.000000', '스터디장 설명입니다.',
-        '누구나 들어올 수 있어요.', '시간지키세요.', true, false, 34, 34, '{PM,DESIGN,WEB,ANDROID,IOS,SERVER}');
+        '시간지키세요.', true, false, 34, 34, '{PM,DESIGN,WEB,ANDROID,IOS,SERVER}');
 
 INSERT INTO meeting (id, "userId", title, category, "imageURL", "startDate", "endDate", capacity,
-                       "desc", "processDesc", "mStartDate", "mEndDate", "leaderDesc", "targetDesc",
+                       "desc", "processDesc", "mStartDate", "mEndDate", "leaderDesc",
                        note, "isMentorNeeded", "canJoinOnlyActiveGeneration", "createdGeneration",
                        "targetActiveGeneration", "joinableParts")
 VALUES (2, 1, '스터디 구합니다2', '스터디',
@@ -32,7 +32,7 @@ VALUES (2, 1, '스터디 구합니다2', '스터디',
         '2024-05-20 00:00:00.000000', '2024-05-25 23:59:59.000000', 10,
         '스터디 설명입니다.', '스터디 진행방식입니다.',
         '2024-05-30 00:00:00.000000', '2024-06-01 00:00:00.000000', '스터디장 설명입니다.',
-        '누구나 들어올 수 있어요.', '시간지키세요.', true, false, 34, 34, '{PM,DESIGN,WEB,ANDROID,IOS,SERVER}');
+        '시간지키세요.', true, false, 34, 34, '{PM,DESIGN,WEB,ANDROID,IOS,SERVER}');
 
 INSERT INTO post (id, title, contents, "createdDate", "updatedDate", "viewCount", images, "userId", "meetingId", "commentCount", "likeCount")
 VALUES

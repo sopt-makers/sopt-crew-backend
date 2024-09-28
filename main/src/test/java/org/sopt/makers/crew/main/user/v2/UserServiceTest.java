@@ -4,18 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.sopt.makers.crew.main.common.annotation.IntegratedTest;
+import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 @IntegratedTest
 public class UserServiceTest {
