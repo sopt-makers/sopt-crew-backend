@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 
 @Getter

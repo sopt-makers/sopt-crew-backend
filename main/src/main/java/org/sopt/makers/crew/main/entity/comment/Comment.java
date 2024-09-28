@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.comment;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,7 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.sopt.makers.crew.main.common.exception.ForbiddenException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.springframework.data.annotation.CreatedDate;

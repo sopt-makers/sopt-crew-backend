@@ -1,11 +1,10 @@
 package org.sopt.makers.crew.main.entity.post;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.NOT_FOUND_POST;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_POST;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

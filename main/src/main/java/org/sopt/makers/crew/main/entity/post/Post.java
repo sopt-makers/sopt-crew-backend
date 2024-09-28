@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.post;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
 
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.Column;
@@ -22,7 +22,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import org.hibernate.annotations.Type;
-import org.sopt.makers.crew.main.common.exception.ForbiddenException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.springframework.data.annotation.CreatedDate;

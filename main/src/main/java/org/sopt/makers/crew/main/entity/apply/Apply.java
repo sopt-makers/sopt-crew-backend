@@ -1,7 +1,7 @@
 package org.sopt.makers.crew.main.entity.apply;
 
 import static jakarta.persistence.GenerationType.IDENTITY;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -21,7 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.entity.apply.enums.ApplyStatusConverter;
 import org.sopt.makers.crew.main.entity.apply.enums.ApplyTypeConverter;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;

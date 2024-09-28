@@ -1,7 +1,7 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
-import static org.sopt.makers.crew.main.common.constant.CrewConst.*;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 
 import java.io.FileWriter;
@@ -22,14 +22,14 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
-import org.sopt.makers.crew.main.common.dto.MeetingResponseDto;
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
-import org.sopt.makers.crew.main.common.exception.ServerException;
-import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
-import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.common.util.CustomPageable;
-import org.sopt.makers.crew.main.common.util.Time;
-import org.sopt.makers.crew.main.common.util.UserPartUtil;
+import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ServerException;
+import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.util.CustomPageable;
+import org.sopt.makers.crew.main.global.util.Time;
+import org.sopt.makers.crew.main.global.util.UserPartUtil;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;

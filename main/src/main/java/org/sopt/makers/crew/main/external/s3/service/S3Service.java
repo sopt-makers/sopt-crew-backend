@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.external.s3.service;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +20,7 @@ import java.util.UUID;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.sopt.makers.crew.main.common.exception.ServerException;
+import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.external.s3.config.AwsProperties;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlFieldResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;

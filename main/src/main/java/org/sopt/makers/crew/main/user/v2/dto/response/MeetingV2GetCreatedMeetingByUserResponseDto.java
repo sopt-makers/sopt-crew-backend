@@ -3,8 +3,8 @@ package org.sopt.makers.crew.main.user.v2.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.sopt.makers.crew.main.common.constant.CrewConst;
-import org.sopt.makers.crew.main.common.dto.MeetingCreatorDto;
+import org.sopt.makers.crew.main.global.constant.CrewConst;
+import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;

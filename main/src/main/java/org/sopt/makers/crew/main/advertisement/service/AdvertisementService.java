@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto;
 import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto.AdvertisementGetDto;
-import org.sopt.makers.crew.main.common.util.Time;
+import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.advertisement.Advertisement;
 import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;

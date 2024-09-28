@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.post.v2;
 
 import java.security.Principal;
 
-import org.sopt.makers.crew.main.common.util.UserUtil;
+import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;

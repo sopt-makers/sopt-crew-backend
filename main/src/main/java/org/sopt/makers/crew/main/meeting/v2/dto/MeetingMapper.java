@@ -1,8 +1,8 @@
 package org.sopt.makers.crew.main.meeting.v2.dto;
 
-import static org.sopt.makers.crew.main.common.constant.CrewConst.DAY_END_TIME;
-import static org.sopt.makers.crew.main.common.constant.CrewConst.DAY_START_TIME;
-import static org.sopt.makers.crew.main.common.constant.CrewConst.DAY_TIME_FORMAT;
+import static org.sopt.makers.crew.main.global.constant.CrewConst.DAY_END_TIME;
+import static org.sopt.makers.crew.main.global.constant.CrewConst.DAY_START_TIME;
+import static org.sopt.makers.crew.main.global.constant.CrewConst.DAY_TIME_FORMAT;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

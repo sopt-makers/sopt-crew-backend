@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.internal.notification;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_ACTION;
 
 import java.util.UUID;

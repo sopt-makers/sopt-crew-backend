@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.entity.user.enums;
 
 import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
-import org.sopt.makers.crew.main.common.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 
 @Slf4j
 public enum UserPart {

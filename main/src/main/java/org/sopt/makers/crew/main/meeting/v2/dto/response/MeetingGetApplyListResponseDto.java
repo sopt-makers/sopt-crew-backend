@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import org.sopt.makers.crew.main.common.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 
 @Getter
 @AllArgsConstructor(staticName = "of")

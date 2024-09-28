@@ -1,7 +1,7 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
-import static org.sopt.makers.crew.main.common.constant.CrewConst.*;
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.sopt.makers.crew.main.common.annotation.IntegratedTest;
+import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
