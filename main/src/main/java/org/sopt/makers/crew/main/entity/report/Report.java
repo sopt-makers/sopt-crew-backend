@@ -28,7 +28,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "report")
-@EntityListeners(AuditingEntityListener.class)
 public class Report extends BaseTimeEntity {
 	/**
 	 * Primary key

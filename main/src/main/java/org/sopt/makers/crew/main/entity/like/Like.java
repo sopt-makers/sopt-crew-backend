@@ -23,7 +23,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "like")
-@EntityListeners(AuditingEntityListener.class)
 public class Like extends BaseTimeEntity {
 
 	/**
