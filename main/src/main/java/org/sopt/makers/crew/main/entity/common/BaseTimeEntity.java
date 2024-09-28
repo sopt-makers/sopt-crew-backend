@@ -15,11 +15,11 @@ import jakarta.persistence.MappedSuperclass;
 public abstract class BaseTimeEntity {
 
 	@CreatedDate
-	@Column(name = "createdAt")
-	public LocalDateTime createdAt;
+	@Column(name = "createdTimestamp")
+	public LocalDateTime createdTimestamp;
 
 	@LastModifiedDate
-	@Column(name = "updatedAt")
-	public LocalDateTime updatedAt;
+	@Column(name = "modifiedTimestamp")
+	public LocalDateTime modifiedTimestamp;
 
 }
