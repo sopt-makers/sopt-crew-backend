@@ -51,7 +51,7 @@ public class PlaygroundDataSourceConfig {
 		properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 		properties.put("hibernate.format_sql", true);
 		properties.put("hibernate.physical_naming_strategy",
-			"org.sopt.makers.crew.main.common.config.CamelCaseNamingStrategy");
+			"org.sopt.makers.crew.main.global.config.CamelCaseNamingStrategy");
 
 		/**
 		 * local, dev, prod 환경은 validate 로 한다.
