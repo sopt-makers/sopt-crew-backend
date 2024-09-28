@@ -184,7 +184,7 @@ create table if not exists report
     on delete cascade
 );
 
-create table if not exists advertisement
+create table if not exists "advertisement"
 (
     id                             serial
     primary key,
@@ -197,5 +197,6 @@ create table if not exists advertisement
     check (("advertisementCategory")::text = ANY
 ((ARRAY ['POST'::character varying, 'MEETING'::character varying])::text[])),
     "advertisementDesktopImageUrl" varchar(255),
-    "advertisementMobileImageUrl"  varchar(255)
+    "advertisementMobileImageUrl"  varchar(255),
+    "isSponsoredContent"           boolean default false not null
     );
