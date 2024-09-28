@@ -35,12 +35,7 @@ public record AdvertisementsGetResponseDto(
 
 		@Schema(description = "광고 게시 시작일", example = "2024-07-31T00:00:00")
 		@NotNull
-		LocalDateTime advertisementStartDate,
-
-		@Schema(description = "광고성 컨텐츠 여부", example = "true")
-		@NotNull
-		boolean isSponsoredContent
-
+		LocalDateTime advertisementStartDate
 	) {
 		public static AdvertisementGetDto of(Advertisement advertisement) {
 			return new AdvertisementGetDto(
@@ -48,8 +43,7 @@ public record AdvertisementsGetResponseDto(
 				advertisement.getAdvertisementDesktopImageUrl(),
 				advertisement.getAdvertisementMobileImageUrl(),
 				advertisement.getAdvertisementLink(),
-				advertisement.getAdvertisementStartDate(),
-				advertisement.isSponsoredContent()
+				advertisement.getAdvertisementStartDate()
 			);
 		}
 	}
