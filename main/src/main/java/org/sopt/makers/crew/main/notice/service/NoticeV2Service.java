@@ -1,12 +1,12 @@
 package org.sopt.makers.crew.main.notice.service;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
-import org.sopt.makers.crew.main.common.exception.ForbiddenException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.entity.notice.Notice;
 import org.sopt.makers.crew.main.entity.notice.NoticeRepository;
 import org.sopt.makers.crew.main.notice.dto.request.NoticeV2CreateRequestDto;

@@ -1,10 +1,10 @@
 package org.sopt.makers.crew.main.entity.user;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.Optional;
 
-import org.sopt.makers.crew.main.common.exception.UnAuthorizedException;
+import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<User, Integer> {

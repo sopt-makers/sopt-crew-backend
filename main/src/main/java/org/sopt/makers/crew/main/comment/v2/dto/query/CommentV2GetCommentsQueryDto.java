@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.comment.v2.dto.query;
 
-import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

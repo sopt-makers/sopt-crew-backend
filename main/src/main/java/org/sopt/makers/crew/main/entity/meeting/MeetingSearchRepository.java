@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.meeting;
 
-import org.sopt.makers.crew.main.common.util.Time;
+import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

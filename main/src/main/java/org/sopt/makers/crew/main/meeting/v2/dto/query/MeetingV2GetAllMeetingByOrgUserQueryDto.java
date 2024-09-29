@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.meeting.v2.dto.query;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 
 @Getter
 public class MeetingV2GetAllMeetingByOrgUserQueryDto extends PageOptionsDto {

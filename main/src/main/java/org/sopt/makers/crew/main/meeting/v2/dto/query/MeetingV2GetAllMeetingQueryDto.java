@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.meeting.v2.dto.query;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 
 import jakarta.validation.constraints.NotNull;

@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.entity.user;
 
-import static org.sopt.makers.crew.main.common.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
@@ -16,14 +16,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
-import org.sopt.makers.crew.main.common.exception.ServerException;
+import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user")
-public class User {
+public class User extends BaseTimeEntity {
 
     /**
      * Primary Key

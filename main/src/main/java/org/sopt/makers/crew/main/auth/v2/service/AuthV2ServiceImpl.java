@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.sopt.makers.crew.main.auth.v2.dto.request.AuthV2RequestDto;
 import org.sopt.makers.crew.main.auth.v2.dto.response.AuthV2ResponseDto;
-import org.sopt.makers.crew.main.common.jwt.JwtTokenProvider;
+import org.sopt.makers.crew.main.global.jwt.JwtTokenProvider;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.playground.PlaygroundService;

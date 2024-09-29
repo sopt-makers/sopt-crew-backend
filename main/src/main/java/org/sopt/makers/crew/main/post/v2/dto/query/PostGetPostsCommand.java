@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
-import org.sopt.makers.crew.main.common.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 
 @Getter
 @Schema(name = "PostGetPostsCommand", description = "게시글 조회 요청 Dto")
