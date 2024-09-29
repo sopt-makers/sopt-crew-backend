@@ -5,6 +5,7 @@ import java.util.Objects;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -19,15 +20,17 @@ import lombok.extern.log4j.Log4j2;
 @Aspect
 @Component
 @Log4j2
+@Profile("!test")
 public class ExecutionLoggingAop {
 
 	/**
 	 * @implNote : 일부 클래스를 제외하고, 모든 클래스의 메서드의 시작과 끝을 로깅한다.
-	 * @implNote : 제외 클래스 - global 패키지, config 관련 패키지
+	 * @implNote : 제외 클래스 - global 패키지, config 관련 패키지, Test 클래스
 	 * */
-	@Around("execution(* org.sopt.makers.crew..*(..)) "
+	@Around("execution(* org.sopt.makers.crew.main..*(..)) "
 		+ "&& !within(org.sopt.makers.crew.main.global..*) "
-		+ "&& !within(org.sopt.makers.crew.main.external.s3.config..*)")
+		+ "&& !within(org.sopt.makers.crew.main.external.s3.config..*)"
+	)
 	public Object logExecutionTrace(ProceedingJoinPoint pjp) throws Throwable {
 		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest();
 		RequestMethod httpMethod = RequestMethod.valueOf(request.getMethod());
