@@ -1,9 +1,7 @@
 package org.sopt.makers.crew.main.global.aop;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import java.util.Objects;
-import lombok.extern.log4j.Log4j2;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -15,56 +13,67 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.log4j.Log4j2;
+
 @Aspect
 @Component
 @Log4j2
 public class ExecutionLoggingAop {
 
-    // 모든 패키지 내의 controller package에 존재하는 클래스
-    @Around("execution(* org.sopt.makers.crew..*Controller.*(..))")
-    public Object logExecutionTrace(ProceedingJoinPoint pjp) throws Throwable {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-        RequestMethod httpMethod = RequestMethod.valueOf(request.getMethod());
+	/**
+	 * @implNote : 일부 클래스를 제외하고, 모든 클래스의 메서드의 시작과 끝을 로깅한다.
+	 * @implNote : 제외 클래스 - global 패키지, config 관련 패키지
+	 * */
+	@Around("execution(* org.sopt.makers.crew..*(..)) "
+		+ "&& !within(org.sopt.makers.crew.main.global..*) "
+		+ "&& !within(org.sopt.makers.crew.main.external.s3.config..*)")
+	public Object logExecutionTrace(ProceedingJoinPoint pjp) throws Throwable {
+		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest();
+		RequestMethod httpMethod = RequestMethod.valueOf(request.getMethod());
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Object userId = authentication.getPrincipal().toString();
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Object userId = authentication.getPrincipal().toString();
 
-        String className = pjp.getSignature().getDeclaringType().getSimpleName();
-        String methodName = pjp.getSignature().getName();
-        String task = className + "." + methodName;
+		String className = pjp.getSignature().getDeclaringType().getSimpleName();
+		String methodName = pjp.getSignature().getName();
+		String task = className + "." + methodName;
 
-        log.info("[Call Method] " + httpMethod.toString() + ": " + task + " | Request userId=" + userId);
+		log.info("");
+		log.info("🚨 {} Start", className);
+		log.info("[Call Method] " + httpMethod + ": " + task + " | Request userId=" + userId);
 
-        Object[] paramArgs = pjp.getArgs();
-        for (Object object : paramArgs) {
-            if (Objects.nonNull(object)) {
-                log.info("[parameter type] {}", object.getClass().getSimpleName());
-                log.info("[parameter value] {}", object);
-            }
-        }
+		Object[] paramArgs = pjp.getArgs();
+		for (Object object : paramArgs) {
+			if (Objects.nonNull(object)) {
+				log.info("[Parameter Type ] {}", object.getClass().getSimpleName());
+				log.info("[Parameter Value] {}", object);
+			}
+		}
 
-        // 해당 클래스 처리 전의 시간
-        StopWatch sw = new StopWatch();
-        sw.start();
+		// 해당 클래스 처리 전의 시간
+		StopWatch sw = new StopWatch();
+		sw.start();
 
-        Object result = null;
+		Object result = null;
 
-        // 해당 클래스의 메소드 실행
-        try{
-            result = pjp.proceed();
-        }
-        catch (Exception e){
-            log.warn("[ERROR] " + task + " 메서드 예외 발생 : " + e.getMessage());
-            throw e;
-        }
+		// 해당 클래스의 메소드 실행
+		try {
+			result = pjp.proceed();
+		} catch (Exception e) {
+			log.warn("[ERROR] " + task + " 메서드 예외 발생 : " + e.getMessage());
+			throw e;
+		}
 
-        // 해당 클래스 처리 후의 시간
-        sw.stop();
-        long executionTime = sw.getTotalTimeMillis();
+		// 해당 클래스 처리 후의 시간
+		sw.stop();
+		long executionTime = sw.getTotalTimeMillis();
 
-        log.info("[ExecutionTime] " + task + " --> " + executionTime + " (ms)");
+		log.info("[ExecutionTime] " + task + " --> " + executionTime + " (ms)");
+		log.info("🚨 {} End", className);
+		log.info("");
 
-        return result;
-    }
+		return result;
+	}
 
 }
