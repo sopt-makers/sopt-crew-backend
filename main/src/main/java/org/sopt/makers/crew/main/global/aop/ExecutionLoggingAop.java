@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.global.aop;
 
+import java.lang.reflect.Field;
 import java.util.Objects;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -49,8 +50,23 @@ public class ExecutionLoggingAop {
 		Object[] paramArgs = pjp.getArgs();
 		for (Object object : paramArgs) {
 			if (Objects.nonNull(object)) {
-				log.info("[Parameter Type ] {}", object.getClass().getSimpleName());
-				log.info("[Parameter Value] {}", object);
+				log.info("[Parameter] {} {}", object.getClass().getSimpleName(), object);
+
+				String packageName = object.getClass().getPackage().getName();
+				if (packageName.contains("java")) {
+					break;
+				}
+
+				Field[] fields = object.getClass().getDeclaredFields();
+				for (Field field : fields) {
+					field.setAccessible(true); // private 필드에도 접근 가능하도록 설정
+					try {
+						Object value = field.get(object); // 필드값 가져오기
+						log.info("[Field] {} = {}", field.getName(), value);
+					} catch (IllegalAccessException e) {
+						log.warn("[Field Access Error] Cannot access field: " + field.getName());
+					}
+				}
 			}
 		}
 
