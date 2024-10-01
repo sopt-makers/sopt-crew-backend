@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
+import static org.assertj.core.groups.Tuple.*;
+import static org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
@@ -21,9 +23,15 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
+import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 
 @IntegratedTest
 public class MeetingV2ServiceTest {
@@ -84,7 +92,8 @@ public class MeetingV2ServiceTest {
 			);
 
 			// when
-			MeetingV2CreateMeetingResponseDto responseDto = meetingV2Service.createMeeting(meetingDto, savedUser.getId());
+			MeetingV2CreateMeetingResponseDto responseDto = meetingV2Service.createMeeting(meetingDto,
+				savedUser.getId());
 			Meeting foundMeeting = meetingRepository.findByIdOrThrow(responseDto.getMeetingId());
 
 			// then
@@ -102,12 +111,12 @@ public class MeetingV2ServiceTest {
 					savedUser.getId(),  // userId 필드
 					"알고보면 쓸데있는 개발 프로세스",  // title 필드
 					MeetingCategory.STUDY,  // category 필드
-					LocalDateTime.of(2024, 10, 1, 0, 0,0),  // startDate 필드
-					LocalDateTime.of(2024, 10, 15, 23, 59,59),  // endDate 필드
+					LocalDateTime.of(2024, 10, 1, 0, 0, 0),  // startDate 필드
+					LocalDateTime.of(2024, 10, 15, 23, 59, 59),  // endDate 필드
 					10,  // capacity 필드
 					"백엔드 개발에 관심 있는 사람들을 위한 스터디입니다.",  // desc 필드
 					"매주 온라인으로 진행되며, 발표와 토론이 포함됩니다.",  // processDesc 필드
-					LocalDateTime.of(2024, 10, 16, 0, 0,0),  // mStartDate 필드
+					LocalDateTime.of(2024, 10, 16, 0, 0, 0),  // mStartDate 필드
 					LocalDateTime.of(2024, 12, 30, 23, 59, 59),  // mEndDate 필드
 					"5년차 백엔드 개발자입니다.",  // leaderDesc 필드
 					"준비물은 노트북과 열정입니다.",  // note 필드
@@ -115,7 +124,7 @@ public class MeetingV2ServiceTest {
 					canJoinOnlyActiveGeneration,  // canJoinOnlyActiveGeneration 필드
 					ACTIVE_GENERATION,  // createdGeneration 필드
 					canJoinOnlyActiveGeneration ? ACTIVE_GENERATION : null,  // targetActiveGeneration 필드
-					new MeetingJoinablePart[]{MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS}  // joinableParts 필드
+					new MeetingJoinablePart[] {MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS}  // joinableParts 필드
 				);
 
 			Assertions.assertThat(foundMeeting.getImageURL())
@@ -263,6 +272,66 @@ public class MeetingV2ServiceTest {
 			// when, then
 			Assertions.assertThatThrownBy(() -> meetingV2Service.createMeeting(meetingDto, savedUser.getId()))
 				.hasMessageContaining(VALIDATION_EXCEPTION.getErrorCode());
+		}
+	}
+
+	@Nested
+	@SqlGroup({
+		@Sql(value = "/sql/meeting-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+
+	})
+	class 모임_전체_조회 {
+		@Test
+		@DisplayName("활동기수 아닌 경우를 포함하여 모임 전체 조회 시, 모임 목록을 반환한다.")
+		void normal_getMeetings_success() {
+			// given
+			int page = 1;
+			int take = 12;
+			MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(page, take);
+			queryDto.setIsOnlyActiveGeneration(false);
+
+			// when
+			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
+			List<MeetingResponseDto> meetings = meetingDto.meetings();
+			List<MeetingCreatorDto> meetingCreatorDtos = meetings.stream()
+				.map(MeetingResponseDto::getUser)
+				.toList();
+
+			// then
+			Assertions.assertThat(meetings)
+				.extracting(
+					"id", "title", "category", "canJoinOnlyActiveGeneration",
+					"mStartDate", "mEndDate",
+					"capacity", "isMentorNeeded", "targetActiveGeneration",
+					"joinableParts", "status", "appliedCount"
+				).containsExactly(
+					tuple(2, "스터디 구합니다 - 신청전", "스터디", false,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, false, null,
+						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
+					),
+					tuple(1, "스터디 구합니다1", "행사", true,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, true, 35,
+						new MeetingJoinablePart[] {PM, SERVER}, 1, 2
+					)
+
+				);
+
+			Assertions.assertThat(meetingCreatorDtos)
+				.extracting("id", "name", "orgId", "profileImage", "activities", "phone")
+				.containsExactly(
+					tuple(5, "모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666"),
+					tuple(1, "모임개설자", 1001, "profile1.jpg",
+						List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
+						"010-1234-5678")
+
+				);
 		}
 	}
 }
