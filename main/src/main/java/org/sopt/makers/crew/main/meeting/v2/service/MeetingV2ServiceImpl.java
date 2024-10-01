@@ -257,7 +257,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		List<MeetingResponseDto> meetingResponseDtos = meetings.getContent().stream()
 			.map(meeting -> MeetingResponseDto.of(meeting, meeting.getUser(),
-				allApplies.getAppliedCount(meeting.getId()), time.now()))
+				allApplies.getApprovedCount(meeting.getId()), time.now()))
 			.toList();
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetings.getPageable().getPageNumber() + 1,

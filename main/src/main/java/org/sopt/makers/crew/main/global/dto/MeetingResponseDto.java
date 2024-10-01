@@ -70,7 +70,7 @@ public class MeetingResponseDto {
 	@Schema(description = "모임장 정보", example = "")
 	@NotNull
 	private final MeetingCreatorDto user;
-	@Schema(description = "신청 수", example = "7")
+	@Schema(description = "신청 승인 수", example = "7")
 	@NotNull
 	private final int appliedCount;
 

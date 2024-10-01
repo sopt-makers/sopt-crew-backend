@@ -74,7 +74,7 @@ create table if not exists apply
     constraint "FK_359c8244808809db5ee96ed066e"
     references "user"
     on delete cascade,
-    content       varchar             not null,
+    content       varchar                     ,
     "appliedDate" timestamp           not null,
     status        integer   default 0 not null,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
