@@ -59,11 +59,11 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final String processDesc;
 
-	@Schema(description = "모임 활동 시작 시간", example = "2024-08-13T15:30:00")
+	@Schema(description = "모임 활동 시작 시간", example = "2024-08-13T15:30:00",  name = "mStartDate")
 	@NotNull
 	private final LocalDateTime mStartDate;
 
-	@Schema(description = "모임 활동 종료 시간", example = "2024-10-13T23:59:59")
+	@Schema(description = "모임 활동 종료 시간", example = "2024-10-13T23:59:59",  name = "mEndDate")
 	@NotNull
 	private final LocalDateTime mEndDate;
 
