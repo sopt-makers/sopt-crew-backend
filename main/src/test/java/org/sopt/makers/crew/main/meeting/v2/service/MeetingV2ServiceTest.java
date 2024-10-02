@@ -15,23 +15,36 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
+import org.sopt.makers.crew.main.entity.apply.Apply;
+import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
+import org.sopt.makers.crew.main.entity.apply.ApplySearchRepository;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
+import org.springframework.transaction.annotation.Transactional;
 
 @IntegratedTest
 public class MeetingV2ServiceTest {
@@ -44,6 +57,13 @@ public class MeetingV2ServiceTest {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	@Qualifier("applySearchRepositoryImpl")
+	private ApplySearchRepository applySearchRepository;
+
+	@Autowired
+	private ApplyRepository applyRepository;
 
 	@Nested
 	class 모임_생성 {
@@ -332,6 +352,92 @@ public class MeetingV2ServiceTest {
 						"010-1234-5678")
 
 				);
+		}
+
+		@Transactional
+		@Test
+		@DisplayName("지원자/참여자 조회 테스트")
+		void 지원자_참여자_조회_테스트() {
+			User user = userRepository.save(User.builder()
+				.name("테스트 유저")
+				.orgId(1382)  // orgId는 고유해야 하므로 적절한 값을 입력
+				.activities(List.of(new UserActivityVO("SERVER", 34)))  // 활동 정보
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build());
+
+			Meeting meeting = meetingRepository.save(Meeting.builder()
+				.user(user)
+				.userId(user.getId())  // userId를 user에서 가져옴
+				.title("테스트 모임")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))  // id와 url을 제공하여 이미지 리스트 생성
+				.startDate(LocalDateTime.of(2024, 10, 24, 0, 0, 0))
+				.endDate(LocalDateTime.of(2024, 10, 29, 23, 59, 59))
+				.capacity(20)  // 모집 인원
+				.desc("테스트 모임 설명")
+				.processDesc("테스트 진행 방식")
+				.mStartDate(LocalDateTime.of(2024, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명")
+				.note("유의사항")
+				.isMentorNeeded(false)  // 멘토 필요 여부
+				.canJoinOnlyActiveGeneration(false)  // 활동 기수 제한 여부
+				.createdGeneration(35)  // 생성 기수
+				.targetActiveGeneration(null)  // 대상 활동 기수
+				.joinableParts(MeetingJoinablePart.values())
+				.build());
+
+			for (int i = 0; i < 12; i++) {
+				User applicant = userRepository.save(User.builder()
+					.name("지원자 " + i)
+					.orgId(20000 + i)
+					.activities(List.of(new UserActivityVO("서버", 35)))  // 활동 정보
+					.profileImage("applicantProfile" + i + ".jpg")
+					.phone("010-1234-56" + (78 + i))
+					.build());
+
+				Apply apply = Apply.builder()
+					.type(EnApplyType.APPLY)
+					.meeting(meeting)
+					.user(applicant)
+					.userId(20000 + i)
+					.content("지원 동기 " + i)
+					.build();
+
+				applyRepository.save(apply);
+			}
+
+			// Given: 미리 저장된 모임 데이터와 관련된 쿼리 명령어 준비
+			Integer meetingId = meeting.getId(); // 실제 테스트 데이터로 변경 필요
+			Integer userId = user.getId();    // 실제 테스트 데이터로 변경 필요
+
+			MeetingGetAppliesQueryDto queryCommand = MeetingGetAppliesQueryDto.builder()
+				.page(1)  // 첫 번째 페이지
+				.take(10) // 한 페이지당 10명의 참여자/지원자 조회
+				.status(Arrays.asList(EnApplyStatus.WAITING, EnApplyStatus.APPROVE)) // 특정 상태 필터링
+				.date("desc")  // 최신순 정렬
+				.build();
+
+			// When: 서비스에서 지원자/참여자 리스트를 조회
+			MeetingGetApplyListResponseDto responseDto = meetingV2Service.findApplyList(queryCommand, meetingId,
+				userId);
+
+			// Then: 조회된 결과를 검증
+			Assertions.assertThat(responseDto).isNotNull();
+			Assertions.assertThat(responseDto.getApply()).isNotEmpty();  // 신청 목록이 비어 있지 않아야 함
+			Assertions.assertThat(responseDto.getMeta().getPage()).isEqualTo(1);  // 페이지 정보가 예상대로인지 검증
+			Assertions.assertThat(responseDto.getMeta().getTake()).isEqualTo(10);  // 한 페이지당 지원자 수가 10명인지 검증
+
+			// 추가 검증: 실제 데이터와 일치하는지 확인
+			PageRequest pageable = PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake());
+			Page<ApplyInfoDto> applyList = applySearchRepository.findApplyList(queryCommand, pageable, meetingId,
+				meeting.getUserId(), userId);
+
+			// 총 지원자 수 비교 -> getMeta().getItemCount() 사용
+			Assertions.assertThat(applyList.getTotalElements()).isEqualTo(responseDto.getMeta().getItemCount());
+			// 지원자 목록 비교
+			Assertions.assertThat(applyList.getContent()).containsAll(responseDto.getApply());
 		}
 	}
 }
