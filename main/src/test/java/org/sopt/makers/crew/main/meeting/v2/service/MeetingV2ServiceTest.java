@@ -17,7 +17,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
-import org.sopt.makers.crew.main.entity.apply.ApplySearchRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
@@ -39,7 +38,6 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResp
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
@@ -56,10 +54,6 @@ public class MeetingV2ServiceTest {
 
 	@Autowired
 	private UserRepository userRepository;
-
-	@Autowired
-	@Qualifier("applySearchRepositoryImpl")
-	private ApplySearchRepository applySearchRepository;
 
 	@Autowired
 	private ApplyRepository applyRepository;
