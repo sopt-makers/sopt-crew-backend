@@ -45,9 +45,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @IntegratedTest
 public class MeetingV2ServiceTest {
 
@@ -457,9 +454,6 @@ public class MeetingV2ServiceTest {
 						EnApplyStatus.APPROVE),
 					tuple("지원자 3", 4, "안드로이드", 35, "applicantProfile3.jpg", "010-1234-5681", "지원 동기 3",
 						EnApplyStatus.APPROVE));
-
-			log.info("applyList.getContent(): {}", applyList.getContent());
-			log.info("responseDto.getApply(): {}", responseDto.getApply());
 
 			// ApplyInfoDto의 모든 필드 비교
 			Assertions.assertThat(applyList.getContent()).usingRecursiveComparison()  // 객체의 필드를 재귀적으로 비교
