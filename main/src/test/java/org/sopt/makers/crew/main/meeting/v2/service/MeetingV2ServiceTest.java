@@ -45,6 +45,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @IntegratedTest
 public class MeetingV2ServiceTest {
 
@@ -414,11 +417,11 @@ public class MeetingV2ServiceTest {
 				.date("desc")
 				.build();
 
-			// When: 서비스에서 지원자/참여자 리스트를 조회
+			// when
 			MeetingGetApplyListResponseDto responseDto = meetingV2Service.findApplyList(queryCommand, meetingId,
 				userId);
 
-			// Then: 조회된 결과를 검증
+			// then
 			Assertions.assertThat(responseDto).isNotNull();
 			Assertions.assertThat(responseDto.getApply()).isNotEmpty();  // 신청 목록이 비어 있지 않아야 함
 			Assertions.assertThat(responseDto.getMeta().getPage()).isEqualTo(1);  // 페이지 정보가 예상대로인지 검증
@@ -426,13 +429,18 @@ public class MeetingV2ServiceTest {
 
 			// 추가 검증: 실제 데이터와 일치하는지 확인
 			PageRequest pageable = PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake());
-			Page<ApplyInfoDto> applyList = applySearchRepository.findApplyList(queryCommand, pageable, meetingId,
+			Page<ApplyInfoDto> applyList = applyRepository.findApplyList(queryCommand, pageable, meetingId,
 				meeting.getUserId(), userId);
 
 			// 총 지원자 수 비교 -> getMeta().getItemCount() 사용
 			Assertions.assertThat(applyList.getTotalElements()).isEqualTo(responseDto.getMeta().getItemCount());
-			// 지원자 목록 비교
-			Assertions.assertThat(applyList.getContent()).containsAll(responseDto.getApply());
+
+			log.info("applyList.getContent(): {}", applyList.getContent());
+			log.info("responseDto.getApply(): {}", responseDto.getApply());
+
+			Assertions.assertThat(applyList.getContent())
+				.usingRecursiveComparison()  // 객체의 필드를 재귀적으로 비교
+				.isEqualTo(responseDto.getApply());
 		}
 	}
 }
