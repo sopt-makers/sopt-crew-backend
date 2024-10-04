@@ -388,7 +388,7 @@ public class MeetingV2ServiceTest {
 				User applicant2 = User.builder()
 					.name("지원자 " + i)
 					.orgId(i + 1)
-					.activities(List.of(new UserActivityVO("기획", 35)))
+					.activities(List.of(new UserActivityVO("기획", 34)))
 					.profileImage("applicantProfile" + i + ".jpg")
 					.phone("010-1234-56" + (78 + i))
 					.build();
@@ -420,26 +420,49 @@ public class MeetingV2ServiceTest {
 			// when
 			MeetingGetApplyListResponseDto responseDto = meetingV2Service.findApplyList(queryCommand, meetingId,
 				userId);
-
-			// then
-			Assertions.assertThat(responseDto).isNotNull();
-			Assertions.assertThat(responseDto.getApply()).isNotEmpty();  // 신청 목록이 비어 있지 않아야 함
-			Assertions.assertThat(responseDto.getMeta().getPage()).isEqualTo(1);  // 페이지 정보가 예상대로인지 검증
-			Assertions.assertThat(responseDto.getMeta().getTake()).isEqualTo(10);  // 한 페이지당 지원자 수가 10명인지 검증
-
-			// 추가 검증: 실제 데이터와 일치하는지 확인
 			PageRequest pageable = PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake());
 			Page<ApplyInfoDto> applyList = applyRepository.findApplyList(queryCommand, pageable, meetingId,
 				meeting.getUserId(), userId);
 
-			// 총 지원자 수 비교 -> getMeta().getItemCount() 사용
+			// then
+			Assertions.assertThat(responseDto).isNotNull(); // responseDto가 null이 아님을 확인
+			Assertions.assertThat(responseDto.getApply()).isNotEmpty();  // 신청 목록이 비어 있지 않음을 확인
+			Assertions.assertThat(responseDto.getMeta().getPage()).isEqualTo(1);  // 페이지 정보가 예상대로인지 검증
+			Assertions.assertThat(responseDto.getMeta().getTake()).isEqualTo(10);  // 한 페이지당 지원자 수가 10명인지 검증
+
+			// 총 지원자 수 비교
 			Assertions.assertThat(applyList.getTotalElements()).isEqualTo(responseDto.getMeta().getItemCount());
+
+			// 지원자 목록 필드별 검증
+			Assertions.assertThat(responseDto.getApply())
+				.extracting("user.name", "user.orgId", "user.recentActivity.part", "user.recentActivity.generation",
+					"user.profileImage", "user.phone", "content", "status")
+				.containsExactly(tuple("지원자 12", 13, "기획", 34, "applicantProfile12.jpg", "010-1234-5690", "지원 동기 12",
+						EnApplyStatus.WAITING),
+					tuple("지원자 11", 12, "기획", 34, "applicantProfile11.jpg", "010-1234-5689", "지원 동기 11",
+						EnApplyStatus.WAITING),
+					tuple("지원자 10", 11, "기획", 34, "applicantProfile10.jpg", "010-1234-5688", "지원 동기 10",
+						EnApplyStatus.WAITING),
+					tuple("지원자 9", 10, "기획", 34, "applicantProfile9.jpg", "010-1234-5687", "지원 동기 9",
+						EnApplyStatus.WAITING),
+					tuple("지원자 8", 9, "기획", 34, "applicantProfile8.jpg", "010-1234-5686", "지원 동기 8",
+						EnApplyStatus.WAITING),
+					tuple("지원자 7", 8, "기획", 34, "applicantProfile7.jpg", "010-1234-5685", "지원 동기 7",
+						EnApplyStatus.WAITING),
+					tuple("지원자 6", 7, "안드로이드", 35, "applicantProfile6.jpg", "010-1234-5684", "지원 동기 6",
+						EnApplyStatus.APPROVE),
+					tuple("지원자 5", 6, "안드로이드", 35, "applicantProfile5.jpg", "010-1234-5683", "지원 동기 5",
+						EnApplyStatus.APPROVE),
+					tuple("지원자 4", 5, "안드로이드", 35, "applicantProfile4.jpg", "010-1234-5682", "지원 동기 4",
+						EnApplyStatus.APPROVE),
+					tuple("지원자 3", 4, "안드로이드", 35, "applicantProfile3.jpg", "010-1234-5681", "지원 동기 3",
+						EnApplyStatus.APPROVE));
 
 			log.info("applyList.getContent(): {}", applyList.getContent());
 			log.info("responseDto.getApply(): {}", responseDto.getApply());
 
-			Assertions.assertThat(applyList.getContent())
-				.usingRecursiveComparison()  // 객체의 필드를 재귀적으로 비교
+			// ApplyInfoDto의 모든 필드 비교
+			Assertions.assertThat(applyList.getContent()).usingRecursiveComparison()  // 객체의 필드를 재귀적으로 비교
 				.isEqualTo(responseDto.getApply());
 		}
 	}
