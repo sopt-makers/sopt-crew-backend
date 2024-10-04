@@ -398,13 +398,38 @@ public class MeetingV2ServiceTest {
 				applyRepository.save(apply2);
 			}
 
+			for (int i = 13; i <= 14; i++) {
+				User applicant3 = User.builder()
+					.name("지원자 " + i)
+					.orgId(i + 1)
+					.activities(List.of(new UserActivityVO("디자인", 32)))
+					.profileImage("applicantProfile" + i + ".jpg")
+					.phone("010-1234-56" + (78 + i))
+					.build();
+
+				userRepository.save(applicant3);
+
+				Apply apply3 = Apply.builder()
+					.type(EnApplyType.APPLY)
+					.meeting(meeting)
+					.meetingId(meeting.getId())
+					.user(applicant3)
+					.userId(100 + i)
+					.content("지원 동기 " + i)
+					.build();
+
+				apply3.updateApplyStatus(EnApplyStatus.REJECT);
+
+				applyRepository.save(apply3);
+			}
+
 			Integer meetingId = meeting.getId();
 			Integer userId = user.getId();
 
 			MeetingGetAppliesQueryDto queryCommand = MeetingGetAppliesQueryDto.builder()
 				.page(1)
 				.take(10)
-				.status(null)
+				.status(List.of(EnApplyStatus.APPROVE, EnApplyStatus.WAITING))
 				.date("desc")
 				.build();
 
@@ -428,7 +453,8 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.getApply())
 				.extracting("user.name", "user.orgId", "user.recentActivity.part", "user.recentActivity.generation",
 					"user.profileImage", "user.phone", "content", "status")
-				.containsExactly(tuple("지원자 12", 13, "기획", 34, "applicantProfile12.jpg", "010-1234-5690", "지원 동기 12",
+				.containsExactly(
+					tuple("지원자 12", 13, "기획", 34, "applicantProfile12.jpg", "010-1234-5690", "지원 동기 12",
 						EnApplyStatus.WAITING),
 					tuple("지원자 11", 12, "기획", 34, "applicantProfile11.jpg", "010-1234-5689", "지원 동기 11",
 						EnApplyStatus.WAITING),
