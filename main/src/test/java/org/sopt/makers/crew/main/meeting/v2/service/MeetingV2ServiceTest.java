@@ -15,21 +15,31 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
+import org.sopt.makers.crew.main.entity.apply.Apply;
+import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 
@@ -44,6 +54,9 @@ public class MeetingV2ServiceTest {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private ApplyRepository applyRepository;
 
 	@Nested
 	class 모임_생성 {
@@ -62,19 +75,13 @@ public class MeetingV2ServiceTest {
 			User savedUser = userRepository.save(user);
 
 			// 모임 이미지 리스트
-			List<String> files = Arrays.asList(
-				"https://example.com/image1.jpg"
-			);
+			List<String> files = Arrays.asList("https://example.com/image1.jpg");
 
 			// 대상 파트 목록
-			MeetingJoinablePart[] joinableParts = {
-				MeetingJoinablePart.SERVER,
-				MeetingJoinablePart.IOS
-			};
+			MeetingJoinablePart[] joinableParts = {MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
-				"알고보면 쓸데있는 개발 프로세스", // title
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto("알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2024.10.01", // startDate (모집 시작 날짜)
@@ -101,13 +108,10 @@ public class MeetingV2ServiceTest {
 
 			Assertions.assertThat(foundMeeting)
 				.isNotNull()
-				.extracting(
-					"user", "userId", "title", "category", "startDate", "endDate", "capacity", "desc",
+				.extracting("user", "userId", "title", "category", "startDate", "endDate", "capacity", "desc",
 					"processDesc", "mStartDate", "mEndDate", "leaderDesc", "note", "isMentorNeeded",
-					"canJoinOnlyActiveGeneration", "createdGeneration", "targetActiveGeneration", "joinableParts"
-				)
-				.containsExactly(
-					savedUser,  // user 필드
+					"canJoinOnlyActiveGeneration", "createdGeneration", "targetActiveGeneration", "joinableParts")
+				.containsExactly(savedUser,  // user 필드
 					savedUser.getId(),  // userId 필드
 					"알고보면 쓸데있는 개발 프로세스",  // title 필드
 					MeetingCategory.STUDY,  // category 필드
@@ -130,9 +134,7 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(foundMeeting.getImageURL())
 				.hasSize(1)
 				.extracting("url")
-				.containsExactly(
-					"https://example.com/image1.jpg"
-				);
+				.containsExactly("https://example.com/image1.jpg");
 		}
 
 		@Test
@@ -150,18 +152,13 @@ public class MeetingV2ServiceTest {
 
 			// 모임 이미지 리스트
 			List<String> files = Arrays.asList(
-				"https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df"
-			);
+				"https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df");
 
 			// 대상 파트 목록
-			MeetingJoinablePart[] joinableParts = {
-				MeetingJoinablePart.ANDROID,
-				MeetingJoinablePart.IOS
-			};
+			MeetingJoinablePart[] joinableParts = {MeetingJoinablePart.ANDROID, MeetingJoinablePart.IOS};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
-				"알고보면 쓸데있는 개발 프로세스", // title
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto("알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2022.10.08", // startDate (모집 시작 날짜)
@@ -198,15 +195,13 @@ public class MeetingV2ServiceTest {
 
 			// 모임 이미지 리스트
 			List<String> files = Arrays.asList(
-				"https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df"
-			);
+				"https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df");
 
 			// 대상 파트 목록
 			MeetingJoinablePart[] joinableParts = null;
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
-				"알고보면 쓸데있는 개발 프로세스", // title
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto("알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2022.10.08", // startDate (모집 시작 날짜)
@@ -245,14 +240,10 @@ public class MeetingV2ServiceTest {
 			List<String> files = null;
 
 			// 대상 파트 목록
-			MeetingJoinablePart[] joinableParts = {
-				MeetingJoinablePart.ANDROID,
-				MeetingJoinablePart.IOS
-			};
+			MeetingJoinablePart[] joinableParts = {MeetingJoinablePart.ANDROID, MeetingJoinablePart.IOS};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
-				"알고보면 쓸데있는 개발 프로세스", // title
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto("알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2022.10.08", // startDate (모집 시작 날짜)
@@ -294,44 +285,199 @@ public class MeetingV2ServiceTest {
 			// when
 			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
 			List<MeetingResponseDto> meetings = meetingDto.meetings();
-			List<MeetingCreatorDto> meetingCreatorDtos = meetings.stream()
-				.map(MeetingResponseDto::getUser)
-				.toList();
+			List<MeetingCreatorDto> meetingCreatorDtos = meetings.stream().map(MeetingResponseDto::getUser).toList();
 
 			// then
 			Assertions.assertThat(meetings)
-				.extracting(
-					"id", "title", "category", "canJoinOnlyActiveGeneration",
-					"mStartDate", "mEndDate",
-					"capacity", "isMentorNeeded", "targetActiveGeneration",
-					"joinableParts", "status", "appliedCount"
-				).containsExactly(
-					tuple(2, "스터디 구합니다 - 신청전", "스터디", false,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, false, null,
-						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
-					),
-					tuple(1, "스터디 구합니다1", "행사", true,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, true, 35,
-						new MeetingJoinablePart[] {PM, SERVER}, 1, 2
-					)
+				.extracting("id", "title", "category", "canJoinOnlyActiveGeneration", "mStartDate", "mEndDate",
+					"capacity", "isMentorNeeded", "targetActiveGeneration", "joinableParts", "status", "appliedCount")
+				.containsExactly(tuple(2, "스터디 구합니다 - 신청전", "스터디", false, LocalDateTime.of(2024, 5, 29, 0, 0),
+					LocalDateTime.of(2024, 5, 31, 23, 59, 59), 10, false, null, new MeetingJoinablePart[] {PM, SERVER},
+					0, 0), tuple(1, "스터디 구합니다1", "행사", true, LocalDateTime.of(2024, 5, 29, 0, 0),
+					LocalDateTime.of(2024, 5, 31, 23, 59, 59), 10, true, 35, new MeetingJoinablePart[] {PM, SERVER}, 1,
+					2)
 
 				);
 
 			Assertions.assertThat(meetingCreatorDtos)
 				.extracting("id", "name", "orgId", "profileImage", "activities", "phone")
-				.containsExactly(
-					tuple(5, "모임개설자2", 1005, "profile5.jpg",
-						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
-						"010-6666-6666"),
+				.containsExactly(tuple(5, "모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)), "010-6666-6666"),
 					tuple(1, "모임개설자", 1001, "profile1.jpg",
-						List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
-						"010-1234-5678")
+						List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)), "010-1234-5678")
 
 				);
+		}
+	}
+
+	@Nested
+	class 지원자_참여자_조회 {
+		@Test
+		@DisplayName("지원자/참여자를 조회할 경우, 지원자 목록 10개를 반환한다.")
+		void returns_10_applicants_when_querying_for_applicants_participants() {
+			// given
+			User user = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("안드로이드", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(user);
+
+			Meeting meeting = Meeting.builder()
+				.user(user)
+				.userId(user.getId())
+				.title("지원자/참여자 조회 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 10, 24, 0, 0, 0))
+				.endDate(LocalDateTime.of(2024, 10, 29, 23, 59, 59))
+				.capacity(20)
+				.desc("지원자/참여자 조회 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			for (int i = 1; i <= 6; i++) {
+				User applicant1 = User.builder()
+					.name("지원자 " + i)
+					.orgId(i + 1)
+					.activities(List.of(new UserActivityVO("안드로이드", 35)))
+					.profileImage("applicantProfile" + i + ".jpg")
+					.phone("010-1234-56" + (78 + i))
+					.build();
+
+				userRepository.save(applicant1);
+
+				Apply apply1 = Apply.builder()
+					.type(EnApplyType.APPLY)
+					.meeting(meeting)
+					.meetingId(meeting.getId())
+					.user(applicant1)
+					.userId(100 + i)
+					.content("지원 동기 " + i)
+					.build();
+
+				apply1.updateApplyStatus(EnApplyStatus.APPROVE);
+
+				applyRepository.save(apply1);
+			}
+
+			for (int i = 7; i <= 12; i++) {
+				User applicant2 = User.builder()
+					.name("지원자 " + i)
+					.orgId(i + 1)
+					.activities(List.of(new UserActivityVO("기획", 34)))
+					.profileImage("applicantProfile" + i + ".jpg")
+					.phone("010-1234-56" + (78 + i))
+					.build();
+
+				userRepository.save(applicant2);
+
+				Apply apply2 = Apply.builder()
+					.type(EnApplyType.APPLY)
+					.meeting(meeting)
+					.meetingId(meeting.getId())
+					.user(applicant2)
+					.userId(100 + i)
+					.content("지원 동기 " + i)
+					.build();
+
+				applyRepository.save(apply2);
+			}
+
+			for (int i = 13; i <= 14; i++) {
+				User applicant3 = User.builder()
+					.name("지원자 " + i)
+					.orgId(i + 1)
+					.activities(List.of(new UserActivityVO("디자인", 32)))
+					.profileImage("applicantProfile" + i + ".jpg")
+					.phone("010-1234-56" + (78 + i))
+					.build();
+
+				userRepository.save(applicant3);
+
+				Apply apply3 = Apply.builder()
+					.type(EnApplyType.APPLY)
+					.meeting(meeting)
+					.meetingId(meeting.getId())
+					.user(applicant3)
+					.userId(100 + i)
+					.content("지원 동기 " + i)
+					.build();
+
+				apply3.updateApplyStatus(EnApplyStatus.REJECT);
+
+				applyRepository.save(apply3);
+			}
+
+			Integer meetingId = meeting.getId();
+			Integer userId = user.getId();
+
+			MeetingGetAppliesQueryDto queryCommand = MeetingGetAppliesQueryDto.builder()
+				.page(1)
+				.take(10)
+				.status(List.of(EnApplyStatus.APPROVE, EnApplyStatus.WAITING))
+				.date("desc")
+				.build();
+
+			// when
+			MeetingGetApplyListResponseDto responseDto = meetingV2Service.findApplyList(queryCommand, meetingId,
+				userId);
+			PageRequest pageable = PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake());
+			Page<ApplyInfoDto> applyList = applyRepository.findApplyList(queryCommand, pageable, meetingId,
+				meeting.getUserId(), userId);
+
+			// then
+			Assertions.assertThat(responseDto).isNotNull(); // responseDto가 null이 아님을 확인
+			Assertions.assertThat(responseDto.getApply()).isNotEmpty();  // 신청 목록이 비어 있지 않음을 확인
+			Assertions.assertThat(responseDto.getMeta().getPage()).isEqualTo(1);  // 페이지 정보가 예상대로인지 검증
+			Assertions.assertThat(responseDto.getMeta().getTake()).isEqualTo(10);  // 한 페이지당 지원자 수가 10명인지 검증
+
+			// 총 지원자 수 비교
+			Assertions.assertThat(applyList.getTotalElements()).isEqualTo(responseDto.getMeta().getItemCount());
+
+			// 지원자 목록 필드별 검증
+			Assertions.assertThat(responseDto.getApply())
+				.extracting("user.name", "user.orgId", "user.recentActivity.part", "user.recentActivity.generation",
+					"user.profileImage", "user.phone", "content", "status")
+				.containsExactly(
+					tuple("지원자 12", 13, "기획", 34, "applicantProfile12.jpg", "010-1234-5690", "지원 동기 12",
+						EnApplyStatus.WAITING),
+					tuple("지원자 11", 12, "기획", 34, "applicantProfile11.jpg", "010-1234-5689", "지원 동기 11",
+						EnApplyStatus.WAITING),
+					tuple("지원자 10", 11, "기획", 34, "applicantProfile10.jpg", "010-1234-5688", "지원 동기 10",
+						EnApplyStatus.WAITING),
+					tuple("지원자 9", 10, "기획", 34, "applicantProfile9.jpg", "010-1234-5687", "지원 동기 9",
+						EnApplyStatus.WAITING),
+					tuple("지원자 8", 9, "기획", 34, "applicantProfile8.jpg", "010-1234-5686", "지원 동기 8",
+						EnApplyStatus.WAITING),
+					tuple("지원자 7", 8, "기획", 34, "applicantProfile7.jpg", "010-1234-5685", "지원 동기 7",
+						EnApplyStatus.WAITING),
+					tuple("지원자 6", 7, "안드로이드", 35, "applicantProfile6.jpg", "010-1234-5684", "지원 동기 6",
+						EnApplyStatus.APPROVE),
+					tuple("지원자 5", 6, "안드로이드", 35, "applicantProfile5.jpg", "010-1234-5683", "지원 동기 5",
+						EnApplyStatus.APPROVE),
+					tuple("지원자 4", 5, "안드로이드", 35, "applicantProfile4.jpg", "010-1234-5682", "지원 동기 4",
+						EnApplyStatus.APPROVE),
+					tuple("지원자 3", 4, "안드로이드", 35, "applicantProfile3.jpg", "010-1234-5681", "지원 동기 3",
+						EnApplyStatus.APPROVE));
+
+			// ApplyInfoDto의 모든 필드 비교
+			Assertions.assertThat(applyList.getContent()).usingRecursiveComparison()  // 객체의 필드를 재귀적으로 비교
+				.isEqualTo(responseDto.getApply());
 		}
 	}
 }
