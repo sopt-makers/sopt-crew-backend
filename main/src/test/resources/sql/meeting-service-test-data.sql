@@ -15,30 +15,37 @@ VALUES (1, '모임개설자', 1001,
         '[{"part": "iOS", "generation": 35}, {"part": "안드로이드", "generation": 34}]',
         'profile5.jpg', '010-6666-6666');
 
-INSERT INTO meeting (id, "userId", title, category, "imageURL", "startDate", "endDate", capacity,
+INSERT INTO meeting ("userId", title, category, "imageURL", "startDate", "endDate", capacity,
                      "desc", "processDesc", "mStartDate", "mEndDate", "leaderDesc",
                      note, "isMentorNeeded", "canJoinOnlyActiveGeneration", "createdGeneration",
                      "targetActiveGeneration", "joinableParts")
-VALUES (1, 1, '스터디 구합니다1', '행사',
+VALUES (1, '스터디 구합니다1', '행사',
         '[{"id": 0, "url": "https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2024/05/19/79ba8312-0ebf-48a2-9a5e-b372fb8a9e64.png"}]',
         '2024-04-24 00:00:00.000000', '2024-05-24 23:59:59.000000', 10,
         '스터디 설명입니다.', '스터디 진행방식입니다.',
         '2024-05-29 00:00:00.000000', '2024-05-31 23:59:59.000000', '스터디장 설명입니다.',
         '시간지키세요.', true, true, 35, 35, '{PM,SERVER}'),
 
-       (2, 5, '스터디 구합니다 - 신청전', '스터디',
+       (5, '스터디 구합니다 - 신청전', '스터디',
         '[{"id": 0, "url": "https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2024/05/19/79ba8312-0ebf-48a2-9a5e-b372fb8a9e64.png"}]',
         '2024-04-25 00:00:00.000000', '2024-05-24 23:59:59.000000', 10,
         '스터디 설명입니다.', '스터디 진행방식입니다.',
         '2024-05-29 00:00:00.000000', '2024-05-31 23:59:59.000000', null,
         null, false, false, 34, null, '{PM,SERVER}'),
 
-       (3, 5, '스터디 구합니다 - 신청후', '스터디',
+       (5, '스터디 구합니다 - 신청후', '스터디',
         '[{"id": 0, "url": "https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2024/05/19/79ba8312-0ebf-48a2-9a5e-b372fb8a9e64.png"}]',
         '2024-04-22 00:00:00.000000', '2024-04-22 23:59:59.000000', 10,
         '스터디 설명입니다.', '스터디 진행방식입니다.',
         '2024-05-29 00:00:00.000000', '2024-05-31 23:59:59.000000', null,
-        null, false, false, 34, null, '{PM,SERVER}');
+        null, false, false, 34, null, '{PM,SERVER}'),
+
+       (5, '세미나 구합니다 - 신청후', '세미나',
+        '[{"id": 0, "url": "https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2024/05/19/79ba8312-0ebf-48a2-9a5e-b372fb8a9e64.png"}]',
+        '2024-04-22 00:00:00.000000', '2024-04-22 23:59:59.000000', 13,
+        '세미나 설명입니다.', '세미나 진행방식입니다.',
+        '2024-05-29 00:00:00.000000', '2024-05-31 23:59:59.000000', null,
+        null, false, false, 34, null, '{WEB, IOS}');
 
 INSERT INTO apply (type, "meetingId", "userId", "appliedDate", status)
 VALUES (0, 1, 2, '2024-05-19 00:00:00.913489', 1),
