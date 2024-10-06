@@ -678,7 +678,7 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
-		@DisplayName("모임 정원이 초과된 경우, 지원할 수 없다.")
+		@DisplayName("모임 승인 정원이 초과된 경우, 지원할 수 없다.")
 		void applyMeeting_ShouldFailWhenCapacityExceeded() {
 			// given
 			User leader = User.builder()
