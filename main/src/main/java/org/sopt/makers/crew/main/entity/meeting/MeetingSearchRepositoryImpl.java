@@ -106,7 +106,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 
 		for (Integer status : statuesInt) {
 			if (status == EnMeetingStatus.BEFORE_START.getValue()) {
-				BooleanExpression condition = meeting.startDate.goe(time.now());
+				BooleanExpression condition = meeting.startDate.after(time.now());
 				conditions.add(condition);
 			} else if (status == EnMeetingStatus.APPLY_ABLE.getValue()) {
 				BooleanExpression afterStartDate = meeting.startDate.loe(time.now());
@@ -114,7 +114,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 				BooleanExpression condition = afterStartDate.and(beforeEndDate);
 				conditions.add(condition);
 			} else if (status == EnMeetingStatus.RECRUITMENT_COMPLETE.getValue()) {
-				BooleanExpression condition = meeting.endDate.loe(time.now());
+				BooleanExpression condition = meeting.endDate.before(time.now());
 				conditions.add(condition);
 			}
 		}
