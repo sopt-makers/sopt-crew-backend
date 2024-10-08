@@ -597,16 +597,6 @@ public class MeetingV2ServiceTest {
 
 			meetingRepository.save(meeting);
 
-			User applicant1 = User.builder()
-				.name("지원자 1")
-				.orgId(2)
-				.activities(List.of(new UserActivityVO("iOS", 35)))
-				.profileImage("applicantProfile.jpg")
-				.phone("010-1234-5678")
-				.build();
-
-			userRepository.save(applicant1);
-
 			Integer meetingId = meeting.getId();
 			Integer nonExistentUserId = 999; // 존재하지 않는 userId
 
@@ -640,7 +630,7 @@ public class MeetingV2ServiceTest {
 				.category(MeetingCategory.STUDY)
 				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
 				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
-				.endDate(LocalDateTime.of(2024, 10, 7, 23, 59, 59))
+				.endDate(LocalDateTime.of(2029, 10, 7, 23, 59, 59))
 				.capacity(20)
 				.desc("모임 지원 테스트입니다.")
 				.processDesc("테스트 진행 방식입니다.")
@@ -698,7 +688,7 @@ public class MeetingV2ServiceTest {
 				.category(MeetingCategory.STUDY)
 				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
 				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
-				.endDate(LocalDateTime.of(2024, 10, 7, 23, 59, 59))
+				.endDate(LocalDateTime.of(2029, 10, 7, 23, 59, 59))
 				.capacity(1)
 				.desc("모임 지원 테스트입니다.")
 				.processDesc("테스트 진행 방식입니다.")
@@ -770,7 +760,7 @@ public class MeetingV2ServiceTest {
 				.category(MeetingCategory.STUDY)
 				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
 				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
-				.endDate(LocalDateTime.of(2024, 10, 7, 23, 59, 59))
+				.endDate(LocalDateTime.of(2029, 10, 7, 23, 59, 59))
 				.capacity(50)
 				.desc("모임 지원 테스트입니다.")
 				.processDesc("테스트 진행 방식입니다.")
