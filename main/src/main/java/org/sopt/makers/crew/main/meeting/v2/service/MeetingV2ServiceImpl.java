@@ -24,6 +24,8 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
+import org.sopt.makers.crew.main.entity.meeting.JointLeader;
+import org.sopt.makers.crew.main.entity.meeting.JointLeaderRepository;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
@@ -91,6 +93,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
+	private final JointLeaderRepository jointLeaderRepository;
 
 	private final S3Service s3Service;
 
@@ -185,19 +188,15 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateMeetingBodyDto requestBody, Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
-		if (user.getActivities() == null) {
-			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
-		}
-
-		if (requestBody.getFiles().size() == ZERO || requestBody.getJoinableParts().length == ZERO) {
-			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
-		}
-
 		Meeting meeting = meetingMapper.toMeetingEntity(requestBody,
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
 			user.getId());
 
 		Meeting savedMeeting = meetingRepository.save(meeting);
+
+		List<JointLeader> jointLeaders = getJointLeaders(requestBody, savedMeeting);
+		jointLeaderRepository.saveAll(jointLeaders);
+
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId());
 	}
 
@@ -501,5 +500,15 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (userJoinableParts.isEmpty()) {
 			throw new BadRequestException(NOT_TARGET_PART.getErrorCode());
 		}
+	}
+
+
+	private List<JointLeader> getJointLeaders(MeetingV2CreateMeetingBodyDto requestBody, Meeting savedMeeting) {
+		return requestBody.getJointMeetingLeaderUserIds().stream()
+			.map(jointLeader -> JointLeader.builder()
+				.meetingId(savedMeeting.getId())
+				.userId(jointLeader)
+				.build())
+			.toList();
 	}
 }
