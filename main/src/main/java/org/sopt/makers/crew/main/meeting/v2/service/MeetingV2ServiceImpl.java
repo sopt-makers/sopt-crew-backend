@@ -194,7 +194,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		Meeting savedMeeting = meetingRepository.save(meeting);
 
-		List<JointLeader> jointLeaders = getJointLeaders(requestBody, savedMeeting);
+		List<User> users = userRepository.findAllById(requestBody.getJointMeetingLeaderUserIds());
+		List<JointLeader> jointLeaders = getJointLeaders(users, savedMeeting);
 		jointLeaderRepository.saveAll(jointLeaders);
 
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId());
@@ -309,7 +310,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			user.getId());
 
 		jointLeaderRepository.deleteAllByMeetingId(updatedMeeting.getId());
-		List<JointLeader> jointLeaders = getJointLeaders(requestBody, updatedMeeting);
+		List<User> users = userRepository.findAllById(requestBody.getJointMeetingLeaderUserIds());
+		List<JointLeader> jointLeaders = getJointLeaders(users, updatedMeeting);
 		jointLeaderRepository.saveAll(jointLeaders);
 
 		meeting.updateMeeting(updatedMeeting);
@@ -508,11 +510,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 
-	private List<JointLeader> getJointLeaders(MeetingV2CreateMeetingBodyDto requestBody, Meeting savedMeeting) {
-		return requestBody.getJointMeetingLeaderUserIds().stream()
+	private List<JointLeader> getJointLeaders(List<User> jointLeaders, Meeting savedMeeting) {
+		return jointLeaders.stream()
 			.map(jointLeader -> JointLeader.builder()
-				.meetingId(savedMeeting.getId())
-				.userId(jointLeader)
+				.meeting(savedMeeting)
+				.user(jointLeader)
 				.build())
 			.toList();
 	}
