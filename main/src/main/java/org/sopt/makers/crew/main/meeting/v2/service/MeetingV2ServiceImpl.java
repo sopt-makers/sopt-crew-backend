@@ -4,8 +4,10 @@ import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -149,7 +151,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		return getResponseDto(meetings, postMap, applies);
 	}
-
 
 	private List<Post> filterLatestPostsByMeetingId(List<Post> posts) {
 		return posts.stream()
@@ -384,9 +385,15 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private String createCsvFile(List<Apply> applies) {
 		String filePath = UUID.randomUUID() + ".csv";
 
-		try (CSVWriter writer = new CSVWriter(new FileWriter(filePath))) {
+		try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(
+			new FileOutputStream(filePath), StandardCharsets.UTF_8);
+			 CSVWriter writer = new CSVWriter(outputStreamWriter)) {
+
+			// BOM 추가 (Excel에서 UTF-8 파일을 제대로 처리하기 위함)
+			outputStreamWriter.write("\uFEFF");
+
 			// CSV 파일의 헤더 정의
-			String[] header = {"이름", "최근 활동 파트", "최근 활동 기수", "전화번호", "신청 날짜 및 시간", "신청 내용", "신청 상태"};
+			String[] header = {"이름", "최근 활동 파트", "최근 활동 기수", "전화번호", "신청 날짜 및 시간", "신청 상태"};
 			writer.writeNext(header);
 
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -400,7 +407,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 					String.valueOf(activity.getGeneration()),
 					String.format("\"%s\"", user.getPhone()),
 					apply.getAppliedDate().format(formatter),
-					apply.getContent(),
 					apply.getStatus().getDescription()
 				};
 				writer.writeNext(data);

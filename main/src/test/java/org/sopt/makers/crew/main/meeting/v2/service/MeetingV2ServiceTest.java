@@ -19,15 +19,16 @@ import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
+import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
+import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
-import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
-import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
@@ -41,6 +42,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResp
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -82,13 +84,19 @@ public class MeetingV2ServiceTest {
 			User savedUser = userRepository.save(user);
 
 			// 모임 이미지 리스트
-			List<String> files = Arrays.asList("https://example.com/image1.jpg");
+			List<String> files = Arrays.asList(
+				"https://example.com/image1.jpg"
+			);
 
 			// 대상 파트 목록
-			MeetingJoinablePart[] joinableParts = {MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS};
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.SERVER,
+				MeetingJoinablePart.IOS
+			};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto("알고보면 쓸데있는 개발 프로세스", // title
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2024.10.01", // startDate (모집 시작 날짜)
@@ -115,10 +123,13 @@ public class MeetingV2ServiceTest {
 
 			Assertions.assertThat(foundMeeting)
 				.isNotNull()
-				.extracting("user", "userId", "title", "category", "startDate", "endDate", "capacity", "desc",
+				.extracting(
+					"user", "userId", "title", "category", "startDate", "endDate", "capacity", "desc",
 					"processDesc", "mStartDate", "mEndDate", "leaderDesc", "note", "isMentorNeeded",
-					"canJoinOnlyActiveGeneration", "createdGeneration", "targetActiveGeneration", "joinableParts")
-				.containsExactly(savedUser,  // user 필드
+					"canJoinOnlyActiveGeneration", "createdGeneration", "targetActiveGeneration", "joinableParts"
+				)
+				.containsExactly(
+					savedUser,  // user 필드
 					savedUser.getId(),  // userId 필드
 					"알고보면 쓸데있는 개발 프로세스",  // title 필드
 					MeetingCategory.STUDY,  // category 필드
@@ -141,7 +152,9 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(foundMeeting.getImageURL())
 				.hasSize(1)
 				.extracting("url")
-				.containsExactly("https://example.com/image1.jpg");
+				.containsExactly(
+					"https://example.com/image1.jpg"
+				);
 		}
 
 		@Test
@@ -159,13 +172,18 @@ public class MeetingV2ServiceTest {
 
 			// 모임 이미지 리스트
 			List<String> files = Arrays.asList(
-				"https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df");
+				"https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df"
+			);
 
 			// 대상 파트 목록
-			MeetingJoinablePart[] joinableParts = {MeetingJoinablePart.ANDROID, MeetingJoinablePart.IOS};
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.ANDROID,
+				MeetingJoinablePart.IOS
+			};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto("알고보면 쓸데있는 개발 프로세스", // title
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2022.10.08", // startDate (모집 시작 날짜)
@@ -202,13 +220,15 @@ public class MeetingV2ServiceTest {
 
 			// 모임 이미지 리스트
 			List<String> files = Arrays.asList(
-				"https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df");
+				"https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df"
+			);
 
 			// 대상 파트 목록
 			MeetingJoinablePart[] joinableParts = null;
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto("알고보면 쓸데있는 개발 프로세스", // title
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2022.10.08", // startDate (모집 시작 날짜)
@@ -247,10 +267,14 @@ public class MeetingV2ServiceTest {
 			List<String> files = null;
 
 			// 대상 파트 목록
-			MeetingJoinablePart[] joinableParts = {MeetingJoinablePart.ANDROID, MeetingJoinablePart.IOS};
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.ANDROID,
+				MeetingJoinablePart.IOS
+			};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto("알고보면 쓸데있는 개발 프로세스", // title
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2022.10.08", // startDate (모집 시작 날짜)
@@ -292,32 +316,544 @@ public class MeetingV2ServiceTest {
 			// when
 			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
 			List<MeetingResponseDto> meetings = meetingDto.meetings();
-			List<MeetingCreatorDto> meetingCreatorDtos = meetings.stream().map(MeetingResponseDto::getUser).toList();
+			List<MeetingCreatorDto> meetingCreatorDtos = meetings.stream()
+				.map(MeetingResponseDto::getUser)
+				.toList();
 
 			// then
 			Assertions.assertThat(meetings)
-				.extracting("id", "title", "category", "canJoinOnlyActiveGeneration", "mStartDate", "mEndDate",
-					"capacity", "isMentorNeeded", "targetActiveGeneration", "joinableParts", "status", "appliedCount")
-				.containsExactly(tuple(2, "스터디 구합니다 - 신청전", "스터디", false, LocalDateTime.of(2024, 5, 29, 0, 0),
-					LocalDateTime.of(2024, 5, 31, 23, 59, 59), 10, false, null, new MeetingJoinablePart[] {PM, SERVER},
-					0, 0), tuple(1, "스터디 구합니다1", "행사", true, LocalDateTime.of(2024, 5, 29, 0, 0),
-					LocalDateTime.of(2024, 5, 31, 23, 59, 59), 10, true, 35, new MeetingJoinablePart[] {PM, SERVER}, 1,
-					2)
+				.extracting(
+					"title", "category", "canJoinOnlyActiveGeneration",
+					"mStartDate", "mEndDate",
+					"capacity", "isMentorNeeded", "targetActiveGeneration",
+					"joinableParts", "status", "appliedCount"
+				).containsExactly(
+					tuple("세미나 구합니다 - 신청후", "세미나", false,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						13, false, null,
+						new MeetingJoinablePart[] {WEB, IOS}, 2, 0
+					),
+					tuple("스터디 구합니다 - 신청후", "스터디", false,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, false, null,
+						new MeetingJoinablePart[] {PM, SERVER}, 2, 0
+					),
+					tuple("스터디 구합니다 - 신청전", "스터디", false,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, false, null,
+						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
+					),
+					tuple("스터디 구합니다1", "행사", true,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, true, 35,
+						new MeetingJoinablePart[] {PM, SERVER}, 1, 2
+					)
 
 				);
 
 			Assertions.assertThat(meetingCreatorDtos)
-				.extracting("id", "name", "orgId", "profileImage", "activities", "phone")
-				.containsExactly(tuple(5, "모임개설자2", 1005, "profile5.jpg",
-						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)), "010-6666-6666"),
-					tuple(1, "모임개설자", 1001, "profile1.jpg",
-						List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)), "010-1234-5678")
+				.extracting("name", "orgId", "profileImage", "activities", "phone")
+				.containsExactly(
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666"),
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666"),
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666"),
+					tuple("모임개설자", 1001, "profile1.jpg",
+						List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
+						"010-1234-5678")
 
 				);
+		}
+
+		@Test
+		@DisplayName("활동기수에 한하여 모임 전체 조회 시, 활동기수에 해당하는 모임 목록을 반환한다.")
+		void getOnlyActiveGenerationMeeting_getMeetings_meetings() {
+			// given
+			int page = 1;
+			int take = 12;
+			MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(page, take);
+			queryDto.setIsOnlyActiveGeneration(true);
+
+			// when
+			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
+			List<MeetingResponseDto> meetings = meetingDto.meetings();
+			List<MeetingCreatorDto> meetingCreatorDtos = meetings.stream()
+				.map(MeetingResponseDto::getUser)
+				.toList();
+
+			// then
+			Assertions.assertThat(meetings)
+				.extracting(
+					"title", "category", "canJoinOnlyActiveGeneration",
+					"mStartDate", "mEndDate",
+					"capacity", "isMentorNeeded", "targetActiveGeneration",
+					"joinableParts", "status", "appliedCount"
+				).containsExactly(
+					tuple("스터디 구합니다1", "행사", true,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, true, 35,
+						new MeetingJoinablePart[] {PM, SERVER}, 1, 2
+					)
+
+				);
+
+			Assertions.assertThat(meetingCreatorDtos)
+				.extracting("name", "orgId", "profileImage", "activities", "phone")
+				.containsExactly(
+					tuple("모임개설자", 1001, "profile1.jpg",
+						List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
+						"010-1234-5678")
+
+				);
+		}
+
+		@Test
+		@DisplayName("MeetingCategory 검색 조건에 따라 해당하는 카테고리에 맞는 모임 목록을 반환한다.")
+		void getByCategory_getMeetings_meetings() {
+			// given
+			int page = 1;
+			int take = 12;
+			MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(page, take);
+			queryDto.setIsOnlyActiveGeneration(false);
+			List<String> meetingCategories = List.of(MeetingCategory.STUDY.getValue(),
+				MeetingCategory.SEMINAR.getValue());
+			queryDto.setCategory(meetingCategories);
+
+			// when
+			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
+			List<MeetingResponseDto> meetings = meetingDto.meetings();
+			List<MeetingCreatorDto> meetingCreatorDtos = meetings.stream()
+				.map(MeetingResponseDto::getUser)
+				.toList();
+
+			// then
+			Assertions.assertThat(meetings)
+				.extracting(
+					"title", "category", "canJoinOnlyActiveGeneration",
+					"mStartDate", "mEndDate",
+					"capacity", "isMentorNeeded", "targetActiveGeneration",
+					"joinableParts", "status", "appliedCount"
+				).containsExactly(
+					tuple("세미나 구합니다 - 신청후", "세미나", false,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						13, false, null,
+						new MeetingJoinablePart[] {WEB, IOS}, 2, 0
+					),
+					tuple("스터디 구합니다 - 신청후", "스터디", false,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, false, null,
+						new MeetingJoinablePart[] {PM, SERVER}, 2, 0
+					),
+					tuple("스터디 구합니다 - 신청전", "스터디", false,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, false, null,
+						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
+					)
+				);
+
+			Assertions.assertThat(meetingCreatorDtos)
+				.extracting("name", "orgId", "profileImage", "activities", "phone")
+				.containsExactly(
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666"),
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666"),
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666")
+
+				);
+		}
+
+		@Test
+		@DisplayName("MeetingStatus 검색 조건에 따라 해당하는 모임 상태에 맞는 모임 목록을 반환한다.")
+		void getByStatus_getMeetings_meetings() {
+			// given
+			int page = 1;
+			int take = 12;
+			MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(page, take);
+			queryDto.setIsOnlyActiveGeneration(false);
+			List<String> statues = List.of(String.valueOf(EnMeetingStatus.BEFORE_START.getValue()),
+				String.valueOf(EnMeetingStatus.APPLY_ABLE.getValue()));
+			queryDto.setStatus(statues);
+
+			// when
+			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
+			List<MeetingResponseDto> meetings = meetingDto.meetings();
+
+			// then
+			Assertions.assertThat(meetings)
+				.extracting(
+					"title", "category"
+				).containsExactly(
+					tuple("스터디 구합니다 - 신청전", "스터디"),
+					tuple("스터디 구합니다1", "행사")
+				);
+		}
+
+		@Test
+		@DisplayName("joinableParts 검색 조건")
+		void getByJoinableParts_getMeetings_meetings() {
+			// given
+			int page = 1;
+			int take = 12;
+			MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(page, take);
+			queryDto.setIsOnlyActiveGeneration(false);
+			queryDto.setJoinableParts(new MeetingJoinablePart[] {IOS});
+
+			// when
+			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
+			List<MeetingResponseDto> meetings = meetingDto.meetings();
+			// then
+			Assertions.assertThat(meetings)
+				.extracting(
+					"title", "category"
+				).containsExactly(
+					tuple("세미나 구합니다 - 신청후", "세미나")
+				);
+		}
+
+		@Test
+		@DisplayName("query 검색 조건")
+		void getByQuery_getMeetings_meetings() {
+			// given
+			int page = 1;
+			int take = 12;
+			MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(page, take);
+			queryDto.setIsOnlyActiveGeneration(false);
+			queryDto.setQuery("구합니다");
+
+			// when
+			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
+			List<MeetingResponseDto> meetings = meetingDto.meetings();
+			// then
+			Assertions.assertThat(meetings)
+				.extracting(
+					"title", "category"
+				).containsExactly(
+					tuple("세미나 구합니다 - 신청후", "세미나"),
+					tuple("스터디 구합니다 - 신청후", "스터디"),
+					tuple("스터디 구합니다 - 신청전", "스터디"),
+					tuple("스터디 구합니다1", "행사")
+				);
+		}
+
+		@Test
+		@DisplayName("페이지네이션에서 page 1일 경우, 11개의 모임목록을 반환한다.")
+		void pageIs1_getMeetings_11meetings() {
+			// given
+			User user = userRepository.findByIdOrThrow(5);
+
+			for(int i=0; i<30; i++){
+				Meeting meeting = createMeetingFixture(i, user);
+				meetingRepository.save(meeting);
+			}
+			int page = 1;
+			int take = 11;
+			MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(page, take);
+			queryDto.setIsOnlyActiveGeneration(false);
+
+			// when
+			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
+			List<MeetingResponseDto> meetings = meetingDto.meetings();
+
+			// then
+			Assertions.assertThat(meetings).hasSize(11);
+		}
+
+		@Test
+		@DisplayName("페이지네이션에서 page 2이상일 경우, 12개의 모임목록을 반환한다.")
+		void pageGreaterThen2_getMeetings_12meetings() {
+			// given
+			User user = userRepository.findByIdOrThrow(5);
+
+			for(int i=0; i<30; i++){
+				Meeting meeting = createMeetingFixture(i, user);
+				meetingRepository.save(meeting);
+			}
+			int page = 2;
+			int take = 24;
+			MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(page, take);
+			queryDto.setIsOnlyActiveGeneration(false);
+
+			// when
+			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
+			List<MeetingResponseDto> meetings = meetingDto.meetings();
+
+			// then
+			Assertions.assertThat(meetings).hasSize(12);
 		}
 	}
 
 	@Nested
+	@SqlGroup({
+		@Sql(value = "/sql/meeting-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+
+	})
+	class 모임_상세_조회 {
+
+		// ** 중요 ** : meetingStatus 값이 올바른지 검증
+
+		@Test
+		@DisplayName("모임장이 상세 조회 시, host에 true 및 모임 데이터를 반환한다.")
+		void meetingCreator_getMeetingById_success() {
+			// given
+			Integer meetingId = 1;
+			Integer userId = 1;
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+
+			// then
+			Assertions.assertThat(responseDto)
+				.extracting(
+					"id", "userId", "title", "category",
+					"startDate", "endDate",
+					"capacity", "desc", "processDesc",
+					"mStartDate", "mEndDate",
+					"leaderDesc", "note", "isMentorNeeded", "canJoinOnlyActiveGeneration",
+					"createdGeneration", "targetActiveGeneration",
+					"joinableParts",
+					"status", "approvedApplyCount",
+					"host", "apply", "approved",
+					"user.id", "user.name", "user.orgId", "user.profileImage", "user.activities", "user.phone"
+				)
+				.containsExactly(
+					1, 1, "스터디 구합니다1", "행사",
+					LocalDateTime.of(2024, 4, 24, 0, 0, 0),
+					LocalDateTime.of(2024, 5, 24, 23, 59, 59),
+					10, "스터디 설명입니다.", "스터디 진행방식입니다.",
+					LocalDateTime.of(2024, 5, 29, 0, 0, 0),
+					LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+					"스터디장 설명입니다.", "시간지키세요.", true, true,
+					35, 35,
+					new MeetingJoinablePart[] {MeetingJoinablePart.PM, MeetingJoinablePart.SERVER},
+					1, 2L,
+					true, false, false,
+					1, "모임개설자", 1001, "profile1.jpg",
+					List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
+					"010-1234-5678"
+				);
+
+			Assertions.assertThat(responseDto.getAppliedInfo())
+				.extracting(
+					"id", "meetingId", "userId", "appliedDate", "status",
+					"user.id", "user.name", "user.orgId", "user.activities", "user.phone")
+				.containsExactly(
+					tuple(1, 1, 2,
+						LocalDateTime.of(2024, 5, 19, 00, 00, 00, 913489000),
+						1,
+						2, "승인신청자", 1002,
+						List.of(new UserActivityVO("기획", 32), new UserActivityVO("기획", 29),
+							new UserActivityVO("기획", 33), new UserActivityVO("기획", 30)),
+						"010-1111-2222"
+					),
+					tuple(2, 1, 3,
+						LocalDateTime.of(2024, 5, 19, 00, 00, 2, 413489000),
+						1,
+						3, "승인신청자", 1003,
+						List.of(new UserActivityVO("웹", 34)),
+						"010-3333-4444"
+					),
+					tuple(3, 1, 4,
+						LocalDateTime.of(2024, 5, 19, 00, 00, 3, 413489000),
+						0,
+						4, "대기신청자", 1004,
+						List.of(new UserActivityVO("iOS", 32), new UserActivityVO("안드로이드", 29)),
+						"010-5555-5555"
+					)
+				);
+
+		}
+
+		@Test
+		@DisplayName("모임과 관련되지 않은 유저가 상세 조회 시, 모임 데이터를 반환한다.")
+		void notRelatedMeeting_getMeetingById_success() {
+			// given
+			Integer meetingId = 1;
+			Integer userId = 5;
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+
+			// then
+			Assertions.assertThat(responseDto)
+				.extracting(
+					"id", "userId", "title", "category",
+					"startDate", "endDate",
+					"capacity", "desc", "processDesc",
+					"mStartDate", "mEndDate",
+					"leaderDesc", "note", "isMentorNeeded", "canJoinOnlyActiveGeneration",
+					"createdGeneration", "targetActiveGeneration",
+					"joinableParts",
+					"status", "approvedApplyCount",
+					"host", "apply", "approved",
+					"user.id", "user.name", "user.orgId", "user.profileImage", "user.activities", "user.phone"
+				)
+				.containsExactly(
+					1, 1, "스터디 구합니다1", "행사",
+					LocalDateTime.of(2024, 4, 24, 0, 0, 0),
+					LocalDateTime.of(2024, 5, 24, 23, 59, 59),
+					10, "스터디 설명입니다.", "스터디 진행방식입니다.",
+					LocalDateTime.of(2024, 5, 29, 0, 0, 0),
+					LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+					"스터디장 설명입니다.", "시간지키세요.", true, true,
+					35, 35,
+					new MeetingJoinablePart[] {MeetingJoinablePart.PM, MeetingJoinablePart.SERVER},
+					1, 2L,
+					false, false, false,
+					1, "모임개설자", 1001, "profile1.jpg",
+					List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
+					"010-1234-5678"
+				);
+
+			Assertions.assertThat(responseDto.getAppliedInfo())
+				.extracting(
+					"id", "meetingId", "userId", "appliedDate", "status",
+					"user.id", "user.name", "user.orgId", "user.activities", "user.phone")
+				.containsExactly(
+					tuple(1, 1, 2,
+						LocalDateTime.of(2024, 5, 19, 00, 00, 00, 913489000),
+						1,
+						2, "승인신청자", 1002,
+						List.of(new UserActivityVO("기획", 32), new UserActivityVO("기획", 29),
+							new UserActivityVO("기획", 33), new UserActivityVO("기획", 30)),
+						"010-1111-2222"
+					),
+					tuple(2, 1, 3,
+						LocalDateTime.of(2024, 5, 19, 00, 00, 2, 413489000),
+						1,
+						3, "승인신청자", 1003,
+						List.of(new UserActivityVO("웹", 34)),
+						"010-3333-4444"
+					),
+					tuple(3, 1, 4,
+						LocalDateTime.of(2024, 5, 19, 00, 00, 3, 413489000),
+						0,
+						4, "대기신청자", 1004,
+						List.of(new UserActivityVO("iOS", 32), new UserActivityVO("안드로이드", 29)),
+						"010-5555-5555"
+					)
+				);
+
+		}
+
+		@Test
+		@DisplayName("모임 승인 신청자가 상세 조회 시, apply: true 및 approved: true 를 반환한다.")
+		void meetingApprovedApplicant_getMeetingById_success() {
+			// given
+			Integer meetingId = 1;
+			Integer userId = 2;
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+
+			// then
+			Assertions.assertThat(responseDto)
+				.extracting(
+					"host", "apply", "approved"
+				)
+				.containsExactly(
+					false, true, true
+				);
+		}
+
+		@Test
+		@DisplayName("모임신청 대기자가 상세 조회 시, apply: true 및 approved: false 를 반환한다.")
+		void meetingWaitingApplicant_getMeetingById_success() {
+			// given
+			Integer meetingId = 1;
+			Integer userId = 4;
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+
+			// then
+			Assertions.assertThat(responseDto)
+				.extracting(
+					"host", "apply", "approved"
+				)
+				.containsExactly(
+					false, true, false
+				);
+		}
+
+		@Test
+		@DisplayName("모임 신청기간 전인 경우, status 0 를 반환한다.")
+		void beforeApply_getMeetingById_success() {
+			// given
+			Integer meetingId = 2;
+			Integer userId = 4;
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+
+			// then
+			Assertions.assertThat(responseDto.getStatus()).isEqualTo(0);
+		}
+
+		@Test
+		@DisplayName("모임 신청기간 중인 경우, status 1 를 반환한다.")
+		void applying_getMeetingById_success() {
+			// given
+			Integer meetingId = 1;
+			Integer userId = 4;
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+
+			// then
+			Assertions.assertThat(responseDto.getStatus()).isEqualTo(1);
+		}
+
+		@Test
+		@DisplayName("모임 신청기간 종료 후의 경우, status 2 를 반환한다.")
+		void afterApply_getMeetingById_success() {
+			// given
+			Integer meetingId = 3;
+			Integer userId = 4;
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+
+			// then
+			Assertions.assertThat(responseDto.getStatus()).isEqualTo(2);
+		}
+
+		@Test
+		@DisplayName("모임 조회 시, 승인된 신청자 수를 반환한다.")
+		void getMeeting_getMeetingById_approvedApplyCount() {
+			// given
+			Integer meetingId = 1;
+			Integer userId = 4;
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+
+			// then
+			Assertions.assertThat(responseDto.getApprovedApplyCount()).isEqualTo(2);
+		}
+
+	}
+
+	@Nested
+	@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 	class 지원자_참여자_조회 {
 		@Test
 		@DisplayName("지원자/참여자를 조회할 경우, 지원자 목록 10개를 반환한다.")
@@ -460,7 +996,8 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.getApply())
 				.extracting("user.name", "user.orgId", "user.recentActivity.part", "user.recentActivity.generation",
 					"user.profileImage", "user.phone", "content", "status")
-				.containsExactly(tuple("지원자 12", 13, "기획", 34, "applicantProfile12.jpg", "010-1234-5690", "지원 동기 12",
+				.containsExactly(
+					tuple("지원자 12", 13, "기획", 34, "applicantProfile12.jpg", "010-1234-5690", "지원 동기 12",
 						EnApplyStatus.WAITING),
 					tuple("지원자 11", 12, "기획", 34, "applicantProfile11.jpg", "010-1234-5689", "지원 동기 11",
 						EnApplyStatus.WAITING),
@@ -856,5 +1393,35 @@ public class MeetingV2ServiceTest {
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("지원 기간이 아닙니다.");
 		}
+	}
+
+
+	private Meeting createMeetingFixture(Integer index, User user) {
+
+		List<ImageUrlVO> imageUrlVOList = Arrays.asList(
+			new ImageUrlVO(1, "https://example.com/image1.png"),
+			new ImageUrlVO(2, "https://example.com/image2.png")
+		);
+
+		return  Meeting.builder()
+			.userId(user.getId())
+			.user(user)
+			.title("Weekly Coding Meetup" + index)
+			.category(MeetingCategory.STUDY)
+			.imageURL(imageUrlVOList)
+			.startDate(LocalDateTime.of(2024, 5, 29, 0, 0))
+			.endDate(LocalDateTime.of(2024, 5, 31, 0, 0))
+			.capacity(50)
+			.desc("Let's gather and improve our coding skills.")
+			.processDesc("Online meeting via Zoom.")
+			.mStartDate(LocalDateTime.of(2024, 5, 29, 0, 0))  // 모임 시작일: 4일 후
+			.mEndDate(LocalDateTime.of(2024, 5, 31, 0, 0))    // 모임 종료일: 5일 후
+			.leaderDesc("John Doe is an experienced software engineer.")
+			.note("Bring your best coding questions!")
+			.isMentorNeeded(true)
+			.canJoinOnlyActiveGeneration(false)
+			.createdGeneration(34)
+			.joinableParts(new MeetingJoinablePart[]{WEB, SERVER})
+			.build();
 	}
 }
