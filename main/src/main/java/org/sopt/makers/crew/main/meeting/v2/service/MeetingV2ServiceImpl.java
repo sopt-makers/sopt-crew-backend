@@ -359,7 +359,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		User user = userRepository.findByIdOrThrow(userId);
 
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-		User meetingCreator = userRepository.findByIdOrThrow(meeting.getUserId());
+		User meetingLeader = userRepository.findByIdOrThrow(meeting.getUserId());
+		List<JointLeader> jointLeaders = jointLeaderRepository.findAllByMeetingId(meetingId);
 
 		Applies applies = new Applies(
 			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
@@ -376,8 +377,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.toList();
 		}
 
-		return MeetingV2GetMeetingByIdResponseDto.of(meeting, approvedCount, isHost, isApply, isApproved,
-			meetingCreator, applyWholeInfoDtos, time.now());
+		return MeetingV2GetMeetingByIdResponseDto.of(meeting, jointLeaders, approvedCount, isHost, isApply, isApproved,
+			meetingLeader, applyWholeInfoDtos, time.now());
 	}
 
 	private void deleteCsvFile(String filePath) {
@@ -508,7 +509,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			throw new BadRequestException(NOT_TARGET_PART.getErrorCode());
 		}
 	}
-
 
 	private List<JointLeader> getJointLeaders(List<User> jointLeaders, Meeting savedMeeting) {
 		return jointLeaders.stream()
