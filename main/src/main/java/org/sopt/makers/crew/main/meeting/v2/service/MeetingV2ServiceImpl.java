@@ -291,6 +291,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		commentRepository.deleteAllByPostIdsInQuery(postIds);
 		postRepository.deleteAllByMeetingIdQuery(meetingId);
 		applyRepository.deleteAllByMeetingIdQuery(meetingId);
+		jointLeaderRepository.deleteAllByMeetingId(meetingId);
 
 		meetingRepository.delete(meeting);
 	}
