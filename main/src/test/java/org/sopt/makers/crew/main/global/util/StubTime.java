@@ -10,6 +10,6 @@ import org.springframework.stereotype.Component;
 public class StubTime implements Time {
 	@Override
 	public LocalDateTime now() {
-		return LocalDateTime.of(2024, 4, 24, 23, 59);
+		return LocalDateTime.of(2024, 4, 24, 00, 00, 00, 000000000);
 	}
 }
