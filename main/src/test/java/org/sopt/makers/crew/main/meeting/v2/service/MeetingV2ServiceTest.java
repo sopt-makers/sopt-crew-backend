@@ -31,11 +31,15 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
@@ -59,6 +63,9 @@ public class MeetingV2ServiceTest {
 
 	@Autowired
 	private ApplyRepository applyRepository;
+
+	@Autowired
+	private ApplyMapper applyMapper;
 
 	@Nested
 	class 모임_생성 {
@@ -852,7 +859,7 @@ public class MeetingV2ServiceTest {
 		@DisplayName("지원자/참여자를 조회할 경우, 지원자 목록 10개를 반환한다.")
 		void returns_10_applicants_when_querying_for_applicants_participants() {
 			// given
-			User user = User.builder()
+			User leader = User.builder()
 				.name("모임장")
 				.orgId(1)
 				.activities(List.of(new UserActivityVO("안드로이드", 35)))
@@ -860,11 +867,11 @@ public class MeetingV2ServiceTest {
 				.phone("010-1234-5678")
 				.build();
 
-			userRepository.save(user);
+			userRepository.save(leader);
 
 			Meeting meeting = Meeting.builder()
-				.user(user)
-				.userId(user.getId())
+				.user(leader)
+				.userId(leader.getId())
 				.title("지원자/참여자 조회 테스트")
 				.category(MeetingCategory.STUDY)
 				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
@@ -960,7 +967,7 @@ public class MeetingV2ServiceTest {
 			}
 
 			Integer meetingId = meeting.getId();
-			Integer userId = user.getId();
+			Integer userId = leader.getId();
 
 			MeetingGetAppliesQueryDto queryCommand = MeetingGetAppliesQueryDto.builder()
 				.page(1)
@@ -1014,6 +1021,377 @@ public class MeetingV2ServiceTest {
 			// ApplyInfoDto의 모든 필드 비교
 			Assertions.assertThat(applyList.getContent()).usingRecursiveComparison()  // 객체의 필드를 재귀적으로 비교
 				.isEqualTo(responseDto.getApply());
+		}
+	}
+
+	@Nested
+	class 모임_지원_취소 {
+		@Test
+		@DisplayName("모임 지원 취소를 할 경우, 해당 지원자가 지원 내역에서 삭제되어야 한다.")
+		void applyMeetingCancel_Success() {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("안드로이드", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(leader);
+
+			Meeting meeting = Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("모임 지원 취소 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
+				.endDate(LocalDateTime.of(2024, 10, 7, 23, 59, 59))
+				.capacity(20)
+				.desc("모임 지원 취소 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			User applicant1 = User.builder()
+				.name("지원자 1")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("iOS", 35)))
+				.profileImage("applicantProfile.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(applicant1);
+
+			Apply apply1 = Apply.builder()
+				.type(EnApplyType.APPLY)
+				.meeting(meeting)
+				.meetingId(meeting.getId())
+				.user(applicant1)
+				.userId(applicant1.getId())
+				.content("지원 동기")
+				.build();
+
+			applyRepository.save(apply1);
+
+			Integer meetingId = meeting.getId();
+			Integer userId = applicant1.getId();
+
+			// when
+			meetingV2Service.applyMeetingCancel(meetingId, userId);
+
+			// then
+			boolean exists = applyRepository.existsByMeetingIdAndUserId(meetingId, userId);
+			Assertions.assertThat(exists).isFalse();
+		}
+
+		@Test
+		@DisplayName("지원하지 않은 사용자가 모임을 취소하려고 할 경우, 예외가 발생해야 한다.")
+		void applyMeetingCancel_NotAppliedUser_Failure() {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("안드로이드", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(leader);
+
+			Meeting meeting = Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("모임 지원 취소 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
+				.endDate(LocalDateTime.of(2024, 10, 7, 23, 59, 59))
+				.capacity(20)
+				.desc("모임 지원 취소 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			Integer meetingId = meeting.getId();
+			Integer nonExistentUserId = 999; // 존재하지 않는 userId
+
+			// when & then
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeetingCancel(meetingId, nonExistentUserId))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining("신청상태가 아닌 모임입니다.");
+		}
+	}
+
+	@Nested
+	class 모임_지원 {
+		@Test
+		@DisplayName("정상적인 모임 지원 시, 지원 내역이 성공적으로 저장된다.")
+		void applyMeeting_ShouldSaveSuccessfully() {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("안드로이드", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(leader);
+
+			Meeting meeting = Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("모임 지원 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 10, 7, 23, 59, 59))
+				.capacity(20)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			User applicant = User.builder()
+				.name("지원자 1")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("웹", 35)))
+				.profileImage("applicantProfile.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(applicant);
+
+			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
+
+			// when
+			MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyMeeting(applyDto, applicant.getId());
+
+			// then
+			Apply apply = applyRepository.findById(response.getApplyId()).orElseThrow();
+			Assertions.assertThat(apply.getUser().getId()).isEqualTo(applicant.getId());
+		}
+
+		@Test
+		@DisplayName("모임 승인 정원이 초과된 경우, 지원할 수 없다.")
+		void applyMeeting_ShouldFailWhenCapacityExceeded() {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("안드로이드", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(leader);
+
+			Meeting meeting = Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("모임 지원 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 10, 7, 23, 59, 59))
+				.capacity(1)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			User applicant1 = User.builder()
+				.name("지원자 1")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("웹", 35)))
+				.profileImage("applicantProfile1.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(applicant1);
+
+			// Create and save the apply entity
+			MeetingV2ApplyMeetingDto applyDto1 = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기 1");
+			Apply apply1 = applyMapper.toApplyEntity(applyDto1, EnApplyType.APPLY, meeting, applicant1,
+				applicant1.getId());
+			apply1.updateApplyStatus(EnApplyStatus.APPROVE);
+			applyRepository.save(apply1);
+
+			User applicant2 = User.builder()
+				.name("지원자 2")
+				.orgId(3)
+				.activities(List.of(new UserActivityVO("서버", 34)))
+				.profileImage("applicantProfile2.jpg")
+				.phone("010-1234-5679")
+				.build();
+			userRepository.save(applicant2);
+
+			MeetingV2ApplyMeetingDto applyDto2 = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기 2");
+
+			// when & then
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto2, applicant2.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining("정원이 꽉 찼습니다.");
+		}
+
+		@Test
+		@DisplayName("이미 지원한 사용자는 다시 지원할 수 없다.")
+		void applyMeeting_Fail_WhenAlreadyApplied() {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("iOS", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(leader);
+
+			Meeting meeting = Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("모임 지원 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 10, 7, 23, 59, 59))
+				.capacity(50)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			User applicant = userRepository.save(User.builder()
+				.name("지원자 1")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("디자인", 35)))
+				.profileImage("applicantProfile.jpg")
+				.phone("010-1234-5678")
+				.build());
+
+			// 모임에 이미 지원한 상태
+			Apply apply = Apply.builder()
+				.type(EnApplyType.APPLY)
+				.meeting(meeting)
+				.meetingId(meeting.getId())
+				.user(applicant)
+				.userId(applicant.getId())
+				.content("지원 동기 ")
+				.build();
+
+			applyRepository.save(apply);
+
+			// when & then
+			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, applicant.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining("이미 지원한 모임입니다.");
+		}
+
+		@Test
+		@DisplayName("지원 기간 외에는 지원할 수 없다.")
+		void applyMeeting_Fail_WhenOutsideApplicationPeriod() {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("iOS", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(leader);
+
+			Meeting meeting = Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("모임 지원 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2030, 10, 7, 0, 0, 0))
+				.endDate(LocalDateTime.of(2030, 10, 7, 23, 59, 59))
+				.capacity(50)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2025, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2025, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			User applicant = userRepository.save(User.builder()
+				.name("지원자 1")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("디자인", 35)))
+				.profileImage("applicantProfile.jpg")
+				.phone("010-1234-5678")
+				.build());
+
+			// when & then
+			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, applicant.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining("지원 기간이 아닙니다.");
 		}
 	}
 
