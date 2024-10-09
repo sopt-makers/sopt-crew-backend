@@ -188,15 +188,25 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateMeetingBodyDto requestBody, Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
+		if (user.getActivities() == null) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		if (requestBody.getFiles().size() == ZERO || requestBody.getJoinableParts().length == ZERO) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
 		Meeting meeting = meetingMapper.toMeetingEntity(requestBody,
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
 			user.getId());
 
 		Meeting savedMeeting = meetingRepository.save(meeting);
 
-		List<User> users = userRepository.findAllById(requestBody.getJointMeetingLeaderUserIds());
-		List<JointLeader> jointLeaders = getJointLeaders(users, savedMeeting);
-		jointLeaderRepository.saveAll(jointLeaders);
+		if (requestBody.getJointMeetingLeaderUserIds() != null) {
+			List<User> users = userRepository.findAllById(requestBody.getJointMeetingLeaderUserIds());
+			List<JointLeader> jointLeaders = getJointLeaders(users, savedMeeting);
+			jointLeaderRepository.saveAll(jointLeaders);
+		}
 
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId());
 	}
@@ -310,9 +320,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			user.getId());
 
 		jointLeaderRepository.deleteAllByMeetingId(updatedMeeting.getId());
-		List<User> users = userRepository.findAllById(requestBody.getJointMeetingLeaderUserIds());
-		List<JointLeader> jointLeaders = getJointLeaders(users, updatedMeeting);
-		jointLeaderRepository.saveAll(jointLeaders);
+		if (requestBody.getJointMeetingLeaderUserIds() != null) {
+			List<User> users = userRepository.findAllById(requestBody.getJointMeetingLeaderUserIds());
+			List<JointLeader> jointLeaders = getJointLeaders(users, updatedMeeting);
+			jointLeaderRepository.saveAll(jointLeaders);
+		}
 
 		meeting.updateMeeting(updatedMeeting);
 	}
