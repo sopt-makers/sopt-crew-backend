@@ -307,6 +307,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
 			user.getId());
 
+		jointLeaderRepository.deleteAllByMeetingId(updatedMeeting.getId());
+		List<JointLeader> jointLeaders = getJointLeaders(requestBody, updatedMeeting);
+		jointLeaderRepository.saveAll(jointLeaders);
+
 		meeting.updateMeeting(updatedMeeting);
 	}
 
