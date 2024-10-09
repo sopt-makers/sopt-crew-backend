@@ -25,7 +25,7 @@ public class MeetingV2CreateMeetingBodyDto {
 		+ "    \"https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df\"\n"
 		+ "  ]", description = "모임 이미지 리스트, 최대 6개")
 	@NotEmpty
-	@Size(max = 6)
+	@Size(min = 1, max = 6)
 	private List<String> files;
 
 	@Schema(example = "스터디", description = "모임 카테고리")
@@ -79,7 +79,10 @@ public class MeetingV2CreateMeetingBodyDto {
 		+ "    \"IOS\"\n"
 		+ "  ]", description = "대상 파트 목록")
 	@NotNull
+	@Size(min = 1, max = 6)
 	private MeetingJoinablePart[] joinableParts;
+
+	private List<Integer> jointMeetingLeaderUserIds;
 
 	public String getmStartDate() {
 		return mStartDate;

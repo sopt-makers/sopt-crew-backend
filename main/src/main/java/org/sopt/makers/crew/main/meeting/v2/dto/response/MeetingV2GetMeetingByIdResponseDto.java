@@ -3,6 +3,7 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.sopt.makers.crew.main.entity.meeting.JointLeader;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
@@ -101,6 +102,9 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final MeetingJoinablePart[] joinableParts;
 
+	@NotNull
+	private final List<MeetingV2JointLeaderResponseDto> jointMeetingLeaders;
+
 	@Schema(description = "모임 상태, 0: 모집전, 1: 모집중, 2: 모집종료", example = "1", type = "integer", allowableValues = {"0", "1", "2"})
 	@NotNull
 	private final int status;
@@ -129,7 +133,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final List<ApplyWholeInfoDto> appliedInfo;
 
-	public static MeetingV2GetMeetingByIdResponseDto of(Meeting meeting, long approvedCount, Boolean isHost, Boolean isApply,
+	public static MeetingV2GetMeetingByIdResponseDto of(Meeting meeting, List<JointLeader> jointLeaders, long approvedCount, Boolean isHost, Boolean isApply,
 		Boolean isApproved, User meetingCreator,
 		List<ApplyWholeInfoDto> appliedInfo, LocalDateTime now) {
 
@@ -137,12 +141,16 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 		Integer meetingStatus = meeting.getMeetingStatus(now);
 
+		List<MeetingV2JointLeaderResponseDto> jointLeaderResponseDtos = jointLeaders.stream()
+			.map(jointLeader -> MeetingV2JointLeaderResponseDto.of(jointLeader.getUser()))
+			.toList();
+
 		return new MeetingV2GetMeetingByIdResponseDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(),
 			meeting.getCategory().getValue(), meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(),
 			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getMStartDate(),
 			meeting.getMEndDate(), meeting.getLeaderDesc(), meeting.getNote(),
 			meeting.getIsMentorNeeded(), meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
-			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meetingStatus,
+			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), jointLeaderResponseDtos, meetingStatus,
 			approvedCount, isHost, isApply, isApproved, meetingCreatorDto, appliedInfo);
 	}
 

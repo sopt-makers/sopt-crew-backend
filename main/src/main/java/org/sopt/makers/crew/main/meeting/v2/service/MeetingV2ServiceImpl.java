@@ -24,6 +24,8 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
+import org.sopt.makers.crew.main.entity.meeting.JointLeader;
+import org.sopt.makers.crew.main.entity.meeting.JointLeaderRepository;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
@@ -91,6 +93,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
+	private final JointLeaderRepository jointLeaderRepository;
 
 	private final S3Service s3Service;
 
@@ -198,6 +201,13 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			user.getId());
 
 		Meeting savedMeeting = meetingRepository.save(meeting);
+
+		if (requestBody.getJointMeetingLeaderUserIds() != null) {
+			List<User> users = userRepository.findAllById(requestBody.getJointMeetingLeaderUserIds());
+			List<JointLeader> jointLeaders = createJointLeaders(users, savedMeeting);
+			jointLeaderRepository.saveAll(jointLeaders);
+		}
+
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId());
 	}
 
@@ -292,6 +302,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		commentRepository.deleteAllByPostIdsInQuery(postIds);
 		postRepository.deleteAllByMeetingIdQuery(meetingId);
 		applyRepository.deleteAllByMeetingIdQuery(meetingId);
+		jointLeaderRepository.deleteAllByMeetingId(meetingId);
 
 		meetingRepository.delete(meeting);
 	}
@@ -307,6 +318,13 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Meeting updatedMeeting = meetingMapper.toMeetingEntity(requestBody,
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
 			user.getId());
+
+		jointLeaderRepository.deleteAllByMeetingId(updatedMeeting.getId());
+		if (requestBody.getJointMeetingLeaderUserIds() != null) {
+			List<User> users = userRepository.findAllById(requestBody.getJointMeetingLeaderUserIds());
+			List<JointLeader> jointLeaders = createJointLeaders(users, updatedMeeting);
+			jointLeaderRepository.saveAll(jointLeaders);
+		}
 
 		meeting.updateMeeting(updatedMeeting);
 	}
@@ -353,7 +371,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		User user = userRepository.findByIdOrThrow(userId);
 
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-		User meetingCreator = userRepository.findByIdOrThrow(meeting.getUserId());
+		User meetingLeader = userRepository.findByIdOrThrow(meeting.getUserId());
+		List<JointLeader> jointLeaders = jointLeaderRepository.findAllByMeetingId(meetingId);
 
 		Applies applies = new Applies(
 			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
@@ -370,8 +389,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.toList();
 		}
 
-		return MeetingV2GetMeetingByIdResponseDto.of(meeting, approvedCount, isHost, isApply, isApproved,
-			meetingCreator, applyWholeInfoDtos, time.now());
+		return MeetingV2GetMeetingByIdResponseDto.of(meeting, jointLeaders, approvedCount, isHost, isApply, isApproved,
+			meetingLeader, applyWholeInfoDtos, time.now());
 	}
 
 	private void deleteCsvFile(String filePath) {
@@ -501,5 +520,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (userJoinableParts.isEmpty()) {
 			throw new BadRequestException(NOT_TARGET_PART.getErrorCode());
 		}
+	}
+
+	private List<JointLeader> createJointLeaders(List<User> jointLeaders, Meeting savedMeeting) {
+		return jointLeaders.stream()
+			.map(jointLeader -> JointLeader.builder()
+				.meeting(savedMeeting)
+				.user(jointLeader)
+				.build())
+			.toList();
 	}
 }
