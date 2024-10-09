@@ -37,6 +37,7 @@ public class PostDetailBaseDto {
 	private final PostWriterInfoDto user;
 
 	@Schema(description = "게시글 좋아요 갯수", example = "20")
+	@NotNull
 	private final int likeCount;
 
 	//* 본인이 좋아요를 눌렀는지 여부
