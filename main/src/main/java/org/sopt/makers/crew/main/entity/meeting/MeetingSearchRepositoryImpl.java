@@ -109,8 +109,8 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 				BooleanExpression condition = meeting.startDate.after(time.now());
 				conditions.add(condition);
 			} else if (status == EnMeetingStatus.APPLY_ABLE.getValue()) {
-				BooleanExpression afterStartDate = meeting.startDate.before(time.now());
-				BooleanExpression beforeEndDate = meeting.endDate.after(time.now());
+				BooleanExpression afterStartDate = meeting.startDate.loe(time.now());
+				BooleanExpression beforeEndDate = meeting.endDate.goe(time.now());
 				BooleanExpression condition = afterStartDate.and(beforeEndDate);
 				conditions.add(condition);
 			} else if (status == EnMeetingStatus.RECRUITMENT_COMPLETE.getValue()) {
