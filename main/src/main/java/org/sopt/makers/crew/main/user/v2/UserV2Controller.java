@@ -37,6 +37,7 @@ public class UserV2Controller implements UserV2Api {
 
 	@Override
 	@GetMapping("/mention")
+	@Deprecated
 	public ResponseEntity<List<UserV2GetAllMentionUserDto>> getAllMentionUser(
 		Principal principal) {
 
