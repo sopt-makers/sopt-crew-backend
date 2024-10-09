@@ -42,14 +42,6 @@ public interface UserV2Api {
 	})
 	ResponseEntity<UserV2GetUserOwnProfileResponseDto> getUserOwnProfile(Principal principal);
 
-	@Operation(summary = "[TEMP] 유저 본인 프로필 조회")
-	@ResponseStatus(HttpStatus.OK)
-	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "성공"),
-		@ApiResponse(responseCode = "400", description = "해당 유저가 없는 경우", content = @Content),
-	})
-	ResponseEntity<TempResponseDto<UserV2GetUserOwnProfileResponseDto>> getUserOwnProfileTemp(Principal principal);
-
 	@Operation(summary = "내가 신청한 모임 조회")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiResponses(value = {
@@ -58,28 +50,12 @@ public interface UserV2Api {
 	ResponseEntity<UserV2GetAppliedMeetingByUserResponseDto> getAppliedMeetingByUser(
 		Principal principal);
 
-	@Operation(summary = "[TEMP] 내가 신청한 모임 조회")
-	@ResponseStatus(HttpStatus.OK)
-	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "성공")
-	})
-	ResponseEntity<TempResponseDto<UserV2GetAppliedMeetingByUserResponseDto>> getAppliedMeetingByUserTemp(
-		Principal principal);
-
 	@Operation(summary = "내가 만든 모임 조회")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "성공")
 	})
 	ResponseEntity<UserV2GetCreatedMeetingByUserResponseDto> getCreatedMeetingByUser(
-		Principal principal);
-
-	@Operation(summary = "[TEMP] 내가 만든 모임 조회")
-	@ResponseStatus(HttpStatus.OK)
-	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "성공")
-	})
-	ResponseEntity<TempResponseDto<UserV2GetCreatedMeetingByUserResponseDto>> getCreatedMeetingByUserTemp(
 		Principal principal);
 
 }

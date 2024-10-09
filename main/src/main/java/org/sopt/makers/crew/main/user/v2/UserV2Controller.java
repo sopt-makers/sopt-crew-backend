@@ -5,7 +5,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import org.sopt.makers.crew.main.global.dto.TempResponseDto;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
@@ -30,9 +29,9 @@ public class UserV2Controller implements UserV2Api {
 	@GetMapping("/meeting/all")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<List<UserV2GetAllMeetingByUserMeetingDto>> getAllMeetingByUser(
-	        Principal principal) {
-	    Integer userId = UserUtil.getUserId(principal);
-	    return ResponseEntity.ok(userV2Service.getAllMeetingByUser(userId));
+		Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(userV2Service.getAllMeetingByUser(userId));
 	}
 
 	@Override
@@ -53,14 +52,6 @@ public class UserV2Controller implements UserV2Api {
 	}
 
 	@Override
-	@GetMapping("/profile/me/temp")
-	public ResponseEntity<TempResponseDto<UserV2GetUserOwnProfileResponseDto>> getUserOwnProfileTemp(
-		Principal principal) {
-		Integer userId = UserUtil.getUserId(principal);
-		return ResponseEntity.ok().body(TempResponseDto.of(userV2Service.getUserOwnProfile(userId)));
-	}
-
-	@Override
 	@GetMapping("/apply")
 	public ResponseEntity<UserV2GetAppliedMeetingByUserResponseDto> getAppliedMeetingByUser(Principal principal) {
 
@@ -69,27 +60,11 @@ public class UserV2Controller implements UserV2Api {
 	}
 
 	@Override
-	@GetMapping("/apply/temp")
-	public ResponseEntity<TempResponseDto<UserV2GetAppliedMeetingByUserResponseDto>> getAppliedMeetingByUserTemp(
-		Principal principal) {
-		Integer userId = UserUtil.getUserId(principal);
-		return ResponseEntity.ok().body(TempResponseDto.of(userV2Service.getAppliedMeetingByUser(userId)));
-	}
-
-	@Override
 	@GetMapping("/meeting")
 	public ResponseEntity<UserV2GetCreatedMeetingByUserResponseDto> getCreatedMeetingByUser(Principal principal) {
 
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.ok().body(userV2Service.getCreatedMeetingByUser(userId));
-	}
-
-	@Override
-	@GetMapping("/meeting/temp")
-	public ResponseEntity<TempResponseDto<UserV2GetCreatedMeetingByUserResponseDto>> getCreatedMeetingByUserTemp(
-		Principal principal) {
-		Integer userId = UserUtil.getUserId(principal);
-		return ResponseEntity.ok().body(TempResponseDto.of(userV2Service.getCreatedMeetingByUser(userId)));
 	}
 
 }
