@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAppliedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetCreatedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
@@ -41,6 +42,13 @@ public class UserV2Controller implements UserV2Api {
 
 		UserUtil.getUserId(principal);
 		return ResponseEntity.ok(userV2Service.getAllMentionUser());
+	}
+
+	@Override
+	@GetMapping
+	public ResponseEntity<List<UserV2GetAllUserDto>> getAllUser(Principal principal) {
+
+		return ResponseEntity.ok(userV2Service.getAllUser());
 	}
 
 	@Override
