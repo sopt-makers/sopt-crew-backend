@@ -320,14 +320,21 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
 			user.getId());
 
-		coLeaderRepository.deleteAllByMeetingId(updatedMeeting.getId());
-		if (requestBody.getCoLeaderUserIds() != null) {
-			List<User> users = userRepository.findAllById(requestBody.getCoLeaderUserIds());
-			List<CoLeader> coLeaders = createCoLeaders(users, updatedMeeting);
-			coLeaderRepository.saveAll(coLeaders);
-		}
+		updateCoLeaders(requestBody.getCoLeaderUserIds(), updatedMeeting);
 
 		meeting.updateMeeting(updatedMeeting);
+	}
+
+	private void updateCoLeaders(List<Integer> coLeaderUserIds, Meeting updatedMeeting) {
+		coLeaderRepository.deleteAllByMeetingId(updatedMeeting.getId());
+
+		if (coLeaderUserIds == null || coLeaderUserIds.isEmpty()) {
+			return;
+		}
+
+		List<User> users = userRepository.findAllById(coLeaderUserIds);
+		List<CoLeader> coLeaders = createCoLeaders(users, updatedMeeting);
+		coLeaderRepository.saveAll(coLeaders);
 	}
 
 	@Override
