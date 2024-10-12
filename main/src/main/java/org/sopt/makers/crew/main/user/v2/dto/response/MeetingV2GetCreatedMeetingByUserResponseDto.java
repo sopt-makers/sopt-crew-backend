@@ -12,6 +12,8 @@ import org.sopt.makers.crew.main.entity.user.User;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Schema(name = "MeetingV2GetCreatedMeetingByUserResponseDto", description = "모임 Dto")
 public record MeetingV2GetCreatedMeetingByUserResponseDto(
@@ -41,6 +43,7 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	int status,
 	@Schema(example = "false", description = "공동 모임장 여부")
 	@NotNull
+	@Getter(AccessLevel.NONE)
 	boolean isCoLeader,
 	/**
 	 * 썸네일 이미지

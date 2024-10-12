@@ -12,6 +12,7 @@ import org.sopt.makers.crew.main.entity.user.User;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -107,6 +108,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 	@Schema(description = "공동 모임장 여부", example = "false")
 	@NotNull
+	@Getter(AccessLevel.NONE)
 	private final boolean isCoLeader;
 
 	@Schema(description = "모임 상태, 0: 모집전, 1: 모집중, 2: 모집종료", example = "1", type = "integer", allowableValues = {"0",
