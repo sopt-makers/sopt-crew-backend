@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.sopt.makers.crew.main.entity.meeting.JointLeaderRepository;
-import org.sopt.makers.crew.main.entity.meeting.JointLeaders;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
 import org.sopt.makers.crew.main.global.exception.BaseException;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.apply.Applies;
@@ -38,7 +38,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 	private final UserRepository userRepository;
 	private final ApplyRepository applyRepository;
 	private final MeetingRepository meetingRepository;
-	private final JointLeaderRepository jointLeaderRepository;
+	private final CoLeaderRepository coLeaderRepository;
 
 	private final Time time;
 
@@ -89,11 +89,11 @@ public class UserV2ServiceImpl implements UserV2Service {
 		List<Meeting> meetings = meetingRepository.findAllByUser(meetingCreator);
 		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
 		Applies applies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
-		JointLeaders jointLeaders = new JointLeaders(jointLeaderRepository.findAllByMeetingIdIn(meetingIds));
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingIdIn(meetingIds));
 
 		List<MeetingV2GetCreatedMeetingByUserResponseDto> meetingByUserDtos = meetings.stream()
 			.map(meeting -> MeetingV2GetCreatedMeetingByUserResponseDto.of(meeting,
-				jointLeaders.isJointLeader(meeting.getId(), userId), meetingCreator,
+				coLeaders.isCoLeader(meeting.getId(), userId), meetingCreator,
 				applies.getApprovedCount(meeting.getId()), time.now()))
 			.toList();
 

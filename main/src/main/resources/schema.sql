@@ -61,7 +61,7 @@ create table if not exists meeting
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
-create table if not exists joint_leader
+create table if not exists co_leader
 (
     id          serial
     primary key,

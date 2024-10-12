@@ -24,9 +24,9 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
-import org.sopt.makers.crew.main.entity.meeting.JointLeader;
-import org.sopt.makers.crew.main.entity.meeting.JointLeaderRepository;
-import org.sopt.makers.crew.main.entity.meeting.JointLeaders;
+import org.sopt.makers.crew.main.entity.meeting.CoLeader;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
@@ -94,7 +94,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
-	private final JointLeaderRepository jointLeaderRepository;
+	private final CoLeaderRepository coLeaderRepository;
 
 	private final S3Service s3Service;
 
@@ -203,10 +203,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		Meeting savedMeeting = meetingRepository.save(meeting);
 
-		if (requestBody.getJointMeetingLeaderUserIds() != null) {
-			List<User> users = userRepository.findAllById(requestBody.getJointMeetingLeaderUserIds());
-			List<JointLeader> jointLeaders = createJointLeaders(users, savedMeeting);
-			jointLeaderRepository.saveAll(jointLeaders);
+		if (requestBody.getCoLeaderUserIds() != null) {
+			List<User> users = userRepository.findAllById(requestBody.getCoLeaderUserIds());
+			List<CoLeader> coLeaders = createCoLeaders(users, savedMeeting);
+			coLeaderRepository.saveAll(coLeaders);
 		}
 
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId());
@@ -303,7 +303,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		commentRepository.deleteAllByPostIdsInQuery(postIds);
 		postRepository.deleteAllByMeetingIdQuery(meetingId);
 		applyRepository.deleteAllByMeetingIdQuery(meetingId);
-		jointLeaderRepository.deleteAllByMeetingId(meetingId);
+		coLeaderRepository.deleteAllByMeetingId(meetingId);
 
 		meetingRepository.delete(meeting);
 	}
@@ -320,11 +320,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
 			user.getId());
 
-		jointLeaderRepository.deleteAllByMeetingId(updatedMeeting.getId());
-		if (requestBody.getJointMeetingLeaderUserIds() != null) {
-			List<User> users = userRepository.findAllById(requestBody.getJointMeetingLeaderUserIds());
-			List<JointLeader> jointLeaders = createJointLeaders(users, updatedMeeting);
-			jointLeaderRepository.saveAll(jointLeaders);
+		coLeaderRepository.deleteAllByMeetingId(updatedMeeting.getId());
+		if (requestBody.getCoLeaderUserIds() != null) {
+			List<User> users = userRepository.findAllById(requestBody.getCoLeaderUserIds());
+			List<CoLeader> coLeaders = createCoLeaders(users, updatedMeeting);
+			coLeaderRepository.saveAll(coLeaders);
 		}
 
 		meeting.updateMeeting(updatedMeeting);
@@ -373,7 +373,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		User meetingLeader = userRepository.findByIdOrThrow(meeting.getUserId());
-		JointLeaders jointLeaders = new JointLeaders(jointLeaderRepository.findAllByMeetingId(meetingId));
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meetingId));
 
 		Applies applies = new Applies(
 			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
@@ -381,7 +381,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Boolean isHost = meeting.checkMeetingLeader(user.getId());
 		Boolean isApply = applies.isApply(meetingId, user.getId());
 		Boolean isApproved = applies.isApproved(meetingId, user.getId());
-		boolean isJointLeader = jointLeaders.isJointLeader(meetingId, userId);
+		boolean isCoLeader = coLeaders.isCoLeader(meetingId, userId);
 		long approvedCount = applies.getApprovedCount(meetingId);
 
 		List<ApplyWholeInfoDto> applyWholeInfoDtos = new ArrayList<>();
@@ -391,7 +391,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.toList();
 		}
 
-		return MeetingV2GetMeetingByIdResponseDto.of(meeting, jointLeaders.getJointLeaders(meetingId), isJointLeader,
+		return MeetingV2GetMeetingByIdResponseDto.of(meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
 			approvedCount, isHost, isApply, isApproved,
 			meetingLeader, applyWholeInfoDtos, time.now());
 	}
@@ -525,11 +525,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 	}
 
-	private List<JointLeader> createJointLeaders(List<User> jointLeaders, Meeting savedMeeting) {
-		return jointLeaders.stream()
-			.map(jointLeader -> JointLeader.builder()
+	private List<CoLeader> createCoLeaders(List<User> coLeaders, Meeting savedMeeting) {
+		return coLeaders.stream()
+			.map(coLeader -> CoLeader.builder()
 				.meeting(savedMeeting)
-				.user(jointLeader)
+				.user(coLeader)
 				.build())
 			.toList();
 	}

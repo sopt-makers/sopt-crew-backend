@@ -3,7 +3,7 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.sopt.makers.crew.main.entity.meeting.JointLeader;
+import org.sopt.makers.crew.main.entity.meeting.CoLeader;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
@@ -103,11 +103,11 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	private final MeetingJoinablePart[] joinableParts;
 
 	@Schema(description = "공동 모임장 목록", example = "")
-	private final List<MeetingV2JointLeaderResponseDto> jointMeetingLeaders;
+	private final List<MeetingV2CoLeaderResponseDto> coMeetingLeaders;
 
 	@Schema(description = "공동 모임장 여부", example = "false")
 	@NotNull
-	private final boolean isJointLeader;
+	private final boolean isCoLeader;
 
 	@Schema(description = "모임 상태, 0: 모집전, 1: 모집중, 2: 모집종료", example = "1", type = "integer", allowableValues = {"0",
 		"1", "2"})
@@ -138,8 +138,8 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final List<ApplyWholeInfoDto> appliedInfo;
 
-	public static MeetingV2GetMeetingByIdResponseDto of(Meeting meeting, List<JointLeader> jointLeaders,
-		boolean isJointLeader, long approvedCount, Boolean isHost, Boolean isApply,
+	public static MeetingV2GetMeetingByIdResponseDto of(Meeting meeting, List<CoLeader> coLeaders,
+		boolean isCoLeader, long approvedCount, Boolean isHost, Boolean isApply,
 		Boolean isApproved, User meetingCreator,
 		List<ApplyWholeInfoDto> appliedInfo, LocalDateTime now) {
 
@@ -147,8 +147,8 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 		Integer meetingStatus = meeting.getMeetingStatus(now);
 
-		List<MeetingV2JointLeaderResponseDto> jointLeaderResponseDtos = jointLeaders.stream()
-			.map(jointLeader -> MeetingV2JointLeaderResponseDto.of(jointLeader.getUser()))
+		List<MeetingV2CoLeaderResponseDto> coLeaderResponseDtos = coLeaders.stream()
+			.map(coLeader -> MeetingV2CoLeaderResponseDto.of(coLeader.getUser()))
 			.toList();
 
 		return new MeetingV2GetMeetingByIdResponseDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(),
@@ -156,7 +156,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getMStartDate(),
 			meeting.getMEndDate(), meeting.getLeaderDesc(), meeting.getNote(),
 			meeting.getIsMentorNeeded(), meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
-			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), jointLeaderResponseDtos, isJointLeader,
+			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), coLeaderResponseDtos, isCoLeader,
 			meetingStatus,
 			approvedCount, isHost, isApply, isApproved, meetingCreatorDto, appliedInfo);
 	}
@@ -169,7 +169,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 		return mEndDate;
 	}
 
-	public boolean getIsJointLeader() {
-		return this.isJointLeader;
+	public boolean getIsCoLeader() {
+		return this.isCoLeader;
 	}
 }

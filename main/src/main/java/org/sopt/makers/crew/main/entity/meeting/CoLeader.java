@@ -19,8 +19,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "joint_leader")
-public class JointLeader {
+@Table(name = "co_leader")
+public class CoLeader {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
@@ -36,7 +36,7 @@ public class JointLeader {
 	private User user;
 
 	@Builder
-	private JointLeader(Meeting meeting, User user) {
+	private CoLeader(Meeting meeting, User user) {
 		this.meeting = meeting;
 		this.user = user;
 	}

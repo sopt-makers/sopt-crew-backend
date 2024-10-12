@@ -19,8 +19,8 @@ import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
-import org.sopt.makers.crew.main.entity.meeting.JointLeader;
-import org.sopt.makers.crew.main.entity.meeting.JointLeaderRepository;
+import org.sopt.makers.crew.main.entity.meeting.CoLeader;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
@@ -57,7 +57,7 @@ public class MeetingV2ServiceTest {
 	private MeetingRepository meetingRepository;
 
 	@Autowired
-	private JointLeaderRepository jointLeaderRepository;
+	private CoLeaderRepository coLeaderRepository;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -158,7 +158,7 @@ public class MeetingV2ServiceTest {
 
 		@Test
 		@DisplayName("공동 모임장을 포함하여 모임 생성 성공 시, 생성된 모임 번호가 반환되며 공동 모임장으로 저장된다.")
-		void jointLeader_createMeeting_meetingId() {
+		void coLeader_createMeeting_meetingId() {
 			// given
 			User user = User.builder()
 				.name("홍길동")
@@ -169,23 +169,23 @@ public class MeetingV2ServiceTest {
 				.build();
 			User savedUser = userRepository.save(user);
 
-			User jointLeader1 = User.builder()
+			User coLeader1 = User.builder()
 				.name("공동모임장1")
 				.orgId(2)
 				.activities(List.of(new UserActivityVO("서버", 34), new UserActivityVO("iOS", 34)))
 				.profileImage("image-url11")
 				.phone("010-1234-5678")
 				.build();
-			User savedJointLeader1 = userRepository.save(jointLeader1);
+			User savedJointLeader1 = userRepository.save(coLeader1);
 
-			User jointLeader2 = User.builder()
+			User coLeader2 = User.builder()
 				.name("공동모임장2")
 				.orgId(3)
 				.activities(List.of(new UserActivityVO("서버", 34), new UserActivityVO("iOS", 34)))
 				.profileImage("image-url12")
 				.phone("010-1234-5678")
 				.build();
-			User savedJointLeader2 = userRepository.save(jointLeader2);
+			User savedJointLeader2 = userRepository.save(coLeader2);
 
 			// 모임 이미지 리스트
 			List<String> files = Arrays.asList(
@@ -224,12 +224,12 @@ public class MeetingV2ServiceTest {
 
 			// then
 			Meeting foundMeeting = meetingRepository.findByIdOrThrow(responseDto.getMeetingId());
-			List<JointLeader> jointLeaders = jointLeaderRepository.findAllByMeetingId(foundMeeting.getId());
+			List<CoLeader> coLeaders = coLeaderRepository.findAllByMeetingId(foundMeeting.getId());
 
 			Assertions.assertThat(foundMeeting.getId()).isEqualTo(responseDto.getMeetingId());
 
 			Assertions.assertThat(foundMeeting).isNotNull();
-			Assertions.assertThat(jointLeaders)
+			Assertions.assertThat(coLeaders)
 				.hasSize(2)
 				.extracting("user.orgId", "user.name", "meeting.id")
 				.containsExactly(

@@ -82,7 +82,7 @@ public class MeetingV2CreateMeetingBodyDto {
 	@Size(min = 1, max = 6)
 	private MeetingJoinablePart[] joinableParts;
 
-	private List<Integer> jointMeetingLeaderUserIds;
+	private List<Integer> coLeaderUserIds;
 
 	public String getmStartDate() {
 		return mStartDate;

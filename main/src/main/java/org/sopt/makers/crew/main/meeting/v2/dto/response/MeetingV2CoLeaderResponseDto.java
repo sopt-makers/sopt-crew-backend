@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "공동 모임장 조회 dto")
-public record MeetingV2JointLeaderResponseDto(
+public record MeetingV2CoLeaderResponseDto(
 	@Schema(description = "공동 모임장 id, 크루에서 사용하는 userId", example = "203")
 	@NotNull
 	Integer userId,
@@ -20,8 +20,8 @@ public record MeetingV2JointLeaderResponseDto(
 	@NotNull
 	String userprofileImage
 ) {
-	public static MeetingV2JointLeaderResponseDto of(User user) {
-		return new MeetingV2JointLeaderResponseDto(user.getId(), user.getOrgId(), user.getName(),
+	public static MeetingV2CoLeaderResponseDto of(User user) {
+		return new MeetingV2CoLeaderResponseDto(user.getId(), user.getOrgId(), user.getName(),
 			user.getProfileImage());
 	}
 }

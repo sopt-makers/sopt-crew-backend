@@ -41,7 +41,7 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	int status,
 	@Schema(example = "false", description = "공동 모임장 여부")
 	@NotNull
-	boolean isJointLeader,
+	boolean isCoLeader,
 	/**
 	 * 썸네일 이미지
 	 *
@@ -69,7 +69,7 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	@NotNull
 	int appliedCount
 ) {
-	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, boolean isJointLeader, User meetingCreator, int appliedCount,
+	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, boolean isCoLeader, User meetingCreator, int appliedCount,
 		LocalDateTime now) {
 		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meetingCreator);
 		boolean canJoinOnlyActiveGeneration = meeting.getTargetActiveGeneration() == CrewConst.ACTIVE_GENERATION
@@ -77,7 +77,7 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 
 		return new MeetingV2GetCreatedMeetingByUserResponseDto(meeting.getId(), meeting.getTitle(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory().getValue(),
-			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), isJointLeader, meeting.getImageURL(),
+			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), isCoLeader, meeting.getImageURL(),
 			meeting.getIsMentorNeeded(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(),
 			creatorDto, appliedCount);
 	}
