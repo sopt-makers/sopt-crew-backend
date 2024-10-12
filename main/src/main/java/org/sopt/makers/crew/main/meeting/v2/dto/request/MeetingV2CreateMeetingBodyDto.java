@@ -82,6 +82,7 @@ public class MeetingV2CreateMeetingBodyDto {
 	@Size(min = 1, max = 6)
 	private MeetingJoinablePart[] joinableParts;
 
+	@Schema(example = "\"[251, 942]\"", description = "공동 모임장 userId (크루에서 사용하는 userId)")
 	private List<Integer> coLeaderUserIds;
 
 	public String getmStartDate() {
