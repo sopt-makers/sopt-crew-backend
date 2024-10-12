@@ -381,7 +381,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Boolean isHost = meeting.checkMeetingLeader(user.getId());
 		Boolean isApply = applies.isApply(meetingId, user.getId());
 		Boolean isApproved = applies.isApproved(meetingId, user.getId());
-		boolean isJointLeader = jointLeaders.isJointLeader(userId);
+		boolean isJointLeader = jointLeaders.isJointLeader(meetingId, userId);
 		long approvedCount = applies.getApprovedCount(meetingId);
 
 		List<ApplyWholeInfoDto> applyWholeInfoDtos = new ArrayList<>();
@@ -391,7 +391,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.toList();
 		}
 
-		return MeetingV2GetMeetingByIdResponseDto.of(meeting, jointLeaders.getJointLeaders(), isJointLeader,
+		return MeetingV2GetMeetingByIdResponseDto.of(meeting, jointLeaders.getJointLeaders(meetingId), isJointLeader,
 			approvedCount, isHost, isApply, isApproved,
 			meetingLeader, applyWholeInfoDtos, time.now());
 	}
