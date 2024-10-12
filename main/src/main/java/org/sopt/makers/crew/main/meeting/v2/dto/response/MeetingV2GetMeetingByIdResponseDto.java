@@ -60,11 +60,11 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final String processDesc;
 
-	@Schema(description = "모임 활동 시작 시간", example = "2024-08-13T15:30:00",  name = "mStartDate")
+	@Schema(description = "모임 활동 시작 시간", example = "2024-08-13T15:30:00", name = "mStartDate")
 	@NotNull
 	private final LocalDateTime mStartDate;
 
-	@Schema(description = "모임 활동 종료 시간", example = "2024-10-13T23:59:59",  name = "mEndDate")
+	@Schema(description = "모임 활동 종료 시간", example = "2024-10-13T23:59:59", name = "mEndDate")
 	@NotNull
 	private final LocalDateTime mEndDate;
 
@@ -102,10 +102,16 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final MeetingJoinablePart[] joinableParts;
 
+	@Schema(description = "공동 모임장 목록", example = "")
 	@NotNull
 	private final List<MeetingV2JointLeaderResponseDto> jointMeetingLeaders;
 
-	@Schema(description = "모임 상태, 0: 모집전, 1: 모집중, 2: 모집종료", example = "1", type = "integer", allowableValues = {"0", "1", "2"})
+	@Schema(description = "공동 모임장 여부", example = "false")
+	@NotNull
+	private final boolean isJointLeader;
+
+	@Schema(description = "모임 상태, 0: 모집전, 1: 모집중, 2: 모집종료", example = "1", type = "integer", allowableValues = {"0",
+		"1", "2"})
 	@NotNull
 	private final int status;
 
@@ -133,7 +139,8 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final List<ApplyWholeInfoDto> appliedInfo;
 
-	public static MeetingV2GetMeetingByIdResponseDto of(Meeting meeting, List<JointLeader> jointLeaders, long approvedCount, Boolean isHost, Boolean isApply,
+	public static MeetingV2GetMeetingByIdResponseDto of(Meeting meeting, List<JointLeader> jointLeaders,
+		boolean isJointLeader, long approvedCount, Boolean isHost, Boolean isApply,
 		Boolean isApproved, User meetingCreator,
 		List<ApplyWholeInfoDto> appliedInfo, LocalDateTime now) {
 
@@ -150,7 +157,8 @@ public class MeetingV2GetMeetingByIdResponseDto {
 			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getMStartDate(),
 			meeting.getMEndDate(), meeting.getLeaderDesc(), meeting.getNote(),
 			meeting.getIsMentorNeeded(), meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
-			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), jointLeaderResponseDtos, meetingStatus,
+			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), jointLeaderResponseDtos, isJointLeader,
+			meetingStatus,
 			approvedCount, isHost, isApply, isApproved, meetingCreatorDto, appliedInfo);
 	}
 

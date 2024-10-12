@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.sopt.makers.crew.main.entity.meeting.JointLeader;
 import org.sopt.makers.crew.main.entity.meeting.JointLeaderRepository;
+import org.sopt.makers.crew.main.entity.meeting.JointLeaders;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
@@ -372,7 +373,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		User meetingLeader = userRepository.findByIdOrThrow(meeting.getUserId());
-		List<JointLeader> jointLeaders = jointLeaderRepository.findAllByMeetingId(meetingId);
+		JointLeaders jointLeaders = new JointLeaders(jointLeaderRepository.findAllByMeetingId(meetingId));
 
 		Applies applies = new Applies(
 			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
@@ -380,6 +381,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Boolean isHost = meeting.checkMeetingLeader(user.getId());
 		Boolean isApply = applies.isApply(meetingId, user.getId());
 		Boolean isApproved = applies.isApproved(meetingId, user.getId());
+		boolean isJointLeader = jointLeaders.isJointLeader(userId);
 		long approvedCount = applies.getApprovedCount(meetingId);
 
 		List<ApplyWholeInfoDto> applyWholeInfoDtos = new ArrayList<>();
@@ -389,7 +391,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.toList();
 		}
 
-		return MeetingV2GetMeetingByIdResponseDto.of(meeting, jointLeaders, approvedCount, isHost, isApply, isApproved,
+		return MeetingV2GetMeetingByIdResponseDto.of(meeting, jointLeaders.getJointLeaders(), isJointLeader,
+			approvedCount, isHost, isApply, isApproved,
 			meetingLeader, applyWholeInfoDtos, time.now());
 	}
 
