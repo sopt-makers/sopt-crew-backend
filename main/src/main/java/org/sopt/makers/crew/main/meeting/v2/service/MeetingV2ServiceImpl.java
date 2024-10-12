@@ -203,8 +203,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		Meeting savedMeeting = meetingRepository.save(meeting);
 
-		if (requestBody.getCoLeaderUserIds() != null) {
-			List<User> users = userRepository.findAllById(requestBody.getCoLeaderUserIds());
+		List<Integer> coLeaderUserIds = requestBody.getCoLeaderUserIds();
+		if (coLeaderUserIds != null && !coLeaderUserIds.isEmpty()) {
+			List<User> users = userRepository.findAllById(coLeaderUserIds);
 			List<CoLeader> coLeaders = createCoLeaders(users, savedMeeting);
 			coLeaderRepository.saveAll(coLeaders);
 		}
