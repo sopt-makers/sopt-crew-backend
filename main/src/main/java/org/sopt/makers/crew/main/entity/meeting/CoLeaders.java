@@ -22,7 +22,7 @@ public class CoLeaders {
 	}
 
 	public boolean isCoLeader(Integer meetingId, Integer requestUserId) {
-		if (!hasCoLeader(meetingId)) {
+		if (!isCoLeaderPresent(meetingId)) {
 			return false;
 		}
 
@@ -31,14 +31,14 @@ public class CoLeaders {
 	}
 
 	public List<CoLeader> getCoLeaders(Integer meetingId) {
-		if (!hasCoLeader(meetingId)) {
+		if (!isCoLeaderPresent(meetingId)) {
 			return Collections.emptyList();
 		}
 
-		return coLeadersMap.get(meetingId);
+		return Collections.unmodifiableList(coLeadersMap.get(meetingId));
 	}
 
-	private boolean hasCoLeader(Integer meetingId) {
+	private boolean isCoLeaderPresent(Integer meetingId) {
 		return coLeadersMap.containsKey(meetingId);
 	}
 
