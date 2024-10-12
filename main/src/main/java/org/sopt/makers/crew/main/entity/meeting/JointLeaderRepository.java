@@ -9,4 +9,7 @@ public interface JointLeaderRepository extends JpaRepository<JointLeader, Intege
 	void deleteAllByMeetingId(Integer meetingId);
 
 	List<JointLeader> findAllByMeetingId(Integer meetingId);
+
+	List<JointLeader> findAllByMeetingIdIn(List<Integer> meetingId);
+
 }

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.sopt.makers.crew.main.entity.meeting.JointLeaderRepository;
+import org.sopt.makers.crew.main.entity.meeting.JointLeaders;
 import org.sopt.makers.crew.main.global.exception.BaseException;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.apply.Applies;
@@ -36,6 +38,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 	private final UserRepository userRepository;
 	private final ApplyRepository applyRepository;
 	private final MeetingRepository meetingRepository;
+	private final JointLeaderRepository jointLeaderRepository;
 
 	private final Time time;
 
@@ -86,9 +89,11 @@ public class UserV2ServiceImpl implements UserV2Service {
 		List<Meeting> meetings = meetingRepository.findAllByUser(meetingCreator);
 		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
 		Applies applies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
+		JointLeaders jointLeaders = new JointLeaders(jointLeaderRepository.findAllByMeetingIdIn(meetingIds));
 
 		List<MeetingV2GetCreatedMeetingByUserResponseDto> meetingByUserDtos = meetings.stream()
-			.map(meeting -> MeetingV2GetCreatedMeetingByUserResponseDto.of(meeting, meetingCreator,
+			.map(meeting -> MeetingV2GetCreatedMeetingByUserResponseDto.of(meeting,
+				jointLeaders.isJointLeader(meeting.getId(), userId), meetingCreator,
 				applies.getApprovedCount(meeting.getId()), time.now()))
 			.toList();
 
@@ -104,7 +109,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 
 		List<ApplyV2GetAppliedMeetingByUserResponseDto> appliedMeetingByUserDtos = myApplies.stream()
 			.map(apply -> ApplyV2GetAppliedMeetingByUserResponseDto.of(apply.getId(), apply.getStatus().getValue(),
-				MeetingV2GetCreatedMeetingByUserResponseDto.of(apply.getMeeting(), apply.getMeeting().getUser(),
+				MeetingV2GetCreatedMeetingByUserResponseDto.of(apply.getMeeting(), false, apply.getMeeting().getUser(),
 					allApplies.getApprovedCount(apply.getMeetingId()), time.now())))
 			.toList();
 
