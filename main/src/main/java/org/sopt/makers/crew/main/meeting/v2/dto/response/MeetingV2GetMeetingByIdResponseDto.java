@@ -168,4 +168,8 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	public LocalDateTime getmEndDate() {
 		return mEndDate;
 	}
+
+	public boolean getIsJointLeader() {
+		return this.isJointLeader;
+	}
 }
