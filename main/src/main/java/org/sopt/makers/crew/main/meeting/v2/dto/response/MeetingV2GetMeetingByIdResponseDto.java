@@ -103,7 +103,6 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	private final MeetingJoinablePart[] joinableParts;
 
 	@Schema(description = "공동 모임장 목록", example = "")
-	@NotNull
 	private final List<MeetingV2JointLeaderResponseDto> jointMeetingLeaders;
 
 	@Schema(description = "공동 모임장 여부", example = "false")
