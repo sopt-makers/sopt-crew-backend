@@ -21,6 +21,7 @@ import org.sopt.makers.crew.main.user.v2.dto.response.ApplyV2GetAppliedMeetingBy
 import org.sopt.makers.crew.main.user.v2.dto.response.MeetingV2GetCreatedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAppliedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetCreatedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
@@ -73,6 +74,17 @@ public class UserV2ServiceImpl implements UserV2Service {
 			.map(user -> UserV2GetAllMentionUserDto.of(user.getOrgId(), user.getName(),
 				user.getRecentActivityVO().getPart(), user.getRecentActivityVO().getGeneration(),
 				user.getProfileImage()))
+			.toList();
+	}
+
+	@Override
+	public List<UserV2GetAllUserDto> getAllUser() {
+
+		List<User> users = userRepository.findAll();
+
+		return users.stream()
+			.filter(user -> user.getActivities() != null)
+			.map(UserV2GetAllUserDto::of)
 			.toList();
 	}
 
