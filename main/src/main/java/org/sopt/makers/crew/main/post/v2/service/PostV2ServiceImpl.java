@@ -166,13 +166,16 @@ public class PostV2ServiceImpl implements PostV2Service {
 	/**
 	 * 모임 게시글 단건 조회
 	 *
-	 * @throws 400
-	 * @apiNote 모임에 속한 유저만 작성 가능
+	 * @throws 400 모임이 존재하지 않은 경우
+	 * @apiNote 게시믈 조회 시, 조회수가 1 증가한다.
 	 */
 	@Override
-	@Transactional(readOnly = true)
+	@Transactional
 	public PostDetailBaseDto getPost(Integer userId, Integer postId) {
-		return postRepository.findPost(userId, postId);
+		PostDetailBaseDto responseDto = postRepository.findPost(userId, postId);
+		Post post = postRepository.findByIdOrThrow(postId);
+		post.increaseViewCount();
+		return responseDto;
 	}
 
 	@Override
