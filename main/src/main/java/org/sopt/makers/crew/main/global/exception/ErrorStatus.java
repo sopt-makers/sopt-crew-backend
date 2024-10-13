@@ -21,6 +21,7 @@ public enum ErrorStatus {
     INVALID_INPUT_VALUE_FILTER("요청값 또는 토큰이 올바르지 않습니다."),
     NOT_FOUND_MEETING("모임이 없습니다."),
     NOT_FOUND_POST("존재하지 않는 게시글입니다."),
+    NOT_FOUND_USER("존재하지 않는 유저입니다."),
     NOT_FOUND_COMMENT("존재하지 않는 댓글입니다."),
     FULL_MEETING_CAPACITY("정원이 꽉 찼습니다."),
     ALREADY_APPLIED_MEETING("이미 지원한 모임입니다."),
