@@ -150,6 +150,10 @@ public class Post extends BaseTimeEntity {
 		this.likeCount--;
 	}
 
+	public void increaseViewCount() {
+		this.viewCount++;
+	}
+
 	public void isWriter(Integer userId) {
 		if (!this.userId.equals(userId)) {
 			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
