@@ -3,8 +3,6 @@ package org.sopt.makers.crew.main.global.config;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import lombok.RequiredArgsConstructor;
-
 import org.sopt.makers.crew.main.global.jwt.JwtAuthenticationEntryPoint;
 import org.sopt.makers.crew.main.global.jwt.JwtAuthenticationFilter;
 import org.sopt.makers.crew.main.global.jwt.JwtTokenProvider;
@@ -22,6 +20,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
@@ -91,7 +91,7 @@ public class SecurityConfig {
 				"https://playground.sopt.org/",
 				"http://localhost:3000/",
 				"https://sopt-internal-dev.pages.dev/",
-				"https://crew.api.dev.sopt.org",
+				"https://crew.api.develop.sopt.org",
 				"https://crew.api.prod.sopt.org"
 			));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"));
