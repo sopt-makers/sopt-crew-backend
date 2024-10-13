@@ -19,6 +19,8 @@ import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
+import org.sopt.makers.crew.main.entity.meeting.CoLeader;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
@@ -31,6 +33,7 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
@@ -57,6 +60,9 @@ public class MeetingV2ServiceTest {
 
 	@Autowired
 	private MeetingRepository meetingRepository;
+
+	@Autowired
+	private CoLeaderRepository coLeaderRepository;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -110,7 +116,8 @@ public class MeetingV2ServiceTest {
 				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				canJoinOnlyActiveGeneration, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
-				joinableParts // joinableParts (대상 파트 목록)
+				joinableParts, // joinableParts (대상 파트 목록)
+				null
 			);
 
 			// when
@@ -158,6 +165,140 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
+		@DisplayName("공동 모임장을 포함하여 모임 생성 성공 시, 생성된 모임 번호가 반환되며 공동 모임장으로 저장된다.")
+		void coLeader_createMeeting_meetingId() {
+			// given
+			User user = User.builder()
+				.name("홍길동")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 34)))
+				.profileImage("image-url1")
+				.phone("010-1234-5678")
+				.build();
+			User savedUser = userRepository.save(user);
+
+			User coLeader1 = User.builder()
+				.name("공동모임장1")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("서버", 34), new UserActivityVO("iOS", 34)))
+				.profileImage("image-url11")
+				.phone("010-1234-5678")
+				.build();
+			User savedJointLeader1 = userRepository.save(coLeader1);
+
+			User coLeader2 = User.builder()
+				.name("공동모임장2")
+				.orgId(3)
+				.activities(List.of(new UserActivityVO("서버", 34), new UserActivityVO("iOS", 34)))
+				.profileImage("image-url12")
+				.phone("010-1234-5678")
+				.build();
+			User savedJointLeader2 = userRepository.save(coLeader2);
+
+			// 모임 이미지 리스트
+			List<String> files = Arrays.asList(
+				"https://example.com/image1.jpg"
+			);
+
+			// 대상 파트 목록
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.SERVER,
+				MeetingJoinablePart.IOS
+			};
+
+			// DTO 생성
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
+				files, // files (모임 이미지 리스트)
+				"스터디", // category
+				"2024.10.01", // startDate (모집 시작 날짜)
+				"2024.10.15", // endDate (모집 끝 날짜)
+				10, // capacity (모집 인원)
+				"백엔드 개발에 관심 있는 사람들을 위한 스터디입니다.", // desc (모집 정보)
+				"매주 온라인으로 진행되며, 발표와 토론이 포함됩니다.", // processDesc (진행 방식 소개)
+				"2024.10.16", // mStartDate (모임 활동 시작 날짜)
+				"2024.12.30", // mEndDate (모임 활동 종료 날짜)
+				"5년차 백엔드 개발자입니다.", // leaderDesc (개설자 소개)
+				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
+				false, // isMentorNeeded (멘토 필요 여부)
+				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinableParts, // joinableParts (대상 파트 목록)
+				List.of(savedJointLeader1.getId(), savedJointLeader2.getId())
+			);
+
+			// when
+			MeetingV2CreateMeetingResponseDto responseDto = meetingV2Service.createMeeting(meetingDto,
+				savedUser.getId());
+
+			// then
+			Meeting foundMeeting = meetingRepository.findByIdOrThrow(responseDto.getMeetingId());
+			List<CoLeader> coLeaders = coLeaderRepository.findAllByMeetingId(foundMeeting.getId());
+
+			Assertions.assertThat(foundMeeting.getId()).isEqualTo(responseDto.getMeetingId());
+
+			Assertions.assertThat(foundMeeting).isNotNull();
+			Assertions.assertThat(coLeaders)
+				.hasSize(2)
+				.extracting("user.orgId", "user.name", "meeting.id")
+				.containsExactly(
+					tuple(2, "공동모임장1", foundMeeting.getId()),
+					tuple(3, "공동모임장2", foundMeeting.getId())
+				);
+		}
+
+		@Test
+		@DisplayName("존재하지 않는 공동 모임장 id를 요청할 경우, 예외가 발생한다.")
+		void notPresentCoLeaderId_createMeeting_throwException() {
+			// given
+			User user = User.builder()
+				.name("홍길동")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 34)))
+				.profileImage("image-url1")
+				.phone("010-1234-5678")
+				.build();
+			User savedUser = userRepository.save(user);
+
+			// 모임 이미지 리스트
+			List<String> files = Arrays.asList(
+				"https://example.com/image1.jpg"
+			);
+
+			// 대상 파트 목록
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.SERVER,
+				MeetingJoinablePart.IOS
+			};
+
+			// DTO 생성
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
+				files, // files (모임 이미지 리스트)
+				"스터디", // category
+				"2024.10.01", // startDate (모집 시작 날짜)
+				"2024.10.15", // endDate (모집 끝 날짜)
+				10, // capacity (모집 인원)
+				"백엔드 개발에 관심 있는 사람들을 위한 스터디입니다.", // desc (모집 정보)
+				"매주 온라인으로 진행되며, 발표와 토론이 포함됩니다.", // processDesc (진행 방식 소개)
+				"2024.10.16", // mStartDate (모임 활동 시작 날짜)
+				"2024.12.30", // mEndDate (모임 활동 종료 날짜)
+				"5년차 백엔드 개발자입니다.", // leaderDesc (개설자 소개)
+				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
+				false, // isMentorNeeded (멘토 필요 여부)
+				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinableParts, // joinableParts (대상 파트 목록)
+				List.of(0, Integer.MAX_VALUE)
+			);
+
+			// when, then
+			Assertions.assertThatThrownBy(() -> meetingV2Service.createMeeting((meetingDto),
+					savedUser.getId()))
+				.isInstanceOf(NotFoundException.class)
+				.hasMessageContaining(NOT_FOUND_USER.getErrorCode());
+
+		}
+
+		@Test
 		@DisplayName("모임 개설자의 활동기수 정보가 없을 경우, 예외가 발생한다.")
 		void userHasNotActivities_createMeeting_exception() {
 			// given
@@ -197,7 +338,8 @@ public class MeetingV2ServiceTest {
 				"유의할 사항", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
-				joinableParts // joinableParts (대상 파트 목록)
+				joinableParts, // joinableParts (대상 파트 목록)
+				null
 			);
 
 			// when, then
@@ -242,7 +384,8 @@ public class MeetingV2ServiceTest {
 				"유의할 사항", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
-				joinableParts // joinableParts (대상 파트 목록)
+				joinableParts, // joinableParts (대상 파트 목록)
+				null
 			);
 
 			// when, then
@@ -288,7 +431,8 @@ public class MeetingV2ServiceTest {
 				"유의할 사항", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
-				joinableParts // joinableParts (대상 파트 목록)
+				joinableParts, // joinableParts (대상 파트 목록)
+				null
 			);
 
 			// when, then
@@ -559,7 +703,7 @@ public class MeetingV2ServiceTest {
 			// given
 			User user = userRepository.findByIdOrThrow(5);
 
-			for(int i=0; i<30; i++){
+			for (int i = 0; i < 30; i++) {
 				Meeting meeting = createMeetingFixture(i, user);
 				meetingRepository.save(meeting);
 			}
@@ -582,7 +726,7 @@ public class MeetingV2ServiceTest {
 			// given
 			User user = userRepository.findByIdOrThrow(5);
 
-			for(int i=0; i<30; i++){
+			for (int i = 0; i < 30; i++) {
 				Meeting meeting = createMeetingFixture(i, user);
 				meetingRepository.save(meeting);
 			}
@@ -1403,7 +1547,7 @@ public class MeetingV2ServiceTest {
 			new ImageUrlVO(2, "https://example.com/image2.png")
 		);
 
-		return  Meeting.builder()
+		return Meeting.builder()
 			.userId(user.getId())
 			.user(user)
 			.title("Weekly Coding Meetup" + index)
@@ -1421,7 +1565,7 @@ public class MeetingV2ServiceTest {
 			.isMentorNeeded(true)
 			.canJoinOnlyActiveGeneration(false)
 			.createdGeneration(34)
-			.joinableParts(new MeetingJoinablePart[]{WEB, SERVER})
+			.joinableParts(new MeetingJoinablePart[] {WEB, SERVER})
 			.build();
 	}
 }

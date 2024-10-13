@@ -12,6 +12,8 @@ import org.sopt.makers.crew.main.entity.user.User;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Schema(name = "MeetingV2GetCreatedMeetingByUserResponseDto", description = "모임 Dto")
 public record MeetingV2GetCreatedMeetingByUserResponseDto(
@@ -39,6 +41,10 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	@Schema(example = "2", description = "모임 활동 상태", type = "integer", allowableValues = {"0", "1", "2"})
 	@NotNull
 	int status,
+	@Schema(example = "false", description = "공동 모임장 여부")
+	@NotNull
+	@Getter(AccessLevel.NONE)
+	boolean isCoLeader,
 	/**
 	 * 썸네일 이미지
 	 *
@@ -66,7 +72,7 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	@NotNull
 	int appliedCount
 ) {
-	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, User meetingCreator, int appliedCount,
+	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, boolean isCoLeader, User meetingCreator, int appliedCount,
 		LocalDateTime now) {
 		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meetingCreator);
 		boolean canJoinOnlyActiveGeneration = meeting.getTargetActiveGeneration() == CrewConst.ACTIVE_GENERATION
@@ -74,7 +80,7 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 
 		return new MeetingV2GetCreatedMeetingByUserResponseDto(meeting.getId(), meeting.getTitle(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory().getValue(),
-			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), meeting.getImageURL(),
+			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), isCoLeader, meeting.getImageURL(),
 			meeting.getIsMentorNeeded(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(),
 			creatorDto, appliedCount);
 	}
