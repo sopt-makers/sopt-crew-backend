@@ -125,7 +125,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 
 	@Override
 	public UserV2GetAppliedMeetingByUserResponseDto getAppliedMeetingByUser(Integer userId) {
-		List<Apply> myApplies = applyRepository.findAllByUserId(userId);
+		List<Apply> myApplies = applyRepository.findAllByUserIdOrderByIdDesc(userId);
 		List<Integer> meetingIds = myApplies.stream().map(Apply::getMeetingId).toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
