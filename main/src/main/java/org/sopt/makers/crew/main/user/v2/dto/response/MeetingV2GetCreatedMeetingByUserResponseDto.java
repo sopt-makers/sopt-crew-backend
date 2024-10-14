@@ -72,9 +72,9 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	@NotNull
 	int appliedCount
 ) {
-	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, boolean isCoLeader, User meetingCreator, int appliedCount,
+	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, boolean isCoLeader, int appliedCount,
 		LocalDateTime now) {
-		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meetingCreator);
+		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meeting.getUser());
 		boolean canJoinOnlyActiveGeneration = meeting.getTargetActiveGeneration() == CrewConst.ACTIVE_GENERATION
 			&& meeting.getCanJoinOnlyActiveGeneration();
 

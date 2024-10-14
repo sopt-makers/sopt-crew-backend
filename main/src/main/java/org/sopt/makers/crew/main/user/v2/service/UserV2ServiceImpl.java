@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.sopt.makers.crew.main.entity.meeting.CoLeader;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
 import org.sopt.makers.crew.main.global.exception.BaseException;
@@ -94,22 +95,32 @@ public class UserV2ServiceImpl implements UserV2Service {
 		return UserV2GetUserOwnProfileResponseDto.of(user);
 	}
 
+	/**
+	 * @implSpec  : 유저가 모임장이거나 공동모임장인 모임을 모두 조회한다.
+	 * @implNote : my 의미 == 내가 모임장이거나 공동모임장인 경우
+	 *
+	 * **/
 	@Override
 	public UserV2GetCreatedMeetingByUserResponseDto getCreatedMeetingByUser(Integer userId) {
-		User meetingCreator = userRepository.findByIdOrThrow(userId);
+		User user = userRepository.findByIdOrThrow(userId);
+		List<Integer> coLeaderMeetingIds = getCoLeaderMeetingIds(coLeaderRepository.findAllByUser(user));
 
-		List<Meeting> meetings = meetingRepository.findAllByUser(meetingCreator);
-		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
-		Applies applies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingIdIn(meetingIds));
+		List<Meeting> myMeetings = meetingRepository.findAllByUserOrIdInWithUser(user, coLeaderMeetingIds);
+		List<Integer> myMeetingIds = myMeetings.stream().map(Meeting::getId).toList();
+		Applies applies = new Applies(applyRepository.findAllByMeetingIdIn(myMeetingIds));
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingIdIn(myMeetingIds));
 
-		List<MeetingV2GetCreatedMeetingByUserResponseDto> meetingByUserDtos = meetings.stream()
+		List<MeetingV2GetCreatedMeetingByUserResponseDto> meetingByUserDtos = myMeetings.stream()
 			.map(meeting -> MeetingV2GetCreatedMeetingByUserResponseDto.of(meeting,
-				coLeaders.isCoLeader(meeting.getId(), userId), meetingCreator,
-				applies.getApprovedCount(meeting.getId()), time.now()))
+				coLeaders.isCoLeader(meeting.getId(), userId), applies.getApprovedCount(meeting.getId()), time.now()))
 			.toList();
 
 		return UserV2GetCreatedMeetingByUserResponseDto.of(meetingByUserDtos);
+	}
+
+	private List<Integer> getCoLeaderMeetingIds(List<CoLeader> coLeaders) {
+		return coLeaders.stream()
+			.map(coLeader -> coLeader.getMeeting().getId()).toList();
 	}
 
 	@Override
@@ -121,7 +132,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 
 		List<ApplyV2GetAppliedMeetingByUserResponseDto> appliedMeetingByUserDtos = myApplies.stream()
 			.map(apply -> ApplyV2GetAppliedMeetingByUserResponseDto.of(apply.getId(), apply.getStatus().getValue(),
-				MeetingV2GetCreatedMeetingByUserResponseDto.of(apply.getMeeting(), false, apply.getMeeting().getUser(),
+				MeetingV2GetCreatedMeetingByUserResponseDto.of(apply.getMeeting(), false,
 					allApplies.getApprovedCount(apply.getMeetingId()), time.now())))
 			.toList();
 

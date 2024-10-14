@@ -13,7 +13,11 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 
 	List<Meeting> findAllByUserId(Integer userId);
 
-	List<Meeting> findAllByUser(User user);
+	/**
+	 * @implSpec : 특정 유저가 모임장이거나 공동모임장인 모임을 조회한다.
+	 * **/
+	@Query("SELECT m FROM Meeting m JOIN fetch m.user")
+	List<Meeting> findAllByUserOrIdInWithUser(User user, List<Integer> coLeaderMeetingIds);
 
 	default Meeting findByIdOrThrow(Integer meetingId) {
 		return findById(meetingId)
