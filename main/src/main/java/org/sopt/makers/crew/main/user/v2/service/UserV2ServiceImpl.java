@@ -105,7 +105,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 		User user = userRepository.findByIdOrThrow(userId);
 		List<Integer> coLeaderMeetingIds = getCoLeaderMeetingIds(coLeaderRepository.findAllByUser(user));
 
-		List<Meeting> myMeetings = meetingRepository.findAllByUserOrIdInWithUser(user, coLeaderMeetingIds);
+		List<Meeting> myMeetings = meetingRepository.findAllByUserIdOrIdInWithUser(userId, coLeaderMeetingIds);
 		List<Integer> myMeetingIds = myMeetings.stream().map(Meeting::getId).toList();
 		Applies applies = new Applies(applyRepository.findAllByMeetingIdIn(myMeetingIds));
 		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingIdIn(myMeetingIds));

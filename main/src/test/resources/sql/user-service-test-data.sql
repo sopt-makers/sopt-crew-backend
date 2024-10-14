@@ -10,6 +10,9 @@ VALUES (1, '김삼순', 1001,
         'profile3.jpg', '010-3333-4444'),
        (4, '이영지', 1004,
         '[{"part": "iOS", "generation": 32}, {"part": "안드로이드", "generation": 29}]',
+        'profile4.jpg', '010-5555-5555'),
+       (5, '김솝트', 1005,
+        '[{"part": "iOS", "generation": 32}, {"part": "안드로이드", "generation": 29}]',
         'profile4.jpg', '010-5555-5555');
 
 INSERT INTO meeting ("userId", title, category, "imageURL", "startDate", "endDate", capacity,
@@ -49,3 +52,7 @@ VALUES (0, 1, 2, '2024-05-19 00:00:00.913489', 0),
        (0, 2, 2, '2024-05-19 00:00:02.413489', 0),
        (0, 3, 2, '2024-05-19 00:00:03.413489', 0),
        (0, 4, 2, '2024-05-19 00:00:03.413489', 1);
+
+INSERT INTO co_leader ("meetingId", "userId")
+VALUES (4, 3),
+       (4, 5);
