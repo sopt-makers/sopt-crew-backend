@@ -1310,8 +1310,8 @@ public class MeetingV2ServiceTest {
 				.title("모임 지원 테스트")
 				.category(MeetingCategory.STUDY)
 				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
-				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
-				.endDate(LocalDateTime.of(2029, 10, 7, 23, 59, 59))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 4, 27, 23, 59, 59))
 				.capacity(20)
 				.desc("모임 지원 테스트입니다.")
 				.processDesc("테스트 진행 방식입니다.")
@@ -1536,6 +1536,124 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, applicant.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("지원 기간이 아닙니다.");
+		}
+
+		@Test
+		@DisplayName("공동 모임장은 지원할 수 없다.")
+		void applyMeeting_Fail_WhenIsCoLeader() {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("iOS", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			User coLeaderUser1 = User.builder()
+				.name("공동 모임장1")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("서버", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-2222-2222")
+				.build();
+
+			User coLeaderUser2 = User.builder()
+				.name("공동 모임장2")
+				.orgId(3)
+				.activities(List.of(new UserActivityVO("기획", 33)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-3333-3333")
+				.build();
+			User savedLeader = userRepository.save(leader);
+			User savedCoLeader1 = userRepository.save(coLeaderUser1);
+			User savedCoLeader2 = userRepository.save(coLeaderUser2);
+
+			Meeting meeting = Meeting.builder()
+				.user(savedLeader)
+				.userId(savedLeader.getId())
+				.title("모임 지원 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 4, 27, 23, 59, 59))
+				.capacity(20)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 5, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 5, 30, 23, 59, 59))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			CoLeader coLeader1 = CoLeader.builder()
+				.meeting(meeting)
+				.user(savedCoLeader1)
+				.build();
+
+			CoLeader coLeader2 = CoLeader.builder()
+				.meeting(meeting)
+				.user(savedCoLeader2)
+				.build();
+			coLeaderRepository.saveAll(List.of(coLeader1, coLeader2));
+
+			// when & then
+			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, savedCoLeader1.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessage("공동 모임장은 신청할 수 없습니다.");
+		}
+
+		@Test
+		@DisplayName("모임장은 지원할 수 없다.")
+		void applyMeeting_Fail_WhenIsLeader() {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("iOS", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(leader);
+
+			Meeting meeting = Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("모임 지원 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 4, 27, 23, 59, 59))
+				.capacity(20)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 5, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 5, 30, 23, 59, 59))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			// when & then
+			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, leader.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessage("모임장은 신청할 수 없습니다.");
 		}
 	}
 
