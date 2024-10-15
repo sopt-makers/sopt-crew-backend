@@ -13,6 +13,6 @@ public interface CoLeaderRepository extends JpaRepository<CoLeader, Integer> {
 
 	List<CoLeader> findAllByMeetingIdIn(List<Integer> meetingId);
 
-	List<CoLeader> findAllByUser(User user);
+	List<CoLeader> findAllByUserId(Integer userId);
 
 }

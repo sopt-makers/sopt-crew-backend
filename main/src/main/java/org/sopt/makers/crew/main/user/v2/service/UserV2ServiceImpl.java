@@ -102,8 +102,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 	 * **/
 	@Override
 	public UserV2GetCreatedMeetingByUserResponseDto getCreatedMeetingByUser(Integer userId) {
-		User user = userRepository.findByIdOrThrow(userId);
-		List<Integer> coLeaderMeetingIds = getCoLeaderMeetingIds(coLeaderRepository.findAllByUser(user));
+		List<Integer> coLeaderMeetingIds = getCoLeaderMeetingIds(coLeaderRepository.findAllByUserId(userId));
 
 		List<Meeting> myMeetings = meetingRepository.findAllByUserIdOrIdInWithUser(userId, coLeaderMeetingIds);
 		List<Integer> myMeetingIds = myMeetings.stream().map(Meeting::getId).toList();
