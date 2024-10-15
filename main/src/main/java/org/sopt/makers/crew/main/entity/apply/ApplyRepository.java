@@ -43,7 +43,7 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 	boolean existsByMeetingIdAndUserId(Integer meetingId, Integer userId);
 
 	@Transactional
-	@Modifying
+	@Modifying(clearAutomatically = true)
 	@Query("delete from Apply a where a.meeting.id = :meetingId and a.userId = :userId")
 	void deleteByMeetingIdAndUserId(@Param("meetingId") Integer meetingId, @Param("userId") Integer userId);
 
