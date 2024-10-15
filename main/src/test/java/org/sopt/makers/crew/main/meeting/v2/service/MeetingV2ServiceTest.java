@@ -33,11 +33,13 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
@@ -444,8 +446,8 @@ public class MeetingV2ServiceTest {
 	@Nested
 	@SqlGroup({
 		@Sql(value = "/sql/meeting-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/meeting-service-sequence-restart.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
 		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-
 	})
 	class 모임_전체_조회 {
 		@Test
@@ -1657,6 +1659,99 @@ public class MeetingV2ServiceTest {
 		}
 	}
 
+	@Nested
+	@SqlGroup({
+		@Sql(value = "/sql/meeting-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+
+	})
+	class 모임_지원자_상태_변경 {
+		@Test
+		@DisplayName("공동 모임장은 모임 지원자 상태 변경을 할 수 없다.")
+		void updateApplyStatus_Fail_isCoLeader() {
+			// given
+			Integer coLeaderId = 5;
+			ApplyV2UpdateStatusBodyDto dto = new ApplyV2UpdateStatusBodyDto(1, 1);
+
+			// when, then
+			Assertions.assertThatThrownBy(
+					() -> meetingV2Service.updateApplyStatus(1, dto, coLeaderId))
+				.isInstanceOf(ForbiddenException.class)
+				.hasMessage(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+	}
+
+	@Nested
+	@SqlGroup({
+		@Sql(value = "/sql/meeting-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+
+	})
+	class 모임_수정 {
+		@Test
+		@DisplayName("공동 모임장은 모임을 수정할 수 없다.")
+		void modifyMeeting_Fail_isCoLeader() {
+			// given
+			Integer coLeaderId = 5;
+
+			// 모임 이미지 리스트
+			List<String> files = Arrays.asList(
+				"https://example.com/image1.jpg"
+			);
+
+			// 대상 파트 목록
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.SERVER,
+				MeetingJoinablePart.IOS
+			};
+
+			// DTO 생성
+			MeetingV2CreateMeetingBodyDto dto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
+				files, // files (모임 이미지 리스트)
+				"스터디", // category
+				"2024.10.01", // startDate (모집 시작 날짜)
+				"2024.10.15", // endDate (모집 끝 날짜)
+				10, // capacity (모집 인원)
+				"백엔드 개발에 관심 있는 사람들을 위한 스터디입니다.", // desc (모집 정보)
+				"매주 온라인으로 진행되며, 발표와 토론이 포함됩니다.", // processDesc (진행 방식 소개)
+				"2024.10.16", // mStartDate (모임 활동 시작 날짜)
+				"2024.12.30", // mEndDate (모임 활동 종료 날짜)
+				"5년차 백엔드 개발자입니다.", // leaderDesc (개설자 소개)
+				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
+				false, // isMentorNeeded (멘토 필요 여부)
+				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinableParts, // joinableParts (대상 파트 목록)
+				null
+			);
+			// when, then
+			Assertions.assertThatThrownBy(
+					() -> meetingV2Service.updateMeeting(1, dto, coLeaderId))
+				.isInstanceOf(ForbiddenException.class)
+				.hasMessage(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+	}
+
+	@Nested
+	@SqlGroup({
+		@Sql(value = "/sql/meeting-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+
+	})
+	class 모임_삭제 {
+		@Test
+		@DisplayName("공동 모임장은 모임을 삭제할 수 없다.")
+		void deleteMeeting_Fail_isCoLeader() {
+			// given
+			Integer coLeaderId = 5;
+
+			// when, then
+			Assertions.assertThatThrownBy(
+					() -> meetingV2Service.deleteMeeting(1, coLeaderId))
+				.isInstanceOf(ForbiddenException.class)
+				.hasMessage(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+	}
 
 	private Meeting createMeetingFixture(Integer index, User user) {
 
