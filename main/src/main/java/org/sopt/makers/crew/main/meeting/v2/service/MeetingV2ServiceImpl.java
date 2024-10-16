@@ -218,6 +218,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2ApplyMeetingResponseDto applyMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
 		User user = userRepository.findByIdOrThrow(userId);
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
 
 		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 
@@ -226,9 +227,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		validateApplyPeriod(meeting);
 		validateUserActivities(user);
 		validateUserJoinableParts(user, meeting);
+		coLeaders.validateCoLeader(meeting.getId(), user.getId());
+		meeting.validateIsNotMeetingLeader(userId);
 
-		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user,
-			userId);
+		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
 		Apply savedApply = applyRepository.save(apply);
 		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 	}
@@ -449,7 +451,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private Boolean checkActivityStatus(Meeting meeting) {
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = time.now();
 		LocalDateTime mStartDate = meeting.getMStartDate();
 		LocalDateTime mEndDate = meeting.getMEndDate();
 		return now.isEqual(mStartDate) || (now.isAfter(mStartDate) && now.isBefore(mEndDate));
@@ -494,7 +496,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private void validateApplyPeriod(Meeting meeting) {
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = time.now();
 		if (now.isAfter(meeting.getEndDate()) || now.isBefore(meeting.getStartDate())) {
 			throw new BadRequestException(NOT_IN_APPLY_PERIOD.getErrorCode());
 		}

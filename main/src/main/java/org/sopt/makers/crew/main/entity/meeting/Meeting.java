@@ -218,6 +218,12 @@ public class Meeting extends BaseTimeEntity {
 		}
 	}
 
+	public void validateIsNotMeetingLeader(Integer requestUserId) {
+		if (checkMeetingLeader(requestUserId)) {
+			throw new BadRequestException(LEADER_CANNOT_APPLY.getErrorCode());
+		}
+	}
+
 	public Boolean checkMeetingLeader(Integer userId) {
 		return this.userId.equals(userId);
 	}

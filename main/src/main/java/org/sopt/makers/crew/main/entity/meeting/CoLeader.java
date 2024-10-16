@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.entity.meeting;
 
+import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 import org.sopt.makers.crew.main.entity.user.User;
 
 import jakarta.persistence.Entity;
@@ -20,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "co_leader")
-public class CoLeader {
+public class CoLeader extends BaseTimeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
