@@ -70,9 +70,12 @@ public class MeetingResponseDto {
 	@Schema(description = "모임장 정보", example = "")
 	@NotNull
 	private final MeetingCreatorDto user;
-	@Schema(description = "신청 승인 수", example = "7")
+	@Schema(description = "전체 신청자 수", example = "7")
 	@NotNull
 	private final int appliedCount;
+	@Schema(description = "승인된 신청자 수", example = "3")
+	@NotNull
+	private final int approvedCount;
 
 	@QueryProjection
 	public MeetingResponseDto(Integer id, String title, Integer targetActiveGeneration,
@@ -80,7 +83,7 @@ public class MeetingResponseDto {
 		Integer status,
 		List<ImageUrlVO> imageURL, Boolean isMentorNeeded, LocalDateTime mStartDate, LocalDateTime mEndDate,
 		int capacity,
-		MeetingCreatorDto user, int appliedCount) {
+		MeetingCreatorDto user, int approvedCount) {
 
 		boolean processedCanJoinOnlyActiveGeneration = canJoinOnlyActiveGeneration
 			&& (CrewConst.ACTIVE_GENERATION.equals(targetActiveGeneration));
@@ -98,7 +101,8 @@ public class MeetingResponseDto {
 		this.mEndDate = mEndDate;
 		this.capacity = capacity;
 		this.user = user;
-		this.appliedCount = appliedCount;
+		this.appliedCount = approvedCount;
+		this.approvedCount = approvedCount;
 	}
 
 	public LocalDateTime getmStartDate() {
