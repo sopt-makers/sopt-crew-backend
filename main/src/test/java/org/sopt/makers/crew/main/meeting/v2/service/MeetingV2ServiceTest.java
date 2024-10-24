@@ -472,7 +472,7 @@ public class MeetingV2ServiceTest {
 					"title", "category", "canJoinOnlyActiveGeneration",
 					"mStartDate", "mEndDate",
 					"capacity", "isMentorNeeded", "targetActiveGeneration",
-					"joinableParts", "status", "appliedCount"
+					"joinableParts", "status", "approvedCount"
 				).containsExactly(
 					tuple("세미나 구합니다 - 신청후", "세미나", false,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
@@ -542,7 +542,7 @@ public class MeetingV2ServiceTest {
 					"title", "category", "canJoinOnlyActiveGeneration",
 					"mStartDate", "mEndDate",
 					"capacity", "isMentorNeeded", "targetActiveGeneration",
-					"joinableParts", "status", "appliedCount"
+					"joinableParts", "status", "approvedCount"
 				).containsExactly(
 					tuple("스터디 구합니다1", "행사", true,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
@@ -588,7 +588,7 @@ public class MeetingV2ServiceTest {
 					"title", "category", "canJoinOnlyActiveGeneration",
 					"mStartDate", "mEndDate",
 					"capacity", "isMentorNeeded", "targetActiveGeneration",
-					"joinableParts", "status", "appliedCount"
+					"joinableParts", "status", "approvedCount"
 				).containsExactly(
 					tuple("세미나 구합니다 - 신청후", "세미나", false,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
