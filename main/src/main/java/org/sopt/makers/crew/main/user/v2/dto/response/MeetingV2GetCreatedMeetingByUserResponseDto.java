@@ -68,11 +68,14 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	@Schema(description = "모임장 정보", example = "")
 	@NotNull
 	MeetingCreatorDto user,
-	@Schema(description = "신청 수", example = "7")
+	@Schema(description = "[DEPRECATED] TODO: FE에서 수정 완료 후 삭제 ", example = "7")
 	@NotNull
-	int appliedCount
+	int appliedCount,
+	@Schema(description = "신청자 수", example = "7")
+	@NotNull
+	int approvedCount
 ) {
-	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, boolean isCoLeader, int appliedCount,
+	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, boolean isCoLeader, int approvedCount,
 		LocalDateTime now) {
 		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meeting.getUser());
 		boolean canJoinOnlyActiveGeneration = meeting.getTargetActiveGeneration() == CrewConst.ACTIVE_GENERATION
@@ -82,7 +85,7 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory().getValue(),
 			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), isCoLeader, meeting.getImageURL(),
 			meeting.getIsMentorNeeded(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(),
-			creatorDto, appliedCount);
+			creatorDto, approvedCount, approvedCount);
 	}
 
 }
