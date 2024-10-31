@@ -1730,6 +1730,65 @@ public class MeetingV2ServiceTest {
 				.isInstanceOf(ForbiddenException.class)
 				.hasMessage(FORBIDDEN_EXCEPTION.getErrorCode());
 		}
+
+		@Test
+		@DisplayName("모임 수정을 할 수 있다.")
+		void modifyMeeting_Success() {
+			// given
+			Integer userId = 1;
+			Integer meetingId = 1;
+
+			// 모임 이미지 리스트
+			List<String> files = Arrays.asList(
+				"https://example.com/image1.jpg"
+			);
+
+			// 대상 파트 목록
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.SERVER,
+				MeetingJoinablePart.IOS
+			};
+
+			// DTO 생성
+			MeetingV2CreateMeetingBodyDto dto = new MeetingV2CreateMeetingBodyDto(
+				"수정1", // title
+				files, // files (모임 이미지 리스트)
+				"행사", // category
+				"2024.12.12", // startDate (모집 시작 날짜)
+				"2024.12.25", // endDate (모집 끝 날짜)
+				10, // capacity (모집 인원)
+				"백엔드 개발에 관심 있는 사람들을 위한 스터디입니다.", // desc (모집 정보)
+				"매주 온라인으로 진행되며, 발표와 토론이 포함됩니다.", // processDesc (진행 방식 소개)
+				"2024.10.16", // mStartDate (모임 활동 시작 날짜)
+				"2024.12.30", // mEndDate (모임 활동 종료 날짜)
+				"5년차 백엔드 개발자입니다.", // leaderDesc (개설자 소개)
+				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
+				false, // isMentorNeeded (멘토 필요 여부)
+				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinableParts, // joinableParts (대상 파트 목록)
+				List.of(3, 4)
+			);
+
+			// when
+			meetingV2Service.updateMeeting(meetingId, dto, userId);
+
+			// then
+			Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+			Assertions.assertThat(meeting)
+				.extracting("title", "category", "startDate", "endDate")
+				.containsExactly("수정1", MeetingCategory.EVENT,
+					LocalDateTime.of(2024, 12, 12, 0, 0, 0),
+					LocalDateTime.of(2024, 12, 25, 23, 59, 59));
+
+			List<CoLeader> coLeaders = coLeaderRepository.findAllByMeetingId(meetingId);
+			Assertions.assertThat(coLeaders).hasSize(2);
+			Assertions.assertThat(coLeaders)
+				.extracting("user.name", "user.orgId")
+				.containsExactly(
+					tuple("승인신청자", 1003),
+					tuple("대기신청자", 1004)
+					);
+		}
 	}
 
 	@Nested

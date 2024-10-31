@@ -319,12 +319,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		meeting.validateMeetingCreator(userId);
 
+		updateCoLeaders(requestBody.getCoLeaderUserIds(), meeting);
+
 		Meeting updatedMeeting = meetingMapper.toMeetingEntity(requestBody,
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
 			user.getId());
-
-		updateCoLeaders(requestBody.getCoLeaderUserIds(), updatedMeeting);
-
 		meeting.updateMeeting(updatedMeeting);
 	}
 
