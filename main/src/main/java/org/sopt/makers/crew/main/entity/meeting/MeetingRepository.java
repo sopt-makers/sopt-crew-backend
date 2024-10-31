@@ -3,6 +3,7 @@ package org.sopt.makers.crew.main.entity.meeting;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_MEETING;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,6 +28,17 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 		return findById(meetingId)
 			.orElseThrow(() -> new BadRequestException(NOT_FOUND_MEETING.getErrorCode()));
 	}
+
+	default Meeting findByIdWithUserOrThrow(Integer meetingId) {
+		return findByIdWithUser(meetingId)
+			.orElseThrow(() -> new BadRequestException(NOT_FOUND_MEETING.getErrorCode()));
+	}
+
+	@Query("SELECT m "
+		+ "FROM Meeting m "
+		+ "JOIN fetch m.user "
+		+ "WHERE m.id =:meetingId ")
+	Optional<Meeting> findByIdWithUser(Integer meetingId);
 
 	@Query("SELECT m FROM Meeting m JOIN FETCH m.user ORDER BY m.id DESC LIMIT 20")
 	List<Meeting> findTop20ByOrderByIdDesc();

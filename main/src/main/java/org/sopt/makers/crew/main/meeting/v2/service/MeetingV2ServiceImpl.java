@@ -216,8 +216,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Override
 	@Transactional
 	public MeetingV2ApplyMeetingResponseDto applyMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
-		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
-		User user = userRepository.findByIdOrThrow(userId);
+		Meeting meeting = meetingRepository.findByIdWithUserOrThrow(requestBody.getMeetingId());
+		User user = meeting.getUser();
 		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
 
 		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
@@ -379,18 +379,16 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	public MeetingV2GetMeetingByIdResponseDto getMeetingById(Integer meetingId, Integer userId) {
-		User user = userRepository.findByIdOrThrow(userId);
-
-		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-		User meetingLeader = userRepository.findByIdOrThrow(meeting.getUserId());
+		Meeting meeting = meetingRepository.findByIdWithUserOrThrow(meetingId);
+		User meetingLeader = meeting.getUser();
 		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meetingId));
 
 		Applies applies = new Applies(
 			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
 
-		Boolean isHost = meeting.checkMeetingLeader(user.getId());
-		Boolean isApply = applies.isApply(meetingId, user.getId());
-		Boolean isApproved = applies.isApproved(meetingId, user.getId());
+		Boolean isHost = meeting.checkMeetingLeader(userId);
+		Boolean isApply = applies.isApply(meetingId, userId);
+		Boolean isApproved = applies.isApproved(meetingId, userId);
 		boolean isCoLeader = coLeaders.isCoLeader(meetingId, userId);
 		long approvedCount = applies.getApprovedCount(meetingId);
 
