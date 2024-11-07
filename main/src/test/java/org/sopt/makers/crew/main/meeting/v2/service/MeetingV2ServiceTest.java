@@ -301,6 +301,58 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
+		@DisplayName("모임장은 공동모임장이 될 수 없다.")
+		void setLeaderCoLeader_createMeeting_throwException() {
+			// given
+			User user = User.builder()
+				.name("홍길동")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 34)))
+				.profileImage("image-url1")
+				.phone("010-1234-5678")
+				.build();
+			User savedUser = userRepository.save(user);
+
+			// 모임 이미지 리스트
+			List<String> files = Arrays.asList(
+				"https://example.com/image1.jpg"
+			);
+
+			// 대상 파트 목록
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.SERVER,
+				MeetingJoinablePart.IOS
+			};
+
+			// DTO 생성
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
+				files, // files (모임 이미지 리스트)
+				"스터디", // category
+				"2024.10.01", // startDate (모집 시작 날짜)
+				"2024.10.15", // endDate (모집 끝 날짜)
+				10, // capacity (모집 인원)
+				"백엔드 개발에 관심 있는 사람들을 위한 스터디입니다.", // desc (모집 정보)
+				"매주 온라인으로 진행되며, 발표와 토론이 포함됩니다.", // processDesc (진행 방식 소개)
+				"2024.10.16", // mStartDate (모임 활동 시작 날짜)
+				"2024.12.30", // mEndDate (모임 활동 종료 날짜)
+				"5년차 백엔드 개발자입니다.", // leaderDesc (개설자 소개)
+				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
+				false, // isMentorNeeded (멘토 필요 여부)
+				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinableParts, // joinableParts (대상 파트 목록)
+				List.of(savedUser.getId())
+			);
+
+			// when, then
+			Assertions.assertThatThrownBy(() -> meetingV2Service.createMeeting((meetingDto),
+					savedUser.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(LEADER_CANNOT_BE_CO_LEADER_APPLY.getErrorCode());
+
+		}
+
+		@Test
 		@DisplayName("모임 개설자의 활동기수 정보가 없을 경우, 예외가 발생한다.")
 		void userHasNotActivities_createMeeting_exception() {
 			// given
