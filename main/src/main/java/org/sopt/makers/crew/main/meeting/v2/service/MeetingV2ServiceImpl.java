@@ -35,6 +35,7 @@ import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
@@ -217,6 +218,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Transactional
 	public MeetingV2ApplyMeetingResponseDto applyGeneralMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+
+		validateMeetingCategoryNotEvent(meeting);
+
 		User user = userRepository.findByIdOrThrow(userId);
 		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
 
@@ -239,6 +243,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Transactional
 	public MeetingV2ApplyMeetingResponseDto applyEventMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+
+		validateMeetingCategoryEvent(meeting);
+
 		User user = userRepository.findByIdOrThrow(userId);
 		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
 
@@ -497,6 +504,18 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			return filteredActivities;
 		}
 		return user.getActivities();
+	}
+
+	private void validateMeetingCategoryNotEvent(Meeting meeting) {
+		if (meeting.getCategory() == MeetingCategory.EVENT) {
+			throw new BadRequestException(EVENT_CATEGORY_NOT_ALLOW_GENERAL_MEETING.getErrorCode());
+		}
+	}
+
+	private void validateMeetingCategoryEvent(Meeting meeting) {
+		if (meeting.getCategory() != MeetingCategory.EVENT) {
+			throw new BadRequestException(GENERAL_CATEGORY_NOT_ALLOW_EVENT_MEETING.getErrorCode());
+		}
 	}
 
 	private void validateMeetingCapacity(Meeting meeting, List<Apply> applies) {
