@@ -21,21 +21,21 @@ import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.meeting.CoLeader;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
-import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
-import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
-import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
-import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
@@ -1395,7 +1395,8 @@ public class MeetingV2ServiceTest {
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
 
 			// when
-			MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyMeeting(applyDto, applicant.getId());
+			MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyGeneralMeeting(applyDto,
+				applicant.getId());
 
 			// then
 			Apply apply = applyRepository.findById(response.getApplyId()).orElseThrow();
@@ -1469,7 +1470,7 @@ public class MeetingV2ServiceTest {
 			MeetingV2ApplyMeetingDto applyDto2 = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기 2");
 
 			// when & then
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto2, applicant2.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto2, applicant2.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("정원이 꽉 찼습니다.");
 		}
@@ -1534,7 +1535,7 @@ public class MeetingV2ServiceTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, applicant.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, applicant.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("이미 지원한 모임입니다.");
 		}
@@ -1587,7 +1588,7 @@ public class MeetingV2ServiceTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, applicant.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, applicant.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("지원 기간이 아닙니다.");
 		}
@@ -1660,7 +1661,7 @@ public class MeetingV2ServiceTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, savedCoLeader1.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, savedCoLeader1.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessage("공동 모임장은 신청할 수 없습니다.");
 		}
@@ -1705,7 +1706,7 @@ public class MeetingV2ServiceTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, leader.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, leader.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessage("모임장은 신청할 수 없습니다.");
 		}
@@ -1839,7 +1840,7 @@ public class MeetingV2ServiceTest {
 				.containsExactly(
 					tuple("승인신청자", 1003),
 					tuple("대기신청자", 1004)
-					);
+				);
 		}
 	}
 
