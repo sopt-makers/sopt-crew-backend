@@ -26,7 +26,9 @@ public interface MeetingV2Service {
 
 	MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateMeetingBodyDto requestBody, Integer userId);
 
-	MeetingV2ApplyMeetingResponseDto applyMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId);
+	MeetingV2ApplyMeetingResponseDto applyGeneralMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId);
+
+	MeetingV2ApplyMeetingResponseDto applyEventMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId);
 
 	void applyMeetingCancel(Integer meetingId, Integer userId);
 
