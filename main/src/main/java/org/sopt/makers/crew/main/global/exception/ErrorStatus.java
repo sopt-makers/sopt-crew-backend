@@ -36,6 +36,7 @@ public enum ErrorStatus {
     MAX_IMAGE_UPLOAD_EXCEEDED("이미지는 최대 10개까지만 업로드 가능합니다."),
     LEADER_CANNOT_APPLY("모임장은 신청할 수 없습니다."),
     CO_LEADER_CANNOT_APPLY("공동 모임장은 신청할 수 없습니다."),
+    LEADER_CANNOT_BE_CO_LEADER_APPLY("모임장은 공동 모임장이 될 수 없습니다."),
 
     /**
      * 401 UNAUTHORIZED
