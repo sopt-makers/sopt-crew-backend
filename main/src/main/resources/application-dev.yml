@@ -98,4 +98,4 @@ management:
 
 custom:
   paths:
-    eventApply: ${EVENT_APPLY_PATH}
+    eventApply: ${DEV_EVENT_APPLY_PATH}
