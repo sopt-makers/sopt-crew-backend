@@ -1,15 +1,10 @@
 package org.sopt.makers.crew.main.meeting.v2;
 
-import io.swagger.v3.oas.annotations.Parameter;
-import jakarta.validation.Valid;
-
 import java.security.Principal;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-
-import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
+import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesCsvQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
@@ -40,6 +35,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/meeting/v2")
@@ -78,11 +77,21 @@ public class MeetingV2Controller implements MeetingV2Api {
 
 	@Override
 	@PostMapping("/apply")
-	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyMeeting(
+	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyGeneralMeeting(
 		@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
 		Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
-		return ResponseEntity.status(HttpStatus.CREATED).body(meetingV2Service.applyMeeting(requestBody, userId));
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(meetingV2Service.applyGeneralMeeting(requestBody, userId));
+	}
+
+	@PostMapping("${custom.paths.eventApply}")
+	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyEventMeeting(
+		@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
+		Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(meetingV2Service.applyEventMeeting(requestBody, userId));
 	}
 
 	@Override
