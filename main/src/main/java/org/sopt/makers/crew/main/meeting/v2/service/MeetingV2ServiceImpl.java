@@ -24,6 +24,9 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
+import org.sopt.makers.crew.main.entity.meeting.CoLeader;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
@@ -91,6 +94,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
+	private final CoLeaderRepository coLeaderRepository;
 
 	private final S3Service s3Service;
 
@@ -198,6 +202,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			user.getId());
 
 		Meeting savedMeeting = meetingRepository.save(meeting);
+
+		List<Integer> coLeaderUserIds = requestBody.getCoLeaderUserIds();
+		if (coLeaderUserIds != null && !coLeaderUserIds.isEmpty()) {
+			List<User> users = userRepository.findAllByIdInOrThrow(coLeaderUserIds);
+			List<CoLeader> coLeaders = createCoLeaders(users, savedMeeting);
+			coLeaderRepository.saveAll(coLeaders);
+		}
+
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId());
 	}
 
@@ -206,6 +218,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2ApplyMeetingResponseDto applyMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
 		User user = userRepository.findByIdOrThrow(userId);
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
 
 		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 
@@ -214,9 +227,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		validateApplyPeriod(meeting);
 		validateUserActivities(user);
 		validateUserJoinableParts(user, meeting);
+		coLeaders.validateCoLeader(meeting.getId(), user.getId());
+		meeting.validateIsNotMeetingLeader(userId);
 
-		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user,
-			userId);
+		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
 		Apply savedApply = applyRepository.save(apply);
 		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 	}
@@ -292,6 +306,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		commentRepository.deleteAllByPostIdsInQuery(postIds);
 		postRepository.deleteAllByMeetingIdQuery(meetingId);
 		applyRepository.deleteAllByMeetingIdQuery(meetingId);
+		coLeaderRepository.deleteAllByMeetingId(meetingId);
 
 		meetingRepository.delete(meeting);
 	}
@@ -304,11 +319,24 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		meeting.validateMeetingCreator(userId);
 
+		updateCoLeaders(requestBody.getCoLeaderUserIds(), meeting);
+
 		Meeting updatedMeeting = meetingMapper.toMeetingEntity(requestBody,
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
 			user.getId());
-
 		meeting.updateMeeting(updatedMeeting);
+	}
+
+	private void updateCoLeaders(List<Integer> coLeaderUserIds, Meeting updatedMeeting) {
+		coLeaderRepository.deleteAllByMeetingId(updatedMeeting.getId());
+
+		if (coLeaderUserIds == null || coLeaderUserIds.isEmpty()) {
+			return;
+		}
+
+		List<User> users = userRepository.findAllById(coLeaderUserIds);
+		List<CoLeader> coLeaders = createCoLeaders(users, updatedMeeting);
+		coLeaderRepository.saveAll(coLeaders);
 	}
 
 	@Override
@@ -353,7 +381,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		User user = userRepository.findByIdOrThrow(userId);
 
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-		User meetingCreator = userRepository.findByIdOrThrow(meeting.getUserId());
+		User meetingLeader = userRepository.findByIdOrThrow(meeting.getUserId());
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meetingId));
 
 		Applies applies = new Applies(
 			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
@@ -361,6 +390,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Boolean isHost = meeting.checkMeetingLeader(user.getId());
 		Boolean isApply = applies.isApply(meetingId, user.getId());
 		Boolean isApproved = applies.isApproved(meetingId, user.getId());
+		boolean isCoLeader = coLeaders.isCoLeader(meetingId, userId);
 		long approvedCount = applies.getApprovedCount(meetingId);
 
 		List<ApplyWholeInfoDto> applyWholeInfoDtos = new ArrayList<>();
@@ -370,8 +400,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.toList();
 		}
 
-		return MeetingV2GetMeetingByIdResponseDto.of(meeting, approvedCount, isHost, isApply, isApproved,
-			meetingCreator, applyWholeInfoDtos, time.now());
+		return MeetingV2GetMeetingByIdResponseDto.of(meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
+			approvedCount, isHost, isApply, isApproved,
+			meetingLeader, applyWholeInfoDtos, time.now());
 	}
 
 	private void deleteCsvFile(String filePath) {
@@ -419,7 +450,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private Boolean checkActivityStatus(Meeting meeting) {
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = time.now();
 		LocalDateTime mStartDate = meeting.getMStartDate();
 		LocalDateTime mEndDate = meeting.getMEndDate();
 		return now.isEqual(mStartDate) || (now.isAfter(mStartDate) && now.isBefore(mEndDate));
@@ -464,7 +495,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private void validateApplyPeriod(Meeting meeting) {
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = time.now();
 		if (now.isAfter(meeting.getEndDate()) || now.isBefore(meeting.getStartDate())) {
 			throw new BadRequestException(NOT_IN_APPLY_PERIOD.getErrorCode());
 		}
@@ -501,5 +532,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (userJoinableParts.isEmpty()) {
 			throw new BadRequestException(NOT_TARGET_PART.getErrorCode());
 		}
+	}
+
+	private List<CoLeader> createCoLeaders(List<User> coLeaders, Meeting savedMeeting) {
+		return coLeaders.stream()
+			.map(coLeader -> CoLeader.builder()
+				.meeting(savedMeeting)
+				.user(coLeader)
+				.build())
+			.toList();
 	}
 }

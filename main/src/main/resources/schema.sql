@@ -7,6 +7,7 @@ drop table if exists "notice" cascade;
 drop table if exists "post" cascade;
 drop table if exists "report" cascade;
 drop table if exists "user" cascade;
+drop table if exists "co_leader" cascade;
 
 DROP TYPE IF EXISTS meeting_joinableparts_enum;
 
@@ -58,6 +59,22 @@ create table if not exists meeting
     "createdGeneration"           integer   default 32,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
+);
+
+create table if not exists co_leader
+(
+    id          serial
+    primary key,
+    "meetingId" integer not null
+    constraint fk_meeting
+    references meeting
+    on delete cascade,
+    "userId"    integer not null
+    constraint fk_user
+    references "user"
+    on delete cascade,
+    "createdTimestamp"  timestamp default CURRENT_TIMESTAMP not null,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP not null
 );
 
 create table if not exists apply

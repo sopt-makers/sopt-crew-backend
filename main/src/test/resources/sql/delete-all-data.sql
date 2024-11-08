@@ -1,12 +1,3 @@
--- 테이블의 데이터 삭제
-DELETE FROM "apply";
-DELETE FROM "comment";
-DELETE FROM "like";
-DELETE FROM "post";
-DELETE FROM "meeting";
-DELETE FROM "notice";
-DELETE FROM "user";
-
 -- 시퀀스 초기화
 -- apply 테이블의 시퀀스 초기화
 ALTER SEQUENCE "apply_id_seq" RESTART WITH 1;
@@ -28,3 +19,12 @@ ALTER SEQUENCE "post_id_seq" RESTART WITH 1;
 
 -- user 테이블의 시퀀스 초기화
 ALTER SEQUENCE "user_id_seq" RESTART WITH 1;
+
+-- 테이블의 데이터 삭제
+DELETE FROM "apply";
+DELETE FROM "comment";
+DELETE FROM "like";
+DELETE FROM "post";
+DELETE FROM "meeting";
+DELETE FROM "notice";
+DELETE FROM "user";

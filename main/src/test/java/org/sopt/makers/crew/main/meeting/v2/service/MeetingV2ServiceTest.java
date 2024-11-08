@@ -19,6 +19,8 @@ import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
+import org.sopt.makers.crew.main.entity.meeting.CoLeader;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
@@ -31,10 +33,13 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
+import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
@@ -57,6 +62,9 @@ public class MeetingV2ServiceTest {
 
 	@Autowired
 	private MeetingRepository meetingRepository;
+
+	@Autowired
+	private CoLeaderRepository coLeaderRepository;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -110,7 +118,8 @@ public class MeetingV2ServiceTest {
 				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				canJoinOnlyActiveGeneration, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
-				joinableParts // joinableParts (대상 파트 목록)
+				joinableParts, // joinableParts (대상 파트 목록)
+				null
 			);
 
 			// when
@@ -158,6 +167,192 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
+		@DisplayName("공동 모임장을 포함하여 모임 생성 성공 시, 생성된 모임 번호가 반환되며 공동 모임장으로 저장된다.")
+		void coLeader_createMeeting_meetingId() {
+			// given
+			User user = User.builder()
+				.name("홍길동")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 34)))
+				.profileImage("image-url1")
+				.phone("010-1234-5678")
+				.build();
+			User savedUser = userRepository.save(user);
+
+			User coLeader1 = User.builder()
+				.name("공동모임장1")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("서버", 34), new UserActivityVO("iOS", 34)))
+				.profileImage("image-url11")
+				.phone("010-1234-5678")
+				.build();
+			User savedJointLeader1 = userRepository.save(coLeader1);
+
+			User coLeader2 = User.builder()
+				.name("공동모임장2")
+				.orgId(3)
+				.activities(List.of(new UserActivityVO("서버", 34), new UserActivityVO("iOS", 34)))
+				.profileImage("image-url12")
+				.phone("010-1234-5678")
+				.build();
+			User savedJointLeader2 = userRepository.save(coLeader2);
+
+			// 모임 이미지 리스트
+			List<String> files = Arrays.asList(
+				"https://example.com/image1.jpg"
+			);
+
+			// 대상 파트 목록
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.SERVER,
+				MeetingJoinablePart.IOS
+			};
+
+			// DTO 생성
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
+				files, // files (모임 이미지 리스트)
+				"스터디", // category
+				"2024.10.01", // startDate (모집 시작 날짜)
+				"2024.10.15", // endDate (모집 끝 날짜)
+				10, // capacity (모집 인원)
+				"백엔드 개발에 관심 있는 사람들을 위한 스터디입니다.", // desc (모집 정보)
+				"매주 온라인으로 진행되며, 발표와 토론이 포함됩니다.", // processDesc (진행 방식 소개)
+				"2024.10.16", // mStartDate (모임 활동 시작 날짜)
+				"2024.12.30", // mEndDate (모임 활동 종료 날짜)
+				"5년차 백엔드 개발자입니다.", // leaderDesc (개설자 소개)
+				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
+				false, // isMentorNeeded (멘토 필요 여부)
+				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinableParts, // joinableParts (대상 파트 목록)
+				List.of(savedJointLeader1.getId(), savedJointLeader2.getId())
+			);
+
+			// when
+			MeetingV2CreateMeetingResponseDto responseDto = meetingV2Service.createMeeting(meetingDto,
+				savedUser.getId());
+
+			// then
+			Meeting foundMeeting = meetingRepository.findByIdOrThrow(responseDto.getMeetingId());
+			List<CoLeader> coLeaders = coLeaderRepository.findAllByMeetingId(foundMeeting.getId());
+
+			Assertions.assertThat(foundMeeting.getId()).isEqualTo(responseDto.getMeetingId());
+
+			Assertions.assertThat(foundMeeting).isNotNull();
+			Assertions.assertThat(coLeaders)
+				.hasSize(2)
+				.extracting("user.orgId", "user.name", "meeting.id")
+				.containsExactly(
+					tuple(2, "공동모임장1", foundMeeting.getId()),
+					tuple(3, "공동모임장2", foundMeeting.getId())
+				);
+		}
+
+		@Test
+		@DisplayName("존재하지 않는 공동 모임장 id를 요청할 경우, 예외가 발생한다.")
+		void notPresentCoLeaderId_createMeeting_throwException() {
+			// given
+			User user = User.builder()
+				.name("홍길동")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 34)))
+				.profileImage("image-url1")
+				.phone("010-1234-5678")
+				.build();
+			User savedUser = userRepository.save(user);
+
+			// 모임 이미지 리스트
+			List<String> files = Arrays.asList(
+				"https://example.com/image1.jpg"
+			);
+
+			// 대상 파트 목록
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.SERVER,
+				MeetingJoinablePart.IOS
+			};
+
+			// DTO 생성
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
+				files, // files (모임 이미지 리스트)
+				"스터디", // category
+				"2024.10.01", // startDate (모집 시작 날짜)
+				"2024.10.15", // endDate (모집 끝 날짜)
+				10, // capacity (모집 인원)
+				"백엔드 개발에 관심 있는 사람들을 위한 스터디입니다.", // desc (모집 정보)
+				"매주 온라인으로 진행되며, 발표와 토론이 포함됩니다.", // processDesc (진행 방식 소개)
+				"2024.10.16", // mStartDate (모임 활동 시작 날짜)
+				"2024.12.30", // mEndDate (모임 활동 종료 날짜)
+				"5년차 백엔드 개발자입니다.", // leaderDesc (개설자 소개)
+				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
+				false, // isMentorNeeded (멘토 필요 여부)
+				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinableParts, // joinableParts (대상 파트 목록)
+				List.of(0, Integer.MAX_VALUE)
+			);
+
+			// when, then
+			Assertions.assertThatThrownBy(() -> meetingV2Service.createMeeting((meetingDto),
+					savedUser.getId()))
+				.isInstanceOf(NotFoundException.class)
+				.hasMessageContaining(NOT_FOUND_USER.getErrorCode());
+
+		}
+
+		@Test
+		@DisplayName("모임장은 공동모임장이 될 수 없다.")
+		void setLeaderCoLeader_createMeeting_throwException() {
+			// given
+			User user = User.builder()
+				.name("홍길동")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 34)))
+				.profileImage("image-url1")
+				.phone("010-1234-5678")
+				.build();
+			User savedUser = userRepository.save(user);
+
+			// 모임 이미지 리스트
+			List<String> files = Arrays.asList(
+				"https://example.com/image1.jpg"
+			);
+
+			// 대상 파트 목록
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.SERVER,
+				MeetingJoinablePart.IOS
+			};
+
+			// DTO 생성
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
+				files, // files (모임 이미지 리스트)
+				"스터디", // category
+				"2024.10.01", // startDate (모집 시작 날짜)
+				"2024.10.15", // endDate (모집 끝 날짜)
+				10, // capacity (모집 인원)
+				"백엔드 개발에 관심 있는 사람들을 위한 스터디입니다.", // desc (모집 정보)
+				"매주 온라인으로 진행되며, 발표와 토론이 포함됩니다.", // processDesc (진행 방식 소개)
+				"2024.10.16", // mStartDate (모임 활동 시작 날짜)
+				"2024.12.30", // mEndDate (모임 활동 종료 날짜)
+				"5년차 백엔드 개발자입니다.", // leaderDesc (개설자 소개)
+				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
+				false, // isMentorNeeded (멘토 필요 여부)
+				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinableParts, // joinableParts (대상 파트 목록)
+				List.of(savedUser.getId())
+			);
+
+			// when, then
+			Assertions.assertThatThrownBy(() -> meetingV2Service.createMeeting((meetingDto),
+					savedUser.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(LEADER_CANNOT_BE_CO_LEADER_APPLY.getErrorCode());
+
+		}
+
+		@Test
 		@DisplayName("모임 개설자의 활동기수 정보가 없을 경우, 예외가 발생한다.")
 		void userHasNotActivities_createMeeting_exception() {
 			// given
@@ -197,7 +392,8 @@ public class MeetingV2ServiceTest {
 				"유의할 사항", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
-				joinableParts // joinableParts (대상 파트 목록)
+				joinableParts, // joinableParts (대상 파트 목록)
+				null
 			);
 
 			// when, then
@@ -242,7 +438,8 @@ public class MeetingV2ServiceTest {
 				"유의할 사항", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
-				joinableParts // joinableParts (대상 파트 목록)
+				joinableParts, // joinableParts (대상 파트 목록)
+				null
 			);
 
 			// when, then
@@ -288,7 +485,8 @@ public class MeetingV2ServiceTest {
 				"유의할 사항", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
-				joinableParts // joinableParts (대상 파트 목록)
+				joinableParts, // joinableParts (대상 파트 목록)
+				null
 			);
 
 			// when, then
@@ -300,8 +498,8 @@ public class MeetingV2ServiceTest {
 	@Nested
 	@SqlGroup({
 		@Sql(value = "/sql/meeting-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/meeting-service-sequence-restart.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
 		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-
 	})
 	class 모임_전체_조회 {
 		@Test
@@ -326,7 +524,7 @@ public class MeetingV2ServiceTest {
 					"title", "category", "canJoinOnlyActiveGeneration",
 					"mStartDate", "mEndDate",
 					"capacity", "isMentorNeeded", "targetActiveGeneration",
-					"joinableParts", "status", "appliedCount"
+					"joinableParts", "status", "approvedCount"
 				).containsExactly(
 					tuple("세미나 구합니다 - 신청후", "세미나", false,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
@@ -396,7 +594,7 @@ public class MeetingV2ServiceTest {
 					"title", "category", "canJoinOnlyActiveGeneration",
 					"mStartDate", "mEndDate",
 					"capacity", "isMentorNeeded", "targetActiveGeneration",
-					"joinableParts", "status", "appliedCount"
+					"joinableParts", "status", "approvedCount"
 				).containsExactly(
 					tuple("스터디 구합니다1", "행사", true,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
@@ -442,7 +640,7 @@ public class MeetingV2ServiceTest {
 					"title", "category", "canJoinOnlyActiveGeneration",
 					"mStartDate", "mEndDate",
 					"capacity", "isMentorNeeded", "targetActiveGeneration",
-					"joinableParts", "status", "appliedCount"
+					"joinableParts", "status", "approvedCount"
 				).containsExactly(
 					tuple("세미나 구합니다 - 신청후", "세미나", false,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
@@ -559,7 +757,7 @@ public class MeetingV2ServiceTest {
 			// given
 			User user = userRepository.findByIdOrThrow(5);
 
-			for(int i=0; i<30; i++){
+			for (int i = 0; i < 30; i++) {
 				Meeting meeting = createMeetingFixture(i, user);
 				meetingRepository.save(meeting);
 			}
@@ -582,7 +780,7 @@ public class MeetingV2ServiceTest {
 			// given
 			User user = userRepository.findByIdOrThrow(5);
 
-			for(int i=0; i<30; i++){
+			for (int i = 0; i < 30; i++) {
 				Meeting meeting = createMeetingFixture(i, user);
 				meetingRepository.save(meeting);
 			}
@@ -1166,8 +1364,8 @@ public class MeetingV2ServiceTest {
 				.title("모임 지원 테스트")
 				.category(MeetingCategory.STUDY)
 				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
-				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
-				.endDate(LocalDateTime.of(2029, 10, 7, 23, 59, 59))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 4, 27, 23, 59, 59))
 				.capacity(20)
 				.desc("모임 지원 테스트입니다.")
 				.processDesc("테스트 진행 방식입니다.")
@@ -1224,7 +1422,7 @@ public class MeetingV2ServiceTest {
 				.title("모임 지원 테스트")
 				.category(MeetingCategory.STUDY)
 				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
-				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
 				.endDate(LocalDateTime.of(2029, 10, 7, 23, 59, 59))
 				.capacity(1)
 				.desc("모임 지원 테스트입니다.")
@@ -1296,7 +1494,7 @@ public class MeetingV2ServiceTest {
 				.title("모임 지원 테스트")
 				.category(MeetingCategory.STUDY)
 				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
-				.startDate(LocalDateTime.of(2024, 10, 6, 0, 0, 0))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
 				.endDate(LocalDateTime.of(2029, 10, 7, 23, 59, 59))
 				.capacity(50)
 				.desc("모임 지원 테스트입니다.")
@@ -1361,7 +1559,7 @@ public class MeetingV2ServiceTest {
 				.title("모임 지원 테스트")
 				.category(MeetingCategory.STUDY)
 				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
-				.startDate(LocalDateTime.of(2030, 10, 7, 0, 0, 0))
+				.startDate(LocalDateTime.of(2030, 4, 7, 0, 0, 0))
 				.endDate(LocalDateTime.of(2030, 10, 7, 23, 59, 59))
 				.capacity(50)
 				.desc("모임 지원 테스트입니다.")
@@ -1393,8 +1591,278 @@ public class MeetingV2ServiceTest {
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("지원 기간이 아닙니다.");
 		}
+
+		@Test
+		@DisplayName("공동 모임장은 지원할 수 없다.")
+		void applyMeeting_Fail_WhenIsCoLeader() {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("iOS", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			User coLeaderUser1 = User.builder()
+				.name("공동 모임장1")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("서버", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-2222-2222")
+				.build();
+
+			User coLeaderUser2 = User.builder()
+				.name("공동 모임장2")
+				.orgId(3)
+				.activities(List.of(new UserActivityVO("기획", 33)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-3333-3333")
+				.build();
+			User savedLeader = userRepository.save(leader);
+			User savedCoLeader1 = userRepository.save(coLeaderUser1);
+			User savedCoLeader2 = userRepository.save(coLeaderUser2);
+
+			Meeting meeting = Meeting.builder()
+				.user(savedLeader)
+				.userId(savedLeader.getId())
+				.title("모임 지원 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 4, 27, 23, 59, 59))
+				.capacity(20)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 5, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 5, 30, 23, 59, 59))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			CoLeader coLeader1 = CoLeader.builder()
+				.meeting(meeting)
+				.user(savedCoLeader1)
+				.build();
+
+			CoLeader coLeader2 = CoLeader.builder()
+				.meeting(meeting)
+				.user(savedCoLeader2)
+				.build();
+			coLeaderRepository.saveAll(List.of(coLeader1, coLeader2));
+
+			// when & then
+			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, savedCoLeader1.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessage("공동 모임장은 신청할 수 없습니다.");
+		}
+
+		@Test
+		@DisplayName("모임장은 지원할 수 없다.")
+		void applyMeeting_Fail_WhenIsLeader() {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("iOS", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(leader);
+
+			Meeting meeting = Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("모임 지원 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 4, 27, 23, 59, 59))
+				.capacity(20)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 5, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 5, 30, 23, 59, 59))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			// when & then
+			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, leader.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessage("모임장은 신청할 수 없습니다.");
+		}
 	}
 
+	@Nested
+	@SqlGroup({
+		@Sql(value = "/sql/meeting-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+
+	})
+	class 모임_지원자_상태_변경 {
+		@Test
+		@DisplayName("공동 모임장은 모임 지원자 상태 변경을 할 수 없다.")
+		void updateApplyStatus_Fail_isCoLeader() {
+			// given
+			Integer coLeaderId = 5;
+			ApplyV2UpdateStatusBodyDto dto = new ApplyV2UpdateStatusBodyDto(1, 1);
+
+			// when, then
+			Assertions.assertThatThrownBy(
+					() -> meetingV2Service.updateApplyStatus(1, dto, coLeaderId))
+				.isInstanceOf(ForbiddenException.class)
+				.hasMessage(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+	}
+
+	@Nested
+	@SqlGroup({
+		@Sql(value = "/sql/meeting-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+
+	})
+	class 모임_수정 {
+		@Test
+		@DisplayName("공동 모임장은 모임을 수정할 수 없다.")
+		void modifyMeeting_Fail_isCoLeader() {
+			// given
+			Integer coLeaderId = 5;
+
+			// 모임 이미지 리스트
+			List<String> files = Arrays.asList(
+				"https://example.com/image1.jpg"
+			);
+
+			// 대상 파트 목록
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.SERVER,
+				MeetingJoinablePart.IOS
+			};
+
+			// DTO 생성
+			MeetingV2CreateMeetingBodyDto dto = new MeetingV2CreateMeetingBodyDto(
+				"알고보면 쓸데있는 개발 프로세스", // title
+				files, // files (모임 이미지 리스트)
+				"스터디", // category
+				"2024.10.01", // startDate (모집 시작 날짜)
+				"2024.10.15", // endDate (모집 끝 날짜)
+				10, // capacity (모집 인원)
+				"백엔드 개발에 관심 있는 사람들을 위한 스터디입니다.", // desc (모집 정보)
+				"매주 온라인으로 진행되며, 발표와 토론이 포함됩니다.", // processDesc (진행 방식 소개)
+				"2024.10.16", // mStartDate (모임 활동 시작 날짜)
+				"2024.12.30", // mEndDate (모임 활동 종료 날짜)
+				"5년차 백엔드 개발자입니다.", // leaderDesc (개설자 소개)
+				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
+				false, // isMentorNeeded (멘토 필요 여부)
+				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinableParts, // joinableParts (대상 파트 목록)
+				null
+			);
+			// when, then
+			Assertions.assertThatThrownBy(
+					() -> meetingV2Service.updateMeeting(1, dto, coLeaderId))
+				.isInstanceOf(ForbiddenException.class)
+				.hasMessage(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+
+		@Test
+		@DisplayName("모임 수정을 할 수 있다.")
+		void modifyMeeting_Success() {
+			// given
+			Integer userId = 1;
+			Integer meetingId = 1;
+
+			// 모임 이미지 리스트
+			List<String> files = Arrays.asList(
+				"https://example.com/image1.jpg"
+			);
+
+			// 대상 파트 목록
+			MeetingJoinablePart[] joinableParts = {
+				MeetingJoinablePart.SERVER,
+				MeetingJoinablePart.IOS
+			};
+
+			// DTO 생성
+			MeetingV2CreateMeetingBodyDto dto = new MeetingV2CreateMeetingBodyDto(
+				"수정1", // title
+				files, // files (모임 이미지 리스트)
+				"행사", // category
+				"2024.12.12", // startDate (모집 시작 날짜)
+				"2024.12.25", // endDate (모집 끝 날짜)
+				10, // capacity (모집 인원)
+				"백엔드 개발에 관심 있는 사람들을 위한 스터디입니다.", // desc (모집 정보)
+				"매주 온라인으로 진행되며, 발표와 토론이 포함됩니다.", // processDesc (진행 방식 소개)
+				"2024.10.16", // mStartDate (모임 활동 시작 날짜)
+				"2024.12.30", // mEndDate (모임 활동 종료 날짜)
+				"5년차 백엔드 개발자입니다.", // leaderDesc (개설자 소개)
+				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
+				false, // isMentorNeeded (멘토 필요 여부)
+				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinableParts, // joinableParts (대상 파트 목록)
+				List.of(3, 4)
+			);
+
+			// when
+			meetingV2Service.updateMeeting(meetingId, dto, userId);
+
+			// then
+			Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+			Assertions.assertThat(meeting)
+				.extracting("title", "category", "startDate", "endDate")
+				.containsExactly("수정1", MeetingCategory.EVENT,
+					LocalDateTime.of(2024, 12, 12, 0, 0, 0),
+					LocalDateTime.of(2024, 12, 25, 23, 59, 59));
+
+			List<CoLeader> coLeaders = coLeaderRepository.findAllByMeetingId(meetingId);
+			Assertions.assertThat(coLeaders).hasSize(2);
+			Assertions.assertThat(coLeaders)
+				.extracting("user.name", "user.orgId")
+				.containsExactly(
+					tuple("승인신청자", 1003),
+					tuple("대기신청자", 1004)
+					);
+		}
+	}
+
+	@Nested
+	@SqlGroup({
+		@Sql(value = "/sql/meeting-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+
+	})
+	class 모임_삭제 {
+		@Test
+		@DisplayName("공동 모임장은 모임을 삭제할 수 없다.")
+		void deleteMeeting_Fail_isCoLeader() {
+			// given
+			Integer coLeaderId = 5;
+
+			// when, then
+			Assertions.assertThatThrownBy(
+					() -> meetingV2Service.deleteMeeting(1, coLeaderId))
+				.isInstanceOf(ForbiddenException.class)
+				.hasMessage(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+	}
 
 	private Meeting createMeetingFixture(Integer index, User user) {
 
@@ -1403,7 +1871,7 @@ public class MeetingV2ServiceTest {
 			new ImageUrlVO(2, "https://example.com/image2.png")
 		);
 
-		return  Meeting.builder()
+		return Meeting.builder()
 			.userId(user.getId())
 			.user(user)
 			.title("Weekly Coding Meetup" + index)
@@ -1421,7 +1889,7 @@ public class MeetingV2ServiceTest {
 			.isMentorNeeded(true)
 			.canJoinOnlyActiveGeneration(false)
 			.createdGeneration(34)
-			.joinableParts(new MeetingJoinablePart[]{WEB, SERVER})
+			.joinableParts(new MeetingJoinablePart[] {WEB, SERVER})
 			.build();
 	}
 }

@@ -3,15 +3,13 @@ package org.sopt.makers.crew.main.global.dto;
 import java.time.LocalDateTime;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.sopt.makers.crew.main.global.constant.CrewConst;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
-
-import com.querydsl.core.annotations.QueryProjection;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -28,7 +26,7 @@ public class MeetingResponseDto {
 	private final Integer id;
 	@Schema(description = "모임 제목", example = "모임 제목입니다")
 	@NotNull
-	String title;
+	private final String title;
 	@Schema(description = "대상 기수", example = "33")
 	@NotNull
 	private final Integer targetActiveGeneration;
@@ -70,36 +68,12 @@ public class MeetingResponseDto {
 	@Schema(description = "모임장 정보", example = "")
 	@NotNull
 	private final MeetingCreatorDto user;
-	@Schema(description = "신청 승인 수", example = "7")
+	@Schema(description = "TODO: FE에서 수정 완료 후 삭제 ", example = "[DEPRECATED]")
 	@NotNull
 	private final int appliedCount;
-
-	@QueryProjection
-	public MeetingResponseDto(Integer id, String title, Integer targetActiveGeneration,
-		@NotNull MeetingJoinablePart[] joinableParts, MeetingCategory category, Boolean canJoinOnlyActiveGeneration,
-		Integer status,
-		List<ImageUrlVO> imageURL, Boolean isMentorNeeded, LocalDateTime mStartDate, LocalDateTime mEndDate,
-		int capacity,
-		MeetingCreatorDto user, int appliedCount) {
-
-		boolean processedCanJoinOnlyActiveGeneration = canJoinOnlyActiveGeneration
-			&& (CrewConst.ACTIVE_GENERATION.equals(targetActiveGeneration));
-
-		this.id = id;
-		this.title = title;
-		this.targetActiveGeneration = targetActiveGeneration;
-		this.joinableParts = joinableParts;
-		this.category = category.getValue();
-		this.canJoinOnlyActiveGeneration = processedCanJoinOnlyActiveGeneration;
-		this.status = status;
-		this.imageURL = imageURL;
-		this.isMentorNeeded = isMentorNeeded;
-		this.mStartDate = mStartDate;
-		this.mEndDate = mEndDate;
-		this.capacity = capacity;
-		this.user = user;
-		this.appliedCount = appliedCount;
-	}
+	@Schema(description = "승인된 신청자 수", example = "3")
+	@NotNull
+	private final int approvedCount;
 
 	public LocalDateTime getmStartDate() {
 		return mStartDate;
@@ -109,15 +83,16 @@ public class MeetingResponseDto {
 		return mEndDate;
 	}
 
-	public static MeetingResponseDto of(Meeting meeting, User meetingCreator, int appliedCount, LocalDateTime now) {
+	public static MeetingResponseDto of(Meeting meeting, User meetingCreator, int approvedCount, LocalDateTime now) {
 		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meetingCreator);
-		boolean canJoinOnlyActiveGeneration = meeting.getTargetActiveGeneration() == CrewConst.ACTIVE_GENERATION
+		boolean canJoinOnlyActiveGeneration =
+			Objects.equals(meeting.getTargetActiveGeneration(), CrewConst.ACTIVE_GENERATION)
 			&& meeting.getCanJoinOnlyActiveGeneration();
 
 		return new MeetingResponseDto(meeting.getId(), meeting.getTitle(),
-			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory(),
+			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory().getValue(),
 			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), meeting.getImageURL(),
 			meeting.getIsMentorNeeded(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(),
-			creatorDto, appliedCount);
+			creatorDto, approvedCount, approvedCount);
 	}
 }
