@@ -65,7 +65,7 @@ push-notification:
   push-server-url: ${DEV_PUSH_SERVER_URL}
 
 notice:
-  secret-key : ${NOTICE_SECRET_KEY}
+  secret-key: ${NOTICE_SECRET_KEY}
 
 playground:
   server:
@@ -95,3 +95,7 @@ management:
     metrics:
       export:
         enabled: true
+
+custom:
+  paths:
+    eventApply: ${EVENT_APPLY_PATH}
