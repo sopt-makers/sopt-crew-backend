@@ -20,10 +20,14 @@ import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user")
+@JsonIgnoreProperties({"recentActivityVO", "setUserIdForTest"})
+//@JsonIgnoreProperties({"recentActivityVO", "setUserIdForTest", "hibernateLazyInitializer", "handler", })
 public class User extends BaseTimeEntity {
 
     /**
@@ -94,5 +98,9 @@ public class User extends BaseTimeEntity {
         this.activities = activities;
         this.profileImage = profileImage;
         this.phone = phone;
+    }
+
+    public List<UserActivityVO> getActivities() {
+        return activities;
     }
 }
