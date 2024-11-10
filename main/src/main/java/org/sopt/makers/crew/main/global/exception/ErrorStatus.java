@@ -37,8 +37,7 @@ public enum ErrorStatus {
 	LEADER_CANNOT_APPLY("모임장은 신청할 수 없습니다."),
 	CO_LEADER_CANNOT_APPLY("공동 모임장은 신청할 수 없습니다."),
 	LEADER_CANNOT_BE_CO_LEADER_APPLY("모임장은 공동 모임장이 될 수 없습니다."),
-	EVENT_CATEGORY_NOT_ALLOW_GENERAL_MEETING("행사 모임에는 일반 모임 신청이 허용되지 않습니다."),
-	GENERAL_CATEGORY_NOT_ALLOW_EVENT_MEETING("일반 모임에는 행사 모임 신청이 허용되지 않습니다."),
+	NOT_ALLOW_MEETING_APPLY("허용되지 않는 모임 신청입니다."),
 
 	/**
 	 * 401 UNAUTHORIZED
