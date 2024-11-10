@@ -115,7 +115,7 @@ public class MeetingV2GetMeetingBannerResponseDto {
 
 		return new MeetingV2GetMeetingBannerResponseDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(),
 			meeting.getCategory(),
-			meeting.getImageURL(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getStartDate(),
+			meeting.getImageURL(), meeting.getmStartDate(), meeting.getmEndDate(), meeting.getStartDate(),
 			meeting.getEndDate(), meeting.getCapacity(), recentActivityDate, meeting.getTargetActiveGeneration(),
 			meeting.getJoinableParts(), applicantCount, approvedUserCount,
 			meetingCreator, meeting.getMeetingStatus(now));

@@ -36,12 +36,18 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "meeting")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Meeting extends BaseTimeEntity {
 
 	@Id
@@ -85,12 +91,16 @@ public class Meeting extends BaseTimeEntity {
 	 * 모집 시작 기간
 	 */
 	@Column(name = "startDate", nullable = false, columnDefinition = "TIMESTAMP")
+	@JsonSerialize(using = LocalDateTimeSerializer.class)
+	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
 	private LocalDateTime startDate;
 
 	/**
 	 * 모집 마감 기간
 	 */
 	@Column(name = "endDate", nullable = false, columnDefinition = "TIMESTAMP")
+	@JsonSerialize(using = LocalDateTimeSerializer.class)
+	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
 	private LocalDateTime endDate;
 
 	/**
@@ -244,8 +254,8 @@ public class Meeting extends BaseTimeEntity {
 		this.capacity = updateMeeting.getCapacity();
 		this.desc = updateMeeting.getDesc();
 		this.processDesc = updateMeeting.getProcessDesc();
-		this.mStartDate = updateMeeting.mStartDate;
-		this.mEndDate = updateMeeting.getMEndDate();
+		this.mStartDate = updateMeeting.getmStartDate();
+		this.mEndDate = updateMeeting.getmEndDate();
 		this.leaderDesc = updateMeeting.getLeaderDesc();
 		this.note = updateMeeting.getNote();
 		this.isMentorNeeded = updateMeeting.getIsMentorNeeded();
@@ -253,5 +263,14 @@ public class Meeting extends BaseTimeEntity {
 		this.targetActiveGeneration = updateMeeting.getTargetActiveGeneration();
 		this.joinableParts = updateMeeting.getJoinableParts();
 	}
+
+	public LocalDateTime getmStartDate() {
+		return mStartDate;
+	}
+
+	public LocalDateTime getmEndDate() {
+		return mEndDate;
+	}
+
 
 }

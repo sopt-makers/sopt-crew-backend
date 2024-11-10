@@ -155,8 +155,8 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 		return new MeetingV2GetMeetingByIdResponseDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(),
 			meeting.getCategory().getValue(), meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(),
-			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getMStartDate(),
-			meeting.getMEndDate(), meeting.getLeaderDesc(), meeting.getNote(),
+			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getmStartDate(),
+			meeting.getmEndDate(), meeting.getLeaderDesc(), meeting.getNote(),
 			meeting.getIsMentorNeeded(), meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), coLeaderResponseDtos, isCoLeader,
 			meetingStatus,
