@@ -25,8 +25,11 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 import org.sopt.makers.crew.main.entity.meeting.CoLeader;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderReader;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
+import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
+import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
@@ -73,6 +76,8 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingD
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -95,6 +100,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
 	private final CoLeaderRepository coLeaderRepository;
+	private final MeetingReader meetingReader;
+	private final CoLeaderReader coLeaderReader;
+	private final UserReader userReader;
 
 	private final S3Service s3Service;
 
@@ -123,7 +131,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.map(meeting -> MeetingV2GetAllMeetingByOrgUserMeetingDto.of(meeting.getId(),
 					meeting.checkMeetingLeader(existUser.getId()), meeting.getTitle(),
 					meeting.getImageURL().get(0).getUrl(), meeting.getCategory().getValue(),
-					meeting.getMStartDate(), meeting.getMEndDate(), checkActivityStatus(meeting)))
+					meeting.getmStartDate(), meeting.getmEndDate(), checkActivityStatus(meeting)))
 				.sorted(Comparator.comparing(MeetingV2GetAllMeetingByOrgUserMeetingDto::getId).reversed())
 				.collect(Collectors.toList());
 		}
@@ -311,6 +319,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		meetingRepository.delete(meeting);
 	}
 
+	@Caching(evict = {
+		@CacheEvict(value = "meetingCache", key = "#meetingId"),
+		@CacheEvict(value = "meetingLeaderCache", key = "#userId"),
+		@CacheEvict(value = "coLeadersCache", key = "#meetingId")
+	})
 	@Override
 	@Transactional
 	public void updateMeeting(Integer meetingId, MeetingV2CreateMeetingBodyDto requestBody, Integer userId) {
@@ -380,9 +393,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2GetMeetingByIdResponseDto getMeetingById(Integer meetingId, Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
-		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-		User meetingLeader = userRepository.findByIdOrThrow(meeting.getUserId());
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meetingId));
+		Meeting meeting = meetingReader.getMeetingById(meetingId);
+		User meetingLeader = userReader.getMeetingLeader(meeting.getUserId());
+		CoLeaders coLeaders = new CoLeaders(coLeaderReader.getCoLeaders(meetingId));
 
 		Applies applies = new Applies(
 			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
@@ -451,8 +464,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private Boolean checkActivityStatus(Meeting meeting) {
 		LocalDateTime now = time.now();
-		LocalDateTime mStartDate = meeting.getMStartDate();
-		LocalDateTime mEndDate = meeting.getMEndDate();
+		LocalDateTime mStartDate = meeting.getmStartDate();
+		LocalDateTime mEndDate = meeting.getmEndDate();
 		return now.isEqual(mStartDate) || (now.isAfter(mStartDate) && now.isBefore(mEndDate));
 	}
 
