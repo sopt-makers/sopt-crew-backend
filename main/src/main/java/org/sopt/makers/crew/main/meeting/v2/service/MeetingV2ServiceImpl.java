@@ -1,8 +1,8 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
-import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,19 +22,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.RequiredArgsConstructor;
-
-import org.sopt.makers.crew.main.entity.meeting.CoLeader;
-import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
-import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
-import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
-import org.sopt.makers.crew.main.global.exception.BadRequestException;
-import org.sopt.makers.crew.main.global.exception.ServerException;
-import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
-import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.global.util.CustomPageable;
-import org.sopt.makers.crew.main.global.util.Time;
-import org.sopt.makers.crew.main.global.util.UserPartUtil;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
@@ -43,8 +30,12 @@ import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.like.LikeRepository;
+import org.sopt.makers.crew.main.entity.meeting.CoLeader;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
@@ -53,6 +44,14 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.enums.UserPart;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
+import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ServerException;
+import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.util.CustomPageable;
+import org.sopt.makers.crew.main.global.util.Time;
+import org.sopt.makers.crew.main.global.util.UserPartUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
@@ -80,6 +79,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.opencsv.CSVWriter;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -215,8 +216,36 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	@Transactional
-	public MeetingV2ApplyMeetingResponseDto applyMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
+	public MeetingV2ApplyMeetingResponseDto applyGeneralMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+
+		validateMeetingCategoryNotEvent(meeting);
+
+		User user = userRepository.findByIdOrThrow(userId);
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
+
+		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
+
+		validateMeetingCapacity(meeting, applies);
+		validateUserAlreadyApplied(userId, applies);
+		validateApplyPeriod(meeting);
+		validateUserActivities(user);
+		validateUserJoinableParts(user, meeting);
+		coLeaders.validateCoLeader(meeting.getId(), user.getId());
+		meeting.validateIsNotMeetingLeader(userId);
+
+		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
+		Apply savedApply = applyRepository.save(apply);
+		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+	}
+
+	@Override
+	@Transactional
+	public MeetingV2ApplyMeetingResponseDto applyEventMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+
+		validateMeetingCategoryEvent(meeting);
+
 		User user = userRepository.findByIdOrThrow(userId);
 		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
 
@@ -475,6 +504,18 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			return filteredActivities;
 		}
 		return user.getActivities();
+	}
+
+	private void validateMeetingCategoryNotEvent(Meeting meeting) {
+		if (meeting.getCategory() == MeetingCategory.EVENT) {
+			throw new BadRequestException(NOT_ALLOW_MEETING_APPLY.getErrorCode());
+		}
+	}
+
+	private void validateMeetingCategoryEvent(Meeting meeting) {
+		if (meeting.getCategory() != MeetingCategory.EVENT) {
+			throw new BadRequestException(NOT_ALLOW_MEETING_APPLY.getErrorCode());
+		}
 	}
 
 	private void validateMeetingCapacity(Meeting meeting, List<Apply> applies) {
