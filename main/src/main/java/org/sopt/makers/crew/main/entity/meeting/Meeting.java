@@ -125,12 +125,16 @@ public class Meeting extends BaseTimeEntity {
 	 * 모임 시작 기간
 	 */
 	@Column(name = "mStartDate", nullable = false, columnDefinition = "TIMESTAMP")
+	@JsonSerialize(using = LocalDateTimeSerializer.class)
+	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
 	private LocalDateTime mStartDate;
 
 	/**
 	 * 모임 마감 기간
 	 */
 	@Column(name = "mEndDate", nullable = false, columnDefinition = "TIMESTAMP")
+	@JsonSerialize(using = LocalDateTimeSerializer.class)
+	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
 	private LocalDateTime mEndDate;
 
 	/**
