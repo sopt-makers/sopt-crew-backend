@@ -94,3 +94,7 @@ management:
     metrics:
       export:
         enabled: true
+
+custom:
+  paths:
+    eventApply: ${DEV_EVENT_APPLY_PATH}
