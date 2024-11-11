@@ -508,13 +508,13 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private void validateMeetingCategoryNotEvent(Meeting meeting) {
 		if (meeting.getCategory() == MeetingCategory.EVENT) {
-			throw new BadRequestException(NOT_ALLOW_MEETING_APPLY.getErrorCode());
+			throw new BadRequestException(NOT_IN_APPLY_PERIOD.getErrorCode());
 		}
 	}
 
 	private void validateMeetingCategoryEvent(Meeting meeting) {
 		if (meeting.getCategory() != MeetingCategory.EVENT) {
-			throw new BadRequestException(NOT_ALLOW_MEETING_APPLY.getErrorCode());
+			throw new BadRequestException(NOT_IN_APPLY_PERIOD.getErrorCode());
 		}
 	}
 
