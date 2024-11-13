@@ -23,71 +23,79 @@ repositories {
 }
 
 dependencies {
+    // Spring Boot Dependencies
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    // https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-ui
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
     implementation 'org.springframework.boot:spring-boot-starter-webflux:3.1.5'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
-    // lombok
+    // Lombok Dependencies (Compile-time code generation library)
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
+    // Development Tools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+    // Test Dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:testcontainers:1.17.3'
+    testImplementation 'org.testcontainers:junit-jupiter:1.16.2'
+    testImplementation 'org.testcontainers:postgresql:1.17.3'
+    testImplementation 'org.testcontainers:jdbc'
+
+    // Apache Commons Dependencies
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
+
+    // AOP (Aspect-Oriented Programming) for cross-cutting concerns
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    // Database and Persistence Dependencies
     implementation group: 'org.postgresql', name: 'postgresql', version: '42.6.0'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.postgresql:postgresql:42.3.0'
 
-    // jsonb 타입 핸들링 위함
+    // jsonb Type Handling
     implementation 'io.hypersistence:hypersistence-utils-hibernate-62:3.6.0'
 
+    // JWT Dependencies for Security and Authentication
     implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
     implementation group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
     implementation group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.5'
     implementation 'com.auth0:java-jwt:4.4.0'
 
-    // h2
+    // H2 Database (for testing and in-memory DB)
     runtimeOnly 'com.h2database:h2'
 
-    // mac m1 setting
+    // macOS M1 Support (Network Resolver for macOS)
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.68.Final:osx-aarch_64'
 
+    // Spring Cloud OpenFeign (Service-to-service communication)
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.0.3'
 
-    // test container
-    testImplementation 'org.testcontainers:testcontainers:1.17.3' // TC 의존성
-    testImplementation 'org.testcontainers:junit-jupiter:1.16.2'  // TC 의존성
-    testImplementation 'org.testcontainers:postgresql:1.17.3'     // PostgreSQL 컨테이너 사용
-    testImplementation 'org.testcontainers:jdbc'           // DB와의 JDBC connection
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
-
-    // aop
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
-
-    // MapStruct
+    // MapStruct (DTO transformation code generation)
     implementation 'org.mapstruct:mapstruct:1.5.3.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
 
-    // queryDsl
+    // QueryDSL (JPA Query Generation)
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
-    // AWS SDK for S3
+    // AWS SDK for S3 (for file upload and download)
     implementation "software.amazon.awssdk:s3:2.27.0"
 
-    // csv 관련
+    // CSV Processing Library
     implementation 'com.opencsv:opencsv:5.5.2'
 
-    // prometheus
+    // Prometheus (Monitoring and Metrics Collection)
     implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    // Sentry Logback (Error Tracking)
+    implementation 'io.sentry:sentry-logback:7.17.0'
 }
 
 tasks.named('test') {
