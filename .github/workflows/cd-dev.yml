@@ -4,6 +4,7 @@ on:
     workflows: ["Makers_Crew CI"]
     branches: ["develop", "refactor/#477"]
     types: [completed]
+  workflow_dispatch:
 
 jobs:
   deploy:
