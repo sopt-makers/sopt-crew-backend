@@ -23,6 +23,7 @@ import org.sopt.makers.crew.main.entity.meeting.CoLeader;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.external.AbstractContainerBaseTest;
 import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
@@ -55,7 +56,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 
 @IntegratedTest
-public class MeetingV2ServiceTest {
+public class MeetingV2ServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private MeetingV2Service meetingV2Service;
