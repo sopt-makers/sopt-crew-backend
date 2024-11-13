@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
@@ -1396,7 +1397,8 @@ public class MeetingV2ServiceTest extends AbstractContainerBaseTest {
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
 
 			// when
-			MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyMeeting(applyDto, applicant.getId());
+			MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyGeneralMeeting(applyDto,
+				applicant.getId());
 
 			// then
 			Apply apply = applyRepository.findById(response.getApplyId()).orElseThrow();
@@ -1470,7 +1472,7 @@ public class MeetingV2ServiceTest extends AbstractContainerBaseTest {
 			MeetingV2ApplyMeetingDto applyDto2 = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기 2");
 
 			// when & then
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto2, applicant2.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto2, applicant2.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("정원이 꽉 찼습니다.");
 		}
@@ -1535,7 +1537,7 @@ public class MeetingV2ServiceTest extends AbstractContainerBaseTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, applicant.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, applicant.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("이미 지원한 모임입니다.");
 		}
@@ -1588,7 +1590,7 @@ public class MeetingV2ServiceTest extends AbstractContainerBaseTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, applicant.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, applicant.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("지원 기간이 아닙니다.");
 		}
@@ -1661,7 +1663,7 @@ public class MeetingV2ServiceTest extends AbstractContainerBaseTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, savedCoLeader1.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, savedCoLeader1.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessage("공동 모임장은 신청할 수 없습니다.");
 		}
@@ -1706,10 +1708,126 @@ public class MeetingV2ServiceTest extends AbstractContainerBaseTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyMeeting(applyDto, leader.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, leader.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessage("모임장은 신청할 수 없습니다.");
 		}
+
+		@Test
+		@DisplayName("행사 카테고리에 일반 모임 신청 API로 호출 시 예외가 발생되어야 한다.")
+		void applyGeneralMeeting_WhenEventCategory_ShouldThrowException() {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("안드로이드", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(leader);
+
+			Meeting meeting = Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("모임 지원 테스트")
+				.category(MeetingCategory.EVENT)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 4, 27, 23, 59, 59))
+				.capacity(20)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			User applicant = User.builder()
+				.name("지원자 1")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("웹", 35)))
+				.profileImage("applicantProfile.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(applicant);
+
+			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
+
+			// when & then
+			Assertions.assertThatThrownBy(() ->
+					meetingV2Service.applyGeneralMeeting(applyDto, applicant.getId())
+				).isInstanceOf(BadRequestException.class)
+				.hasMessageContaining("모임 지원 기간이 아닙니다.");
+		}
+
+		@ParameterizedTest
+		@EnumSource(value = MeetingCategory.class, names = "EVENT", mode = EnumSource.Mode.EXCLUDE)
+		@DisplayName("행사 카테고리가 아닌 다른 카테고리로 행사 모임 신청 API로 호출 시 예외가 발생되어야 한다.")
+		void applyEventMeeting_WhenCategoryIsNotEvent_ShouldThrowException(MeetingCategory category) {
+			// given
+			User leader = User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("안드로이드", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(leader);
+
+			Meeting meeting = Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("모임 지원 테스트")
+				.category(category)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 4, 27, 23, 59, 59))
+				.capacity(20)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			User applicant = User.builder()
+				.name("지원자 1")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("웹", 35)))
+				.profileImage("applicantProfile.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(applicant);
+
+			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
+
+			// when & then
+			Assertions.assertThatThrownBy(() ->
+					meetingV2Service.applyEventMeeting(applyDto, applicant.getId())
+				).isInstanceOf(BadRequestException.class)
+				.hasMessageContaining("모임 지원 기간이 아닙니다.");
+		}
+
 	}
 
 	@Nested
@@ -1840,7 +1958,7 @@ public class MeetingV2ServiceTest extends AbstractContainerBaseTest {
 				.containsExactly(
 					tuple("승인신청자", 1003),
 					tuple("대기신청자", 1004)
-					);
+				);
 		}
 	}
 

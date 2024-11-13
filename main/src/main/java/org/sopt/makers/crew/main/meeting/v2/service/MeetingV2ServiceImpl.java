@@ -29,6 +29,7 @@ import org.sopt.makers.crew.main.entity.meeting.CoLeaderReader;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
 import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
@@ -223,8 +224,36 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	@Transactional
-	public MeetingV2ApplyMeetingResponseDto applyMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
+	public MeetingV2ApplyMeetingResponseDto applyGeneralMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+
+		validateMeetingCategoryNotEvent(meeting);
+
+		User user = userRepository.findByIdOrThrow(userId);
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
+
+		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
+
+		validateMeetingCapacity(meeting, applies);
+		validateUserAlreadyApplied(userId, applies);
+		validateApplyPeriod(meeting);
+		validateUserActivities(user);
+		validateUserJoinableParts(user, meeting);
+		coLeaders.validateCoLeader(meeting.getId(), user.getId());
+		meeting.validateIsNotMeetingLeader(userId);
+
+		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
+		Apply savedApply = applyRepository.save(apply);
+		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+	}
+
+	@Override
+	@Transactional
+	public MeetingV2ApplyMeetingResponseDto applyEventMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+
+		validateMeetingCategoryEvent(meeting);
+
 		User user = userRepository.findByIdOrThrow(userId);
 		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
 
@@ -488,6 +517,18 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			return filteredActivities;
 		}
 		return user.getActivities();
+	}
+
+	private void validateMeetingCategoryNotEvent(Meeting meeting) {
+		if (meeting.getCategory() == MeetingCategory.EVENT) {
+			throw new BadRequestException(NOT_IN_APPLY_PERIOD.getErrorCode());
+		}
+	}
+
+	private void validateMeetingCategoryEvent(Meeting meeting) {
+		if (meeting.getCategory() != MeetingCategory.EVENT) {
+			throw new BadRequestException(NOT_IN_APPLY_PERIOD.getErrorCode());
+		}
 	}
 
 	private void validateMeetingCapacity(Meeting meeting, List<Apply> applies) {
