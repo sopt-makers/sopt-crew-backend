@@ -99,3 +99,8 @@ management:
 custom:
   paths:
     eventApply: ${PROD_EVENT_APPLY_PATH}
+
+sentry:
+  dsn: ${SENTRY_DSN}
+  environment: ${PROD_SENTRY_ENVIRONMENT}
+  servername: ${PROD_SENTRY_SERVERNAME}
