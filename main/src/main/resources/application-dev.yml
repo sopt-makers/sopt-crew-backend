@@ -29,7 +29,7 @@ spring:
       storage_engine: innodb
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
 
 jwt:
