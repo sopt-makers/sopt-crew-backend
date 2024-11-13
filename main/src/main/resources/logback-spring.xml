@@ -3,9 +3,16 @@
     <property name="LOG_PATTERN"
               value="[%d{yyyy-MM-dd HH:mm:ss}:%-4relative] %green([%thread]) %highlight(%-5level) %boldWhite([%C.%M:%yellow(%L)]) - %msg%n"/>
 
+    <appender name="Sentry" class="io.sentry.logback.SentryAppender">
+        <maxRequestBodySize>always</maxRequestBodySize>
+        <sendDefaultPii>true</sendDefaultPii>
+        <tracesSampleRate>1.0</tracesSampleRate>
+        <minimumEventLevel>ERROR</minimumEventLevel>
+        <minimumBreadcrumbLevel>DEBUG</minimumBreadcrumbLevel>
+    </appender>
+
     <springProfile name="local">
         <include resource="console-appender.xml"/>
-
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>
@@ -13,9 +20,9 @@
 
     <springProfile name="dev">
         <include resource="console-appender.xml"/>
-
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="Sentry"/>
         </root>
     </springProfile>
 
@@ -23,6 +30,7 @@
         <include resource="console-appender.xml"/>
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="Sentry"/>
         </root>
     </springProfile>
 
