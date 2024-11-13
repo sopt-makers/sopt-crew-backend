@@ -12,7 +12,7 @@ public abstract class redisContainerBaseTest {
 	static {
 		REDIS_CONTAINER = new GenericContainer<>(REDIS_IMAGE)
 			.withExposedPorts(6379)
-			//.withReuse(true)
+			.withReuse(true)
 			.waitingFor(Wait.forListeningPort());
 		REDIS_CONTAINER.start();
 	}
