@@ -31,6 +31,7 @@ import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
 import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.user.UserReader;
+import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
@@ -423,7 +424,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		User user = userRepository.findByIdOrThrow(userId);
 
 		Meeting meeting = meetingReader.getMeetingById(meetingId);
-		User meetingLeader = userReader.getMeetingLeader(meeting.getUserId());
+		MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(meeting.getUserId());
 		CoLeaders coLeaders = new CoLeaders(coLeaderReader.getCoLeaders(meetingId));
 
 		Applies applies = new Applies(

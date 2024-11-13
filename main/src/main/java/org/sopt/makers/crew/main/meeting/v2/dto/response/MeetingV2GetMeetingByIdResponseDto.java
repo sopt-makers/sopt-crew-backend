@@ -142,10 +142,8 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 	public static MeetingV2GetMeetingByIdResponseDto of(Meeting meeting, List<CoLeader> coLeaders,
 		boolean isCoLeader, long approvedCount, Boolean isHost, Boolean isApply,
-		Boolean isApproved, User meetingCreator,
+		Boolean isApproved, MeetingCreatorDto meetingCreatorDto,
 		List<ApplyWholeInfoDto> appliedInfo, LocalDateTime now) {
-
-		MeetingCreatorDto meetingCreatorDto = MeetingCreatorDto.of(meetingCreator);
 
 		Integer meetingStatus = meeting.getMeetingStatus(now);
 
@@ -169,9 +167,5 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 	public LocalDateTime getmEndDate() {
 		return mEndDate;
-	}
-
-	public boolean getIsCoLeader() {
-		return this.isCoLeader;
 	}
 }
