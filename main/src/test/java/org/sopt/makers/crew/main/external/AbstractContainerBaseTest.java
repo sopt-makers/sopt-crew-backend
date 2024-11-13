@@ -14,15 +14,14 @@ public abstract class AbstractContainerBaseTest {
 	static {
 		REDIS_CONTAINER = new GenericContainer<>(REDIS_IMAGE)
 			.withExposedPorts(6379)
-			.withReuse(true)
+			//.withReuse(true)
 			.waitingFor(Wait.forListeningPort());
 		REDIS_CONTAINER.start();
 	}
 
 	@DynamicPropertySource
 	public static void overrideProps(DynamicPropertyRegistry registry) {
-		Supplier<Object> getHost = REDIS_CONTAINER::getHost;
-		registry.add("spring.redis.host", getHost);
-		registry.add("spring.redis.port", () -> "" + REDIS_CONTAINER.getMappedPort(6379));
+		registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
+		registry.add("spring.data.redis.port", () -> String.valueOf(REDIS_CONTAINER.getMappedPort(6379)));
 	}
 }
