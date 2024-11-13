@@ -2,7 +2,7 @@ name: Makers_Crew Dev CD
 on:
   workflow_run:
     workflows: ["Makers_Crew CI"]
-    branches: ["develop"]
+    branches: ["develop", "refactor/#477"]
     types: [completed]
 
 jobs:
