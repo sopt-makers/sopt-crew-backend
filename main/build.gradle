@@ -96,6 +96,9 @@ dependencies {
 
     // Sentry Logback (Error Tracking)
     implementation 'io.sentry:sentry-logback:7.17.0'
+
+    // Slack Webhook
+    implementation 'com.github.maricn:logback-slack-appender:1.4.0'
 }
 
 tasks.named('test') {
