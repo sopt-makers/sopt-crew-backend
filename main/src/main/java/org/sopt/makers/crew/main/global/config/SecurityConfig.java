@@ -52,7 +52,8 @@ public class SecurityConfig {
 			"/meeting/v2/org-user/**",
 			"/auth/v2",
 			"/auth/v2/**",
-			actuatorEndPoint + "/health"
+			actuatorEndPoint + "/health",
+			"/sentry" // prod에서 테스트 후 삭제
 		};
 	}
 

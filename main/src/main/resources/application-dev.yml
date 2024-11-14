@@ -99,3 +99,16 @@ management:
 custom:
   paths:
     eventApply: ${DEV_EVENT_APPLY_PATH}
+
+sentry:
+  dsn: ${SENTRY_DSN}
+  environment: ${DEV_SENTRY_ENVIRONMENT}
+  servername: ${DEV_SENTRY_SERVERNAME}
+
+logging:
+  slack:
+    webhook-uri: ${SENTRY_SLACK_WEBHOOK_URI}
+  config: classpath:logback-spring.xml
+  sentry:
+    repository-uri: ${SENTRY_REPOSITORY_URI}
+    environment: dev

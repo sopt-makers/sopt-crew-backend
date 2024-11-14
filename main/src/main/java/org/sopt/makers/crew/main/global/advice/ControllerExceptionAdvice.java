@@ -1,8 +1,10 @@
 package org.sopt.makers.crew.main.global.advice;
 
+import java.io.IOException;
+
 import org.sopt.makers.crew.main.global.exception.BaseException;
-import org.sopt.makers.crew.main.global.exception.ExceptionResponse;
 import org.sopt.makers.crew.main.global.exception.ErrorStatus;
+import org.sopt.makers.crew.main.global.exception.ExceptionResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -108,6 +110,14 @@ public class ControllerExceptionAdvice {
 				ErrorStatus.INVALID_INPUT_VALUE.getErrorCode()));
 	}
 
+	@ExceptionHandler(IOException.class)
+	public ResponseEntity<ExceptionResponse> handleIOException(IOException e) {
+		log.warn("{}", e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+			.body(ExceptionResponse.fail(
+				ErrorStatus.IO_EXCEPTION.getErrorCode()));
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ExceptionResponse> handleException(Exception e) {
 		log.error("{}", e.getMessage());
@@ -115,5 +125,4 @@ public class ControllerExceptionAdvice {
 			.body(ExceptionResponse.fail(
 				ErrorStatus.INTERNAL_SERVER_ERROR.getErrorCode()));
 	}
-
 }
