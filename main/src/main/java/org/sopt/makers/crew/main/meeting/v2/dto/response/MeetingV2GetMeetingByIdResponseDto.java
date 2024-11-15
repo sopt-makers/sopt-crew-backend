@@ -147,7 +147,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 		MeetingCreatorDto meetingCreatorDto = MeetingCreatorDto.of(meetingCreator);
 
-		Integer meetingStatus = meeting.getMeetingStatus(now);
+		Integer meetingStatus = meeting.getMeetingStatusValue(now);
 
 		List<MeetingV2CoLeaderResponseDto> coLeaderResponseDtos = coLeaders.stream()
 			.map(coLeader -> MeetingV2CoLeaderResponseDto.of(coLeader.getUser()))

@@ -80,11 +80,11 @@ public class MeetingTest {
 			.build();
 
 		// when
-		Integer beforeRecruitment = meeting.getMeetingStatus(LocalDateTime.of(2024, 4, 23, 23, 59, 59));
-		Integer recruiting = meeting.getMeetingStatus(LocalDateTime.of(2024, 4, 24, 0, 0, 0));
-		Integer closeRecruitment = meeting.getMeetingStatus(LocalDateTime.of(2024, 4, 30, 0, 0, 0));
-		Integer active = meeting.getMeetingStatus(LocalDateTime.of(2024, 5, 24, 0, 0, 0));
-		Integer activityEnd = meeting.getMeetingStatus(LocalDateTime.of(2024, 6, 24, 0, 0, 1));
+		Integer beforeRecruitment = meeting.getMeetingStatusValue(LocalDateTime.of(2024, 4, 23, 23, 59, 59));
+		Integer recruiting = meeting.getMeetingStatusValue(LocalDateTime.of(2024, 4, 24, 0, 0, 0));
+		Integer closeRecruitment = meeting.getMeetingStatusValue(LocalDateTime.of(2024, 4, 30, 0, 0, 0));
+		Integer active = meeting.getMeetingStatusValue(LocalDateTime.of(2024, 5, 24, 0, 0, 0));
+		Integer activityEnd = meeting.getMeetingStatusValue(LocalDateTime.of(2024, 6, 24, 0, 0, 1));
 
 
 		// then
