@@ -12,7 +12,7 @@ import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.global.util.CustomPageable;
+import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
@@ -139,7 +139,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	public PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, Integer userId) {
 		Sort sort = Sort.by(Sort.Direction.ASC, "id");
 		Page<PostDetailResponseDto> meetingPostListDtos = postRepository.findPostList(queryCommand,
-			new CustomPageable(queryCommand.getPage() - 1, sort), userId);
+			new AdvertisementCustomPageable(queryCommand.getPage() - 1, sort), userId);
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetingPostListDtos.getPageable().getPageNumber() + 1,
 			meetingPostListDtos.getPageable().getPageSize());
