@@ -43,7 +43,7 @@ public class InternalMeetingService {
 		Sort sort = Sort.by(Sort.Direction.ASC, "id");
 
 		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand,
-			new CustomPageable(queryCommand.getPage() - 1, sort), time);
+			new CustomPageable(queryCommand.getPage() - 1, queryCommand.getTake(), sort), time);
 		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgIdRequestDto.orgId().longValue());
 
 		List<InternalMeetingResponseDto> meetingResponseDtos = meetings.getContent().stream()
