@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.internal.notification;
+package org.sopt.makers.crew.main.external.notification;
 
 import lombok.AccessLevel;
 import lombok.Getter;

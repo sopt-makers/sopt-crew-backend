@@ -1,7 +1,7 @@
-package org.sopt.makers.crew.main.internal.notification;
+package org.sopt.makers.crew.main.external.notification;
 
-import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
-import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationResponseDto;
+import org.sopt.makers.crew.main.external.notification.dto.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.external.notification.dto.PushNotificationResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

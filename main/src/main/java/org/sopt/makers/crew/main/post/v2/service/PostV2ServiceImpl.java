@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.post.v2.service;
 
 import static java.util.stream.Collectors.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.*;
+import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.*;
 
 import java.util.List;
 import java.util.Map;
@@ -30,8 +30,8 @@ import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
-import org.sopt.makers.crew.main.internal.notification.PushNotificationService;
-import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.external.notification.PushNotificationService;
+import org.sopt.makers.crew.main.external.notification.dto.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
