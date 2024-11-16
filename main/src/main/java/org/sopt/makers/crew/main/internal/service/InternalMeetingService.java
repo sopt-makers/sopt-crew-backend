@@ -34,17 +34,17 @@ public class InternalMeetingService {
 	 * [for. APP BE] 모일 리스트 페이지네이션 조회 (10개)
 	 *
 	 * @param queryCommand 게시글 조회를 위한 쿼리 명령 객체
-	 * @param orgIdRequestDto 플레이그라운드 orgId
+	 * @param orgId 플레이그라운드 orgId
 	 * @return 게시글 정보(게시글 객체 + 댓글 단 사람의 썸네일 + 차단된 유저의 게시물 여부)와 페이지 메타 정보를 포함한 응답 DTO
 	 * @apiNote 사용자가 차단한 유저의 모임은 해당 모임에 대한 차단 여부를 함께 반환
 	 */
 	public InternalMeetingGetAllMeetingDto getMeetings(
-		MeetingV2GetAllMeetingQueryDto queryCommand, UserOrgIdRequestDto orgIdRequestDto) {
+		MeetingV2GetAllMeetingQueryDto queryCommand, Integer orgId) {
 		Sort sort = Sort.by(Sort.Direction.ASC, "id");
 
 		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand,
 			new CustomPageable(queryCommand.getPage() - 1, queryCommand.getTake(), sort), time);
-		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgIdRequestDto.orgId().longValue());
+		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgId.longValue());
 
 		List<InternalMeetingResponseDto> meetingResponseDtos = meetings.getContent().stream()
 			.map(meeting -> InternalMeetingResponseDto.of(meeting, time.now(),

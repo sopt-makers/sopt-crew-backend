@@ -7,8 +7,8 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQuer
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -17,14 +17,15 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/internal/meetings")
 @RequiredArgsConstructor
-public class InternalMeetingController {
+public class InternalMeetingController implements InternalMeetingApi {
 	private final InternalMeetingService internalMeetingService;
 
+	@Override
 	@GetMapping
 	public ResponseEntity<InternalMeetingGetAllMeetingDto> getMeetings(
 		@ModelAttribute @Valid MeetingV2GetAllMeetingQueryDto queryCommand,
-		@RequestBody @Valid UserOrgIdRequestDto orgIdRequestDto) {
+		@RequestParam @Valid Integer orgId) {
 
-		return ResponseEntity.ok().body(internalMeetingService.getMeetings(queryCommand, orgIdRequestDto));
+		return ResponseEntity.ok().body(internalMeetingService.getMeetings(queryCommand, orgId));
 	}
 }
