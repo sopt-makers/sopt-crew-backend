@@ -42,7 +42,10 @@ public class CustomPageable implements Pageable {
 
 	@Override
 	public Pageable previousOrFirst() {
-		return this.page == 0 ? this : new CustomPageable(this.page + 1, this.size, this.sort);
+		if (this.page == 0) {
+			return this;
+		}
+		return new CustomPageable(this.page - 1, this.size, this.sort);
 	}
 
 	@Override

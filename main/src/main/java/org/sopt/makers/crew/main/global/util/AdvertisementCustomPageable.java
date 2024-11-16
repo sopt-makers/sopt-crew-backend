@@ -17,7 +17,10 @@ public class AdvertisementCustomPageable implements Pageable {
 
 	private int calculateSize(int page) {
 		// 첫 번째 페이지는 11개, 그 이후부터는 12개
-		return page == 0 ? 11 : 12;
+		if (page == 0) {
+			return 11;
+		}
+		return 12;
 	}
 
 	@Override
@@ -33,7 +36,11 @@ public class AdvertisementCustomPageable implements Pageable {
 	@Override
 	public long getOffset() {
 		// 오프셋 계산
-		return page == 0 ? 0 : 11 + (page - 1) * 12;
+		// 첫 번째 페이지는 11개, 그 이후부터는 12개 고려
+		if (page == 0) {
+			return 0;
+		}
+		return 11 + (page - 1) * 12L;
 	}
 
 	@Override
@@ -48,7 +55,10 @@ public class AdvertisementCustomPageable implements Pageable {
 
 	@Override
 	public Pageable previousOrFirst() {
-		return this.page == 0 ? this : new AdvertisementCustomPageable(this.page - 1, this.sort);
+		if (page == 0) {
+			return this;
+		}
+		return new AdvertisementCustomPageable(this.page - 1, this.sort);
 	}
 
 	@Override
