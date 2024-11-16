@@ -9,10 +9,10 @@ public class CustomPageable implements Pageable {
 	private final int size;
 	private final Sort sort;
 
-	public CustomPageable(int page, int take, Sort sort) {
+	public CustomPageable(int page, int size, Sort sort) {
 		this.page = page;
+		this.size = size;
 		this.sort = sort;
-		this.size = take;
 	}
 
 	@Override
