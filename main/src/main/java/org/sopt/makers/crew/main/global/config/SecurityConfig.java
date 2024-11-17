@@ -53,7 +53,7 @@ public class SecurityConfig {
 			"/auth/v2",
 			"/auth/v2/**",
 			actuatorEndPoint + "/health",
-			"/sentry" // prod에서 테스트 후 삭제
+			"/internal/**"
 		};
 	}
 
