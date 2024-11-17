@@ -62,7 +62,7 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 	@Query("SELECT u.orgId AS orgId, COUNT(a.id) AS approvedStudyCount " +
 		"FROM Apply a JOIN a.meeting m " +
 		"JOIN a.user u " +
-		"WHERE m.category = :category AND a.status = :status AND u.orgId = :orgId " + // orgId로 필터링
+		"WHERE m.category = :category AND a.status = :status AND u.orgId = :orgId " +
 		"GROUP BY u.orgId")
 	List<ApprovedStudyCountProjection> findApprovedStudyCountByOrgId(
 		@Param("category") MeetingCategory category,
