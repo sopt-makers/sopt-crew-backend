@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.internal.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
@@ -44,7 +45,13 @@ public class InternalMeetingService {
 
 		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand,
 			new CustomPageable(queryCommand.getPage() - 1, queryCommand.getTake(), sort), time);
-		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgId.longValue());
+
+		List<Long> userOrgIds = meetings.getContent()
+			.stream()
+			.map(meeting -> meeting.getUser().getOrgId().longValue())
+			.toList();
+
+		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgId.longValue(), userOrgIds);
 
 		List<InternalMeetingResponseDto> meetingResponseDtos = meetings.getContent().stream()
 			.map(meeting -> InternalMeetingResponseDto.of(meeting, time.now(),

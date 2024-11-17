@@ -174,7 +174,11 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		User user = userRepository.findByIdOrThrow(userId);
 		Long orgId = user.getOrgId().longValue();
 
-		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgId);
+		List<Long> userOrgIds = comments.stream()
+			.map(comment -> comment.getUser().getOrgId().longValue())
+			.toList();
+
+		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgId, userOrgIds);
 
 		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndCommentIdNotNull(userId));
 
