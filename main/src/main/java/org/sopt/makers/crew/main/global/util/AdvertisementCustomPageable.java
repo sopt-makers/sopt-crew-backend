@@ -3,6 +3,12 @@ package org.sopt.makers.crew.main.global.util;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+/**
+ * AdvertisementCustomPageable : 광고 관련된 컨텐츠에 대해 페이지네이션이 필요할 때 사용하는 클래스
+ *
+ * @implSpec : 광고 때문에 첫페이지는 11개를, 나머지는 12개를 반환해야 한다.
+ * @implNote : 일반적인 페이지네이션 방식과 다르기에 해당 클래스를 따로 만들어 커스텀화하였다.
+ * */
 public class AdvertisementCustomPageable implements Pageable {
 
 	private final int page;
