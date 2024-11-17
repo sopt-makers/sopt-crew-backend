@@ -1,11 +1,13 @@
 package org.sopt.makers.crew.main.entity.apply;
 
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_APPLY;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.internal.dto.ApprovedStudyCountProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -57,4 +59,13 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 	@Query("DELETE FROM Apply a WHERE a.meetingId = :meetingId")
 	void deleteAllByMeetingIdQuery(Integer meetingId);
 
+	@Query("SELECT u.orgId AS orgId, COUNT(a.id) AS approvedStudyCount " +
+		"FROM Apply a JOIN a.meeting m " +
+		"JOIN a.user u " +
+		"WHERE m.category = :category AND a.status = :status AND u.orgId = :orgId " + // orgId로 필터링
+		"GROUP BY u.orgId")
+	List<ApprovedStudyCountProjection> findApprovedStudyCountByOrgId(
+		@Param("category") MeetingCategory category,
+		@Param("status") EnApplyStatus status,
+		@Param("orgId") Integer orgId);
 }
