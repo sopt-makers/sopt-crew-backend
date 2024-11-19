@@ -10,4 +10,14 @@ public record ApprovedStudyCountResponseDto(
 	@Schema(description = "승인된 스터디 수", example = "5")
 	Long approvedStudyCount
 ) {
+	public static ApprovedStudyCountResponseDto fromProjection(ApprovedStudyCountProjection projection) {
+		return new ApprovedStudyCountResponseDto(
+			projection.getOrgId(),
+			projection.getApprovedStudyCount()
+		);
+	}
+
+	public static ApprovedStudyCountResponseDto empty(Integer orgId) {
+		return new ApprovedStudyCountResponseDto(orgId, 0L);
+	}
 }

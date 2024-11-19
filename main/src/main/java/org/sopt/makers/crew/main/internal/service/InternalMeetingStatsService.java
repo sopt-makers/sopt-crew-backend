@@ -35,15 +35,7 @@ public class InternalMeetingStatsService {
 
 		return results.stream()
 			.findFirst()
-			.map(this::toResponse)
-			.orElseGet(() -> toEmptyResponse(user.getOrgId()));
-	}
-
-	private ApprovedStudyCountResponseDto toResponse(ApprovedStudyCountProjection projection) {
-		return new ApprovedStudyCountResponseDto(projection.getOrgId(), projection.getApprovedStudyCount());
-	}
-
-	private ApprovedStudyCountResponseDto toEmptyResponse(Integer orgId) {
-		return new ApprovedStudyCountResponseDto(orgId, 0L);
+			.map(ApprovedStudyCountResponseDto::fromProjection)
+			.orElse(ApprovedStudyCountResponseDto.empty(user.getOrgId()));
 	}
 }
