@@ -12,11 +12,13 @@ import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.internal.dto.ApprovedStudyCountProjection;
 import org.sopt.makers.crew.main.internal.dto.ApprovedStudyCountResponseDto;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class InternalMeetingStatsService {
 	private final ApplyRepository applyRepository;
 	private final UserRepository userRepository;
