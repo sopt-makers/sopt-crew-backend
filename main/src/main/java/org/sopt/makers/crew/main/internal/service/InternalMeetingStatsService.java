@@ -5,8 +5,6 @@ import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
-import org.sopt.makers.crew.main.global.exception.ErrorStatus;
-import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.internal.dto.ApprovedStudyCountResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,12 +19,15 @@ public class InternalMeetingStatsService {
 	private final UserRepository userRepository;
 
 	public ApprovedStudyCountResponseDto getApprovedStudyCountByOrgId(Integer orgId) {
-		User user = userRepository.findByOrgId(orgId)
-			.orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER.getErrorCode()));
+		User user = userRepository.findByOrgId(orgId).orElse(null);
 
-		Long approvedStudyCount = applyRepository.findApprovedStudyCountByOrgId(
-			MeetingCategory.STUDY, EnApplyStatus.APPROVE, user.getOrgId());
+		if (user == null) {
+			return ApprovedStudyCountResponseDto.of(orgId, 0L);
+		}
 
-		return ApprovedStudyCountResponseDto.of(user.getOrgId(), approvedStudyCount);
+		Long approvedStudyCount = applyRepository.findApprovedStudyCountByOrgId(MeetingCategory.STUDY,
+			EnApplyStatus.APPROVE, user.getOrgId());
+
+		return ApprovedStudyCountResponseDto.of(orgId, approvedStudyCount);
 	}
 }
