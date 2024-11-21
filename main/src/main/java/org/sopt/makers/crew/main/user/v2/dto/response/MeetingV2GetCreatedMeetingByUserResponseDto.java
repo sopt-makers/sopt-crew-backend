@@ -8,7 +8,6 @@ import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
-import org.sopt.makers.crew.main.entity.user.User;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -83,7 +82,7 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 
 		return new MeetingV2GetCreatedMeetingByUserResponseDto(meeting.getId(), meeting.getTitle(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory().getValue(),
-			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), isCoLeader, meeting.getImageURL(),
+			canJoinOnlyActiveGeneration, meeting.getMeetingStatusValue(now), isCoLeader, meeting.getImageURL(),
 			meeting.getIsMentorNeeded(), meeting.getMStartDate(), meeting.getMEndDate(), meeting.getCapacity(),
 			creatorDto, approvedCount, approvedCount);
 	}

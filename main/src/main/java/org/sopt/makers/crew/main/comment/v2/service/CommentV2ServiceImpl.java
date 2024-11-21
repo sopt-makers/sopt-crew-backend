@@ -1,8 +1,8 @@
 package org.sopt.makers.crew.main.comment.v2.service;
 
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.NEW_COMMENT_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
+import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE;
+import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.NEW_COMMENT_PUSH_NOTIFICATION_TITLE;
+import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,8 +42,8 @@ import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
-import org.sopt.makers.crew.main.internal.notification.PushNotificationService;
-import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.external.notification.PushNotificationService;
+import org.sopt.makers.crew.main.external.notification.dto.PushNotificationRequestDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -174,7 +174,11 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		User user = userRepository.findByIdOrThrow(userId);
 		Long orgId = user.getOrgId().longValue();
 
-		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgId);
+		List<Long> userOrgIds = comments.stream()
+			.map(comment -> comment.getUser().getOrgId().longValue())
+			.toList();
+
+		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgId, userOrgIds);
 
 		MyLikes myLikes = new MyLikes(likeRepository.findAllByUserIdAndCommentIdNotNull(userId));
 

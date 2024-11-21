@@ -1,11 +1,12 @@
 package org.sopt.makers.crew.main.entity.apply;
 
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_APPLY;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -57,4 +58,12 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 	@Query("DELETE FROM Apply a WHERE a.meetingId = :meetingId")
 	void deleteAllByMeetingIdQuery(Integer meetingId);
 
+	@Query("SELECT COALESCE(COUNT(a.id), 0) " +
+		"FROM Apply a JOIN a.meeting m " +
+		"JOIN a.user u " +
+		"WHERE m.category = :category AND a.status = :status AND u.orgId = :orgId")
+	Long findApprovedStudyCountByOrgId(
+		@Param("category") MeetingCategory category,
+		@Param("status") EnApplyStatus status,
+		@Param("orgId") Integer orgId);
 }
