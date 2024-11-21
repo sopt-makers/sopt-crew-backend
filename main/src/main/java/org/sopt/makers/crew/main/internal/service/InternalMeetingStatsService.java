@@ -28,6 +28,6 @@ public class InternalMeetingStatsService {
 		Long approvedStudyCount = applyRepository.findApprovedStudyCountByOrgId(MeetingCategory.STUDY,
 			EnApplyStatus.APPROVE, user.getOrgId());
 
-		return ApprovedStudyCountResponseDto.of(orgId, approvedStudyCount);
+		return ApprovedStudyCountResponseDto.of(user.getOrgId(), approvedStudyCount);
 	}
 }
