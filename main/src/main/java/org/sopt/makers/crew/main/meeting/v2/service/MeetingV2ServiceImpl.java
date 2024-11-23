@@ -543,7 +543,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private void validateUserActivities(User user) {
-		if (user.getActivities().isEmpty()) {
+		if (user.getActivities() == null || user.getActivities().isEmpty()) {
 			throw new BadRequestException(MISSING_GENERATION_PART.getErrorCode());
 		}
 	}
