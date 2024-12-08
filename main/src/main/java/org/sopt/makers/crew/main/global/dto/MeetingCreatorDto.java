@@ -5,13 +5,14 @@ import java.util.List;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
 @Schema(name = "MeetingCreatorDto", description = "모임 개설자 Dto")
 public class MeetingCreatorDto {
 	@Schema(description = "모임장 id, 크루에서 사용하는 userId", example = "1")
@@ -42,4 +43,20 @@ public class MeetingCreatorDto {
 			user.getActivities(), user.getPhone());
 	}
 
+	@JsonCreator // JSON 역직렬화를 위한 생성자
+	public MeetingCreatorDto(
+		@JsonProperty("id") Integer id,
+		@JsonProperty("name") String name,
+		@JsonProperty("orgId") Integer orgId,
+		@JsonProperty("profileImage") String profileImage,
+		@JsonProperty("activities") List<UserActivityVO> activities,
+		@JsonProperty("phone") String phone
+	) {
+		this.id = id;
+		this.name = name;
+		this.orgId = orgId;
+		this.profileImage = profileImage;
+		this.activities = activities;
+		this.phone = phone;
+	}
 }

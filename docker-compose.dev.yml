@@ -3,28 +3,28 @@ version: "3.7"
 services:
   swagger:
     labels:
-      caddy: localhost crew.api.dev.sopt.org
+      caddy: localhost
 
   nestjs-green:
     environment:
       - NODE_ENV=dev
     labels:
-      caddy: localhost crew.api.dev.sopt.org
+      caddy: localhost
 
   spring-green:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
     labels:
-      caddy: localhost crew.api.dev.sopt.org
+      caddy: localhost
 
   nestjs-blue:
     environment:
       - NODE_ENV=dev
     labels:
-      caddy: localhost crew.api.dev.sopt.org
+      caddy: localhost
 
   spring-blue:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
     labels:
-      caddy: localhost crew.api.dev.sopt.org
+      caddy: localhost

@@ -27,6 +27,10 @@ spring:
         format_sql: ture
       dialect: org.hibernate.dialect.PostgreSQLDialect
       storage_engine: innodb
+  data:
+    redis:
+      host: redis
+      port: 6379
 
 jwt:
   header: Authorization

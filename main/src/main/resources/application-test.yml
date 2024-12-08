@@ -25,6 +25,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
       storage_engine: innodb
     defer-datasource-initialization: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 jwt:
   header: Authorization

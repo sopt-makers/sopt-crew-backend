@@ -120,7 +120,7 @@ public class ControllerExceptionAdvice {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ExceptionResponse> handleException(Exception e) {
-		log.error("{}", e.getMessage());
+		log.error("", e);
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 			.body(ExceptionResponse.fail(
 				ErrorStatus.INTERNAL_SERVER_ERROR.getErrorCode()));

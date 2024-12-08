@@ -142,10 +142,8 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 	public static MeetingV2GetMeetingByIdResponseDto of(Meeting meeting, List<CoLeader> coLeaders,
 		boolean isCoLeader, long approvedCount, Boolean isHost, Boolean isApply,
-		Boolean isApproved, User meetingCreator,
+		Boolean isApproved, MeetingCreatorDto meetingCreatorDto,
 		List<ApplyWholeInfoDto> appliedInfo, LocalDateTime now) {
-
-		MeetingCreatorDto meetingCreatorDto = MeetingCreatorDto.of(meetingCreator);
 
 		Integer meetingStatus = meeting.getMeetingStatusValue(now);
 
@@ -155,8 +153,8 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 		return new MeetingV2GetMeetingByIdResponseDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(),
 			meeting.getCategory().getValue(), meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(),
-			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getMStartDate(),
-			meeting.getMEndDate(), meeting.getLeaderDesc(), meeting.getNote(),
+			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getmStartDate(),
+			meeting.getmEndDate(), meeting.getLeaderDesc(), meeting.getNote(),
 			meeting.getIsMentorNeeded(), meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), coLeaderResponseDtos, isCoLeader,
 			meetingStatus,
@@ -169,9 +167,5 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 	public LocalDateTime getmEndDate() {
 		return mEndDate;
-	}
-
-	public boolean getIsCoLeader() {
-		return this.isCoLeader;
 	}
 }

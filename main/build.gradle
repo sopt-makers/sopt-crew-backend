@@ -99,6 +99,13 @@ dependencies {
 
     // Slack Webhook
     implementation 'com.github.maricn:logback-slack-appender:1.4.0'
+
+    // redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate6'
+
 }
 
 tasks.named('test') {
