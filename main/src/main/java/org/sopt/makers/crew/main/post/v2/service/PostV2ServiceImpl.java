@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.post.v2.service;
 
 import static java.util.stream.Collectors.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.*;
+import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.*;
 
 import java.util.List;
 import java.util.Map;
@@ -12,7 +12,7 @@ import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.global.util.CustomPageable;
+import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
@@ -30,8 +30,8 @@ import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
-import org.sopt.makers.crew.main.internal.notification.PushNotificationService;
-import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.external.notification.PushNotificationService;
+import org.sopt.makers.crew.main.external.notification.dto.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
@@ -139,7 +139,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	public PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, Integer userId) {
 		Sort sort = Sort.by(Sort.Direction.ASC, "id");
 		Page<PostDetailResponseDto> meetingPostListDtos = postRepository.findPostList(queryCommand,
-			new CustomPageable(queryCommand.getPage() - 1, sort), userId);
+			new AdvertisementCustomPageable(queryCommand.getPage() - 1, sort), userId);
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetingPostListDtos.getPageable().getPageNumber() + 1,
 			meetingPostListDtos.getPageable().getPageSize());

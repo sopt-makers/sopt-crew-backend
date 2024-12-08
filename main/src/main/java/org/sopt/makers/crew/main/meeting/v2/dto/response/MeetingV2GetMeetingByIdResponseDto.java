@@ -145,7 +145,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 		Boolean isApproved, MeetingCreatorDto meetingCreatorDto,
 		List<ApplyWholeInfoDto> appliedInfo, LocalDateTime now) {
 
-		Integer meetingStatus = meeting.getMeetingStatus(now);
+		Integer meetingStatus = meeting.getMeetingStatusValue(now);
 
 		List<MeetingV2CoLeaderResponseDto> coLeaderResponseDtos = coLeaders.stream()
 			.map(coLeader -> MeetingV2CoLeaderResponseDto.of(coLeader.getUser()))

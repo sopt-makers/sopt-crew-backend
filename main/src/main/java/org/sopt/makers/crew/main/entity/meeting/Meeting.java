@@ -8,6 +8,7 @@ import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -214,14 +215,17 @@ public class Meeting extends BaseTimeEntity {
 	 *
 	 * @return 모임 모집상태
 	 */
-	public Integer getMeetingStatus(LocalDateTime now) {
+	public Integer getMeetingStatusValue(LocalDateTime now) {
+		return getMeetingStatus(now).getValue();
+	}
 
+	public EnMeetingStatus getMeetingStatus(LocalDateTime now) {
 		if (now.isBefore(startDate)) {
-			return EnMeetingStatus.BEFORE_START.getValue();
+			return EnMeetingStatus.BEFORE_START;
 		} else if (now.isBefore(endDate)) {
-			return EnMeetingStatus.APPLY_ABLE.getValue();
+			return EnMeetingStatus.APPLY_ABLE;
 		} else {
-			return EnMeetingStatus.RECRUITMENT_COMPLETE.getValue();
+			return EnMeetingStatus.RECRUITMENT_COMPLETE;
 		}
 	}
 

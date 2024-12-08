@@ -1,14 +1,13 @@
-package org.sopt.makers.crew.main.internal.notification;
+package org.sopt.makers.crew.main.external.notification;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
-import static org.sopt.makers.crew.main.internal.notification.PushNotificationEnums.PUSH_NOTIFICATION_ACTION;
 
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.sopt.makers.crew.main.internal.notification.dto.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.external.notification.dto.PushNotificationRequestDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +27,7 @@ public class PushNotificationService {
 	public void sendPushNotification(PushNotificationRequestDto request) {
 		try {
 			pushServerClient.sendPushNotification(pushNotificationApiKey,
-				PUSH_NOTIFICATION_ACTION.getValue(), UUID.randomUUID().toString(), service, request);
+				PushNotificationEnums.PUSH_NOTIFICATION_ACTION.getValue(), UUID.randomUUID().toString(), service, request);
 		}catch (Exception e){
 			log.error(NOTIFICATION_SERVER_ERROR.getErrorCode(), e);
 		}

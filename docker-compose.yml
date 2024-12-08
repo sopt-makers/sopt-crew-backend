@@ -19,6 +19,11 @@ services:
       caddy.log.output: stdout
       caddy.log.format: json
       caddy.log.include: http.log.access.localhost
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
 
   swagger:
     image: swaggerapi/swagger-ui
@@ -42,9 +47,23 @@ services:
     labels:
       caddy.route: /docs*
       caddy.route.reverse_proxy: "{{ upstreams 8080 }}"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    hostname: redis
+    ports:
+      - 6379:6379
+    networks:
+      - caddy
 
   nestjs-green:
-    image: makerscrew/server:latest
+    image: makerscrew/server:develop
     container_name: nestjs-green
     ports:
       - 3001:3000
@@ -107,17 +126,28 @@ services:
       caddy.route_14.reverse_proxy: "{{ upstreams 3000 }}"
 
   spring-green:
-    image: makerscrew/main:latest
+    image: makerscrew/main:develop
     environment:
-      - TZ=Asia/Seoul
+      TZ: Asia/Seoul
     container_name: spring-green
     ports:
       - 4001:4000
+      - 5556:5555
     restart: unless-stopped
     depends_on:
       - nestjs-green
+      - pinpoint-agent
+      - redis
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "100"
     networks:
       - caddy
+    volumes:
+      - data-volume:/pinpoint-agent
+
     labels:
       caddy.log: "localhost"
       # for Swagger spec
@@ -152,9 +182,17 @@ services:
       caddy.route_13.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_14: /auth/v2/*
       caddy.route_14.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_15: /8da2d7e6-72aa-4120-9e84-8f459a2584a1/*
+      caddy.route_15.reverse_proxy: "{{ upstreams 5555 }}"
+      caddy.route_16: /internal/*
+      caddy.route_16.reverse_proxy: "{{ upstreams 4000 }}"
 
   nestjs-blue:
-    image: makerscrew/server:latest
+    image: makerscrew/server:develop
+    container_name: nestjs-blue
+    ports:
+      - 3002:3000
+    restart: unless-stopped
     env_file:
       - ./.env
     environment:
@@ -170,10 +208,11 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION}
       - JWT_SECRET=${JWT_SECRET}
-    container_name: nestjs-blue
-    ports:
-      - 3002:3000
-    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
     networks:
       - caddy
     labels:
@@ -212,17 +251,27 @@ services:
       caddy.route_14.reverse_proxy: "{{ upstreams 3000 }}"
 
   spring-blue:
-    image: makerscrew/main:latest
+    image: makerscrew/main:develop
     environment:
-      - TZ=Asia/Seoul
+      TZ: Asia/Seoul
     container_name: spring-blue
     ports:
       - 4002:4000
+      - 5557:5555
     restart: unless-stopped
     depends_on:
       - nestjs-blue
+      - pinpoint-agent
+      - redis
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "100"
     networks:
       - caddy
+    volumes:
+      - data-volume:/pinpoint-agent
     labels:
       caddy.log: "localhost"
       # for Swagger spec
@@ -257,6 +306,36 @@ services:
       caddy.route_13.reverse_proxy: "{{ upstreams 4000 }}"
       caddy.route_14: /auth/v2/*
       caddy.route_14.reverse_proxy: "{{ upstreams 4000 }}"
+      caddy.route_15: /8da2d7e6-72aa-4120-9e84-8f459a2584a1/*
+      caddy.route_15.reverse_proxy: "{{ upstreams 5555 }}"
+      caddy.route_16: /internal/*
+      caddy.route_16.reverse_proxy: "{{ upstreams 4000 }}"
+
+  pinpoint-agent:
+    image: pinpointdocker/pinpoint-agent:2.5.3
+    container_name: pinpoint-agent
+    restart: always
+    networks:
+      - caddy
+    volumes:
+      - data-volume:/pinpoint-agent
+    environment:
+      - SPRING_PROFILES=release
+      - COLLECTOR_IP=13.125.50.135
+      - PROFILER_TRANSPORT_AGENT_COLLECTOR_PORT=9991
+      - PROFILER_TRANSPORT_METADATA_COLLECTOR_PORT=9991
+      - PROFILER_TRANSPORT_STAT_COLLECTOR_PORT=9992
+      - PROFILER_TRANSPORT_SPAN_COLLECTOR_PORT=9993
+      - PROFILER_SAMPLING_TYPE=COUNTING
+      - PROFILER_SAMPLING_COUNTING_SAMPLING_RATE=1
+      - PROFILER_SAMPLING_PERCENT_SAMPLING_RATE=100
+      - PROFILER_SAMPLING_NEW_THROUGHPUT=0
+      - PROFILER_SAMPLING_CONTINUE_THROUGHPUT=0
+      - DEBUG_LEVEL=INFO
+      - PROFILER_TRANSPORT_MODULE=GRPC
+
+volumes:
+  data-volume:
 
 networks:
   caddy:

@@ -118,7 +118,7 @@ public class MeetingV2GetMeetingBannerResponseDto {
 			meeting.getImageURL(), meeting.getmStartDate(), meeting.getmEndDate(), meeting.getStartDate(),
 			meeting.getEndDate(), meeting.getCapacity(), recentActivityDate, meeting.getTargetActiveGeneration(),
 			meeting.getJoinableParts(), applicantCount, approvedUserCount,
-			meetingCreator, meeting.getMeetingStatus(now));
+			meetingCreator, meeting.getMeetingStatusValue(now));
 	}
 
 }

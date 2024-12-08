@@ -38,6 +38,7 @@ public enum ErrorStatus {
 	CO_LEADER_CANNOT_APPLY("공동 모임장은 신청할 수 없습니다."),
 	LEADER_CANNOT_BE_CO_LEADER_APPLY("모임장은 공동 모임장이 될 수 없습니다."),
 	NOT_ALLOW_MEETING_APPLY("허용되지 않는 모임 신청입니다."),
+	IO_EXCEPTION("파일 입출력 오류가 발생했습니다."),
 
 	/**
 	 * 401 UNAUTHORIZED

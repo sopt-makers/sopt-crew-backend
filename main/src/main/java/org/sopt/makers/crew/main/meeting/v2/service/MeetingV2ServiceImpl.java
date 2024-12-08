@@ -37,7 +37,7 @@ import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.global.util.CustomPageable;
+import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.global.util.UserPartUtil;
 import org.sopt.makers.crew.main.entity.apply.Applies;
@@ -303,7 +303,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2GetAllMeetingDto getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand) {
 		Sort sort = Sort.by(Sort.Direction.ASC, "id");
 		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand,
-			new CustomPageable(queryCommand.getPage() - 1, sort), time);
+			new AdvertisementCustomPageable(queryCommand.getPage() - 1, sort), time);
 		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
@@ -557,7 +557,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private void validateUserActivities(User user) {
-		if (user.getActivities().isEmpty()) {
+		if (user.getActivities() == null || user.getActivities().isEmpty()) {
 			throw new BadRequestException(MISSING_GENERATION_PART.getErrorCode());
 		}
 	}

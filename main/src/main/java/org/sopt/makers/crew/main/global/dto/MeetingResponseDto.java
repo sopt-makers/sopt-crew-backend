@@ -91,7 +91,7 @@ public class MeetingResponseDto {
 
 		return new MeetingResponseDto(meeting.getId(), meeting.getTitle(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory().getValue(),
-			canJoinOnlyActiveGeneration, meeting.getMeetingStatus(now), meeting.getImageURL(),
+			canJoinOnlyActiveGeneration, meeting.getMeetingStatusValue(now), meeting.getImageURL(),
 			meeting.getIsMentorNeeded(), meeting.getmStartDate(), meeting.getmEndDate(), meeting.getCapacity(),
 			creatorDto, approvedCount, approvedCount);
 	}

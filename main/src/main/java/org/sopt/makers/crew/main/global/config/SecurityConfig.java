@@ -52,7 +52,8 @@ public class SecurityConfig {
 			"/meeting/v2/org-user/**",
 			"/auth/v2",
 			"/auth/v2/**",
-			actuatorEndPoint + "/health"
+			actuatorEndPoint + "/health",
+			"/internal/**"
 		};
 	}
 
@@ -91,7 +92,7 @@ public class SecurityConfig {
 				"https://playground.sopt.org/",
 				"http://localhost:3000/",
 				"https://sopt-internal-dev.pages.dev/",
-				"https://crew.api.develop.sopt.org",
+				"https://crew.api.dev.sopt.org",
 				"https://crew.api.prod.sopt.org"
 			));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"));
