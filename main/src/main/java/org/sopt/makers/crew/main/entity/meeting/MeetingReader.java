@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class MeetingReader {
 
 	private final MeetingRepository meetingRepository;
