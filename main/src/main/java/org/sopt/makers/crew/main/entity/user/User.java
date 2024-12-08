@@ -26,7 +26,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user")
-//@JsonIgnoreProperties({"recentActivityVO", "setUserIdForTest"})
 @JsonIgnoreProperties({"recentActivityVO", "setUserIdForTest", "hibernateLazyInitializer", "handler"})
 public class User extends BaseTimeEntity {
 
