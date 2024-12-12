@@ -423,9 +423,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2GetMeetingByIdResponseDto getMeetingById(Integer meetingId, Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
-		Meeting meeting = meetingReader.getMeetingById(meetingId);
+		Meeting meeting = meetingReader.getMeetingById(meetingId).toEntity();
 		MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(meeting.getUserId());
-		CoLeaders coLeaders = new CoLeaders(coLeaderReader.getCoLeaders(meetingId));
+		CoLeaders coLeaders = coLeaderReader.getCoLeaders(meetingId).toEntity();
 
 		Applies applies = new Applies(
 			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
@@ -443,7 +443,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.toList();
 		}
 
-		return MeetingV2GetMeetingByIdResponseDto.of(meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
+		return MeetingV2GetMeetingByIdResponseDto.of(meetingId, meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
 			approvedCount, isHost, isApply, isApproved,
 			meetingLeader, applyWholeInfoDtos, time.now());
 	}
