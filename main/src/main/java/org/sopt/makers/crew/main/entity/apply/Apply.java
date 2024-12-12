@@ -25,6 +25,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -94,6 +95,7 @@ public class Apply extends BaseTimeEntity {
 	@Convert(converter = ApplyStatusConverter.class)
 	private EnApplyStatus status;
 
+	@Builder
 	public Apply(EnApplyType type, Meeting meeting, Integer meetingId, User user, Integer userId,
 		String content) {
 		this.type = type;
