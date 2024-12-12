@@ -23,14 +23,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @EnableCaching
 public class RedisConfig {
 
-	@Value("${spring.data.redis.host}")
-	private String redisHost;
-	@Value("${spring.data.redis.port}")
-	private int redisPort;
-
 	@Bean
-	public RedisConnectionFactory redisConnectionFactory() {
-		return new LettuceConnectionFactory(redisHost, redisPort);
+	public RedisConnectionFactory redisConnectionFactory(RedisProperties redisProperties) {
+		return new LettuceConnectionFactory(redisProperties.getHost(), redisProperties.getPort());
 	}
 
 	@Bean
