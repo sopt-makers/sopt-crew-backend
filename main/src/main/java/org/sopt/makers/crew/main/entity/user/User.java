@@ -26,7 +26,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user")
-@JsonIgnoreProperties({"recentActivityVO", "setUserIdForTest", "hibernateLazyInitializer", "handler"})
 public class User extends BaseTimeEntity {
 
     /**
@@ -69,8 +68,9 @@ public class User extends BaseTimeEntity {
     private String phone;
 
     @Builder
-    public User(String name, Integer orgId, List<UserActivityVO> activities, String profileImage,
+    public User(Integer id, String name, Integer orgId, List<UserActivityVO> activities, String profileImage,
                 String phone) {
+        this.id = id;
         this.name = name;
         this.orgId = orgId;
         this.activities = activities;
