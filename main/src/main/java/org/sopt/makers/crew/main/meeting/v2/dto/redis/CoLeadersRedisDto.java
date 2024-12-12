@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.meeting.v2.dto.redis;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,7 +19,7 @@ public class CoLeadersRedisDto {
 	private final Map<Integer, List<CoLeaderRedisDto>> coLeadersMap;
 
 	public CoLeadersRedisDto() {
-		this.coLeadersMap = null; // 기본 값으로 설정하거나 필요시 초기화
+		this.coLeadersMap = new HashMap<>(); // 기본 값으로 설정하거나 필요시 초기화
 	}
 
 	public CoLeadersRedisDto(List<CoLeader> coLeaders) {
