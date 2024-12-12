@@ -1,8 +1,6 @@
 package org.sopt.makers.crew.main.external.redis;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
