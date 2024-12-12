@@ -24,7 +24,7 @@ public class ImageUrlVO {
 		this.url = url;
 	}
 
-	private static void validateImageUrlVO(Integer id, String url) {
+	private void validateImageUrlVO(Integer id, String url) {
 		if (id == null || id < 0) {
 			throw new IllegalArgumentException(INVALID_INPUT_VALUE.getErrorCode()); // 커스텀 에러로 처리
 		}
