@@ -311,29 +311,6 @@ services:
       caddy.route_16: /internal/*
       caddy.route_16.reverse_proxy: "{{ upstreams 4000 }}"
 
-  pinpoint-agent:
-    image: pinpointdocker/pinpoint-agent:2.5.3
-    container_name: pinpoint-agent
-    restart: always
-    networks:
-      - caddy
-    volumes:
-      - data-volume:/pinpoint-agent
-    environment:
-      - SPRING_PROFILES=release
-      - COLLECTOR_IP=13.125.50.135
-      - PROFILER_TRANSPORT_AGENT_COLLECTOR_PORT=9991
-      - PROFILER_TRANSPORT_METADATA_COLLECTOR_PORT=9991
-      - PROFILER_TRANSPORT_STAT_COLLECTOR_PORT=9992
-      - PROFILER_TRANSPORT_SPAN_COLLECTOR_PORT=9993
-      - PROFILER_SAMPLING_TYPE=COUNTING
-      - PROFILER_SAMPLING_COUNTING_SAMPLING_RATE=1
-      - PROFILER_SAMPLING_PERCENT_SAMPLING_RATE=100
-      - PROFILER_SAMPLING_NEW_THROUGHPUT=0
-      - PROFILER_SAMPLING_CONTINUE_THROUGHPUT=0
-      - DEBUG_LEVEL=INFO
-      - PROFILER_TRANSPORT_MODULE=GRPC
-
 volumes:
   data-volume:
 
