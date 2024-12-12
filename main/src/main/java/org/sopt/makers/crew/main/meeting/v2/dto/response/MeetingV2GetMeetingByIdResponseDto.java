@@ -8,7 +8,6 @@ import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
-import org.sopt.makers.crew.main.entity.user.User;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -140,7 +139,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final List<ApplyWholeInfoDto> appliedInfo;
 
-	public static MeetingV2GetMeetingByIdResponseDto of(Meeting meeting, List<CoLeader> coLeaders,
+	public static MeetingV2GetMeetingByIdResponseDto of(Integer meetingId, Meeting meeting, List<CoLeader> coLeaders,
 		boolean isCoLeader, long approvedCount, Boolean isHost, Boolean isApply,
 		Boolean isApproved, MeetingCreatorDto meetingCreatorDto,
 		List<ApplyWholeInfoDto> appliedInfo, LocalDateTime now) {
@@ -151,7 +150,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 			.map(coLeader -> MeetingV2CoLeaderResponseDto.of(coLeader.getUser()))
 			.toList();
 
-		return new MeetingV2GetMeetingByIdResponseDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(),
+		return new MeetingV2GetMeetingByIdResponseDto(meetingId, meeting.getUserId(), meeting.getTitle(),
 			meeting.getCategory().getValue(), meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(),
 			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getmStartDate(),
 			meeting.getmEndDate(), meeting.getLeaderDesc(), meeting.getNote(),
