@@ -1,6 +1,8 @@
 package org.sopt.makers.crew.main.external.redis;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
@@ -18,8 +20,9 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
-
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @Configuration
 @EnableCaching
@@ -42,13 +45,9 @@ public class RedisConfig {
 
 		// JSON 직렬화 설정
 		ObjectMapper objectMapper = new ObjectMapper();
-		// objectMapper.registerModule(new JavaTimeModule());
-		// objectMapper.registerModule(new Hibernate6Module());
-		objectMapper.activateDefaultTyping(
-			LaissezFaireSubTypeValidator.instance,
-			ObjectMapper.DefaultTyping.NON_FINAL,
-			JsonTypeInfo.As.PROPERTY
-		);
+		objectMapper.findAndRegisterModules(); // 추가적으로 등록 가능한 모듈 자동 등록
+		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // ISO-8601 형식 사용
+
 		GenericJackson2JsonRedisSerializer jsonRedisSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
 		// Key serializer 설정
@@ -63,15 +62,26 @@ public class RedisConfig {
 		return template;
 	}
 
+
 	@Bean
 	public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+		// 기본 CacheWriter 설정
 		RedisCacheWriter redisCacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(redisConnectionFactory);
-		RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+
+		// 캐시별 설정을 저장할 Map
+		Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
+
+		// 기본 TTL 설정 (특정 캐시 이름이 없는 경우 적용)
+		RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+			.entryTtl(Duration.ofHours(24)) // 디폴트 TTL: 24시간
 			.serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
 			.serializeValuesWith(
-				RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
-			.entryTtl(Duration.ofHours(5L)); // 캐시 TTL 설정
+				RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
 
-		return new RedisCacheManager(redisCacheWriter, redisCacheConfiguration);
+		// RedisCacheManager 생성
+		return RedisCacheManager.builder(redisCacheWriter)
+			.cacheDefaults(defaultCacheConfig) // 기본 설정
+			.withInitialCacheConfigurations(cacheConfigurations) // 캐시별 설정
+			.build();
 	}
 }
