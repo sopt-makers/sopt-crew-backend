@@ -1,13 +1,14 @@
 name: Makers_Crew Dev CD
 on:
-  push:
-    branches:
-      - refactor/#477
+  workflow_run:
+    workflows: ["Makers_Crew CI"]
+    branches: ["develop"]
+    types: [completed]
 
 jobs:
   deploy:
     runs-on: ubuntu-22.04
-  #  if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     env:
       working-directory-spring: main
       working-directory-nestjs: server
