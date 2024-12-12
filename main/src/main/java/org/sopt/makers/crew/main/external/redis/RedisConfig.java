@@ -34,21 +34,15 @@ public class RedisConfig {
 	}
 
 	@Bean
-	public ObjectMapper objectMapper() {
+	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+		RedisTemplate<String, Object> template = new RedisTemplate<>();
+		template.setConnectionFactory(redisConnectionFactory);
+
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.registerModule(new JavaTimeModule());
 		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // ISO-8601 형식
 		objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(),
 			ObjectMapper.DefaultTyping.NON_FINAL); // 타입 정보 추가
-
-		return objectMapper;
-	}
-
-	@Bean
-	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory,
-		ObjectMapper objectMapper) {
-		RedisTemplate<String, Object> template = new RedisTemplate<>();
-		template.setConnectionFactory(redisConnectionFactory);
 
 		StringRedisSerializer stringSerializer = new StringRedisSerializer();
 		GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
@@ -66,8 +60,14 @@ public class RedisConfig {
 	}
 
 	@Bean
-	public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
+	public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
 		// 동일한 직렬화 설정 공유
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // ISO-8601 형식
+		objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(),
+			ObjectMapper.DefaultTyping.NON_FINAL); // 타입 정보 추가
+
 		GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
 		RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
