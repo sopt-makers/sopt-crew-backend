@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.entity.user.vo;
 
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -27,7 +29,25 @@ public class UserActivityVO {
 		@JsonProperty("part") String part,
 		@JsonProperty("generation") int generation) {
 
+		validateUserActivityVO(part, generation);
 		this.part = part;
 		this.generation = generation;
+	}
+
+	private void validateUserActivityVO(String part, int generation) {
+		// Part validation: Ensure it's not null, empty, or contain invalid characters.
+		if (part == null || part.trim().isEmpty()) {
+			throw new IllegalArgumentException(INVALID_INPUT_VALUE.getErrorCode() + part);
+		}
+
+		// Validate that part only contains letters (and optionally spaces)
+		if (!part.matches("^[a-zA-Z가-힣\s]+$")) {
+			throw new IllegalArgumentException(INVALID_INPUT_VALUE.getErrorCode() + part);
+		}
+
+		// Generation validation: Must be a positive integer
+		if (generation <= 0) {
+			throw new IllegalArgumentException(INVALID_INPUT_VALUE.getErrorCode() + generation);
+		}
 	}
 }
