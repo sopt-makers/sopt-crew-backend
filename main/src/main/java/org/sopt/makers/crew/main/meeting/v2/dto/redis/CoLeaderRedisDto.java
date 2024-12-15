@@ -34,7 +34,8 @@ public class CoLeaderRedisDto {
 	}
 
 	public CoLeader toEntity() {
-		User coLeader = new User(userId, userName, orgId, null, userProfileImage, null);
+		User coLeader = new User(userName, orgId, null, userProfileImage, null).withUserIdForRedis(userId);
+
 		return CoLeader.builder()
 			.meeting(null)
 			.user(coLeader)
