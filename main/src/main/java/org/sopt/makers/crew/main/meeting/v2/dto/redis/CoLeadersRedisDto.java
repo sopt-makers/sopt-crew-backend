@@ -8,25 +8,28 @@ import java.util.stream.Collectors;
 import org.sopt.makers.crew.main.entity.meeting.CoLeader;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
 
-
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CoLeadersRedisDto {
-	private final Map<Integer, List<CoLeaderRedisDto>> coLeadersMap;
-
-	public CoLeadersRedisDto() {
-		this.coLeadersMap = new HashMap<>(); // 기본 값으로 설정하거나 필요시 초기화
-	}
+	private final Map<Integer, List<CoLeaderRedisDto>> coLeadersMap = new HashMap<>();
 
 	public CoLeadersRedisDto(List<CoLeader> coLeaders) {
-		this.coLeadersMap = coLeaders.stream()
-			.map(coLeader -> new CoLeaderRedisDto(coLeader.getUser().getId(), coLeader.getUser().getOrgId(),
-				coLeader.getUser().getName(), coLeader.getUser().getProfileImage(), coLeader.getMeeting().getId()))
-			.collect(Collectors.groupingBy(CoLeaderRedisDto::getMeetingId));
+		coLeaders
+			.forEach(coLeader -> {
+				CoLeaderRedisDto coLeaderRedisDto = new CoLeaderRedisDto(coLeader.getUser().getId(),
+					coLeader.getUser().getOrgId(),
+					coLeader.getUser().getName(), coLeader.getUser().getProfileImage(), coLeader.getMeeting().getId());
+				List<CoLeaderRedisDto> coLeaderRedisDtos = coLeadersMap.get(coLeader.getMeeting().getId());
+				coLeaderRedisDtos.add(coLeaderRedisDto);
+				coLeadersMap.put(coLeader.getMeeting().getId(), coLeaderRedisDtos);
+			});
 	}
 
 	public CoLeaders toEntity() {
