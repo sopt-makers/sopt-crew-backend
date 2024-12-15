@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.meeting.v2.dto.redis;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,8 @@ public class CoLeadersRedisDto {
 				CoLeaderRedisDto coLeaderRedisDto = new CoLeaderRedisDto(coLeader.getUser().getId(),
 					coLeader.getUser().getOrgId(),
 					coLeader.getUser().getName(), coLeader.getUser().getProfileImage(), coLeader.getMeeting().getId());
-				List<CoLeaderRedisDto> coLeaderRedisDtos = coLeadersMap.get(coLeader.getMeeting().getId());
+				List<CoLeaderRedisDto> coLeaderRedisDtos = coLeadersMap.getOrDefault(coLeader.getMeeting().getId(),
+					new ArrayList<>());
 				coLeaderRedisDtos.add(coLeaderRedisDto);
 				coLeadersMap.put(coLeader.getMeeting().getId(), coLeaderRedisDtos);
 			});
