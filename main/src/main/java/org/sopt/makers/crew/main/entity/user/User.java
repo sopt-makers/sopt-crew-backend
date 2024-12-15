@@ -103,33 +103,69 @@ public class User extends BaseTimeEntity {
 	public boolean updateIfChanged(User playgroundUser) {
 		boolean isUpdated = false;
 
-		if (!Objects.equals(this.name, playgroundUser.getName())) {
-			this.name = playgroundUser.getName();
+		if (validateAndUpdateName(playgroundUser.getName())) {
 			isUpdated = true;
 		}
 
-		if (!Objects.equals(this.orgId, playgroundUser.getId())) {
-			this.orgId = playgroundUser.getId();
+		if (validateAndUpdateOrgId(playgroundUser.getId())) {
 			isUpdated = true;
 		}
 
-		if (!Objects.equals(this.activities, playgroundUser.getActivities())) {
-			this.activities = playgroundUser.getActivities();
+		if (validateAndUpdateActivities(playgroundUser.getActivities())) {
 			isUpdated = true;
 		}
 
-		if (!Objects.equals(this.profileImage, playgroundUser.getProfileImage())) {
-			this.profileImage = playgroundUser.getProfileImage();
+		if (validateAndUpdateProfileImage(playgroundUser.getProfileImage())) {
 			isUpdated = true;
 		}
 
-		if (!Objects.equals(this.phone, playgroundUser.getPhone())) {
-			this.phone = playgroundUser.getPhone();
+		if (validateAndUpdatePhone(playgroundUser.getPhone())) {
 			isUpdated = true;
 		}
 
 		return isUpdated;
 	}
+
+	private boolean validateAndUpdateName(String newName) {
+		if (!Objects.equals(this.name, newName)) {
+			this.name = newName;
+			return true;
+		}
+		return false;
+	}
+
+	private boolean validateAndUpdateOrgId(Integer newOrgId) {
+		if (!Objects.equals(this.orgId, newOrgId)) {
+			this.orgId = newOrgId;
+			return true;
+		}
+		return false;
+	}
+
+	private boolean validateAndUpdateActivities(List<UserActivityVO> newActivities) {
+		if (!Objects.equals(this.activities, newActivities)) {
+			this.activities = newActivities;
+			return true;
+		}
+		return false;
+	}
+
+	private boolean validateAndUpdateProfileImage(String newProfileImage) {
+		if (!Objects.equals(this.profileImage, newProfileImage)) {
+			this.profileImage = newProfileImage;
+			return true;
+		}
+		return false;
+	}
+
+	private boolean validateAndUpdatePhone(String newPhone) {
+		if (!Objects.equals(this.phone, newPhone)) {
+			this.phone = newPhone;
+			return true;
+		}
+		return false;
+	}
+
 
 	public List<UserActivityVO> getActivities() {
 		return activities;
