@@ -8,6 +8,7 @@ import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -245,8 +246,8 @@ public class Meeting extends BaseTimeEntity {
 		this.capacity = updateMeeting.getCapacity();
 		this.desc = updateMeeting.getDesc();
 		this.processDesc = updateMeeting.getProcessDesc();
-		this.mStartDate = updateMeeting.mStartDate;
-		this.mEndDate = updateMeeting.getMEndDate();
+		this.mStartDate = updateMeeting.getmStartDate();
+		this.mEndDate = updateMeeting.getmEndDate();
 		this.leaderDesc = updateMeeting.getLeaderDesc();
 		this.note = updateMeeting.getNote();
 		this.isMentorNeeded = updateMeeting.getIsMentorNeeded();
@@ -254,5 +255,14 @@ public class Meeting extends BaseTimeEntity {
 		this.targetActiveGeneration = updateMeeting.getTargetActiveGeneration();
 		this.joinableParts = updateMeeting.getJoinableParts();
 	}
+
+	public LocalDateTime getmStartDate() {
+		return mStartDate;
+	}
+
+	public LocalDateTime getmEndDate() {
+		return mEndDate;
+	}
+
 
 }

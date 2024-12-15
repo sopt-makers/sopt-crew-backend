@@ -17,7 +17,7 @@ public enum ErrorStatus {
 	 */
 	VALIDATION_EXCEPTION("CF-001"),
 	VALIDATION_REQUEST_MISSING_EXCEPTION("요청값이 입력되지 않았습니다."),
-	INVALID_INPUT_VALUE("요청값이 올바르지 않습니다."),
+	INVALID_INPUT_VALUE("요청값이 올바르지 않습니다. : "),
 	INVALID_INPUT_VALUE_FILTER("요청값 또는 토큰이 올바르지 않습니다."),
 	NOT_FOUND_MEETING("모임이 없습니다."),
 	NOT_FOUND_POST("존재하지 않는 게시글입니다."),
