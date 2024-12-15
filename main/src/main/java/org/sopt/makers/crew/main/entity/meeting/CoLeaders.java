@@ -25,6 +25,10 @@ public class CoLeaders {
 			.collect(Collectors.groupingBy(coLeader -> coLeader.getMeeting().getId()));
 	}
 
+	public CoLeaders(Map<Integer, List<CoLeader>> coLeadersMap) {
+		this.coLeadersMap = coLeadersMap;
+	}
+
 	public void validateCoLeader(Integer meetingId, Integer requestUserId) {
 		if (isCoLeader(meetingId, requestUserId)) {
 			throw new BadRequestException(CO_LEADER_CANNOT_APPLY.getErrorCode());

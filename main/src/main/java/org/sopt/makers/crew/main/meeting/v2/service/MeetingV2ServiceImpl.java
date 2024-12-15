@@ -1,8 +1,8 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
-import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,28 +22,16 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.sopt.makers.crew.main.entity.apply.Applies;
-import org.sopt.makers.crew.main.entity.apply.Apply;
-import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
-import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
-import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
-import org.sopt.makers.crew.main.entity.comment.Comment;
-import org.sopt.makers.crew.main.entity.comment.CommentRepository;
-import org.sopt.makers.crew.main.entity.like.LikeRepository;
+import lombok.RequiredArgsConstructor;
+
 import org.sopt.makers.crew.main.entity.meeting.CoLeader;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderReader;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
-import org.sopt.makers.crew.main.entity.meeting.Meeting;
-import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
-import org.sopt.makers.crew.main.entity.post.Post;
-import org.sopt.makers.crew.main.entity.post.PostRepository;
-import org.sopt.makers.crew.main.entity.user.User;
-import org.sopt.makers.crew.main.entity.user.UserRepository;
-import org.sopt.makers.crew.main.entity.user.enums.UserPart;
-import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
-import org.sopt.makers.crew.main.external.s3.service.S3Service;
+import org.sopt.makers.crew.main.entity.user.UserReader;
+import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
@@ -52,6 +40,24 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.global.util.UserPartUtil;
+import org.sopt.makers.crew.main.entity.apply.Applies;
+import org.sopt.makers.crew.main.entity.apply.Apply;
+import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
+import org.sopt.makers.crew.main.entity.comment.Comment;
+import org.sopt.makers.crew.main.entity.comment.CommentRepository;
+import org.sopt.makers.crew.main.entity.like.LikeRepository;
+import org.sopt.makers.crew.main.entity.meeting.Meeting;
+import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.post.Post;
+import org.sopt.makers.crew.main.entity.post.PostRepository;
+import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.entity.user.enums.UserPart;
+import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
@@ -72,6 +78,8 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingD
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -79,8 +87,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.opencsv.CSVWriter;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -96,6 +102,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
 	private final CoLeaderRepository coLeaderRepository;
+	private final MeetingReader meetingReader;
+	private final CoLeaderReader coLeaderReader;
+	private final UserReader userReader;
 
 	private final S3Service s3Service;
 
@@ -124,7 +133,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.map(meeting -> MeetingV2GetAllMeetingByOrgUserMeetingDto.of(meeting.getId(),
 					meeting.checkMeetingLeader(existUser.getId()), meeting.getTitle(),
 					meeting.getImageURL().get(0).getUrl(), meeting.getCategory().getValue(),
-					meeting.getMStartDate(), meeting.getMEndDate(), checkActivityStatus(meeting)))
+					meeting.getmStartDate(), meeting.getmEndDate(), checkActivityStatus(meeting)))
 				.sorted(Comparator.comparing(MeetingV2GetAllMeetingByOrgUserMeetingDto::getId).reversed())
 				.collect(Collectors.toList());
 		}
@@ -340,6 +349,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		meetingRepository.delete(meeting);
 	}
 
+	@Caching(evict = {
+		@CacheEvict(value = "meetingCache", key = "#meetingId"),
+		@CacheEvict(value = "meetingLeaderCache", key = "#userId"),
+		@CacheEvict(value = "coLeadersCache", key = "#meetingId")
+	})
 	@Override
 	@Transactional
 	public void updateMeeting(Integer meetingId, MeetingV2CreateMeetingBodyDto requestBody, Integer userId) {
@@ -409,9 +423,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2GetMeetingByIdResponseDto getMeetingById(Integer meetingId, Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
-		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-		User meetingLeader = userRepository.findByIdOrThrow(meeting.getUserId());
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meetingId));
+		Meeting meeting = meetingReader.getMeetingById(meetingId).toEntity();
+		MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(meeting.getUserId());
+		CoLeaders coLeaders = coLeaderReader.getCoLeaders(meetingId).toEntity();
 
 		Applies applies = new Applies(
 			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
@@ -429,7 +443,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.toList();
 		}
 
-		return MeetingV2GetMeetingByIdResponseDto.of(meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
+		return MeetingV2GetMeetingByIdResponseDto.of(meetingId, meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
 			approvedCount, isHost, isApply, isApproved,
 			meetingLeader, applyWholeInfoDtos, time.now());
 	}
@@ -480,8 +494,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private Boolean checkActivityStatus(Meeting meeting) {
 		LocalDateTime now = time.now();
-		LocalDateTime mStartDate = meeting.getMStartDate();
-		LocalDateTime mEndDate = meeting.getMEndDate();
+		LocalDateTime mStartDate = meeting.getmStartDate();
+		LocalDateTime mEndDate = meeting.getmEndDate();
 		return now.isEqual(mStartDate) || (now.isAfter(mStartDate) && now.isBefore(mEndDate));
 	}
 
@@ -543,7 +557,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private void validateUserActivities(User user) {
-		if (user.getActivities().isEmpty()) {
+		if (user.getActivities() == null || user.getActivities().isEmpty()) {
 			throw new BadRequestException(MISSING_GENERATION_PART.getErrorCode());
 		}
 	}

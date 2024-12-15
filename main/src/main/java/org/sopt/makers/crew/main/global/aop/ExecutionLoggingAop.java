@@ -26,11 +26,12 @@ public class ExecutionLoggingAop {
 
 	/**
 	 * @implNote : 일부 클래스를 제외하고, 모든 클래스의 메서드의 시작과 끝을 로깅한다.
-	 * @implNote : 제외 클래스 - global 패키지, config 관련 패키지, Test 클래스
+	 * @implNote : 제외 클래스 - global 패키지, config 관련 패키지, Test 클래스, redis 클래스
 	 * */
 	@Around("execution(* org.sopt.makers.crew.main..*(..)) "
 		+ "&& !within(org.sopt.makers.crew.main.global..*) "
 		+ "&& !within(org.sopt.makers.crew.main.external.s3.config..*)"
+		+ "&& !within(org.sopt.makers.crew.main.external.redis..*) "
 	)
 	public Object logExecutionTrace(ProceedingJoinPoint pjp) throws Throwable {
 		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest();

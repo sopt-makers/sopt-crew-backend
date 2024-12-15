@@ -1,15 +1,16 @@
 package org.sopt.makers.crew.main.auth.v2.service;
 
-import java.util.Optional;
-
 import org.sopt.makers.crew.main.auth.v2.dto.request.AuthV2RequestDto;
 import org.sopt.makers.crew.main.auth.v2.dto.response.AuthV2ResponseDto;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.global.jwt.JwtTokenProvider;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.playground.PlaygroundService;
 import org.sopt.makers.crew.main.external.playground.dto.request.PlaygroundUserRequestDto;
 import org.sopt.makers.crew.main.external.playground.dto.response.PlaygroundUserResponseDto;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthV2ServiceImpl implements AuthV2Service {
 
 	private final UserRepository userRepository;
+	private final CoLeaderRepository coLeaderRepository;
 
 	private final PlaygroundService playgroundService;
 	private final JwtTokenProvider jwtTokenProvider;
@@ -30,35 +32,61 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 	@Override
 	@Transactional
 	public AuthV2ResponseDto loginUser(AuthV2RequestDto requestDto) {
+		PlaygroundUserResponseDto responseDto = fetchPlaygroundUser(requestDto);
+		User curUser = userRepository.findByOrgId(responseDto.getId())
+			.orElseGet(() -> signUpNewUser(responseDto));
 
-		// 플그 서버로의 요청
-		PlaygroundUserResponseDto responseDto = playgroundService.getUser(PlaygroundUserRequestDto.of(requestDto.authToken()));
-		Optional<User> user = userRepository.findByOrgId(responseDto.getId());
-
-		/**
-		 * @note: 회원가입 경우
-		 *
-		 * */
-		if (user.isEmpty()) {
-			User newUser = responseDto.toEntity();
-			userRepository.save(newUser);
-
-			log.info("new user signup : {} {}", newUser.getId(), newUser.getName());
-			String accessToken = jwtTokenProvider.generateAccessToken(newUser.getId(), newUser.getName());
-			return AuthV2ResponseDto.of(accessToken);
+		if (updateUserIfChanged(curUser, responseDto)) {
+			clearCacheForUser(curUser.getId());
 		}
 
-		/**
-		 * @note: 로그인 경우 : 기존 정보에서 변화있는 부분은 업데이트 한다.
-		 *
-		 * */
-		User curUser = user.get();
-		curUser.updateUser(responseDto.getName(), responseDto.getId(), responseDto.getUserActivities(),
-			responseDto.getProfileImage(), responseDto.getPhone());
-
 		String accessToken = jwtTokenProvider.generateAccessToken(curUser.getId(), curUser.getName());
-		log.info("accessToken : {}", accessToken);
-
+		log.info("Access token generated for user {}: {}", curUser.getId(), accessToken);
 		return AuthV2ResponseDto.of(accessToken);
+	}
+
+	private PlaygroundUserResponseDto fetchPlaygroundUser(AuthV2RequestDto requestDto) {
+		return playgroundService.getUser(PlaygroundUserRequestDto.of(requestDto.authToken()));
+	}
+
+	private User signUpNewUser(PlaygroundUserResponseDto responseDto) {
+		User newUser = responseDto.toEntity();
+		User savedUser = userRepository.save(newUser);
+		log.info("New user signup: {} {}", savedUser.getId(), savedUser.getName());
+		return savedUser;
+	}
+
+	private boolean updateUserIfChanged(User curUser, PlaygroundUserResponseDto responseDto) {
+		User playgroundUser = responseDto.toEntity();
+		boolean isUpdated = curUser.updateIfChanged(playgroundUser);
+
+		if (isUpdated) {
+			log.info("User updated: {}", curUser.getId());
+		}
+
+		return isUpdated;
+	}
+
+	private void clearCacheForUser(Integer userId) {
+		clearCacheForLeader(userId);
+
+		coLeaderRepository.findAllByUserIdWithMeeting(userId).forEach(
+			coLeader -> clearCacheForCoLeader(coLeader.getMeeting().getId())
+		);
+		log.info("Cache cleared for user: {}", userId);
+	}
+
+	@Caching(evict = {
+		@CacheEvict(value = "meetingLeaderCache", key = "#userId")
+	})
+	public void clearCacheForLeader(Integer userId) {
+
+	}
+
+	@Caching(evict = {
+		@CacheEvict(value = "coLeadersCache", key = "#meetingId")
+	})
+	public void clearCacheForCoLeader(Integer meetingId) {
+
 	}
 }

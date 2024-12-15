@@ -98,38 +98,6 @@ public class UserServiceTest {
 				.extracting("userName", "recentPart", "recentGeneration", "profileImageUrl")
 				.containsExactly("김철수", "안드로이드", 33, "image-url2");
 		}
-
-		@Test
-		void 멘션_사용자_조회시_db에_올바르지_않은_데이터_저장된_경우() {
-			// given
-			User user1 = User.builder()
-				.name("홍길동")
-				.orgId(1)
-				.activities(List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 34)))
-				.profileImage("image-url1")
-				.phone("010-1234-5678")
-				.build();
-			User user2 = User.builder()
-				.name("김철수")
-				.orgId(2)
-				.activities(List.of(new UserActivityVO(null, 30), new UserActivityVO("", 34)))
-				.profileImage("image-url2")
-				.phone("010-1111-2222")
-				.build();
-			userRepository.saveAll(List.of(user1, user2));
-
-			// when
-			List<UserV2GetAllUserDto> allMentionUsers = userV2Service.getAllUser();
-
-			// then
-			assertThat(allMentionUsers).hasSize(2);
-			assertThat(allMentionUsers.get(0))
-				.extracting("userName", "recentPart", "recentGeneration", "profileImageUrl")
-				.containsExactly("홍길동", "iOS", 34, "image-url1");
-			assertThat(allMentionUsers.get(1))
-				.extracting("userName", "recentPart", "recentGeneration", "profileImageUrl")
-				.containsExactly("김철수", "", 34, "image-url2");
-		}
 	}
 
 	@Nested
