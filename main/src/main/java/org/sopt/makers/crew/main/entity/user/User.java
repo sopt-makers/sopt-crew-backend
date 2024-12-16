@@ -107,7 +107,7 @@ public class User extends BaseTimeEntity {
 			isUpdated = true;
 		}
 
-		if (validateAndUpdateOrgId(playgroundUser.getId())) {
+		if (validateAndUpdateOrgId(playgroundUser.getOrgId())) {
 			isUpdated = true;
 		}
 
