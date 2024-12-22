@@ -35,7 +35,7 @@ public class Lightning extends BaseTimeEntity {
 	private Integer leaderUserId;
 
 	@NotNull
-	@Size(min = 0, max = 30)
+	@Size(min = 1, max = 30)
 	private String title;
 
 	@Column(name = "imageURL", columnDefinition = "jsonb")
