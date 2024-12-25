@@ -1,41 +1,38 @@
 package org.sopt.makers.crew.main.entity.apply;
 
-import static jakarta.persistence.GenerationType.IDENTITY;
+import static jakarta.persistence.GenerationType.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+
+import java.time.LocalDateTime;
+
+import org.sopt.makers.crew.main.entity.apply.enums.ApplyStatusConverter;
+import org.sopt.makers.crew.main.entity.apply.enums.ApplyTypeConverter;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
+import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.entity.meeting.Meeting;
+import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.springframework.data.annotation.CreatedDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
-import java.time.LocalDateTime;
-
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
-import org.sopt.makers.crew.main.global.exception.BadRequestException;
-import org.sopt.makers.crew.main.entity.apply.enums.ApplyStatusConverter;
-import org.sopt.makers.crew.main.entity.apply.enums.ApplyTypeConverter;
-import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
-import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
-import org.sopt.makers.crew.main.entity.meeting.Meeting;
-import org.sopt.makers.crew.main.entity.user.User;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "apply")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Apply extends BaseTimeEntity {
 
 	/**
