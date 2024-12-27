@@ -53,6 +53,7 @@ public class SecurityConfig {
 			"/auth/v2",
 			"/auth/v2/**",
 			actuatorEndPoint + "/health",
+			actuatorEndPoint + "/prometheus",
 			"/internal/**"
 		};
 	}
