@@ -39,7 +39,6 @@ import jakarta.persistence.EntityManagerFactory;
 public class CrewDatabaseConfig {
 
 	@Bean
-	@Primary
 	@ConfigurationProperties("spring.datasource")
 	public DataSource physicalDatasource() {
 		return DataSourceBuilder.create().build();
