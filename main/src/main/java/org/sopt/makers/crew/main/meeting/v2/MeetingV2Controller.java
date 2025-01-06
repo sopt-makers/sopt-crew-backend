@@ -20,6 +20,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingB
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.springframework.http.HttpStatus;
@@ -195,5 +196,15 @@ public class MeetingV2Controller implements MeetingV2Api {
 		Integer userId = UserUtil.getUserId(principal);
 
 		return ResponseEntity.ok(meetingV2Service.getMeetingById(meetingId, userId));
+	}
+
+	@Override
+	@GetMapping("/recommend")
+	public ResponseEntity<MeetingV2GetRecommendDto> getRecommendMeetingsByIds(
+		@RequestParam(name = "meetingIds", required = false) List<Integer> meetingIds,
+		Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+
+		return ResponseEntity.ok().body(meetingV2Service.getRecommendMeetingsByIds(meetingIds, userId));
 	}
 }
