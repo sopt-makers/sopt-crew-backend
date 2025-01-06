@@ -31,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	private final JPAQueryFactory queryFactory;
-	//private final Time time;
 
 	/**
 	 * @note: canJoinOnlyActiveGeneration 처리 유의
@@ -50,7 +49,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 
 	/**
 	 * @param meetingIds : 조회하려는 모임 id 리스트
-	 * @implSpec : meetingIds 가 비어있을 경우, '지금 모집중인 모임' 반환
+	 * @implSpec : meetingIds 가 null 인 경우, '지금 모집중인 모임' 반환
 	 * */
 	@Override
 	public List<Meeting> findRecommendMeetings(List<Integer> meetingIds, Time time) {
@@ -58,7 +57,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		return queryFactory
 			.selectFrom(meeting)
 			.where(
-				meetingIds.isEmpty() ? eqStatus(List.of(EnMeetingStatus.APPLY_ABLE.toString()), time) :
+				meetingIds == null ? eqStatus(List.of(String.valueOf(EnMeetingStatus.APPLY_ABLE.getValue())), time) :
 					meeting.id.in(meetingIds)
 			)
 			.innerJoin(meeting.user, user)
