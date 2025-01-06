@@ -48,6 +48,24 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
 	}
 
+	/**
+	 * @param meetingIds : 조회하려는 모임 id 리스트
+	 * @implSpec : meetingIds 가 비어있을 경우, '지금 모집중인 모임' 반환
+	 * */
+	@Override
+	public List<Meeting> findRecommendMeetings(List<Integer> meetingIds, Time time) {
+
+		return queryFactory
+			.selectFrom(meeting)
+			.where(
+				meetingIds.isEmpty() ? eqStatus(List.of(EnMeetingStatus.APPLY_ABLE.toString()), time) :
+					meeting.id.in(meetingIds)
+			)
+			.innerJoin(meeting.user, user)
+			.fetchJoin()
+			.fetch();
+	}
+
 	private List<Meeting> getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time) {
 		return queryFactory
 			.selectFrom(meeting)
@@ -153,7 +171,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 
 		// SQL 템플릿을 사용하여 BooleanExpression 생성
 		return Expressions.booleanTemplate(
-			"arraycontains({0}, "+ joinablePartsToString + ") || '' = 'true'",
+			"arraycontains({0}, " + joinablePartsToString + ") || '' = 'true'",
 			meeting.joinableParts,
 			joinablePartsToString
 		);
