@@ -78,6 +78,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingD
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
@@ -446,6 +447,22 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		return MeetingV2GetMeetingByIdResponseDto.of(meetingId, meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
 			approvedCount, isHost, isApply, isApproved,
 			meetingLeader, applyWholeInfoDtos, time.now());
+	}
+
+	@Override
+	public MeetingV2GetRecommendDto getRecommendMeetingsByIds(List<Integer> meetingIds, Integer userId) {
+
+		List<Meeting> meetings = meetingRepository.findRecommendMeetings(meetingIds, time);
+		List<Integer> foundMeetingIds = meetings.stream().map(Meeting::getId).toList();
+
+		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(foundMeetingIds));
+
+		List<MeetingResponseDto> meetingResponseDtos = meetings.stream()
+			.map(meeting -> MeetingResponseDto.of(meeting, meeting.getUser(),
+				allApplies.getApprovedCount(meeting.getId()), time.now()))
+			.toList();
+
+		return MeetingV2GetRecommendDto.of(meetingResponseDtos);
 	}
 
 	private void deleteCsvFile(String filePath) {
