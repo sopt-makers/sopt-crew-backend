@@ -54,15 +54,17 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	@Override
 	public List<Meeting> findRecommendMeetings(List<Integer> meetingIds, Time time) {
 
-		return queryFactory
-			.selectFrom(meeting)
-			.where(
-				meetingIds == null ? eqStatus(List.of(String.valueOf(EnMeetingStatus.APPLY_ABLE.getValue())), time) :
-					meeting.id.in(meetingIds)
-			)
+		JPAQuery<Meeting> query = queryFactory.selectFrom(meeting)
 			.innerJoin(meeting.user, user)
-			.fetchJoin()
-			.fetch();
+			.fetchJoin();
+
+		if (meetingIds == null) {
+			query.where(eqStatus(List.of(String.valueOf(EnMeetingStatus.APPLY_ABLE.getValue())), time));
+			return query.fetch();
+		}
+
+		query.where(meeting.id.in(meetingIds));
+		return query.fetch();
 	}
 
 	private List<Meeting> getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time) {
