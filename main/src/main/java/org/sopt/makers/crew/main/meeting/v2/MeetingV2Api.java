@@ -18,11 +18,13 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingB
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -133,5 +135,13 @@ public interface MeetingV2Api {
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 상세 조회 성공"),
 		@ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
 	ResponseEntity<MeetingV2GetMeetingByIdResponseDto> getMeetingById(@PathVariable Integer meetingId,
+		Principal principal);
+
+	@Operation(summary = "추천 모임 목록 조회", description = "추천 모임 목록 조회, 쿼리파라미터가 없는 경우 '지금 모집중인 모임' 반환")
+	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "추천 모임 목록 조회 성공"),
+		@ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content)
+	})
+	ResponseEntity<MeetingV2GetRecommendDto> getRecommendMeetingsByIds(
+		@RequestParam(name = "meetingIds", required = false) @Parameter(description = "추천할 모임들의 ID 리스트", example = "[101, 102, 103]") List<Integer> meetingIds,
 		Principal principal);
 }

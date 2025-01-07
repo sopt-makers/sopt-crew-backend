@@ -31,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	private final JPAQueryFactory queryFactory;
-	//private final Time time;
 
 	/**
 	 * @note: canJoinOnlyActiveGeneration 처리 유의
@@ -46,6 +45,26 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 
 		return PageableExecutionUtils.getPage(meetings,
 			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
+	}
+
+	/**
+	 * @param meetingIds : 조회하려는 모임 id 리스트
+	 * @implSpec : meetingIds 가 null 인 경우, '지금 모집중인 모임' 반환
+	 * */
+	@Override
+	public List<Meeting> findRecommendMeetings(List<Integer> meetingIds, Time time) {
+
+		JPAQuery<Meeting> query = queryFactory.selectFrom(meeting)
+			.innerJoin(meeting.user, user)
+			.fetchJoin();
+
+		if (meetingIds == null) {
+			query.where(eqStatus(List.of(String.valueOf(EnMeetingStatus.APPLY_ABLE.getValue())), time));
+			return query.fetch();
+		}
+
+		query.where(meeting.id.in(meetingIds));
+		return query.fetch();
 	}
 
 	private List<Meeting> getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time) {
@@ -153,7 +172,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 
 		// SQL 템플릿을 사용하여 BooleanExpression 생성
 		return Expressions.booleanTemplate(
-			"arraycontains({0}, "+ joinablePartsToString + ") || '' = 'true'",
+			"arraycontains({0}, " + joinablePartsToString + ") || '' = 'true'",
 			meeting.joinableParts,
 			joinablePartsToString
 		);
