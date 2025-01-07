@@ -13,7 +13,7 @@ public record MeetingV2GetRecommendDto(
 	@NotNull
 	List<MeetingResponseDto> meetings
 ) {
-	public static MeetingV2GetRecommendDto of(List<MeetingResponseDto> meetings) {
+	public static MeetingV2GetRecommendDto from(List<MeetingResponseDto> meetings) {
 		return new MeetingV2GetRecommendDto(meetings);
 	}
 }

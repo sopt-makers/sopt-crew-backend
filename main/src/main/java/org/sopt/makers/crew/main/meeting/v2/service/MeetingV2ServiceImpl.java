@@ -462,7 +462,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				allApplies.getApprovedCount(meeting.getId()), time.now()))
 			.toList();
 
-		return MeetingV2GetRecommendDto.of(meetingResponseDtos);
+		return MeetingV2GetRecommendDto.from(meetingResponseDtos);
 	}
 
 	private void deleteCsvFile(String filePath) {
