@@ -11,6 +11,8 @@ import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,12 +41,6 @@ public class Lightning extends BaseTimeEntity {
 	@Column(name = "title")
 	private String title;
 
-	@Column(name = "imageURL", columnDefinition = "jsonb")
-	@Type(JsonBinaryType.class)
-	@NotNull
-	@Size(max = 1)
-	private List<ImageUrlVO> imageURL;
-
 	@Column(name = "desc", columnDefinition = "TEXT")
 	private String desc;
 
@@ -56,27 +52,26 @@ public class Lightning extends BaseTimeEntity {
 	@NotNull
 	private LocalDateTime activityEndDate;
 
-	@Column(name = "meetingTime")
-	private LocalDateTime meetingTime;
+	@Column(name = "lightningTime")
+	private LocalDateTime lightningTime;
 
-	@Column(name = "meetingPlace")
+	@Column(name = "lightningPlaceType")
 	@NotNull
-	private String meetingPlace;
+	@Enumerated(EnumType.STRING)
+	private LightningPlaceType lightningPlaceType;
 
-	@Column(name = "applicationStartDate")
+	@Column(name = "lightningPlace")
 	@NotNull
-	private LocalDateTime applicationStartDate;
+	private String lightningPlace;
 
-	@Column(name = "applicationEndDate")
-	@NotNull
-	private LocalDateTime applicationEndDate;
+	@Column(name = "minimumCapacity")
+	private int minimumCapacity;
 
-	@Column(name = "capacity")
-	private int capacity;
+	@Column(name = "maximumCapacity")
+	private int maximumCapacity;
 
-	@Column(name = "note", columnDefinition = "TEXT")
-	private String note;
+	@Column(name = "imageURL", columnDefinition = "jsonb")
+	@Type(JsonBinaryType.class)
+	private List<ImageUrlVO> imageURL;
 
-	@Column(name = "leaderDesc", columnDefinition = "TEXT")
-	private String leaderDesc;
 }
