@@ -36,6 +36,7 @@ public class Lightning extends BaseTimeEntity {
 
 	@NotNull
 	@Size(min = 1, max = 30)
+	@Column(name = "title")
 	private String title;
 
 	@Column(name = "imageURL", columnDefinition = "jsonb")
@@ -44,7 +45,7 @@ public class Lightning extends BaseTimeEntity {
 	@Size(max = 1)
 	private List<ImageUrlVO> imageURL;
 
-	@Column(columnDefinition = "TEXT")
+	@Column(name = "desc", columnDefinition = "TEXT")
 	private String desc;
 
 	@Column(name = "activityStartDate")
@@ -70,8 +71,10 @@ public class Lightning extends BaseTimeEntity {
 	@NotNull
 	private LocalDateTime applicationEndDate;
 
+	@Column(name = "capacity")
 	private int capacity;
 
+	@Column(name = "note", columnDefinition = "TEXT")
 	private String note;
 
 	@Column(name = "leaderDesc", columnDefinition = "TEXT")
