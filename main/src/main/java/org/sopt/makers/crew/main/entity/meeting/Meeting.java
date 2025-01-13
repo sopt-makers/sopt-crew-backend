@@ -20,6 +20,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -78,6 +79,7 @@ public class Meeting extends BaseTimeEntity {
 	 */
 	@Column(name = "imageURL", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
+	@Size(max = 1)
 	private List<ImageUrlVO> imageURL;
 
 	/**
