@@ -27,11 +27,9 @@ public class Tag extends BaseTimeEntity {
 	private TagType tagType;
 
 	@Column(name = "meetingId")
-	@NotNull
 	private Integer meetingId;
 
 	@Column(name = "lightningId")
-	@NotNull
 	private Integer lightningId;
 
 	@NotNull
