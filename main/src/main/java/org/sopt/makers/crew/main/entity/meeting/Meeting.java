@@ -79,7 +79,7 @@ public class Meeting extends BaseTimeEntity {
 	 */
 	@Column(name = "imageURL", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
-	@Size(min = 1, max = 1)
+	@Size(min = 1, max = 6)
 	private List<ImageUrlVO> imageURL;
 
 	/**
