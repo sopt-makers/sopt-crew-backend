@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.sopt.makers.crew.main.entity.meeting.CoLeader;
-import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -166,5 +166,9 @@ public class MeetingV2GetMeetingByIdResponseDto {
 
 	public LocalDateTime getmEndDate() {
 		return mEndDate;
+	}
+
+	public boolean getIsCoLeader() {
+		return isCoLeader;
 	}
 }
