@@ -1,6 +1,10 @@
 package org.sopt.makers.crew.main.entity.tag;
 
+import java.util.List;
+
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.entity.tag.enums.TagType;
+import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -41,7 +45,8 @@ public class Tag extends BaseTimeEntity {
 	@Column(name = "lightningId")
 	private Integer lightningId;
 
+	@Enumerated(EnumType.STRING)
+	@Column(name = "welcomeMessageTypes")
 	@NotNull
-	private String content;
-
+	private List<WelcomeMessageType> welcomeMessageTypes;
 }
