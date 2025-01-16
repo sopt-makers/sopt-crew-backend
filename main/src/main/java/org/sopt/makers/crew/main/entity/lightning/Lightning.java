@@ -46,7 +46,7 @@ public class Lightning extends BaseTimeEntity {
 	@Column(name = "desc", columnDefinition = "TEXT")
 	private String desc;
 
-	@Column(name = "lightningTiming")
+	@Column(name = "lightningTimingType")
 	@NotNull
 	@Enumerated(EnumType.STRING)
 	private LightningTimingType lightningTimingType;
@@ -58,9 +58,6 @@ public class Lightning extends BaseTimeEntity {
 	@Column(name = "activityEndDate")
 	@NotNull
 	private LocalDateTime activityEndDate;
-
-	@Column(name = "lightningTime")
-	private LocalDateTime lightningTime;
 
 	@Column(name = "lightningPlaceType")
 	@NotNull
