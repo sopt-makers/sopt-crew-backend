@@ -24,14 +24,18 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 	@Override
 	@Transactional
-	public TagV2CreateTagResponseDto createLightningTag(List<WelcomeMessageType> welcomeMessageTypes,
+	public TagV2CreateTagResponseDto createLightningTag(List<String> welcomeMessageTypes,
 		Integer lightningId) {
 
 		if (lightningId == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		Tag tag = Tag.createLightningMeetingTag(TagType.LIGHTNING, lightningId, welcomeMessageTypes);
+		List<WelcomeMessageType> welcomeMessageTypeEnums = welcomeMessageTypes.stream()
+			.map(WelcomeMessageType::ofValue)
+			.toList();
+
+		Tag tag = Tag.createLightningMeetingTag(TagType.LIGHTNING, lightningId, welcomeMessageTypeEnums);
 		tagRepository.save(tag);
 
 		return TagV2CreateTagResponseDto.from(tag.getId());
