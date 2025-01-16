@@ -77,6 +77,10 @@ public class Lightning extends BaseTimeEntity {
 	@Column(name = "maximumCapacity")
 	private int maximumCapacity;
 
+	@Column(name = "createdGeneration")
+	@NotNull
+	private Integer createdGeneration;
+
 	@Column(name = "imageURL", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
 	private List<ImageUrlVO> imageURL;
