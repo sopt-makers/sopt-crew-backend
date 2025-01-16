@@ -5,15 +5,16 @@ import java.util.List;
 
 import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.entity.lightning.converter.LightningPlaceTypeConverter;
+import org.sopt.makers.crew.main.entity.lightning.converter.LightningTimingTypeConverter;
 import org.sopt.makers.crew.main.entity.lightning.enums.LightningPlaceType;
 import org.sopt.makers.crew.main.entity.lightning.enums.LightningTimingType;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -48,7 +49,7 @@ public class Lightning extends BaseTimeEntity {
 
 	@Column(name = "lightningTimingType")
 	@NotNull
-	@Enumerated(EnumType.STRING)
+	@Convert(converter = LightningTimingTypeConverter.class)
 	private LightningTimingType lightningTimingType;
 
 	@Column(name = "activityStartDate")
@@ -61,7 +62,7 @@ public class Lightning extends BaseTimeEntity {
 
 	@Column(name = "lightningPlaceType")
 	@NotNull
-	@Enumerated(EnumType.STRING)
+	@Convert(converter = LightningPlaceTypeConverter.class)
 	private LightningPlaceType lightningPlaceType;
 
 	@Column(name = "lightningPlace")
@@ -69,9 +70,11 @@ public class Lightning extends BaseTimeEntity {
 	private String lightningPlace;
 
 	@Column(name = "minimumCapacity")
+	@NotNull
 	private int minimumCapacity;
 
 	@Column(name = "maximumCapacity")
+	@NotNull
 	private int maximumCapacity;
 
 	@Column(name = "createdGeneration")
