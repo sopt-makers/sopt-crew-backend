@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.entity.lightning.enums.LightningPlaceType;
+import org.sopt.makers.crew.main.entity.lightning.enums.LightningTimingType;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
@@ -44,6 +46,11 @@ public class Lightning extends BaseTimeEntity {
 	@Column(name = "desc", columnDefinition = "TEXT")
 	private String desc;
 
+	@Column(name = "lightningTiming")
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	private LightningTimingType lightningTimingType;
+
 	@Column(name = "activityStartDate")
 	@NotNull
 	private LocalDate activityStartDate;
@@ -73,5 +80,4 @@ public class Lightning extends BaseTimeEntity {
 	@Column(name = "imageURL", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
 	private List<ImageUrlVO> imageURL;
-
 }
