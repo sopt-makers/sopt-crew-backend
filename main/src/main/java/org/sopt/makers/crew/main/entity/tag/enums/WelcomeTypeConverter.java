@@ -15,7 +15,11 @@ public class WelcomeTypeConverter implements AttributeConverter<List<WelcomeMess
 	@Override
 	public String convertToDatabaseColumn(List<WelcomeMessageType> attribute) {
 		try {
-			return objectMapper.writeValueAsString(attribute);
+			// Enum -> 한글 값 리스트 -> JSON
+			List<String> values = attribute.stream()
+				.map(WelcomeMessageType::getValue)
+				.toList();
+			return objectMapper.writeValueAsString(values);
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Error converting list to JSON: " + attribute, e);
 		}
@@ -24,8 +28,12 @@ public class WelcomeTypeConverter implements AttributeConverter<List<WelcomeMess
 	@Override
 	public List<WelcomeMessageType> convertToEntityAttribute(String dbData) {
 		try {
-			return objectMapper.readValue(dbData, new TypeReference<>() {
+			// JSON -> 한글 값 리스트 -> Enum
+			List<String> values = objectMapper.readValue(dbData, new TypeReference<>() {
 			});
+			return values.stream()
+				.map(WelcomeMessageType::ofValue)
+				.toList();
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Error converting JSON to list: " + dbData, e);
 		}
