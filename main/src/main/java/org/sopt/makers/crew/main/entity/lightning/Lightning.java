@@ -1,6 +1,5 @@
 package org.sopt.makers.crew.main.entity.lightning;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,6 +21,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -53,7 +53,7 @@ public class Lightning extends BaseTimeEntity {
 
 	@Column(name = "activityStartDate")
 	@NotNull
-	private LocalDate activityStartDate;
+	private LocalDateTime activityStartDate;
 
 	@Column(name = "activityEndDate")
 	@NotNull
@@ -81,4 +81,23 @@ public class Lightning extends BaseTimeEntity {
 	@Column(name = "imageURL", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
 	private List<ImageUrlVO> imageURL;
+
+	@Builder
+	public Lightning(Integer leaderUserId, String title, String desc, LightningTimingType lightningTimingType,
+		LocalDateTime activityStartDate, LocalDateTime activityEndDate, LightningPlaceType lightningPlaceType,
+		String lightningPlace, int minimumCapacity, int maximumCapacity, Integer createdGeneration,
+		List<ImageUrlVO> imageURL) {
+		this.leaderUserId = leaderUserId;
+		this.title = title;
+		this.desc = desc;
+		this.lightningTimingType = lightningTimingType;
+		this.activityStartDate = activityStartDate;
+		this.activityEndDate = activityEndDate;
+		this.lightningPlaceType = lightningPlaceType;
+		this.lightningPlace = lightningPlace;
+		this.minimumCapacity = minimumCapacity;
+		this.maximumCapacity = maximumCapacity;
+		this.createdGeneration = createdGeneration;
+		this.imageURL = imageURL;
+	}
 }
