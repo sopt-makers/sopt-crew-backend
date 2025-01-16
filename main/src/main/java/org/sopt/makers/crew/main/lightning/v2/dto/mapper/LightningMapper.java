@@ -49,11 +49,11 @@ public interface LightningMapper {
 
 	@Named("getLightningPlaceType")
 	static LightningPlaceType getLightningPlaceType(String placeType) {
-		return LightningPlaceType.valueOf(placeType);
+		return LightningPlaceType.ofValue(placeType);
 	}
 
 	@Named("getLightningTimingType")
 	static LightningTimingType getLightningTimingType(String timingType) {
-		return LightningTimingType.valueOf(timingType);
+		return LightningTimingType.ofValue(timingType);
 	}
 }
