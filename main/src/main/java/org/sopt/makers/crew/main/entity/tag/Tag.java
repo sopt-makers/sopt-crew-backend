@@ -51,7 +51,6 @@ public class Tag extends BaseTimeEntity {
 	private Integer lightningId;
 
 	@Column(name = "welcomeMessageTypes", columnDefinition = "jsonb")
-	@NotNull
 	@Convert(converter = WelcomeTypeConverter.class)
 	@Type(JsonBinaryType.class)
 	private List<WelcomeMessageType> welcomeMessageTypes;

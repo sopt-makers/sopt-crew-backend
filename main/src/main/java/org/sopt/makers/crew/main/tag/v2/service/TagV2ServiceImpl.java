@@ -31,9 +31,13 @@ public class TagV2ServiceImpl implements TagV2Service {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		List<WelcomeMessageType> welcomeMessageTypeEnums = welcomeMessageTypes.stream()
-			.map(WelcomeMessageType::ofValue)
-			.toList();
+		List<WelcomeMessageType> welcomeMessageTypeEnums = null;
+
+		if (welcomeMessageTypes != null) {
+			welcomeMessageTypeEnums = welcomeMessageTypes.stream()
+				.map(WelcomeMessageType::ofValue)
+				.toList();
+		}
 
 		Tag tag = Tag.createLightningMeetingTag(TagType.LIGHTNING, lightningId, welcomeMessageTypeEnums);
 		tagRepository.save(tag);
