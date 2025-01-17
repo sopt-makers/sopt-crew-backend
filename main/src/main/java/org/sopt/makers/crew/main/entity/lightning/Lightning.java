@@ -79,7 +79,7 @@ public class Lightning extends BaseTimeEntity {
 
 	@Column(name = "createdGeneration")
 	@NotNull
-	private Integer createdGeneration;
+	private int createdGeneration;
 
 	@Column(name = "imageURL", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
