@@ -2,13 +2,27 @@ package org.sopt.makers.crew.main.entity.meeting;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
+import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.entity.meeting.converter.MeetingCategoryConverter;
+import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
+
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
 import io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,27 +30,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import org.hibernate.annotations.Parameter;
-import org.hibernate.annotations.Type;
-import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
-import org.sopt.makers.crew.main.global.exception.BadRequestException;
-import org.sopt.makers.crew.main.global.exception.ForbiddenException;
-import org.sopt.makers.crew.main.entity.meeting.converter.MeetingCategoryConverter;
-import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
-import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
-import org.sopt.makers.crew.main.entity.user.User;
 
 @Entity
 @Getter
@@ -152,7 +150,7 @@ public class Meeting extends BaseTimeEntity {
 	 * 모임 기수
 	 */
 	@Column(name = "createdGeneration", nullable = false)
-	private Integer createdGeneration;
+	private int createdGeneration;
 
 	/**
 	 * 대상 활동 기수
@@ -265,6 +263,5 @@ public class Meeting extends BaseTimeEntity {
 	public LocalDateTime getmEndDate() {
 		return mEndDate;
 	}
-
 
 }
