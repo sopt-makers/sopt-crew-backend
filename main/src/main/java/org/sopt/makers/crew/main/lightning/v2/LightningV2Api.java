@@ -4,7 +4,9 @@ import java.security.Principal;
 
 import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyDto;
 import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2CreateLightningResponseDto;
+import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2GetLightningByIdResponseDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,12 +18,22 @@ import jakarta.validation.Valid;
 
 @Tag(name = "번쩍 모임")
 public interface LightningV2Api {
+
 	@Operation(summary = "번쩍 모임 생성")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "201", description = "성공"),
-		@ApiResponse(responseCode = "400", description = "\"이미지 파일이 없습니다.\" or \"한 개 이상의 파트를 입력해주세요\" or \"프로필을 입력해주세요\"", content = @Content),
+		@ApiResponse(responseCode = "201", description = "lightningId: 10"),
+		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
 	})
 	ResponseEntity<LightningV2CreateLightningResponseDto> createLightning(
 		@Valid @RequestBody LightningV2CreateLightningBodyDto requestBody,
+		Principal principal);
+
+	@Operation(summary = "번쩍 모임 상세 조회")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "번쩍 모임 상세 조회 성공"),
+		@ApiResponse(responseCode = "400", description = "번쩍 모임이 없습니다.", content = @Content),
+	})
+	ResponseEntity<LightningV2GetLightningByIdResponseDto> getLightningById(
+		@PathVariable Integer lightningId,
 		Principal principal);
 }
