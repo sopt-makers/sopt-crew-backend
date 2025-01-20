@@ -38,17 +38,17 @@ public class ControllerExceptionAdvice {
 
 	@ExceptionHandler(MissingServletRequestParameterException.class)
 	public ResponseEntity<ExceptionResponse> handleMissingParameter(MissingServletRequestParameterException e) {
-		log.warn("누락된 파라미터: {}", e.getMessage());
+		log.warn("누락된 요청 파라미터: {}", e.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 			.body(ExceptionResponse.fail(
 				ErrorStatus.MISSING_REQUEST_PARAMETER.getErrorCode(),
-				String.format("누락된 파라미터: %s", e.getParameterName())));
+				String.format("누락된 요청 파라미터: %s", e.getParameterName())));
 	}
 
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<ExceptionResponse> handleIllegalArgument(IllegalArgumentException e) {
-		log.warn("잘못된 인자: {}", e.getMessage());
-		String errorDetails = String.format("예외 발생 위치: %s.%s - 인자: %s",
+		log.warn("잘못된 입력 값: {}", e.getMessage());
+		String errorDetails = String.format("예외 발생 위치: %s.%s - 입력 값: %s",
 			e.getStackTrace()[0].getClassName(),
 			e.getStackTrace()[0].getMethodName(),
 			e.getMessage());
@@ -60,7 +60,7 @@ public class ControllerExceptionAdvice {
 
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ResponseEntity<ExceptionResponse> handleConstraintViolationException(ConstraintViolationException e) {
-		log.warn("제약 조건 위반: {}", e.getMessage());
+		log.warn("제약 조건 위반 발생: {}", e.getMessage());
 
 		StringBuilder violationMessages = new StringBuilder();
 		for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
@@ -85,7 +85,7 @@ public class ControllerExceptionAdvice {
 
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<ExceptionResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
-		log.warn("읽을 수 없는 메시지: {}", e.getMessage());
+		log.warn("읽을 수 없는 요청 메시지: {}", e.getMessage());
 		String errorDetails = String.format("잘못된 JSON 요청: %s", e.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 			.body(ExceptionResponse.fail(
@@ -95,7 +95,7 @@ public class ControllerExceptionAdvice {
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ExceptionResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-		log.warn("메서드 인자 유효성 검사 실패: {}", e.getMessage());
+		log.warn("메서드 인자 검증 실패: {}", e.getMessage());
 		StringBuilder errorDetails = new StringBuilder("유효성 검증 실패: ");
 		e.getBindingResult().getFieldErrors().forEach(fieldError ->
 			errorDetails.append(
@@ -129,12 +129,12 @@ public class ControllerExceptionAdvice {
 
 	@ExceptionHandler(IOException.class)
 	public ResponseEntity<ExceptionResponse> handleIOException(IOException e) {
-		log.warn("입출력 예외: {}", e.getMessage());
+		log.warn("입출력 오류: {}", e.getMessage());
 		String errorMessage = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 			.body(ExceptionResponse.fail(
 				ErrorStatus.IO_EXCEPTION.getErrorCode(),
-				String.format("입출력 예외 발생: %s", errorMessage)));
+				String.format("입출력 오류 발생: %s", errorMessage)));
 	}
 
 	/**
