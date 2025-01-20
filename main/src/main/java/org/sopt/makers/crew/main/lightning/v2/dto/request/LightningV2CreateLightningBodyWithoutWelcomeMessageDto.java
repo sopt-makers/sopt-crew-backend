@@ -3,7 +3,6 @@ package org.sopt.makers.crew.main.lightning.v2.dto.request;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -51,7 +50,7 @@ public record LightningV2CreateLightningBodyWithoutWelcomeMessageDto(
 	@Schema(example = "[\n"
 		+ "    \"https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df\"\n"
 		+ "  ]", description = "모임 이미지 리스트, 최대 1개")
-	@NotEmpty
+	@NotNull
 	@Size(max = 1)
 	List<String> files
 ) {
