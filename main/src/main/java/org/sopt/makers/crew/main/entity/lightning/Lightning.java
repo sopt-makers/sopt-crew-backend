@@ -74,7 +74,6 @@ public class Lightning extends BaseTimeEntity {
 	private LightningPlaceType lightningPlaceType;
 
 	@Column(name = "lightningPlace")
-	@NotNull
 	private String lightningPlace;
 
 	@Column(name = "minimumCapacity")

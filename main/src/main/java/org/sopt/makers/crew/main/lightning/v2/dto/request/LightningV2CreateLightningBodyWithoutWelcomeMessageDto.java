@@ -34,7 +34,6 @@ public record LightningV2CreateLightningBodyWithoutWelcomeMessageDto(
 	String lightningPlaceType,
 
 	@Schema(example = "잠실역 5번 출구", description = "모임 장소")
-	@NotNull
 	String lightningPlace,
 
 	@Schema(example = "1", description = "최소 모집 인원")
