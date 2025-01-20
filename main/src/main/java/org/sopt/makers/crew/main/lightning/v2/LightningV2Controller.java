@@ -5,12 +5,9 @@ import java.security.Principal;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyDto;
 import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2CreateLightningResponseDto;
-import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2GetLightningByIdResponseDto;
 import org.sopt.makers.crew.main.lightning.v2.service.LightningV2Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,14 +32,14 @@ public class LightningV2Controller implements LightningV2Api {
 		return ResponseEntity.status(HttpStatus.CREATED).body(lightningV2Service.createLightning(requestBody, userId));
 	}
 
-	@Override
-	@GetMapping("{lightningId}")
-	public ResponseEntity<LightningV2GetLightningByIdResponseDto> getLightningById(
-		@PathVariable Integer lightningId,
-		Principal principal
-	) {
-		Integer userId = UserUtil.getUserId(principal);
-
-		return ResponseEntity.ok(lightningV2Service.getLightningById(lightningId, userId));
-	}
+	// @Override
+	// @GetMapping("{lightningId}")
+	// public ResponseEntity<LightningV2GetLightningByIdResponseDto> getLightningById(
+	// 	@PathVariable Integer lightningId,
+	// 	Principal principal
+	// ) {
+	// 	Integer userId = UserUtil.getUserId(principal);
+	//
+	// 	return ResponseEntity.ok(lightningV2Service.getLightningById(lightningId, userId));
+	// }
 }
