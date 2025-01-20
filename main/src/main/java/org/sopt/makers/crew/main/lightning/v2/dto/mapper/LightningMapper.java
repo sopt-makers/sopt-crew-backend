@@ -14,18 +14,21 @@ import org.sopt.makers.crew.main.entity.lightning.Lightning;
 import org.sopt.makers.crew.main.entity.lightning.enums.LightningPlaceType;
 import org.sopt.makers.crew.main.entity.lightning.enums.LightningTimingType;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyWithoutWelcomeMessageDto;
 
 @Mapper(componentModel = "spring")
 public interface LightningMapper {
 
 	@Mapping(source = "lightningBody.files", target = "imageURL", qualifiedByName = "getImageURL")
-	@Mapping(source = "lightningBody.activityStartDate", target = "activityStartDate", qualifiedByName = "getStartDate")
-	@Mapping(source = "lightningBody.activityEndDate", target = "activityEndDate", qualifiedByName = "getEndDate")
+	@Mapping(source = "lightningBody.activityStartDate", target = "activityStartDate", qualifiedByName = "getActivityStartDate")
+	@Mapping(source = "lightningBody.activityEndDate", target = "activityEndDate", qualifiedByName = "getActivityEndDate")
 	@Mapping(source = "lightningBody.lightningPlaceType", target = "lightningPlaceType", qualifiedByName = "getLightningPlaceType")
 	@Mapping(source = "lightningBody.lightningTimingType", target = "lightningTimingType", qualifiedByName = "getLightningTimingType")
+	@Mapping(target = "startDate", expression = "java(time.now())")
+	@Mapping(source = "lightningBody.activityStartDate", target = "endDate", qualifiedByName = "getActivityStartDate")
 	Lightning toLightningEntity(LightningV2CreateLightningBodyWithoutWelcomeMessageDto lightningBody,
-		Integer createdGeneration, Integer leaderUserId);
+		Integer createdGeneration, Integer leaderUserId, Time time);
 
 	@Named("getImageURL")
 	static List<ImageUrlVO> getImageURL(List<String> files) {
@@ -36,13 +39,13 @@ public interface LightningMapper {
 			.toList();
 	}
 
-	@Named("getStartDate")
-	static LocalDateTime getStartDate(String date) {
+	@Named("getActivityStartDate")
+	static LocalDateTime getActivityStartDate(String date) {
 		return LocalDateTime.parse(date + DAY_START_TIME, DateTimeFormatter.ofPattern(DAY_TIME_FORMAT));
 	}
 
-	@Named("getEndDate")
-	static LocalDateTime getEndDate(String date) {
+	@Named("getActivityEndDate")
+	static LocalDateTime getActivityEndDate(String date) {
 		return LocalDateTime.parse(date + DAY_END_TIME, DateTimeFormatter.ofPattern(DAY_TIME_FORMAT));
 
 	}
