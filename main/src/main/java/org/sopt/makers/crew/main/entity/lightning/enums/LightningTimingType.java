@@ -5,8 +5,7 @@ import lombok.Getter;
 @Getter
 public enum LightningTimingType {
 	IMMEDIATE("당일"),
-	DURATION("기간"),
-	AFTER_DISCUSSION("협의 후 결정");
+	AFTER_DISCUSSION("예정 기간(협의 후 결정)");
 
 	private final String value;
 

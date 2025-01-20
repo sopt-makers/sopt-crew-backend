@@ -52,6 +52,14 @@ public class Lightning extends BaseTimeEntity {
 	@Convert(converter = LightningTimingTypeConverter.class)
 	private LightningTimingType lightningTimingType;
 
+	@Column(name = "startDate")
+	@NotNull
+	private LocalDateTime startDate;
+
+	@Column(name = "endDate")
+	@NotNull
+	private LocalDateTime endDate;
+
 	@Column(name = "activityStartDate")
 	@NotNull
 	private LocalDateTime activityStartDate;
@@ -66,7 +74,6 @@ public class Lightning extends BaseTimeEntity {
 	private LightningPlaceType lightningPlaceType;
 
 	@Column(name = "lightningPlace")
-	@NotNull
 	private String lightningPlace;
 
 	@Column(name = "minimumCapacity")
@@ -87,6 +94,7 @@ public class Lightning extends BaseTimeEntity {
 
 	@Builder
 	public Lightning(Integer leaderUserId, String title, String desc, LightningTimingType lightningTimingType,
+		LocalDateTime startDate, LocalDateTime endDate,
 		LocalDateTime activityStartDate, LocalDateTime activityEndDate, LightningPlaceType lightningPlaceType,
 		String lightningPlace, int minimumCapacity, int maximumCapacity, Integer createdGeneration,
 		List<ImageUrlVO> imageURL) {
@@ -94,6 +102,8 @@ public class Lightning extends BaseTimeEntity {
 		this.title = title;
 		this.desc = desc;
 		this.lightningTimingType = lightningTimingType;
+		this.startDate = startDate;
+		this.endDate = endDate;
 		this.activityStartDate = activityStartDate;
 		this.activityEndDate = activityEndDate;
 		this.lightningPlaceType = lightningPlaceType;

@@ -29,7 +29,17 @@ public class LightningV2Controller implements LightningV2Api {
 		Principal principal
 	) {
 		Integer userId = UserUtil.getUserId(principal);
-		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(lightningV2Service.createLightning(requestBody, userId));
+		return ResponseEntity.status(HttpStatus.CREATED).body(lightningV2Service.createLightning(requestBody, userId));
 	}
+
+	// @Override
+	// @GetMapping("{lightningId}")
+	// public ResponseEntity<LightningV2GetLightningByIdResponseDto> getLightningById(
+	// 	@PathVariable Integer lightningId,
+	// 	Principal principal
+	// ) {
+	// 	Integer userId = UserUtil.getUserId(principal);
+	//
+	// 	return ResponseEntity.ok(lightningV2Service.getLightningById(lightningId, userId));
+	// }
 }

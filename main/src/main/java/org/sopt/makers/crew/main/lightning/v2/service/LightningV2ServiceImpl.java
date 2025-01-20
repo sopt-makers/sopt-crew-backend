@@ -7,6 +7,7 @@ import org.sopt.makers.crew.main.entity.lightning.Lightning;
 import org.sopt.makers.crew.main.entity.lightning.LightningRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.lightning.v2.dto.mapper.LightningMapper;
 import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyDto;
 import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2CreateLightningResponseDto;
@@ -30,6 +31,8 @@ public class LightningV2ServiceImpl implements LightningV2Service {
 	private final LightningRepository lightningRepository;
 	private final LightningMapper lightningMapper;
 
+	private final Time realTime;
+
 	@Override
 	@Transactional
 	public LightningV2CreateLightningResponseDto createLightning(
@@ -45,7 +48,7 @@ public class LightningV2ServiceImpl implements LightningV2Service {
 		}
 
 		Lightning lightning = lightningMapper.toLightningEntity(requestBody.lightningBody(), ACTIVE_GENERATION,
-			user.getId());
+			user.getId(), realTime);
 
 		lightningRepository.save(lightning);
 		tagV2Service.createLightningTag(requestBody.welcomeMessageTypes(), lightning.getId());
