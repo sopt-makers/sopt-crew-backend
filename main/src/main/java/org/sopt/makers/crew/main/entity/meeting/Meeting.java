@@ -195,6 +195,35 @@ public class Meeting extends BaseTimeEntity {
 		this.joinableParts = joinableParts;
 	}
 
+	public static Meeting createLightningMeeting(User user, Integer userId, String title,
+		List<ImageUrlVO> imageURL, LocalDateTime startDate,
+		LocalDateTime endDate, Integer capacity, String desc,
+		LocalDateTime mStartDate, LocalDateTime mEndDate,
+		int createdGeneration, String processDesc, String leaderDesc, String note) {
+
+		return Meeting.builder()
+			.user(user)
+			.userId(userId)
+			.title(title)
+			.category(MeetingCategory.LIGHTNING)
+			.imageURL(imageURL)
+			.startDate(startDate)
+			.endDate(endDate)
+			.capacity(capacity)
+			.desc(desc)
+			.mStartDate(mStartDate)
+			.mEndDate(mEndDate)
+			.createdGeneration(createdGeneration)
+			.processDesc(processDesc)
+			.leaderDesc(leaderDesc)
+			.note(note)
+			.isMentorNeeded(false)
+			.canJoinOnlyActiveGeneration(false)
+			.targetActiveGeneration(null)
+			.joinableParts(MeetingJoinablePart.values())
+			.build();
+	}
+
 	/**
 	 * 모임 모집상태 확인
 	 *
