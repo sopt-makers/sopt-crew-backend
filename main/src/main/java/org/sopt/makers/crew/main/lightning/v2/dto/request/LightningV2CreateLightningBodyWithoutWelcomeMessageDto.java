@@ -3,6 +3,8 @@ package org.sopt.makers.crew.main.lightning.v2.dto.request;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -37,12 +39,13 @@ public record LightningV2CreateLightningBodyWithoutWelcomeMessageDto(
 	String lightningPlace,
 
 	@Schema(example = "1", description = "최소 모집 인원")
-	@Size(min = 1)
+	@Min(1)
 	@NotNull
 	Integer minimumCapacity,
 
 	@Schema(example = "5", description = "최대 모집 인원")
-	@Size(max = 999)
+	@Min(1)
+	@Max(999)
 	@NotNull
 	Integer maximumCapacity,
 
