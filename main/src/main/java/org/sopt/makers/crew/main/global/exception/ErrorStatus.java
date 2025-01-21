@@ -64,6 +64,10 @@ public enum ErrorStatus {
 	FORBIDDEN_EXCEPTION("권한이 없습니다."),
 
 	/**
+	 * 404 NOT_FOUND
+	 */
+	NOT_FOUND_LIGHTNING("번쩍 모임이 없습니다."),
+	/**
 	 * 405 METHOD_NOT_ALLOWED
 	 */
 	METHOD_NOT_SUPPORTED("지원되지 않는 HTTP 메서드입니다."),
