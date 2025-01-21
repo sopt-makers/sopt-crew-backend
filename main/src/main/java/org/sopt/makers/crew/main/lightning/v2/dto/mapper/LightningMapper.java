@@ -15,19 +15,19 @@ import org.sopt.makers.crew.main.entity.lightning.enums.LightningPlaceType;
 import org.sopt.makers.crew.main.entity.lightning.enums.LightningTimingType;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.global.util.Time;
-import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyWithoutWelcomeMessageDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForLightningResponseDto;
 
 @Mapper(componentModel = "spring")
 public interface LightningMapper {
-
-	@Mapping(source = "lightningBody.files", target = "imageURL", qualifiedByName = "getImageURL")
-	@Mapping(source = "lightningBody.activityStartDate", target = "activityStartDate", qualifiedByName = "getActivityStartDate")
-	@Mapping(source = "lightningBody.activityEndDate", target = "activityEndDate", qualifiedByName = "getActivityEndDate")
-	@Mapping(source = "lightningBody.lightningPlaceType", target = "lightningPlaceType", qualifiedByName = "getLightningPlaceType")
-	@Mapping(source = "lightningBody.lightningTimingType", target = "lightningTimingType", qualifiedByName = "getLightningTimingType")
+	@Mapping(source = "meetingV2CreateMeetingForLightningResponseDto.files", target = "imageURL", qualifiedByName = "getImageURL")
 	@Mapping(target = "startDate", expression = "java(time.now())")
-	@Mapping(source = "lightningBody.activityStartDate", target = "endDate", qualifiedByName = "getActivityStartDate")
-	Lightning toLightningEntity(LightningV2CreateLightningBodyWithoutWelcomeMessageDto lightningBody,
+	@Mapping(source = "meetingV2CreateMeetingForLightningResponseDto.activityStartDate", target = "endDate", qualifiedByName = "getActivityStartDate")
+	@Mapping(source = "meetingV2CreateMeetingForLightningResponseDto.activityStartDate", target = "activityStartDate", qualifiedByName = "getActivityStartDate")
+	@Mapping(source = "meetingV2CreateMeetingForLightningResponseDto.activityEndDate", target = "activityEndDate", qualifiedByName = "getActivityEndDate")
+	@Mapping(source = "meetingV2CreateMeetingForLightningResponseDto.lightningPlaceType", target = "lightningPlaceType", qualifiedByName = "getLightningPlaceType")
+	@Mapping(source = "meetingV2CreateMeetingForLightningResponseDto.lightningTimingType", target = "lightningTimingType", qualifiedByName = "getLightningTimingType")
+	Lightning toLightningEntity(
+		MeetingV2CreateMeetingForLightningResponseDto meetingV2CreateMeetingForLightningResponseDto,
 		Integer createdGeneration, Integer leaderUserId, Time time);
 
 	@Named("getImageURL")
@@ -47,7 +47,6 @@ public interface LightningMapper {
 	@Named("getActivityEndDate")
 	static LocalDateTime getActivityEndDate(String date) {
 		return LocalDateTime.parse(date + DAY_END_TIME, DateTimeFormatter.ofPattern(DAY_TIME_FORMAT));
-
 	}
 
 	@Named("getLightningPlaceType")
