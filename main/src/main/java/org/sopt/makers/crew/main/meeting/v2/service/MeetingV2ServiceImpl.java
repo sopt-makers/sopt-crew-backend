@@ -1,8 +1,8 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
-import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,18 +19,37 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.RequiredArgsConstructor;
-
+import org.sopt.makers.crew.main.entity.apply.Applies;
+import org.sopt.makers.crew.main.entity.apply.Apply;
+import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
+import org.sopt.makers.crew.main.entity.comment.Comment;
+import org.sopt.makers.crew.main.entity.comment.CommentRepository;
+import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeader;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderReader;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
+import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
+import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.post.Post;
+import org.sopt.makers.crew.main.entity.post.PostRepository;
+import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
+import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.entity.user.enums.UserPart;
+import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.external.s3.service.S3Service;
+import org.sopt.makers.crew.main.global.config.ImageSetting;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
@@ -40,24 +59,7 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.global.util.UserPartUtil;
-import org.sopt.makers.crew.main.entity.apply.Applies;
-import org.sopt.makers.crew.main.entity.apply.Apply;
-import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
-import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
-import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
-import org.sopt.makers.crew.main.entity.comment.Comment;
-import org.sopt.makers.crew.main.entity.comment.CommentRepository;
-import org.sopt.makers.crew.main.entity.like.LikeRepository;
-import org.sopt.makers.crew.main.entity.meeting.Meeting;
-import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
-import org.sopt.makers.crew.main.entity.post.Post;
-import org.sopt.makers.crew.main.entity.post.PostRepository;
-import org.sopt.makers.crew.main.entity.user.User;
-import org.sopt.makers.crew.main.entity.user.UserRepository;
-import org.sopt.makers.crew.main.entity.user.enums.UserPart;
-import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
-import org.sopt.makers.crew.main.external.s3.service.S3Service;
+import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyWithoutWelcomeMessageDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
@@ -71,6 +73,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForLightningResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserMeetingDto;
@@ -89,12 +92,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.opencsv.CSVWriter;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private static final int ZERO = 0;
+	private static final String EMPTY_STRING = "";
 
 	private final UserRepository userRepository;
 	private final ApplyRepository applyRepository;
@@ -111,6 +117,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private final MeetingMapper meetingMapper;
 	private final ApplyMapper applyMapper;
+
+	private final ImageSetting imageSetting;
 
 	private final Time time;
 
@@ -465,6 +473,38 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		return MeetingV2GetRecommendDto.from(meetingResponseDtos);
 	}
 
+	@Override
+	public MeetingV2CreateMeetingForLightningResponseDto createMeetingForLightning(Integer userId,
+		LightningV2CreateLightningBodyWithoutWelcomeMessageDto lightningBody) {
+
+		User user = userRepository.findByIdOrThrow(userId);
+
+		List<ImageUrlVO> imageURL = getImageURL(lightningBody.files());
+		LocalDateTime activityStartDate = getActivityStartDate(lightningBody.activityStartDate());
+		LocalDateTime activityEndDate = getActivityEndDate((lightningBody.activityStartDate()));
+
+		Meeting lightningMeeting = Meeting.createLightningMeeting(
+			user,
+			userId,
+			lightningBody.title(),
+			imageURL,
+			time.now(),
+			activityStartDate, // 모집 마감일 = 활동 시작일
+			lightningBody.maximumCapacity(),
+			lightningBody.desc(),
+			activityStartDate,
+			activityEndDate,
+			ACTIVE_GENERATION,
+			EMPTY_STRING, // null 대신 빈 문자열로 NPE 방지
+			EMPTY_STRING, // null 대신 빈 문자열로 NPE 방지
+			EMPTY_STRING // null 대신 빈 문자열로 NPE 방지
+		);
+
+		meetingRepository.save(lightningMeeting);
+
+		return MeetingV2CreateMeetingForLightningResponseDto.of(lightningMeeting.getId(), lightningBody);
+	}
+
 	private void deleteCsvFile(String filePath) {
 		try {
 			Files.deleteIfExists(Paths.get(filePath));
@@ -613,5 +653,25 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.user(coLeader)
 				.build())
 			.toList();
+	}
+
+	private List<ImageUrlVO> getImageURL(List<String> files) {
+		AtomicInteger index = new AtomicInteger(0);
+
+		if (files.isEmpty()) {
+			files.add(imageSetting.getDefaultLightningImage());
+		}
+
+		return files.stream()
+			.map(fileUrl -> new ImageUrlVO(index.getAndIncrement(), fileUrl))
+			.toList();
+	}
+
+	private LocalDateTime getActivityStartDate(String date) {
+		return LocalDateTime.parse(date + DAY_START_TIME, DateTimeFormatter.ofPattern(DAY_TIME_FORMAT));
+	}
+
+	private LocalDateTime getActivityEndDate(String date) {
+		return LocalDateTime.parse(date + DAY_END_TIME, DateTimeFormatter.ofPattern(DAY_TIME_FORMAT));
 	}
 }

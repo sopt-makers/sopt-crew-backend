@@ -116,3 +116,6 @@ logging:
   sentry:
     repository-uri: ${SENTRY_REPOSITORY_URI}
     environment: dev
+
+img:
+  lightning: ${LIGHTNING_IMAGE}

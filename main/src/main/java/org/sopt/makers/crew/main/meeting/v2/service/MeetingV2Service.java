@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.meeting.v2.service;
 
 import java.util.List;
 
+import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyWithoutWelcomeMessageDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
@@ -11,6 +12,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBo
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForLightningResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
@@ -50,4 +52,7 @@ public interface MeetingV2Service {
 	MeetingV2GetMeetingByIdResponseDto getMeetingById(Integer meetingId, Integer userId);
 
 	MeetingV2GetRecommendDto getRecommendMeetingsByIds(List<Integer> meetingIds, Integer userId);
+
+	MeetingV2CreateMeetingForLightningResponseDto createMeetingForLightning(Integer userId,
+		LightningV2CreateLightningBodyWithoutWelcomeMessageDto lightningBody);
 }

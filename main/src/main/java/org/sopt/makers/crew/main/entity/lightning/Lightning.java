@@ -40,6 +40,10 @@ public class Lightning extends BaseTimeEntity {
 	private Integer leaderUserId;
 
 	@NotNull
+	@Column(name = "meetingId")
+	private Integer meetingId;
+
+	@NotNull
 	@Size(min = 1, max = 30)
 	@Column(name = "title")
 	private String title;
@@ -93,12 +97,14 @@ public class Lightning extends BaseTimeEntity {
 	private List<ImageUrlVO> imageURL;
 
 	@Builder
-	public Lightning(Integer leaderUserId, String title, String desc, LightningTimingType lightningTimingType,
+	public Lightning(Integer leaderUserId, Integer meetingId, String title, String desc,
+		LightningTimingType lightningTimingType,
 		LocalDateTime startDate, LocalDateTime endDate,
 		LocalDateTime activityStartDate, LocalDateTime activityEndDate, LightningPlaceType lightningPlaceType,
 		String lightningPlace, int minimumCapacity, int maximumCapacity, Integer createdGeneration,
 		List<ImageUrlVO> imageURL) {
 		this.leaderUserId = leaderUserId;
+		this.meetingId = meetingId;
 		this.title = title;
 		this.desc = desc;
 		this.lightningTimingType = lightningTimingType;
