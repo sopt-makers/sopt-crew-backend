@@ -5,11 +5,11 @@ import jakarta.validation.constraints.NotNull;
 
 @Schema(name = "LightningV2CreateLightningResponseDto", description = "번쩍 모임 생성 응답 Dto")
 public record LightningV2CreateLightningResponseDto(
-	@Schema(description = "번쩍 모임 id", example = "1")
+	@Schema(description = "모임 id - 번쩍 카테고리", example = "1")
 	@NotNull
-	Integer lightningId
+	Integer meetingId
 ) {
-	public static LightningV2CreateLightningResponseDto from(Integer lightningId) {
-		return new LightningV2CreateLightningResponseDto(lightningId);
+	public static LightningV2CreateLightningResponseDto from(Integer meetingId) {
+		return new LightningV2CreateLightningResponseDto(meetingId);
 	}
 }
