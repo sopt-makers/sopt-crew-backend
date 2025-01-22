@@ -85,7 +85,7 @@ public class TagV2ServiceImpl implements TagV2Service {
 		try {
 			return WelcomeMessageType.valueOf(value);
 		} catch (IllegalArgumentException e) {
-			return null;  // Invalid value 처리 (null 반환 또는 기본 값 처리)
+			return null;
 		}
 	}
 }
