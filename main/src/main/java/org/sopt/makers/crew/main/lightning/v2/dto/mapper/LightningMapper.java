@@ -5,7 +5,7 @@ import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -32,10 +32,8 @@ public interface LightningMapper {
 
 	@Named("getImageURL")
 	static List<ImageUrlVO> getImageURL(List<String> files) {
-		AtomicInteger index = new AtomicInteger(0);
-
-		return files.stream()
-			.map(fileUrl -> new ImageUrlVO(index.getAndIncrement(), fileUrl))
+		return IntStream.range(0, files.size())
+			.mapToObj(index -> new ImageUrlVO(index, files.get(index)))
 			.toList();
 	}
 
