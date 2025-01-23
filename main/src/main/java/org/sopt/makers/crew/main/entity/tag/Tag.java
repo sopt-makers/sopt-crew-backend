@@ -6,11 +6,9 @@ import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 import org.sopt.makers.crew.main.entity.tag.enums.TagType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
-import org.sopt.makers.crew.main.entity.tag.enums.WelcomeTypeConverter;
 
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -51,7 +49,6 @@ public class Tag extends BaseTimeEntity {
 	private Integer lightningId;
 
 	@Column(name = "welcomeMessageTypes", columnDefinition = "jsonb")
-	@Convert(converter = WelcomeTypeConverter.class)
 	@Type(JsonBinaryType.class)
 	private List<WelcomeMessageType> welcomeMessageTypes;
 
