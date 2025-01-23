@@ -23,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class TagV2ServiceImpl implements TagV2Service {
 
+	private static final String JSON_VALUE_SEPARATOR = ",";
+
 	private final TagRepository tagRepository;
 
 	// 여기에 createGeneralMeetingTag 메서드도 추가하면 될 것 같습니다 나중에! (추후 일반 모임에 태그 추가 시 작성)
@@ -76,7 +78,7 @@ public class TagV2ServiceImpl implements TagV2Service {
 	}
 
 	private List<String> splitAndTrimJsonValues(String jsonWelcomeMessageTypes) {
-		return Arrays.stream(jsonWelcomeMessageTypes.split(","))
+		return Arrays.stream(jsonWelcomeMessageTypes.split(JSON_VALUE_SEPARATOR))
 			.map(String::trim)
 			.toList();
 	}
