@@ -4,7 +4,9 @@ import java.security.Principal;
 
 import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyDto;
 import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2CreateLightningResponseDto;
+import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2GetLightningByMeetingIdResponseDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,12 +28,12 @@ public interface LightningV2Api {
 		@Valid @RequestBody LightningV2CreateLightningBodyDto requestBody,
 		Principal principal);
 
-	// @Operation(summary = "번쩍 모임 상세 조회")
-	// @ApiResponses(value = {
-	// 	@ApiResponse(responseCode = "200", description = "번쩍 모임 상세 조회 성공"),
-	// 	@ApiResponse(responseCode = "400", description = "번쩍 모임이 없습니다.", content = @Content),
-	// })
-	// ResponseEntity<LightningV2GetLightningByIdResponseDto> getLightningById(
-	// 	@PathVariable Integer lightningId,
-	// 	Principal principal);
+	@Operation(summary = "번쩍 모임 상세 조회")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "번쩍 모임 상세 조회 성공"),
+		@ApiResponse(responseCode = "400", description = "번쩍 모임이 없습니다.", content = @Content),
+	})
+	ResponseEntity<LightningV2GetLightningByMeetingIdResponseDto> getLightningByMeetingId(
+		@PathVariable Integer meetingId,
+		Principal principal);
 }

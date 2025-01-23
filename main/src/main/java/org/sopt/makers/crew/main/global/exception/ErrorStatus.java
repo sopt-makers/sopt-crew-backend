@@ -72,6 +72,7 @@ public enum ErrorStatus {
 	 * 405 METHOD_NOT_ALLOWED
 	 */
 	METHOD_NOT_SUPPORTED("지원되지 않는 HTTP 메서드입니다."),
+	TAG_NOT_FOUND_EXCEPTION("해당 태그를 찾을 수 없습니다."),
 
 	/**
 	 * 500 SERVER_ERROR

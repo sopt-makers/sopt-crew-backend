@@ -9,6 +9,7 @@ import org.sopt.makers.crew.main.entity.lightning.converter.LightningPlaceTypeCo
 import org.sopt.makers.crew.main.entity.lightning.converter.LightningTimingTypeConverter;
 import org.sopt.makers.crew.main.entity.lightning.enums.LightningPlaceType;
 import org.sopt.makers.crew.main.entity.lightning.enums.LightningTimingType;
+import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
@@ -119,4 +120,23 @@ public class Lightning extends BaseTimeEntity {
 		this.createdGeneration = createdGeneration;
 		this.imageURL = imageURL;
 	}
+
+	public boolean checkLightningMeetingLeader(Integer userId) {
+		return this.leaderUserId.equals(userId);
+	}
+
+	public int getLightningMeetingStatusValue(LocalDateTime now) {
+		return getLightningMeetingStatus(now).getValue();
+	}
+
+	public EnMeetingStatus getLightningMeetingStatus(LocalDateTime now) {
+		if (now.isBefore(startDate)) {
+			return EnMeetingStatus.BEFORE_START;
+		}
+		if (now.isBefore(endDate)) {
+			return EnMeetingStatus.APPLY_ABLE;
+		}
+		return EnMeetingStatus.RECRUITMENT_COMPLETE;
+	}
+
 }

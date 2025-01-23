@@ -1,16 +1,27 @@
 package org.sopt.makers.crew.main.lightning.v2.service;
 
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.util.List;
+
+import org.sopt.makers.crew.main.entity.apply.Applies;
+import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.lightning.Lightning;
 import org.sopt.makers.crew.main.entity.lightning.LightningRepository;
+import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.entity.user.UserReader;
+import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.lightning.v2.dto.mapper.LightningMapper;
 import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyDto;
 import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2CreateLightningResponseDto;
+import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2GetLightningByMeetingIdResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForLightningResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
@@ -32,6 +43,9 @@ public class LightningV2ServiceImpl implements LightningV2Service {
 	private final MeetingV2Service meetingV2Service;
 
 	private final LightningRepository lightningRepository;
+	private final ApplyRepository applyRepository;
+
+	private final UserReader userReader;
 	private final LightningMapper lightningMapper;
 
 	private final Time realTime;
@@ -59,41 +73,42 @@ public class LightningV2ServiceImpl implements LightningV2Service {
 		lightningRepository.save(lightning);
 		tagV2Service.createLightningTag(requestBody.welcomeMessageTypes(), lightning.getId());
 
-		return LightningV2CreateLightningResponseDto.from(lightning.getId());
+		return LightningV2CreateLightningResponseDto.from(lightning.getMeetingId());
 	}
 
-	// @Override
-	// public LightningV2GetLightningByIdResponseDto getLightningById(Integer lightningId, Integer userId) {
-	// 	User user = userV2Service.getUserByUserId(userId);
-	//
-	// 	Lightning lightning = lightningRepository.findById(lightningId)
-	// 		.orElseThrow(() -> new NotFoundException(NOT_FOUND_LIGHTNING.getErrorCode()));
-	//
-	// 	lightning.
-	//
-	// 		Meeting meeting = meetingReader.getMeetingById(meetingId).toEntity();
-	// 	MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(meeting.getUserId());
-	// 	CoLeaders coLeaders = coLeaderReader.getCoLeaders(meetingId).toEntity();
-	//
-	// 	Applies applies = new Applies(
-	// 		applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
-	//
-	// 	Boolean isHost = meeting.checkMeetingLeader(user.getId());
-	// 	Boolean isApply = applies.isApply(meetingId, user.getId());
-	// 	Boolean isApproved = applies.isApproved(meetingId, user.getId());
-	// 	boolean isCoLeader = coLeaders.isCoLeader(meetingId, userId);
-	// 	long approvedCount = applies.getApprovedCount(meetingId);
-	//
-	// 	List<ApplyWholeInfoDto> applyWholeInfoDtos = new ArrayList<>();
-	// 	if (applies.hasApplies(meetingId)) {
-	// 		applyWholeInfoDtos = applies.getAppliesMap().get(meetingId).stream()
-	// 			.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
-	// 			.toList();
-	// 	}
-	//
-	// 	return LightningV2GetLightningByIdResponseDto.of(meetingId, meeting, coLeaders.getCoLeaders(meetingId),
-	// 		isCoLeader,
-	// 		approvedCount, isHost, isApply, isApproved,
-	// 		meetingLeader, applyWholeInfoDtos, realTime.now());
-	// }
+	public LightningV2GetLightningByMeetingIdResponseDto getLightningByMeetingId(Integer meetingId, Integer userId) {
+		User user = userV2Service.getUserByUserId(userId);
+
+		Lightning lightning = lightningRepository.findByMeetingId(meetingId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_LIGHTNING.getErrorCode()));
+
+		MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(lightning.getLeaderUserId());
+
+		Applies applies = new Applies(
+			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
+
+		boolean isHost = lightning.checkLightningMeetingLeader(user.getId());
+		boolean isApply = applies.isApply(meetingId, user.getId());
+		boolean isApproved = applies.isApproved(meetingId, user.getId());
+		long approvedCount = applies.getApprovedCount(meetingId);
+
+		List<ApplyWholeInfoDto> applyWholeInfoDtos = getApplyWholeInfoDtos(applies, meetingId, userId);
+
+		List<WelcomeMessageType> welcomeMessageTypes = tagV2Service.getWelcomeMessageTypesByLightningId(
+			lightning.getId());
+
+		return LightningV2GetLightningByMeetingIdResponseDto.of(meetingId, lightning, welcomeMessageTypes,
+			approvedCount, isHost, isApply, isApproved,
+			meetingLeader, applyWholeInfoDtos, realTime.now());
+	}
+
+	private List<ApplyWholeInfoDto> getApplyWholeInfoDtos(Applies applies, Integer meetingId, Integer userId) {
+		if (!applies.hasApplies(meetingId)) {
+			return List.of();
+		}
+
+		return applies.getAppliesMap().get(meetingId).stream()
+			.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
+			.toList();
+	}
 }
