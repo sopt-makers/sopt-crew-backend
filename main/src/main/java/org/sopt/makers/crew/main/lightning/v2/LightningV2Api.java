@@ -34,6 +34,6 @@ public interface LightningV2Api {
 		@ApiResponse(responseCode = "400", description = "번쩍 모임이 없습니다.", content = @Content),
 	})
 	ResponseEntity<LightningV2GetLightningByMeetingIdResponseDto> getLightningByMeetingId(
-		@PathVariable Integer lightningId,
+		@PathVariable Integer meetingId,
 		Principal principal);
 }
