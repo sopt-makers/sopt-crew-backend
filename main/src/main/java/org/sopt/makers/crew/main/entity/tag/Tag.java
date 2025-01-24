@@ -34,7 +34,7 @@ public class Tag extends BaseTimeEntity {
 
 	/**
 	 * @implSpec : 모임태그 or 번쩍태그 구분
-	 * @implNote : 모임태그일 경우, lightningId == null
+	 * @implNote : 모임태그일 경우, flashId == null
 	 * @implNote : 번쩍태그일 경우, meetingId == null
 	 * */
 	@Enumerated(EnumType.STRING)
@@ -45,18 +45,18 @@ public class Tag extends BaseTimeEntity {
 	@Column(name = "meetingId")
 	private Integer meetingId;
 
-	@Column(name = "lightningId")
-	private Integer lightningId;
+	@Column(name = "flashId")
+	private Integer flashId;
 
 	@Column(name = "welcomeMessageTypes", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
 	private List<WelcomeMessageType> welcomeMessageTypes;
 
 	@Builder
-	private Tag(TagType tagType, Integer meetingId, Integer lightningId, List<WelcomeMessageType> welcomeMessageTypes) {
+	private Tag(TagType tagType, Integer meetingId, Integer flashId, List<WelcomeMessageType> welcomeMessageTypes) {
 		this.tagType = tagType;
 		this.meetingId = meetingId;
-		this.lightningId = lightningId;
+		this.flashId = flashId;
 		this.welcomeMessageTypes = welcomeMessageTypes;
 	}
 
@@ -65,17 +65,17 @@ public class Tag extends BaseTimeEntity {
 		return Tag.builder()
 			.tagType(tagType)
 			.meetingId(meetingId)
-			.lightningId(null)
+			.flashId(null)
 			.welcomeMessageTypes(welcomeMessageTypes)
 			.build();
 	}
 
-	public static Tag createLightningMeetingTag(TagType tagType, Integer lightningId,
+	public static Tag createFlashMeetingTag(TagType tagType, Integer flashId,
 		List<WelcomeMessageType> welcomeMessageTypes) {
 		return Tag.builder()
 			.tagType(tagType)
 			.meetingId(null)
-			.lightningId(lightningId)
+			.flashId(flashId)
 			.welcomeMessageTypes(welcomeMessageTypes)
 			.build();
 	}
