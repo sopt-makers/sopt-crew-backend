@@ -195,7 +195,7 @@ public class Meeting extends BaseTimeEntity {
 		this.joinableParts = joinableParts;
 	}
 
-	public static Meeting createLightningMeeting(User user, Integer userId, String title,
+	public static Meeting createFlashMeeting(User user, Integer userId, String title,
 		List<ImageUrlVO> imageURL, LocalDateTime startDate,
 		LocalDateTime endDate, Integer capacity, String desc,
 		LocalDateTime mStartDate, LocalDateTime mEndDate,
@@ -205,7 +205,7 @@ public class Meeting extends BaseTimeEntity {
 			.user(user)
 			.userId(userId)
 			.title(title)
-			.category(MeetingCategory.LIGHTNING)
+			.category(MeetingCategory.FLASH)
 			.imageURL(imageURL)
 			.startDate(startDate)
 			.endDate(endDate)

@@ -49,6 +49,7 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.enums.UserPart;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
+import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyWithoutWelcomeMessageDto;
 import org.sopt.makers.crew.main.global.config.ImageSetting;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
@@ -59,7 +60,6 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.global.util.UserPartUtil;
-import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyWithoutWelcomeMessageDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
@@ -73,7 +73,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForLightningResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserMeetingDto;
@@ -474,24 +474,24 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	public MeetingV2CreateMeetingForLightningResponseDto createMeetingForLightning(Integer userId,
-		LightningV2CreateLightningBodyWithoutWelcomeMessageDto lightningBody) {
+	public MeetingV2CreateMeetingForFlashResponseDto createMeetingForFlash(Integer userId,
+		FlashV2CreateFlashBodyWithoutWelcomeMessageDto flashBody) {
 
 		User user = userRepository.findByIdOrThrow(userId);
 
-		List<ImageUrlVO> imageURL = getImageURL(lightningBody.files());
-		LocalDateTime activityStartDate = getActivityStartDate(lightningBody.activityStartDate());
-		LocalDateTime activityEndDate = getActivityEndDate((lightningBody.activityStartDate()));
+		List<ImageUrlVO> imageURL = getImageURL(flashBody.files());
+		LocalDateTime activityStartDate = getActivityStartDate(flashBody.activityStartDate());
+		LocalDateTime activityEndDate = getActivityEndDate((flashBody.activityStartDate()));
 
-		Meeting lightningMeeting = Meeting.createLightningMeeting(
+		Meeting flashMeeting = Meeting.createFlashMeeting(
 			user,
 			userId,
-			lightningBody.title(),
+			flashBody.title(),
 			imageURL,
 			time.now(),
 			activityStartDate, // 모집 마감일 = 활동 시작일
-			lightningBody.maximumCapacity(),
-			lightningBody.desc(),
+			flashBody.maximumCapacity(),
+			flashBody.desc(),
 			activityStartDate,
 			activityEndDate,
 			ACTIVE_GENERATION,
@@ -500,9 +500,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			EMPTY_STRING // null 대신 빈 문자열로 NPE 방지
 		);
 
-		meetingRepository.save(lightningMeeting);
+		meetingRepository.save(flashMeeting);
 
-		return MeetingV2CreateMeetingForLightningResponseDto.of(lightningMeeting.getId(), lightningBody);
+		return MeetingV2CreateMeetingForFlashResponseDto.of(flashMeeting.getId(), flashBody);
 	}
 
 	private void deleteCsvFile(String filePath) {
@@ -659,7 +659,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		AtomicInteger index = new AtomicInteger(0);
 
 		if (files.isEmpty()) {
-			files.add(imageSetting.getDefaultLightningImage());
+			files.add(imageSetting.getDefaultFlashImage());
 		}
 
 		return files.stream()
