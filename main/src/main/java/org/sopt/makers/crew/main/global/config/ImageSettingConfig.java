@@ -5,11 +5,11 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ImageSettingConfig implements ImageSetting {
-	@Value("${img.lightning}")
-	private String defaultLightningImage;
+	@Value("${img.flash}")
+	private String defaultFlashImage;
 
 	@Override
-	public String getDefaultLightningImage() {
-		return defaultLightningImage;
+	public String getDefaultFlashImage() {
+		return defaultFlashImage;
 	}
 }
