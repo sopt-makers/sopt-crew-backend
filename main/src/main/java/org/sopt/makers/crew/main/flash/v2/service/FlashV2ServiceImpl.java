@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.lightning.v2.service;
+package org.sopt.makers.crew.main.flash.v2.service;
 
 import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
@@ -8,21 +8,21 @@ import java.util.List;
 
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
-import org.sopt.makers.crew.main.entity.lightning.Lightning;
-import org.sopt.makers.crew.main.entity.lightning.LightningRepository;
+import org.sopt.makers.crew.main.entity.flash.Flash;
+import org.sopt.makers.crew.main.entity.flash.FlashRepository;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
+import org.sopt.makers.crew.main.flash.v2.dto.mapper.FlashMapper;
+import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyDto;
+import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateFlashResponseDto;
+import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2GetFlashByMeetingIdResponseDto;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.util.Time;
-import org.sopt.makers.crew.main.lightning.v2.dto.mapper.LightningMapper;
-import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyDto;
-import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2CreateLightningResponseDto;
-import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2GetLightningByMeetingIdResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForLightningResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class LightningV2ServiceImpl implements LightningV2Service {
+public class FlashV2ServiceImpl implements FlashV2Service {
 
 	private static final int INTRO_IMAGE_LIST_SIZE = 1;
 
@@ -42,62 +42,62 @@ public class LightningV2ServiceImpl implements LightningV2Service {
 	private final TagV2Service tagV2Service;
 	private final MeetingV2Service meetingV2Service;
 
-	private final LightningRepository lightningRepository;
+	private final FlashRepository flashRepository;
 	private final ApplyRepository applyRepository;
 
 	private final UserReader userReader;
-	private final LightningMapper lightningMapper;
+	private final FlashMapper flashMapper;
 
 	private final Time realTime;
 
 	@Override
 	@Transactional
-	public LightningV2CreateLightningResponseDto createLightning(
-		LightningV2CreateLightningBodyDto requestBody, Integer userId) {
+	public FlashV2CreateFlashResponseDto createFlash(
+		FlashV2CreateFlashBodyDto requestBody, Integer userId) {
 		User user = userV2Service.getUserByUserId(userId);
 
 		if (user.getActivities() == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		if (requestBody.lightningBody().files().size() > INTRO_IMAGE_LIST_SIZE) {
+		if (requestBody.flashBody().files().size() > INTRO_IMAGE_LIST_SIZE) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		MeetingV2CreateMeetingForLightningResponseDto meetingV2CreateMeetingForLightningResponseDto = meetingV2Service.createMeetingForLightning(
-			userId, requestBody.lightningBody());
+		MeetingV2CreateMeetingForFlashResponseDto meetingV2CreateMeetingForFlashResponseDto = meetingV2Service.createMeetingForFlash(
+			userId, requestBody.flashBody());
 
-		Lightning lightning = lightningMapper.toLightningEntity(meetingV2CreateMeetingForLightningResponseDto,
+		Flash flash = flashMapper.toFlashntity(meetingV2CreateMeetingForFlashResponseDto,
 			ACTIVE_GENERATION, user.getId(), realTime);
 
-		lightningRepository.save(lightning);
-		tagV2Service.createLightningTag(requestBody.welcomeMessageTypes(), lightning.getId());
+		flashRepository.save(flash);
+		tagV2Service.createFlashTag(requestBody.welcomeMessageTypes(), flash.getId());
 
-		return LightningV2CreateLightningResponseDto.from(lightning.getMeetingId());
+		return FlashV2CreateFlashResponseDto.from(flash.getMeetingId());
 	}
 
-	public LightningV2GetLightningByMeetingIdResponseDto getLightningByMeetingId(Integer meetingId, Integer userId) {
+	public FlashV2GetFlashByMeetingIdResponseDto getFlashByMeetingId(Integer meetingId, Integer userId) {
 		User user = userV2Service.getUserByUserId(userId);
 
-		Lightning lightning = lightningRepository.findByMeetingId(meetingId)
-			.orElseThrow(() -> new NotFoundException(NOT_FOUND_LIGHTNING.getErrorCode()));
+		Flash flash = flashRepository.findByMeetingId(meetingId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
 
-		MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(lightning.getLeaderUserId());
+		MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(flash.getLeaderUserId());
 
 		Applies applies = new Applies(
 			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
 
-		boolean isHost = lightning.checkLightningMeetingLeader(user.getId());
+		boolean isHost = flash.checkFlashMeetingLeader(user.getId());
 		boolean isApply = applies.isApply(meetingId, user.getId());
 		boolean isApproved = applies.isApproved(meetingId, user.getId());
 		long approvedCount = applies.getApprovedCount(meetingId);
 
 		List<ApplyWholeInfoDto> applyWholeInfoDtos = getApplyWholeInfoDtos(applies, meetingId, userId);
 
-		List<WelcomeMessageType> welcomeMessageTypes = tagV2Service.getWelcomeMessageTypesByLightningId(
-			lightning.getId());
+		List<WelcomeMessageType> welcomeMessageTypes = tagV2Service.getWelcomeMessageTypesByFlashId(
+			flash.getId());
 
-		return LightningV2GetLightningByMeetingIdResponseDto.of(meetingId, lightning, welcomeMessageTypes,
+		return FlashV2GetFlashByMeetingIdResponseDto.of(meetingId, flash, welcomeMessageTypes,
 			approvedCount, isHost, isApply, isApproved,
 			meetingLeader, applyWholeInfoDtos, realTime.now());
 	}

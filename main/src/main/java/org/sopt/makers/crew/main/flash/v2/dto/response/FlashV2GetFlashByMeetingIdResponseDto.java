@@ -1,9 +1,9 @@
-package org.sopt.makers.crew.main.lightning.v2.dto.response;
+package org.sopt.makers.crew.main.flash.v2.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.sopt.makers.crew.main.entity.lightning.Lightning;
+import org.sopt.makers.crew.main.entity.flash.Flash;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
@@ -16,8 +16,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "번쩍 상세 조회 dto")
-public record LightningV2GetLightningByMeetingIdResponseDto(
+@Schema(name = "FlashV2GetFlashByMeetingIdResponseDto", description = "번쩍 상세 조회 dto")
+public record FlashV2GetFlashByMeetingIdResponseDto(
 
 	@Schema(description = "모임 id", example = "2")
 	@NotNull
@@ -117,9 +117,9 @@ public record LightningV2GetLightningByMeetingIdResponseDto(
 	List<ApplyWholeInfoDto> appliedInfo
 
 ) {
-	public static LightningV2GetLightningByMeetingIdResponseDto of(
+	public static FlashV2GetFlashByMeetingIdResponseDto of(
 		Integer meetingId,
-		Lightning lightning,
+		Flash flash,
 		List<WelcomeMessageType> welcomeMessageTypes,
 		long approvedCount,
 		boolean isHost,
@@ -130,29 +130,29 @@ public record LightningV2GetLightningByMeetingIdResponseDto(
 		LocalDateTime now
 	) {
 
-		int lightningMeetingStatus = lightning.getLightningMeetingStatusValue(now);
+		int flashMeetingStatus = flash.getFlashMeetingStatusValue(now);
 		List<String> welcomeMessageTypeValues = welcomeMessageTypes.stream()
 			.map(WelcomeMessageType::getValue)
 			.toList();
 
-		return new LightningV2GetLightningByMeetingIdResponseDto(
+		return new FlashV2GetFlashByMeetingIdResponseDto(
 			meetingId,
-			lightning.getLeaderUserId(),
-			lightning.getTitle(),
-			MeetingCategory.LIGHTNING.getValue(),
-			lightning.getImageURL(),
-			lightning.getEndDate(),
-			lightning.getMinimumCapacity(),
-			lightning.getMaximumCapacity(),
+			flash.getLeaderUserId(),
+			flash.getTitle(),
+			MeetingCategory.FLASH.getValue(),
+			flash.getImageURL(),
+			flash.getEndDate(),
+			flash.getMinimumCapacity(),
+			flash.getMaximumCapacity(),
 			welcomeMessageTypeValues,
-			lightning.getDesc(),
-			lightning.getActivityStartDate(),
-			lightning.getActivityEndDate(),
-			lightning.getLightningTimingType().getValue(),
-			lightning.getLightningPlaceType().getValue(),
-			lightning.getLightningPlace(),
-			lightning.getCreatedGeneration(),
-			lightningMeetingStatus,
+			flash.getDesc(),
+			flash.getActivityStartDate(),
+			flash.getActivityEndDate(),
+			flash.getFlashTimingType().getValue(),
+			flash.getFlashPlaceType().getValue(),
+			flash.getFlashPlace(),
+			flash.getCreatedGeneration(),
+			flashMeetingStatus,
 			approvedCount,
 			isHost,
 			isApply,

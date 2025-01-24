@@ -1,10 +1,10 @@
-package org.sopt.makers.crew.main.lightning.v2;
+package org.sopt.makers.crew.main.flash.v2;
 
 import java.security.Principal;
 
-import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyDto;
-import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2CreateLightningResponseDto;
-import org.sopt.makers.crew.main.lightning.v2.dto.response.LightningV2GetLightningByMeetingIdResponseDto;
+import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyDto;
+import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateFlashResponseDto;
+import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2GetFlashByMeetingIdResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,15 +17,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @Tag(name = "번쩍 모임")
-public interface LightningV2Api {
+public interface FlashV2Api {
 
 	@Operation(summary = "번쩍 모임 생성")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "201", description = "lightningId: 10"),
+		@ApiResponse(responseCode = "201", description = "meetingId: 10"),
 		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
 	})
-	ResponseEntity<LightningV2CreateLightningResponseDto> createLightning(
-		@Valid @RequestBody LightningV2CreateLightningBodyDto requestBody,
+	ResponseEntity<FlashV2CreateFlashResponseDto> createFlash(
+		@Valid @RequestBody FlashV2CreateFlashBodyDto requestBody,
 		Principal principal);
 
 	@Operation(summary = "번쩍 모임 상세 조회")
@@ -33,7 +33,7 @@ public interface LightningV2Api {
 		@ApiResponse(responseCode = "200", description = "번쩍 모임 상세 조회 성공"),
 		@ApiResponse(responseCode = "400", description = "번쩍 모임이 없습니다.", content = @Content),
 	})
-	ResponseEntity<LightningV2GetLightningByMeetingIdResponseDto> getLightningByMeetingId(
+	ResponseEntity<FlashV2GetFlashByMeetingIdResponseDto> getFlashByMeetingId(
 		@PathVariable Integer meetingId,
 		Principal principal);
 }
