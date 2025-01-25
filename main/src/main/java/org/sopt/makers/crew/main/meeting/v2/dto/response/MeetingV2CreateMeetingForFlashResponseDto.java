@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.lightning.v2.dto.request.LightningV2CreateLightningBodyWithoutWelcomeMessageDto;
+import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyWithoutWelcomeMessageDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
@@ -10,8 +10,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Schema(name = "MeetingV2CreateMeetingForLightningResponseDto", description = "번쩍 모임 생성 및 수정 request body dto")
-public record MeetingV2CreateMeetingForLightningResponseDto(
+@Schema(name = "MeetingV2CreateMeetingForFlashResponseDto", description = "번쩍 모임 생성 및 수정 request body dto")
+public record MeetingV2CreateMeetingForFlashResponseDto(
 	@Schema(description = "모임 id", example = "1")
 	@NotNull
 	Integer meetingId,
@@ -25,9 +25,9 @@ public record MeetingV2CreateMeetingForLightningResponseDto(
 	@NotNull
 	String desc,
 
-	@Schema(example = "예정 기간(협의 후 결정)", description = "번쩍 일정 결정 방식")
+	@Schema(example = "예정 기간 (협의 후 결정)", description = "번쩍 일정 결정 방식")
 	@NotNull
-	String lightningTimingType,
+	String flashTimingType,
 
 	@Schema(example = "2025.10.29", description = "번쩍 활동 시작 날짜", name = "activityStartDate")
 	@NotNull
@@ -39,10 +39,10 @@ public record MeetingV2CreateMeetingForLightningResponseDto(
 
 	@Schema(example = "오프라인", description = "모임 장소 Tag")
 	@NotNull
-	String lightningPlaceType,
+	String flashPlaceType,
 
 	@Schema(example = "잠실역 5번 출구", description = "모임 장소")
-	String lightningPlace,
+	String flashPlace,
 
 	@Schema(example = "1", description = "최소 모집 인원")
 	@Min(1)
@@ -62,20 +62,20 @@ public record MeetingV2CreateMeetingForLightningResponseDto(
 	@Size(max = 1)
 	List<String> files
 ) {
-	public static MeetingV2CreateMeetingForLightningResponseDto of(
-		Integer meetingId, LightningV2CreateLightningBodyWithoutWelcomeMessageDto lightningBody) {
-		return new MeetingV2CreateMeetingForLightningResponseDto(
+	public static MeetingV2CreateMeetingForFlashResponseDto of(
+		Integer meetingId, FlashV2CreateFlashBodyWithoutWelcomeMessageDto flashBody) {
+		return new MeetingV2CreateMeetingForFlashResponseDto(
 			meetingId,
-			lightningBody.title(),
-			lightningBody.desc(),
-			lightningBody.lightningTimingType(),
-			lightningBody.activityStartDate(),
-			lightningBody.activityEndDate(),
-			lightningBody.lightningPlaceType(),
-			lightningBody.lightningPlace(),
-			lightningBody.minimumCapacity(),
-			lightningBody.maximumCapacity(),
-			lightningBody.files()
+			flashBody.title(),
+			flashBody.desc(),
+			flashBody.flashTimingType(),
+			flashBody.activityStartDate(),
+			flashBody.activityEndDate(),
+			flashBody.flashPlaceType(),
+			flashBody.flashPlace(),
+			flashBody.minimumCapacity(),
+			flashBody.maximumCapacity(),
+			flashBody.files()
 		);
 	}
 }

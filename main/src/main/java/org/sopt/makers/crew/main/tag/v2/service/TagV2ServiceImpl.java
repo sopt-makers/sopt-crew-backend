@@ -11,7 +11,7 @@ import org.sopt.makers.crew.main.entity.tag.WelcomeMessageTypeProjection;
 import org.sopt.makers.crew.main.entity.tag.enums.TagType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
-import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateFlashTagResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,38 +28,38 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 	@Override
 	@Transactional
-	public TagV2CreateTagResponseDto createLightningTag(List<String> welcomeMessageTypes,
-		Integer lightningId) {
+	public TagV2CreateFlashTagResponseDto createFlashTag(List<String> welcomeMessageTypes,
+		Integer flashId) {
 
-		if (lightningId == null) {
+		if (flashId == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
 		if (welcomeMessageTypes == null || welcomeMessageTypes.isEmpty()) {
-			return saveTag(lightningId, List.of());
+			return saveTag(flashId, List.of());
 		}
 
 		List<WelcomeMessageType> welcomeMessageTypeEnums = welcomeMessageTypes.stream()
 			.map(WelcomeMessageType::ofValue)
 			.toList();
 
-		return saveTag(lightningId, welcomeMessageTypeEnums);
+		return saveTag(flashId, welcomeMessageTypeEnums);
 	}
 
 	@Override
-	public List<WelcomeMessageType> getWelcomeMessageTypesByLightningId(Integer lightningId) {
-		if (lightningId == null) {
+	public List<WelcomeMessageType> getWelcomeMessageTypesByFlashId(Integer flashId) {
+		if (flashId == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		return tagRepository.findByLightningId(lightningId)
+		return tagRepository.findByFlashId(flashId)
 			.map(WelcomeMessageTypeProjection::getWelcomeMessageTypes)
 			.orElse(Collections.emptyList());
 	}
 
-	private TagV2CreateTagResponseDto saveTag(Integer lightningId, List<WelcomeMessageType> welcomeMessageTypeEnums) {
-		Tag tag = Tag.createLightningMeetingTag(TagType.LIGHTNING, lightningId, welcomeMessageTypeEnums);
+	private TagV2CreateFlashTagResponseDto saveTag(Integer flashId, List<WelcomeMessageType> welcomeMessageTypeEnums) {
+		Tag tag = Tag.createFlashMeetingTag(TagType.FLASH, flashId, welcomeMessageTypeEnums);
 		tagRepository.save(tag);
-		return TagV2CreateTagResponseDto.from(tag.getId());
+		return TagV2CreateFlashTagResponseDto.from(tag.getId());
 	}
 }

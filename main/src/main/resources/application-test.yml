@@ -117,4 +117,4 @@ logging:
     environment: test
 
 img:
-  lightning: ${LIGHTNING_IMAGE}
+  flash: ${FLASH_IMAGE}

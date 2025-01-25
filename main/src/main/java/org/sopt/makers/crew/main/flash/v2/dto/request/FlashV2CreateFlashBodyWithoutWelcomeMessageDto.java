@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.lightning.v2.dto.request;
+package org.sopt.makers.crew.main.flash.v2.dto.request;
 
 import java.util.List;
 
@@ -8,8 +8,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Schema(name = "LightningV2CreateLightningBodyWithoutWelcomeMessageDto", description = "번쩍 모임 생성 및 수정 request body dto (환영 메시지 타입 제외)")
-public record LightningV2CreateLightningBodyWithoutWelcomeMessageDto(
+@Schema(name = "FlashV2CreateFlashBodyWithoutWelcomeMessageDto", description = "번쩍 모임 생성 및 수정 request body dto (환영 메시지 타입 제외)")
+public record FlashV2CreateFlashBodyWithoutWelcomeMessageDto(
 	@Schema(example = "알고보면 쓸데있는 개발 프로세스", description = "번쩍 모임 제목")
 	@Size(min = 1, max = 30)
 	@NotNull String title,
@@ -19,9 +19,9 @@ public record LightningV2CreateLightningBodyWithoutWelcomeMessageDto(
 	@NotNull
 	String desc,
 
-	@Schema(example = "예정 기간(협의 후 결정)", description = "번쩍 일정 결정 방식")
+	@Schema(example = "예정 기간 (협의 후 결정)", description = "번쩍 일정 결정 방식")
 	@NotNull
-	String lightningTimingType,
+	String flashTimingType,
 
 	@Schema(example = "2025.10.29", description = "번쩍 활동 시작 날짜", name = "activityStartDate")
 	@NotNull
@@ -33,10 +33,10 @@ public record LightningV2CreateLightningBodyWithoutWelcomeMessageDto(
 
 	@Schema(example = "오프라인", description = "모임 장소 Tag")
 	@NotNull
-	String lightningPlaceType,
+	String flashPlaceType,
 
 	@Schema(example = "잠실역 5번 출구", description = "모임 장소")
-	String lightningPlace,
+	String flashPlace,
 
 	@Schema(example = "1", description = "최소 모집 인원")
 	@Min(1)

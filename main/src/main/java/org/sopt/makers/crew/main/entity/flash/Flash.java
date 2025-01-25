@@ -1,14 +1,14 @@
-package org.sopt.makers.crew.main.entity.lightning;
+package org.sopt.makers.crew.main.entity.flash;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
-import org.sopt.makers.crew.main.entity.lightning.converter.LightningPlaceTypeConverter;
-import org.sopt.makers.crew.main.entity.lightning.converter.LightningTimingTypeConverter;
-import org.sopt.makers.crew.main.entity.lightning.enums.LightningPlaceType;
-import org.sopt.makers.crew.main.entity.lightning.enums.LightningTimingType;
+import org.sopt.makers.crew.main.entity.flash.converter.FlashPlaceTypeConverter;
+import org.sopt.makers.crew.main.entity.flash.converter.FlashTimingTypeConverter;
+import org.sopt.makers.crew.main.entity.flash.enums.FlashPlaceType;
+import org.sopt.makers.crew.main.entity.flash.enums.FlashTimingType;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 
@@ -30,8 +30,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "lightning")
-public class Lightning extends BaseTimeEntity {
+@Table(name = "flash")
+public class Flash extends BaseTimeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
@@ -52,10 +52,10 @@ public class Lightning extends BaseTimeEntity {
 	@Column(name = "desc", columnDefinition = "TEXT")
 	private String desc;
 
-	@Column(name = "lightningTimingType")
+	@Column(name = "flashTimingType")
 	@NotNull
-	@Convert(converter = LightningTimingTypeConverter.class)
-	private LightningTimingType lightningTimingType;
+	@Convert(converter = FlashTimingTypeConverter.class)
+	private FlashTimingType flashTimingType;
 
 	@Column(name = "startDate")
 	@NotNull
@@ -73,13 +73,13 @@ public class Lightning extends BaseTimeEntity {
 	@NotNull
 	private LocalDateTime activityEndDate;
 
-	@Column(name = "lightningPlaceType")
+	@Column(name = "flashPlaceType")
 	@NotNull
-	@Convert(converter = LightningPlaceTypeConverter.class)
-	private LightningPlaceType lightningPlaceType;
+	@Convert(converter = FlashPlaceTypeConverter.class)
+	private FlashPlaceType flashPlaceType;
 
-	@Column(name = "lightningPlace")
-	private String lightningPlace;
+	@Column(name = "flashPlace")
+	private String flashPlace;
 
 	@Column(name = "minimumCapacity")
 	@NotNull
@@ -98,38 +98,38 @@ public class Lightning extends BaseTimeEntity {
 	private List<ImageUrlVO> imageURL;
 
 	@Builder
-	public Lightning(Integer leaderUserId, Integer meetingId, String title, String desc,
-		LightningTimingType lightningTimingType,
+	public Flash(Integer leaderUserId, Integer meetingId, String title, String desc,
+		FlashTimingType flashTimingType,
 		LocalDateTime startDate, LocalDateTime endDate,
-		LocalDateTime activityStartDate, LocalDateTime activityEndDate, LightningPlaceType lightningPlaceType,
-		String lightningPlace, int minimumCapacity, int maximumCapacity, Integer createdGeneration,
+		LocalDateTime activityStartDate, LocalDateTime activityEndDate, FlashPlaceType flashPlaceType,
+		String flashPlace, int minimumCapacity, int maximumCapacity, Integer createdGeneration,
 		List<ImageUrlVO> imageURL) {
 		this.leaderUserId = leaderUserId;
 		this.meetingId = meetingId;
 		this.title = title;
 		this.desc = desc;
-		this.lightningTimingType = lightningTimingType;
+		this.flashTimingType = flashTimingType;
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.activityStartDate = activityStartDate;
 		this.activityEndDate = activityEndDate;
-		this.lightningPlaceType = lightningPlaceType;
-		this.lightningPlace = lightningPlace;
+		this.flashPlaceType = flashPlaceType;
+		this.flashPlace = flashPlace;
 		this.minimumCapacity = minimumCapacity;
 		this.maximumCapacity = maximumCapacity;
 		this.createdGeneration = createdGeneration;
 		this.imageURL = imageURL;
 	}
 
-	public boolean checkLightningMeetingLeader(Integer userId) {
+	public boolean checkFlashMeetingLeader(Integer userId) {
 		return this.leaderUserId.equals(userId);
 	}
 
-	public int getLightningMeetingStatusValue(LocalDateTime now) {
-		return getLightningMeetingStatus(now).getValue();
+	public int getFlashMeetingStatusValue(LocalDateTime now) {
+		return getFlashMeetingStatus(now).getValue();
 	}
 
-	public EnMeetingStatus getLightningMeetingStatus(LocalDateTime now) {
+	public EnMeetingStatus getFlashMeetingStatus(LocalDateTime now) {
 		if (now.isBefore(startDate)) {
 			return EnMeetingStatus.BEFORE_START;
 		}

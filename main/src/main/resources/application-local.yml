@@ -118,4 +118,4 @@ logging:
     environment: local
 
 img:
-  lightning: ${LIGHTNING_IMAGE}
+  flash: ${FLASH_IMAGE}
