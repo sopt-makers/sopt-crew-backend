@@ -73,15 +73,15 @@ public record FlashV2GetFlashByMeetingIdResponseDto(
 
 	@Schema(description = "번쩍 일시 타입", example = "예정 기간 (협의 후 결정)")
 	@NotNull
-	String timingType,
+	String flashTimingType,
 
 	@Schema(description = "번쩍 장소 타입", example = "온라인")
 	@NotNull
-	String placeType,
+	String flashPlaceType,
 
 	@Schema(description = "번쩍 장소", example = "Zoom 링크")
 	@NotNull
-	String place,
+	String flashPlace,
 
 	@Schema(description = "개설 기수", example = "36")
 	@NotNull
