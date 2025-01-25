@@ -13,16 +13,11 @@ public enum ErrorStatus {
 	NO_CONTENT_EXCEPTION("참여한 모임이 없습니다."),
 
 	/**
-	 * 400 BAD_REQUEST
+	 * 400 BAD_REQUEST - 비즈니스 로직 관련 에러
 	 */
 	VALIDATION_EXCEPTION("CF-001"),
 	VALIDATION_REQUEST_MISSING_EXCEPTION("요청값이 입력되지 않았습니다."),
-	INVALID_INPUT_VALUE("요청값이 올바르지 않습니다. : "),
 	INVALID_INPUT_VALUE_FILTER("요청값 또는 토큰이 올바르지 않습니다."),
-	NOT_FOUND_MEETING("모임이 없습니다."),
-	NOT_FOUND_POST("존재하지 않는 게시글입니다."),
-	NOT_FOUND_USER("존재하지 않는 유저입니다."),
-	NOT_FOUND_COMMENT("존재하지 않는 댓글입니다."),
 	FULL_MEETING_CAPACITY("정원이 꽉 찼습니다."),
 	ALREADY_APPLIED_MEETING("이미 지원한 모임입니다."),
 	ALREADY_REPORTED_COMMENT("이미 신고한 댓글입니다."),
@@ -41,6 +36,19 @@ public enum ErrorStatus {
 	IO_EXCEPTION("파일 입출력 오류가 발생했습니다."),
 
 	/**
+	 * 400 BAD_REQUEST - 유효성 검사 관련 에러
+	 */
+	MISSING_REQUEST_PARAMETER("필수 요청 파라미터가 누락되었습니다."),
+	METHOD_ARGUMENT_NOT_VALID("메서드 인자 유효성 검사가 실패했습니다."),
+	ARGUMENT_TYPE_MISMATCH("인자 타입이 일치하지 않습니다."),
+	MISSING_PATH_VARIABLE("필수 경로 변수가 누락되었습니다."),
+	INVALID_ARGUMENT("잘못된 인자입니다."),
+	CONSTRAINT_VIOLATION("제약 조건을 위반했습니다."),
+	DATA_INTEGRITY_VIOLATION("데이터 무결성이 위반되었습니다."),
+	MESSAGE_NOT_READABLE("읽을 수 없는 메시지 형식입니다."),
+	INVALID_INPUT_VALUE("요청값이 올바르지 않습니다. : "),
+
+	/**
 	 * 401 UNAUTHORIZED
 	 */
 	UNAUTHORIZED_TOKEN("유효하지 않은 토큰입니다."),
@@ -50,6 +58,21 @@ public enum ErrorStatus {
 	 * 403 FORBIDDEN
 	 */
 	FORBIDDEN_EXCEPTION("권한이 없습니다."),
+
+	/**
+	 * 404 NOT_FOUND
+	 */
+	NOT_FOUND_MEETING("모임이 없습니다."), // 예외 처리 NotFound로 수정 필요
+	NOT_FOUND_POST("존재하지 않는 게시글입니다."), // 예외 처리 NotFound로 수정 필요
+	NOT_FOUND_USER("존재하지 않는 유저입니다."), // 예외 처리 NotFound로 수정 필요
+	NOT_FOUND_COMMENT("존재하지 않는 댓글입니다."), // 예외 처리 NotFound로 수정 필요
+	NOT_FOUND_FLASH("번쩍 모임이 없습니다."), // 예외 처리 NotFound로 수정 필요
+
+	/**
+	 * 405 METHOD_NOT_ALLOWED
+	 */
+	METHOD_NOT_SUPPORTED("지원되지 않는 HTTP 메서드입니다."),
+	TAG_NOT_FOUND_EXCEPTION("해당 태그를 찾을 수 없습니다."),
 
 	/**
 	 * 500 SERVER_ERROR

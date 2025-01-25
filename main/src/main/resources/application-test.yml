@@ -115,3 +115,6 @@ logging:
   sentry:
     repository-uri: ${SENTRY_REPOSITORY_URI}
     environment: test
+
+img:
+  flash: ${FLASH_IMAGE}

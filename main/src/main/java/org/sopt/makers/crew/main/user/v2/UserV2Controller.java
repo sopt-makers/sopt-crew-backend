@@ -3,8 +3,6 @@ package org.sopt.makers.crew.main.user.v2;
 import java.security.Principal;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
@@ -19,6 +17,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/user/v2")
@@ -75,5 +75,4 @@ public class UserV2Controller implements UserV2Api {
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.ok().body(userV2Service.getCreatedMeetingByUser(userId));
 	}
-
 }

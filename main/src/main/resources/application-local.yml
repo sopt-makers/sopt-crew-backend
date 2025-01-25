@@ -69,7 +69,7 @@ push-notification:
   push-server-url: ${LOCAL_PUSH_SERVER_URL}
 
 notice:
-  secret-key : ${NOTICE_SECRET_KEY}
+  secret-key: ${NOTICE_SECRET_KEY}
 
 playground:
   server:
@@ -116,3 +116,6 @@ logging:
   sentry:
     repository-uri: ${LOCAL_SENTRY_REPOSITORY_URI}
     environment: local
+
+img:
+  flash: ${FLASH_IMAGE}
