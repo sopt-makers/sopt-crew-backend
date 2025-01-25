@@ -25,7 +25,7 @@ public record MeetingV2CreateMeetingForFlashResponseDto(
 	@NotNull
 	String desc,
 
-	@Schema(example = "예정 기간(협의 후 결정)", description = "번쩍 일정 결정 방식")
+	@Schema(example = "예정 기간 (협의 후 결정)", description = "번쩍 일정 결정 방식")
 	@NotNull
 	String flashTimingType,
 

@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum FlashTimingType {
 	IMMEDIATE("당일"),
-	AFTER_DISCUSSION("예정 기간(협의 후 결정)");
+	AFTER_DISCUSSION("예정 기간 (협의 후 결정)");
 
 	private final String value;
 

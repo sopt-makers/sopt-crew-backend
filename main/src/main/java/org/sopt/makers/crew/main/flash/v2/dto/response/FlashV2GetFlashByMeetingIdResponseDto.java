@@ -71,7 +71,7 @@ public record FlashV2GetFlashByMeetingIdResponseDto(
 	@NotNull
 	LocalDateTime activityEndDate,
 
-	@Schema(description = "번쩍 일시 타입", example = "예정 기간(협의 후 결정)")
+	@Schema(description = "번쩍 일시 타입", example = "예정 기간 (협의 후 결정)")
 	@NotNull
 	String timingType,
 
