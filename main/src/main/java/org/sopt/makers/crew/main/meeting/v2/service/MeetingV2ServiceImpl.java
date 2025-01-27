@@ -30,6 +30,8 @@ import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
+import org.sopt.makers.crew.main.entity.flash.Flash;
+import org.sopt.makers.crew.main.entity.flash.FlashRepository;
 import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeader;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderReader;
@@ -43,6 +45,7 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
+import org.sopt.makers.crew.main.entity.tag.TagRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
@@ -54,6 +57,7 @@ import org.sopt.makers.crew.main.global.config.ImageSetting;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
@@ -109,6 +113,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
 	private final CoLeaderRepository coLeaderRepository;
+	private final FlashRepository flashRepository;
+	private final TagRepository tagRepository;
 	private final MeetingReader meetingReader;
 	private final CoLeaderReader coLeaderReader;
 	private final UserReader userReader;
@@ -342,10 +348,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		meeting.validateMeetingCreator(userId);
 
 		List<Post> posts = postRepository.findAllByMeetingId(meetingId);
-		List<Integer> postIds = posts.stream().map(Post::getId).toList();
+		List<Integer> postIds = posts.stream()
+			.map(Post::getId)
+			.toList();
 
 		List<Comment> comments = commentRepository.findAllByPostIdIsIn(postIds);
-		List<Integer> commentIds = comments.stream().map(Comment::getId).toList();
+		List<Integer> commentIds = comments.stream()
+			.map(Comment::getId)
+			.toList();
 
 		likeRepository.deleteAllByPostIdsInQuery(postIds);
 		likeRepository.deleteAllByCommentIdsInQuery(commentIds);
@@ -354,6 +364,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		postRepository.deleteAllByMeetingIdQuery(meetingId);
 		applyRepository.deleteAllByMeetingIdQuery(meetingId);
 		coLeaderRepository.deleteAllByMeetingId(meetingId);
+
+		if (meeting.getCategory() == MeetingCategory.FLASH) {
+			Flash flash = flashRepository.findByMeetingId(meetingId)
+				.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
+
+			tagRepository.deleteByFlashId(flash.getId());
+			flashRepository.delete(flash);
+		}
 
 		meetingRepository.delete(meeting);
 	}
