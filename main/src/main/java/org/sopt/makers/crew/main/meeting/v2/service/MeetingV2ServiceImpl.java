@@ -1,8 +1,8 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
-import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
