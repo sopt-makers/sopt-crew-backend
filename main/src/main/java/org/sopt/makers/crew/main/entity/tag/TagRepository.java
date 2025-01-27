@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TagRepository extends JpaRepository<Tag, Integer> {
 	Optional<WelcomeMessageTypeProjection> findByFlashId(Integer flashId);
+
+	void deleteByFlashId(Integer flashId);
 }
