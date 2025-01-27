@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/internal/meeting/stats")
 @RequiredArgsConstructor
-public class InternalMeetingStatsController {
+public class InternalMeetingStatsController implements InternalMeetingStatsApi {
 	private final InternalMeetingStatsService internalMeetingStatsService;
 
 	@GetMapping("/approved-studies/{orgId}")
