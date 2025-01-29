@@ -23,7 +23,7 @@ public interface InternalMeetingStatsApi {
 	ResponseEntity<ApprovedStudyCountResponseDto> getApprovedStudyCountByOrgId(
 		@Parameter(description = "플레이그라운드 유저 ID(orgId)", example = "1") Integer orgId);
 
-	@Operation(summary = "[Internal] 특정 유저가 가장 빠르게 신청한 모임 조회", description = "특정 유저가 가장 빠르게 신청한 모임 조회하는 API입니다.")
+	@Operation(summary = "[Internal] 특정 유저가 가장 빠르게 신청한 모임 N개 조회", description = "특정 유저가 가장 빠르게 신청한 모임 N개 조회하는 API입니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "가장 빠르게 신청한 모임 조회 성공"),
 		@ApiResponse(responseCode = "204", description = "모임 신청한 기록이 없는 경우", content = @Content(mediaType = "application/json", schema = @Schema(example = "{\"topFastestAppliedMeetings\": null}"))),
