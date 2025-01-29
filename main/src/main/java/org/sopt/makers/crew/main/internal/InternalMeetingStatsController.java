@@ -36,11 +36,6 @@ public class InternalMeetingStatsController implements InternalMeetingStatsApi {
 
 		TopFastestAppliedMeetingsResponseDto response = internalMeetingStatsService.getTopFastestAppliedMeetings(
 			orgId, queryCount);
-
-		if (response.topFastestAppliedMeetings() == null) {
-			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
-		}
-
 		return ResponseEntity.ok(response);
 	}
 }

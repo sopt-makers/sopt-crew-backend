@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.internal.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,7 +42,7 @@ public class InternalMeetingStatsService {
 		Optional<User> user = userRepository.findByOrgId(orgId);
 
 		if (user.isEmpty()) {
-			return TopFastestAppliedMeetingsResponseDto.of(null);
+			return TopFastestAppliedMeetingsResponseDto.of(Collections.emptyList());
 		}
 
 		List<Apply> applies = applyRepository.findTopFastestAppliedMeetings(user.get().getId(), queryCount);
