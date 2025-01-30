@@ -9,6 +9,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
@@ -75,7 +76,7 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
 			.innerJoin(apply.meeting, meeting)
 			.where(apply.userId.eq(userId))
 			.orderBy(
-				Expressions.numberTemplate(Long.class,
+				Expressions.numberTemplate(BigDecimal.class,
 					"{0} - {1}", apply.appliedDate, apply.meeting.startDate).asc()
 			)
 			.limit(limit)
