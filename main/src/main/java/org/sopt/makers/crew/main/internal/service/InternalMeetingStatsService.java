@@ -1,11 +1,18 @@
 package org.sopt.makers.crew.main.internal.service;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.internal.dto.ApprovedStudyCountResponseDto;
+import org.sopt.makers.crew.main.internal.dto.TopFastestAppliedMeetingResponseDto;
+import org.sopt.makers.crew.main.internal.dto.TopFastestAppliedMeetingsResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,5 +36,21 @@ public class InternalMeetingStatsService {
 			EnApplyStatus.APPROVE, user.getOrgId());
 
 		return ApprovedStudyCountResponseDto.of(user.getOrgId(), approvedStudyCount);
+	}
+
+	public TopFastestAppliedMeetingsResponseDto getTopFastestAppliedMeetings(Integer orgId, Integer queryCount) {
+		Optional<User> user = userRepository.findByOrgId(orgId);
+
+		if (user.isEmpty()) {
+			return TopFastestAppliedMeetingsResponseDto.from(Collections.emptyList());
+		}
+
+		List<Apply> applies = applyRepository.findTopFastestAppliedMeetings(user.get().getId(), queryCount);
+
+		List<TopFastestAppliedMeetingResponseDto> responseDtos = applies.stream()
+			.map(apply -> TopFastestAppliedMeetingResponseDto.from(apply.getMeeting()))
+			.toList();
+
+		return TopFastestAppliedMeetingsResponseDto.from(responseDtos);
 	}
 }

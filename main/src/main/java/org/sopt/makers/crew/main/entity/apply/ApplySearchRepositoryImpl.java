@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.entity.apply;
 
+import static org.sopt.makers.crew.main.entity.meeting.QMeeting.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.entity.apply.QApply.apply;
 import static org.sopt.makers.crew.main.entity.user.QUser.user;
@@ -7,9 +8,13 @@ import static org.sopt.makers.crew.main.entity.user.QUser.user;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
+
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.QApplicantDto;
@@ -63,5 +68,18 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
                         apply.status.in(queryCommand.getStatus())
                 );
 
-    }
+	}
+
+	public List<Apply> findTopFastestAppliedMeetings(Integer userId, Integer limit) {
+		return queryFactory
+			.selectFrom(apply)
+			.innerJoin(apply.meeting, meeting)
+			.where(apply.userId.eq(userId))
+			.orderBy(
+				Expressions.numberTemplate(BigDecimal.class,
+					"{0} - {1}", apply.appliedDate, apply.meeting.startDate).asc()
+			)
+			.limit(limit)
+			.fetch();
+	}
 }
