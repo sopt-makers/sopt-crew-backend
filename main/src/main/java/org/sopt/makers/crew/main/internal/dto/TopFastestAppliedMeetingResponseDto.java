@@ -11,7 +11,7 @@ public record TopFastestAppliedMeetingResponseDto(
 	@Schema(description = "가장 빠르게 신청한 모임 이름", example = "가장 빠른 모임 1")
 	String title
 ) {
-	public static TopFastestAppliedMeetingResponseDto of(Meeting meeting) {
+	public static TopFastestAppliedMeetingResponseDto from(Meeting meeting) {
 		return new TopFastestAppliedMeetingResponseDto(meeting.getId(), meeting.getTitle());
 	}
 }

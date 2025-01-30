@@ -42,15 +42,15 @@ public class InternalMeetingStatsService {
 		Optional<User> user = userRepository.findByOrgId(orgId);
 
 		if (user.isEmpty()) {
-			return TopFastestAppliedMeetingsResponseDto.of(Collections.emptyList());
+			return TopFastestAppliedMeetingsResponseDto.from(Collections.emptyList());
 		}
 
 		List<Apply> applies = applyRepository.findTopFastestAppliedMeetings(user.get().getId(), queryCount);
 
 		List<TopFastestAppliedMeetingResponseDto> responseDtos = applies.stream()
-			.map(apply -> TopFastestAppliedMeetingResponseDto.of(apply.getMeeting()))
+			.map(apply -> TopFastestAppliedMeetingResponseDto.from(apply.getMeeting()))
 			.toList();
 
-		return TopFastestAppliedMeetingsResponseDto.of(responseDtos);
+		return TopFastestAppliedMeetingsResponseDto.from(responseDtos);
 	}
 }

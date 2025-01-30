@@ -9,7 +9,7 @@ public record TopFastestAppliedMeetingsResponseDto(
 	@Schema(description = "가장 빠르게 신청한 모임", example = "")
 	List<TopFastestAppliedMeetingResponseDto> topFastestAppliedMeetings
 ) {
-	public static TopFastestAppliedMeetingsResponseDto of(
+	public static TopFastestAppliedMeetingsResponseDto from(
 		List<TopFastestAppliedMeetingResponseDto> topFastestAppliedMeetings) {
 
 		return new TopFastestAppliedMeetingsResponseDto(topFastestAppliedMeetings);
