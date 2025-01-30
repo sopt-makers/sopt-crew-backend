@@ -1,7 +1,9 @@
 package org.sopt.makers.crew.main.internal;
 
 import org.sopt.makers.crew.main.internal.dto.ApprovedStudyCountResponseDto;
+import org.sopt.makers.crew.main.internal.dto.TopFastestAppliedMeetingsResponseDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,4 +22,12 @@ public interface InternalMeetingStatsApi {
 		@ApiResponse(responseCode = "404", description = "존재하지 않는 유저입니다.", content = @Content(mediaType = "application/json"))})
 	ResponseEntity<ApprovedStudyCountResponseDto> getApprovedStudyCountByOrgId(
 		@Parameter(description = "플레이그라운드 유저 ID(orgId)", example = "1") Integer orgId);
+
+	@Operation(summary = "[Internal] 특정 유저가 가장 빠르게 신청한 모임 N개 조회", description = "특정 유저가 가장 빠르게 신청한 모임 N개 조회하는 API입니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "가장 빠르게 신청한 모임 조회 성공"),
+		@ApiResponse(responseCode = "404", description = "존재하지 않는 유저입니다.", content = @Content(mediaType = "application/json"))})
+	ResponseEntity<TopFastestAppliedMeetingsResponseDto> getTopFastestAppliedMeetings(
+		@Parameter(description = "플레이그라운드 유저 ID(orgId)", example = "1") Integer orgId,
+		@RequestParam(name = "queryCount", required = false, defaultValue = "3") Integer queryCount);
 }
