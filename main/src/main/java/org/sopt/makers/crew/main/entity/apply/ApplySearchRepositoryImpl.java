@@ -10,6 +10,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import java.math.BigDecimal;
+import java.time.Year;
 import java.util.List;
 import java.util.Objects;
 
@@ -70,11 +71,15 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
 
 	}
 
-	public List<Apply> findTopFastestAppliedMeetings(Integer userId, Integer limit) {
+	public List<Apply> findTopFastestAppliedMeetings(Integer userId, Integer limit, Integer queryYear) {
 		return queryFactory
 			.selectFrom(apply)
-			.innerJoin(apply.meeting, meeting)
-			.where(apply.userId.eq(userId))
+			.innerJoin(apply.meeting, meeting).fetchJoin()
+			.where(
+				apply.userId.eq(userId),
+				apply.appliedDate.goe(Year.of(queryYear).atDay(1).atStartOfDay()),
+				apply.appliedDate.loe(Year.of(queryYear).atMonth(12).atEndOfMonth().atTime(23, 59, 59, 999_999_999))
+				)
 			.orderBy(
 				Expressions.numberTemplate(BigDecimal.class,
 					"{0} - {1}", apply.appliedDate, apply.meeting.startDate).asc()

@@ -32,10 +32,11 @@ public class InternalMeetingStatsController implements InternalMeetingStatsApi {
 	@GetMapping("/fastest-applied/{orgId}")
 	public ResponseEntity<TopFastestAppliedMeetingsResponseDto> getTopFastestAppliedMeetings(
 		@PathVariable Integer orgId,
-		@RequestParam(name = "query-count", required = false, defaultValue = "3") Integer queryCount) {
+		@RequestParam(name = "query-count", required = false, defaultValue = "3") Integer queryCount,
+		@RequestParam(name = "query-year") Integer queryYear) {
 
 		TopFastestAppliedMeetingsResponseDto response = internalMeetingStatsService.getTopFastestAppliedMeetings(
-			orgId, queryCount);
+			orgId, queryCount, queryYear);
 		return ResponseEntity.ok(response);
 	}
 }

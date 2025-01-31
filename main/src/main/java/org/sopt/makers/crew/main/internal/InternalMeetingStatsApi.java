@@ -29,5 +29,7 @@ public interface InternalMeetingStatsApi {
 		@ApiResponse(responseCode = "404", description = "존재하지 않는 유저입니다.", content = @Content(mediaType = "application/json"))})
 	ResponseEntity<TopFastestAppliedMeetingsResponseDto> getTopFastestAppliedMeetings(
 		@Parameter(description = "플레이그라운드 유저 ID(orgId)", example = "1") Integer orgId,
-		@RequestParam(name = "queryCount", required = false, defaultValue = "3") Integer queryCount);
+		@RequestParam(name = "query-count", required = false, defaultValue = "3") Integer queryCount,
+		@RequestParam(name = "query-year") Integer queryYear
+		);
 }
