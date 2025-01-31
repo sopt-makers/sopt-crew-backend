@@ -38,14 +38,14 @@ public class InternalMeetingStatsService {
 		return ApprovedStudyCountResponseDto.of(user.getOrgId(), approvedStudyCount);
 	}
 
-	public TopFastestAppliedMeetingsResponseDto getTopFastestAppliedMeetings(Integer orgId, Integer queryCount) {
+	public TopFastestAppliedMeetingsResponseDto getTopFastestAppliedMeetings(Integer orgId, Integer queryCount, Integer queryYear) {
 		Optional<User> user = userRepository.findByOrgId(orgId);
 
 		if (user.isEmpty()) {
 			return TopFastestAppliedMeetingsResponseDto.from(Collections.emptyList());
 		}
 
-		List<Apply> applies = applyRepository.findTopFastestAppliedMeetings(user.get().getId(), queryCount);
+		List<Apply> applies = applyRepository.findTopFastestAppliedMeetings(user.get().getId(), queryCount, queryYear);
 
 		List<TopFastestAppliedMeetingResponseDto> responseDtos = applies.stream()
 			.map(apply -> TopFastestAppliedMeetingResponseDto.from(apply.getMeeting()))

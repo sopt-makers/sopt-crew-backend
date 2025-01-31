@@ -10,6 +10,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import java.math.BigDecimal;
+import java.time.Year;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,7 +29,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class ApplySearchRepositoryImpl implements ApplySearchRepository {
-    private final JPAQueryFactory queryFactory;
+	public static final int FIRST_MONTH_OF_YEAR = 1;
+	public static final int LAST_MONTH_OF_YEAR = 12;
+
+	private final JPAQueryFactory queryFactory;
 
     @Override
     public Page<ApplyInfoDto> findApplyList(MeetingGetAppliesQueryDto queryCommand, Pageable pageable, Integer meetingId, Integer meetingCreatorId, Integer userId) {
@@ -70,11 +74,16 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
 
 	}
 
-	public List<Apply> findTopFastestAppliedMeetings(Integer userId, Integer limit) {
+	public List<Apply> findTopFastestAppliedMeetings(Integer userId, Integer limit, Integer queryYear) {
 		return queryFactory
 			.selectFrom(apply)
-			.innerJoin(apply.meeting, meeting)
-			.where(apply.userId.eq(userId))
+			.innerJoin(apply.meeting, meeting).fetchJoin()
+			.where(
+				apply.userId.eq(userId),
+				apply.appliedDate.goe(Year.of(queryYear).atDay(FIRST_MONTH_OF_YEAR).atStartOfDay()),
+				apply.appliedDate.loe(Year.of(queryYear).atMonth(LAST_MONTH_OF_YEAR).atEndOfMonth()
+					.atTime(23, 59, 59, 999_999_999))
+				)
 			.orderBy(
 				Expressions.numberTemplate(BigDecimal.class,
 					"{0} - {1}", apply.appliedDate, apply.meeting.startDate).asc()
