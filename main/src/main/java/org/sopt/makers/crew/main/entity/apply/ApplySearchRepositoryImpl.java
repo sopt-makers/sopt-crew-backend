@@ -29,7 +29,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class ApplySearchRepositoryImpl implements ApplySearchRepository {
-    private final JPAQueryFactory queryFactory;
+	public static final int FIRST_MONTH_OF_YEAR = 1;
+	public static final int LAST_MONTH_OF_YEAR = 12;
+
+	private final JPAQueryFactory queryFactory;
 
     @Override
     public Page<ApplyInfoDto> findApplyList(MeetingGetAppliesQueryDto queryCommand, Pageable pageable, Integer meetingId, Integer meetingCreatorId, Integer userId) {
@@ -77,8 +80,9 @@ public class ApplySearchRepositoryImpl implements ApplySearchRepository {
 			.innerJoin(apply.meeting, meeting).fetchJoin()
 			.where(
 				apply.userId.eq(userId),
-				apply.appliedDate.goe(Year.of(queryYear).atDay(1).atStartOfDay()),
-				apply.appliedDate.loe(Year.of(queryYear).atMonth(12).atEndOfMonth().atTime(23, 59, 59, 999_999_999))
+				apply.appliedDate.goe(Year.of(queryYear).atDay(FIRST_MONTH_OF_YEAR).atStartOfDay()),
+				apply.appliedDate.loe(Year.of(queryYear).atMonth(LAST_MONTH_OF_YEAR).atEndOfMonth()
+					.atTime(23, 59, 59, 999_999_999))
 				)
 			.orderBy(
 				Expressions.numberTemplate(BigDecimal.class,
