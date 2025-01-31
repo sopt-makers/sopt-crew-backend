@@ -12,5 +12,5 @@ public interface ApplySearchRepository {
     Page<ApplyInfoDto> findApplyList(MeetingGetAppliesQueryDto queryCommand, Pageable pageable, Integer meetingId,
                                      Integer meetingCreatorId, Integer userId);
 
-    List<Apply> findTopFastestAppliedMeetings(Integer userId, Integer limit);
+    List<Apply> findTopFastestAppliedMeetings(Integer userId, Integer limit, Integer queryYear);
 }
