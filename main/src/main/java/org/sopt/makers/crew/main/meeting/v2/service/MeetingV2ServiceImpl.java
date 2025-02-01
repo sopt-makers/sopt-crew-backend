@@ -77,7 +77,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForFlashResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserMeetingDto;
@@ -492,7 +492,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	public MeetingV2CreateMeetingForFlashResponseDto createMeetingForFlash(Integer userId,
+	public MeetingV2CreateAndUpdateMeetingForFlashResponseDto createMeetingForFlash(Integer userId,
 		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody) {
 
 		User user = userRepository.findByIdOrThrow(userId);
@@ -520,7 +520,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		meetingRepository.save(flashMeeting);
 
-		return MeetingV2CreateMeetingForFlashResponseDto.of(flashMeeting.getId(), flashBody);
+		return MeetingV2CreateAndUpdateMeetingForFlashResponseDto.of(flashMeeting.getId(), flashBody);
 	}
 
 	private void deleteCsvFile(String filePath) {

@@ -11,7 +11,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Schema(name = "MeetingV2CreateMeetingForFlashResponseDto", description = "번쩍 모임 생성 및 수정 request body dto")
-public record MeetingV2CreateMeetingForFlashResponseDto(
+public record MeetingV2CreateAndUpdateMeetingForFlashResponseDto(
 	@Schema(description = "모임 id", example = "1")
 	@NotNull
 	Integer meetingId,
@@ -62,9 +62,9 @@ public record MeetingV2CreateMeetingForFlashResponseDto(
 	@Size(max = 1)
 	List<String> files
 ) {
-	public static MeetingV2CreateMeetingForFlashResponseDto of(
+	public static MeetingV2CreateAndUpdateMeetingForFlashResponseDto of(
 		Integer meetingId, FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody) {
-		return new MeetingV2CreateMeetingForFlashResponseDto(
+		return new MeetingV2CreateAndUpdateMeetingForFlashResponseDto(
 			meetingId,
 			flashBody.title(),
 			flashBody.desc(),

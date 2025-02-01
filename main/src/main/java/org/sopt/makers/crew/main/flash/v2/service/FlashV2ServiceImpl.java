@@ -22,7 +22,7 @@ import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForFlashResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
@@ -64,10 +64,10 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		MeetingV2CreateMeetingForFlashResponseDto meetingV2CreateMeetingForFlashResponseDto = meetingV2Service.createMeetingForFlash(
+		MeetingV2CreateAndUpdateMeetingForFlashResponseDto meetingV2CreateAndUpdateMeetingForFlashResponseDto = meetingV2Service.createMeetingForFlash(
 			userId, requestBody.flashBody());
 
-		Flash flash = flashMapper.toFlashntity(meetingV2CreateMeetingForFlashResponseDto,
+		Flash flash = flashMapper.toFlashntity(meetingV2CreateAndUpdateMeetingForFlashResponseDto,
 			ACTIVE_GENERATION, user.getId(), realTime);
 
 		flashRepository.save(flash);
@@ -101,6 +101,45 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			approvedCount, isHost, isApply, isApproved,
 			meetingLeader, applyWholeInfoDtos, realTime.now());
 	}
+
+	// @Caching(evict = {
+	// 	@CacheEvict(value = "meetingCache", key = "#meetingId"),
+	// 	@CacheEvict(value = "meetingLeaderCache", key = "#userId"),
+	// })
+	// @Override
+	// @Transactional
+	// public FlashV2CreateAndUpdateResponseDto updateFlash(Integer meetingId,
+	// 	FlashV2CreateAndUpdateFlashBodyDto requestBody,
+	// 	Integer userId) {
+	// 	User user = userV2Service.getUserByUserId(userId);
+	//
+	// 	if (user.getActivities() == null) {
+	// 		throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+	// 	}
+	//
+	// 	if (requestBody.flashBody().files().size() > INTRO_IMAGE_LIST_SIZE) {
+	// 		throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+	// 	}
+	//
+	// 	MeetingV2CreateAndUpdateMeetingForFlashResponseDto meetingV2CreateAndUpdateMeetingForFlashResponseDto = meetingV2Service.updateMeetingForFlash(meetingId,
+	// 		userId, requestBody.flashBody());
+	//
+	// 	Flash flash = flashMapper.toFlashntity(meetingV2CreateAndUpdateMeetingForFlashResponseDto,
+	// 		ACTIVE_GENERATION, user.getId(), realTime);
+	//
+	// 	flashRepository.save(flash);
+	// 	tagV2Service.createFlashTag(requestBody.welcomeMessageTypes(), flash.getId());
+	//
+	// 	return FlashV2CreateAndUpdateResponseDto.from(flash.getMeetingId());
+	//
+	// 	Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+	// 	meeting.validateMeetingCreator(userId);
+	//
+	// 	Meeting updatedMeeting = meetingMapper.toMeetingEntity(requestBody,
+	// 		createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
+	// 		user.getId());
+	// 	meeting.updateMeeting(updatedMeeting);
+	// }
 
 	private List<ApplyWholeInfoDto> getApplyWholeInfoDtos(Applies applies, Integer meetingId, Integer userId) {
 		if (!applies.hasApplies(meetingId)) {

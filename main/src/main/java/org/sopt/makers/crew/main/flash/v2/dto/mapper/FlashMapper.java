@@ -15,7 +15,7 @@ import org.sopt.makers.crew.main.entity.flash.enums.FlashPlaceType;
 import org.sopt.makers.crew.main.entity.flash.enums.FlashTimingType;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.global.util.Time;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForFlashResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 
 @Mapper(componentModel = "spring")
 public interface FlashMapper {
@@ -27,7 +27,7 @@ public interface FlashMapper {
 	@Mapping(source = "meetingV2CreateMeetingForFlashResponseDto.flashPlaceType", target = "flashPlaceType", qualifiedByName = "getFlashPlaceType")
 	@Mapping(source = "meetingV2CreateMeetingForFlashResponseDto.flashTimingType", target = "flashTimingType", qualifiedByName = "getFlashTimingType")
 	Flash toFlashntity(
-		MeetingV2CreateMeetingForFlashResponseDto meetingV2CreateMeetingForFlashResponseDto,
+		MeetingV2CreateAndUpdateMeetingForFlashResponseDto meetingV2CreateAndUpdateMeetingForFlashResponseDto,
 		Integer createdGeneration, Integer leaderUserId, Time time);
 
 	@Named("getImageURL")

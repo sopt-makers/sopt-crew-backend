@@ -12,7 +12,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBo
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForFlashResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
@@ -53,6 +53,6 @@ public interface MeetingV2Service {
 
 	MeetingV2GetRecommendDto getRecommendMeetingsByIds(List<Integer> meetingIds, Integer userId);
 
-	MeetingV2CreateMeetingForFlashResponseDto createMeetingForFlash(Integer userId,
+	MeetingV2CreateAndUpdateMeetingForFlashResponseDto createMeetingForFlash(Integer userId,
 		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody);
 }
