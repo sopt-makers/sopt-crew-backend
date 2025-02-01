@@ -56,6 +56,6 @@ public class FlashV2Controller implements FlashV2Api {
 		Principal principal
 	) {
 		Integer userId = UserUtil.getUserId(principal);
-		return ResponseEntity.ok(flashV2Service.updateFlash(requestBody, userId));
+		return ResponseEntity.ok(flashV2Service.updateFlash(meetingId, requestBody, userId));
 	}
 }
