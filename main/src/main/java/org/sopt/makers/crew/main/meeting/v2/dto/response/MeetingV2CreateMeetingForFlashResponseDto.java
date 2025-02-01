@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyWithoutWelcomeMessageDto;
+import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
@@ -63,7 +63,7 @@ public record MeetingV2CreateMeetingForFlashResponseDto(
 	List<String> files
 ) {
 	public static MeetingV2CreateMeetingForFlashResponseDto of(
-		Integer meetingId, FlashV2CreateFlashBodyWithoutWelcomeMessageDto flashBody) {
+		Integer meetingId, FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody) {
 		return new MeetingV2CreateMeetingForFlashResponseDto(
 			meetingId,
 			flashBody.title(),

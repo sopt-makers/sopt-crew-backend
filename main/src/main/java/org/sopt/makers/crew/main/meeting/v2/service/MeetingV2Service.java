@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.meeting.v2.service;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyWithoutWelcomeMessageDto;
+import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
@@ -54,5 +54,5 @@ public interface MeetingV2Service {
 	MeetingV2GetRecommendDto getRecommendMeetingsByIds(List<Integer> meetingIds, Integer userId);
 
 	MeetingV2CreateMeetingForFlashResponseDto createMeetingForFlash(Integer userId,
-		FlashV2CreateFlashBodyWithoutWelcomeMessageDto flashBody);
+		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody);
 }

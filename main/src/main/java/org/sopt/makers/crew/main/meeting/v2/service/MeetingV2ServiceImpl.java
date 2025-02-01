@@ -1,8 +1,8 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
-import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -52,7 +52,7 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.enums.UserPart;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
-import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyWithoutWelcomeMessageDto;
+import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto;
 import org.sopt.makers.crew.main.global.config.ImageSetting;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
@@ -493,7 +493,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	public MeetingV2CreateMeetingForFlashResponseDto createMeetingForFlash(Integer userId,
-		FlashV2CreateFlashBodyWithoutWelcomeMessageDto flashBody) {
+		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody) {
 
 		User user = userRepository.findByIdOrThrow(userId);
 
