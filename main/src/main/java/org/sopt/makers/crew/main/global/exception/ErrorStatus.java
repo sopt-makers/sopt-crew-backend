@@ -67,6 +67,7 @@ public enum ErrorStatus {
 	NOT_FOUND_USER("존재하지 않는 유저입니다."), // 예외 처리 NotFound로 수정 필요
 	NOT_FOUND_COMMENT("존재하지 않는 댓글입니다."), // 예외 처리 NotFound로 수정 필요
 	NOT_FOUND_FLASH("번쩍 모임이 없습니다."), // 예외 처리 NotFound로 수정 필요
+	NOT_FOUND_TAG("존재하지 않는 태그입니다."),
 
 	/**
 	 * 405 METHOD_NOT_ALLOWED
