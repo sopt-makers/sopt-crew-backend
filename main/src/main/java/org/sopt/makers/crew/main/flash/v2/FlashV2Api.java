@@ -37,12 +37,12 @@ public interface FlashV2Api {
 		@PathVariable Integer meetingId,
 		Principal principal);
 
-	// @Operation(summary = "번쩍 모임 수정")
-	// @ApiResponses(value = {
-	// 	@ApiResponse(responseCode = "200", description = "meetingId: 10"),
-	// 	@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
-	// })
-	// ResponseEntity<FlashV2CreateAndUpdateResponseDto> updateFlash(
-	// 	@Valid @RequestBody
-	// )
+	@Operation(summary = "번쩍 모임 수정")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "meetingId: 10"),
+		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
+	})
+	ResponseEntity<FlashV2CreateAndUpdateResponseDto> updateFlash(
+		@Valid @RequestBody FlashV2CreateAndUpdateFlashBodyDto requestBody,
+		Principal principal);
 }

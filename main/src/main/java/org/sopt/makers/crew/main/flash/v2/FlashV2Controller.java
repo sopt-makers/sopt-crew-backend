@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,7 +33,8 @@ public class FlashV2Controller implements FlashV2Api {
 		Principal principal
 	) {
 		Integer userId = UserUtil.getUserId(principal);
-		return ResponseEntity.status(HttpStatus.CREATED).body(flashV2Service.createFlash(requestBody, userId));
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(flashV2Service.createFlash(requestBody, userId));
 	}
 
 	@Override
@@ -44,5 +46,15 @@ public class FlashV2Controller implements FlashV2Api {
 		Integer userId = UserUtil.getUserId(principal);
 
 		return ResponseEntity.ok(flashV2Service.getFlashByMeetingId(meetingId, userId));
+	}
+
+	@Override
+	@PutMapping
+	public ResponseEntity<FlashV2CreateAndUpdateResponseDto> updateFlash(
+		@Valid @RequestBody FlashV2CreateAndUpdateFlashBodyDto requestBody,
+		Principal principal
+	) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(flashV2Service.updateFlash(requestBody, userId));
 	}
 }
