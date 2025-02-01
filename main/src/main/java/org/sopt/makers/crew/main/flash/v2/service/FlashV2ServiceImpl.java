@@ -67,7 +67,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		MeetingV2CreateAndUpdateMeetingForFlashResponseDto meetingV2CreateAndUpdateMeetingForFlashResponseDto = meetingV2Service.createMeetingForFlash(
 			userId, requestBody.flashBody());
 
-		Flash flash = flashMapper.toFlashntity(meetingV2CreateAndUpdateMeetingForFlashResponseDto,
+		Flash flash = flashMapper.toFlashEntity(meetingV2CreateAndUpdateMeetingForFlashResponseDto,
 			ACTIVE_GENERATION, user.getId(), realTime);
 
 		flashRepository.save(flash);
@@ -121,10 +121,11 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 	// 		throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 	// 	}
 	//
-	// 	MeetingV2CreateAndUpdateMeetingForFlashResponseDto meetingV2CreateAndUpdateMeetingForFlashResponseDto = meetingV2Service.updateMeetingForFlash(meetingId,
+	// 	MeetingV2CreateAndUpdateMeetingForFlashResponseDto meetingV2CreateAndUpdateMeetingForFlashResponseDto = meetingV2Service.updateMeetingForFlash(
+	// 		meetingId,
 	// 		userId, requestBody.flashBody());
 	//
-	// 	Flash flash = flashMapper.toFlashntity(meetingV2CreateAndUpdateMeetingForFlashResponseDto,
+	// 	Flash flash = flashMapper.toFlashEntity(meetingV2CreateAndUpdateMeetingForFlashResponseDto,
 	// 		ACTIVE_GENERATION, user.getId(), realTime);
 	//
 	// 	flashRepository.save(flash);

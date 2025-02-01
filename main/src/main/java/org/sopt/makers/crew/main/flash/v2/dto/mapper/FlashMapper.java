@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.flash.v2.dto.mapper;
 
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -19,14 +20,14 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdat
 
 @Mapper(componentModel = "spring")
 public interface FlashMapper {
-	@Mapping(source = "meetingV2CreateMeetingForFlashResponseDto.files", target = "imageURL", qualifiedByName = "getImageURL")
+	@Mapping(source = "meetingV2CreateAndUpdateMeetingForFlashResponseDto.files", target = "imageURL", qualifiedByName = "getImageURL")
 	@Mapping(target = "startDate", expression = "java(time.now())")
-	@Mapping(source = "meetingV2CreateMeetingForFlashResponseDto.activityStartDate", target = "endDate", qualifiedByName = "getActivityStartDate")
-	@Mapping(source = "meetingV2CreateMeetingForFlashResponseDto.activityStartDate", target = "activityStartDate", qualifiedByName = "getActivityStartDate")
-	@Mapping(source = "meetingV2CreateMeetingForFlashResponseDto.activityEndDate", target = "activityEndDate", qualifiedByName = "getActivityEndDate")
-	@Mapping(source = "meetingV2CreateMeetingForFlashResponseDto.flashPlaceType", target = "flashPlaceType", qualifiedByName = "getFlashPlaceType")
-	@Mapping(source = "meetingV2CreateMeetingForFlashResponseDto.flashTimingType", target = "flashTimingType", qualifiedByName = "getFlashTimingType")
-	Flash toFlashntity(
+	@Mapping(source = "meetingV2CreateAndUpdateMeetingForFlashResponseDto.activityStartDate", target = "endDate", qualifiedByName = "getPreviousDayEndTime")
+	@Mapping(source = "meetingV2CreateAndUpdateMeetingForFlashResponseDto.activityStartDate", target = "activityStartDate", qualifiedByName = "getActivityStartDate")
+	@Mapping(source = "meetingV2CreateAndUpdateMeetingForFlashResponseDto.activityEndDate", target = "activityEndDate", qualifiedByName = "getActivityEndDate")
+	@Mapping(source = "meetingV2CreateAndUpdateMeetingForFlashResponseDto.flashPlaceType", target = "flashPlaceType", qualifiedByName = "getFlashPlaceType")
+	@Mapping(source = "meetingV2CreateAndUpdateMeetingForFlashResponseDto.flashTimingType", target = "flashTimingType", qualifiedByName = "getFlashTimingType")
+	Flash toFlashEntity(
 		MeetingV2CreateAndUpdateMeetingForFlashResponseDto meetingV2CreateAndUpdateMeetingForFlashResponseDto,
 		Integer createdGeneration, Integer leaderUserId, Time time);
 
@@ -55,5 +56,12 @@ public interface FlashMapper {
 	@Named("getFlashTimingType")
 	static FlashTimingType getFlashTimingType(String timingType) {
 		return FlashTimingType.ofValue(timingType);
+	}
+
+	@Named("getPreviousDayEndTime")
+	static LocalDateTime getPreviousDayEndTime(String date) {
+		return LocalDate.parse(date, DateTimeFormatter.ofPattern(DAY_FORMAT))
+			.minusDays(1)
+			.atTime(DAY_END_HOUR, DAY_END_MINUTE, DAY_END_SECOND);
 	}
 }
