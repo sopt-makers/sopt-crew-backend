@@ -55,4 +55,7 @@ public interface MeetingV2Service {
 
 	MeetingV2CreateAndUpdateMeetingForFlashResponseDto createMeetingForFlash(Integer userId,
 		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody);
+
+	MeetingV2CreateAndUpdateMeetingForFlashResponseDto updateMeetingForFlash(Integer meetingId, Integer userId,
+		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto updatedFlashBody);
 }

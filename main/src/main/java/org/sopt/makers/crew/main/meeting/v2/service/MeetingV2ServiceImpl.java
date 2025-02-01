@@ -507,23 +507,28 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		return MeetingV2CreateAndUpdateMeetingForFlashResponseDto.of(flashMeeting.getId(), flashBody);
 	}
 
-	// @Override
-	// public MeetingV2CreateAndUpdateMeetingForFlashResponseDto updateMeetingForFlash(Integer meetingId, Integer userId,
-	// 	FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody) {
-	//
-	// 	User user = userRepository.findByIdOrThrow(userId);
-	//
-	// 	Meeting flashMeeting = meetingRepository.findById(meetingId)
-	// 		.orElseThrow(() -> new NotFoundException(NOT_FOUND_MEETING.getErrorCode()));
-	//
-	// 	flashMeeting.validateMeetingCreator(userId);
-	//
-	// 	List<ImageUrlVO> imageURL = getImageURL(flashBody.files());
-	// 	LocalDateTime activityStartDate = getActivityStartDate(flashBody.activityStartDate());
-	// 	LocalDateTime activityEndDate = getActivityEndDate((flashBody.activityStartDate()));
-	//
-	// 	return MeetingV2CreateAndUpdateMeetingForFlashResponseDto.of(flashMeeting.getId(), flashBody);
-	// }
+	@Override
+	public MeetingV2CreateAndUpdateMeetingForFlashResponseDto updateMeetingForFlash(Integer meetingId, Integer userId,
+		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto updatedFlashBody) {
+
+		User user = userRepository.findByIdOrThrow(userId);
+
+		if (updatedFlashBody.files().isEmpty()) {
+			updatedFlashBody.files().add(imageSetting.getDefaultFlashImage());
+		}
+
+		Meeting flashMeeting = meetingRepository.findById(meetingId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_MEETING.getErrorCode()));
+
+		flashMeeting.validateMeetingCreator(userId);
+
+		Meeting updatedFlashMeeting = flashMeetingMapper.toMeetingEntityForFlash(updatedFlashBody, user, user.getId(),
+			time.now());
+
+		flashMeeting.updateMeeting(updatedFlashMeeting);
+
+		return MeetingV2CreateAndUpdateMeetingForFlashResponseDto.of(flashMeeting.getId(), updatedFlashBody);
+	}
 
 	private void deleteCsvFile(String filePath) {
 		try {
