@@ -15,7 +15,7 @@ import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.flash.v2.dto.mapper.FlashMapper;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyDto;
-import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateFlashResponseDto;
+import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateAndUpdateResponseDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2GetFlashByMeetingIdResponseDto;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
@@ -52,7 +52,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 
 	@Override
 	@Transactional
-	public FlashV2CreateFlashResponseDto createFlash(
+	public FlashV2CreateAndUpdateResponseDto createFlash(
 		FlashV2CreateFlashBodyDto requestBody, Integer userId) {
 		User user = userV2Service.getUserByUserId(userId);
 
@@ -73,7 +73,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		flashRepository.save(flash);
 		tagV2Service.createFlashTag(requestBody.welcomeMessageTypes(), flash.getId());
 
-		return FlashV2CreateFlashResponseDto.from(flash.getMeetingId());
+		return FlashV2CreateAndUpdateResponseDto.from(flash.getMeetingId());
 	}
 
 	public FlashV2GetFlashByMeetingIdResponseDto getFlashByMeetingId(Integer meetingId, Integer userId) {

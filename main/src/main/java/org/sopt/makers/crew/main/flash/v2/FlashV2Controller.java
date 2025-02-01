@@ -3,7 +3,7 @@ package org.sopt.makers.crew.main.flash.v2;
 import java.security.Principal;
 
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyDto;
-import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateFlashResponseDto;
+import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateAndUpdateResponseDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2GetFlashByMeetingIdResponseDto;
 import org.sopt.makers.crew.main.flash.v2.service.FlashV2Service;
 import org.sopt.makers.crew.main.global.util.UserUtil;
@@ -27,7 +27,7 @@ public class FlashV2Controller implements FlashV2Api {
 
 	@Override
 	@PostMapping
-	public ResponseEntity<FlashV2CreateFlashResponseDto> createFlash(
+	public ResponseEntity<FlashV2CreateAndUpdateResponseDto> createFlash(
 		@Valid @RequestBody FlashV2CreateFlashBodyDto requestBody,
 		Principal principal
 	) {
