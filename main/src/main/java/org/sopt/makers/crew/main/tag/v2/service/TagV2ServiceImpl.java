@@ -4,6 +4,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.sopt.makers.crew.main.entity.tag.Tag;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
@@ -11,6 +12,7 @@ import org.sopt.makers.crew.main.entity.tag.WelcomeMessageTypeProjection;
 import org.sopt.makers.crew.main.entity.tag.enums.TagType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateFlashTagResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,9 +59,29 @@ public class TagV2ServiceImpl implements TagV2Service {
 			.orElse(Collections.emptyList());
 	}
 
+	@Override
+	@Transactional
+	public TagV2CreateFlashTagResponseDto updateFlashTag(List<String> welcomeMessageTypes, Integer flashId) {
+		Tag tag = tagRepository.findTagByFlashId(flashId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_TAG.getErrorCode()));
+
+		List<WelcomeMessageType> welcomeMessageTypeEnums = convertToWelcomeMessageTypeList(welcomeMessageTypes);
+
+		tag.updateWelcomeMessageTypes(welcomeMessageTypeEnums);
+
+		return TagV2CreateFlashTagResponseDto.from(tag.getId());
+	}
+
 	private TagV2CreateFlashTagResponseDto saveTag(Integer flashId, List<WelcomeMessageType> welcomeMessageTypeEnums) {
 		Tag tag = Tag.createFlashMeetingTag(TagType.FLASH, flashId, welcomeMessageTypeEnums);
 		tagRepository.save(tag);
 		return TagV2CreateFlashTagResponseDto.from(tag.getId());
+	}
+
+	private List<WelcomeMessageType> convertToWelcomeMessageTypeList(List<String> welcomeMessageTypes) {
+		return Optional.ofNullable(welcomeMessageTypes)
+			.filter(list -> !list.isEmpty())
+			.map(list -> list.stream().map(WelcomeMessageType::ofValue).toList())
+			.orElse(Collections.emptyList());
 	}
 }
