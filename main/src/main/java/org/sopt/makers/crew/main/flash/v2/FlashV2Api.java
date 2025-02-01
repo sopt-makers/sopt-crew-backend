@@ -43,6 +43,7 @@ public interface FlashV2Api {
 		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
 	})
 	ResponseEntity<FlashV2CreateAndUpdateResponseDto> updateFlash(
+		@PathVariable Integer meetingId,
 		@Valid @RequestBody FlashV2CreateAndUpdateFlashBodyDto requestBody,
 		Principal principal);
 }

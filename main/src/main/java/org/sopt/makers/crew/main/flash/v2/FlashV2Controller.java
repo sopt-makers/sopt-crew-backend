@@ -49,8 +49,9 @@ public class FlashV2Controller implements FlashV2Api {
 	}
 
 	@Override
-	@PutMapping
+	@PutMapping("{meetingId}")
 	public ResponseEntity<FlashV2CreateAndUpdateResponseDto> updateFlash(
+		@PathVariable Integer meetingId,
 		@Valid @RequestBody FlashV2CreateAndUpdateFlashBodyDto requestBody,
 		Principal principal
 	) {
