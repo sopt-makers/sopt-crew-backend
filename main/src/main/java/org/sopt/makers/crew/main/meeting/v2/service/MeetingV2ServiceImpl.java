@@ -491,6 +491,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
+	@Transactional
 	public MeetingV2CreateAndUpdateMeetingForFlashResponseDto createMeetingForFlash(Integer userId,
 		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody) {
 
@@ -508,6 +509,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
+	@Transactional
 	public MeetingV2CreateAndUpdateMeetingForFlashResponseDto updateMeetingForFlash(Integer meetingId, Integer userId,
 		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto updatedFlashBody) {
 
