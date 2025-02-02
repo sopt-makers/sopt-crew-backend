@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Schema(name = "FlashV2CreateFlashBodyWithoutWelcomeMessageDto", description = "번쩍 모임 생성 및 수정 request body dto (환영 메시지 타입 제외)")
+@Schema(name = "FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto", description = "번쩍 모임 생성 및 수정 request body dto (환영 메시지 타입 제외)")
 public record FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto(
 	@Schema(example = "알고보면 쓸데있는 개발 프로세스", description = "번쩍 모임 제목")
 	@Size(min = 1, max = 30)

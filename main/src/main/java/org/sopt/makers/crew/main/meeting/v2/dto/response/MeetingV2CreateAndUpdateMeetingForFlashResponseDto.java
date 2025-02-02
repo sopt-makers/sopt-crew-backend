@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Schema(name = "MeetingV2CreateMeetingForFlashResponseDto", description = "번쩍 모임 생성 및 수정 request body dto")
+@Schema(name = "MeetingV2CreateAndUpdateMeetingForFlashResponseDto", description = "번쩍 모임 생성 및 수정 request body dto")
 public record MeetingV2CreateAndUpdateMeetingForFlashResponseDto(
 	@Schema(description = "모임 id", example = "1")
 	@NotNull
