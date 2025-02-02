@@ -9,4 +9,6 @@ public interface TagV2Service {
 	TagV2CreateFlashTagResponseDto createFlashTag(List<String> welcomeMessageTypes, Integer flashId);
 
 	List<WelcomeMessageType> getWelcomeMessageTypesByFlashId(Integer flashId);
+
+	TagV2CreateFlashTagResponseDto updateFlashTag(List<String> welcomeMessageTypes, Integer flashId);
 }

@@ -1,8 +1,8 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
-import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,7 +41,6 @@ import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
-import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
@@ -52,7 +50,7 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.enums.UserPart;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
-import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyWithoutWelcomeMessageDto;
+import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto;
 import org.sopt.makers.crew.main.global.config.ImageSetting;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
@@ -65,6 +63,7 @@ import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.global.util.UserPartUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
+import org.sopt.makers.crew.main.meeting.v2.dto.FlashMeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOrgUserQueryDto;
@@ -77,7 +76,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForFlashResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingByOrgUserMeetingDto;
@@ -104,7 +103,6 @@ import lombok.RequiredArgsConstructor;
 public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private static final int ZERO = 0;
-	private static final String EMPTY_STRING = "";
 
 	private final UserRepository userRepository;
 	private final ApplyRepository applyRepository;
@@ -122,6 +120,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final S3Service s3Service;
 
 	private final MeetingMapper meetingMapper;
+	private final FlashMeetingMapper flashMeetingMapper;
 	private final ApplyMapper applyMapper;
 
 	private final ImageSetting imageSetting;
@@ -492,35 +491,45 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	public MeetingV2CreateMeetingForFlashResponseDto createMeetingForFlash(Integer userId,
-		FlashV2CreateFlashBodyWithoutWelcomeMessageDto flashBody) {
+	@Transactional
+	public MeetingV2CreateAndUpdateMeetingForFlashResponseDto createMeetingForFlash(Integer userId,
+		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody) {
 
 		User user = userRepository.findByIdOrThrow(userId);
 
-		List<ImageUrlVO> imageURL = getImageURL(flashBody.files());
-		LocalDateTime activityStartDate = getActivityStartDate(flashBody.activityStartDate());
-		LocalDateTime activityEndDate = getActivityEndDate((flashBody.activityStartDate()));
+		if (flashBody.files().isEmpty()) {
+			flashBody.files().add(imageSetting.getDefaultFlashImage());
+		}
 
-		Meeting flashMeeting = Meeting.createFlashMeeting(
-			user,
-			userId,
-			flashBody.title(),
-			imageURL,
-			time.now(),
-			activityStartDate, // 모집 마감일 = 활동 시작일
-			flashBody.maximumCapacity(),
-			flashBody.desc(),
-			activityStartDate,
-			activityEndDate,
-			ACTIVE_GENERATION,
-			EMPTY_STRING, // null 대신 빈 문자열로 NPE 방지
-			EMPTY_STRING, // null 대신 빈 문자열로 NPE 방지
-			EMPTY_STRING // null 대신 빈 문자열로 NPE 방지
-		);
+		Meeting flashMeeting = flashMeetingMapper.toMeetingEntityForFlash(flashBody, user, user.getId(), time.now());
 
 		meetingRepository.save(flashMeeting);
 
-		return MeetingV2CreateMeetingForFlashResponseDto.of(flashMeeting.getId(), flashBody);
+		return MeetingV2CreateAndUpdateMeetingForFlashResponseDto.of(flashMeeting.getId(), flashBody);
+	}
+
+	@Override
+	@Transactional
+	public MeetingV2CreateAndUpdateMeetingForFlashResponseDto updateMeetingForFlash(Integer meetingId, Integer userId,
+		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto updatedFlashBody) {
+
+		User user = userRepository.findByIdOrThrow(userId);
+
+		if (updatedFlashBody.files().isEmpty()) {
+			updatedFlashBody.files().add(imageSetting.getDefaultFlashImage());
+		}
+
+		Meeting flashMeeting = meetingRepository.findById(meetingId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_MEETING.getErrorCode()));
+
+		flashMeeting.validateMeetingCreator(userId);
+
+		Meeting updatedFlashMeeting = flashMeetingMapper.toMeetingEntityForFlash(updatedFlashBody, user, user.getId(),
+			time.now());
+
+		flashMeeting.updateMeeting(updatedFlashMeeting);
+
+		return MeetingV2CreateAndUpdateMeetingForFlashResponseDto.of(flashMeeting.getId(), updatedFlashBody);
 	}
 
 	private void deleteCsvFile(String filePath) {
@@ -671,25 +680,5 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.user(coLeader)
 				.build())
 			.toList();
-	}
-
-	private List<ImageUrlVO> getImageURL(List<String> files) {
-		AtomicInteger index = new AtomicInteger(0);
-
-		if (files.isEmpty()) {
-			files.add(imageSetting.getDefaultFlashImage());
-		}
-
-		return files.stream()
-			.map(fileUrl -> new ImageUrlVO(index.getAndIncrement(), fileUrl))
-			.toList();
-	}
-
-	private LocalDateTime getActivityStartDate(String date) {
-		return LocalDateTime.parse(date + DAY_START_TIME, DateTimeFormatter.ofPattern(DAY_TIME_FORMAT));
-	}
-
-	private LocalDateTime getActivityEndDate(String date) {
-		return LocalDateTime.parse(date + DAY_END_TIME, DateTimeFormatter.ofPattern(DAY_TIME_FORMAT));
 	}
 }

@@ -19,4 +19,8 @@ public final class CrewConst {
 
 	public static final String ORDER_ASC = "asc";
 	public static final String ORDER_DESC = "desc";
+
+	public static final int DAY_END_HOUR = 23;
+	public static final int DAY_END_MINUTE = 59;
+	public static final int DAY_END_SECOND = 59;
 }

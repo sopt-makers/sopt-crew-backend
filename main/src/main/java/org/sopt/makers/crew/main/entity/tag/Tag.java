@@ -79,4 +79,8 @@ public class Tag extends BaseTimeEntity {
 			.welcomeMessageTypes(welcomeMessageTypes)
 			.build();
 	}
+
+	public void updateWelcomeMessageTypes(List<WelcomeMessageType> newWelcomeMessageTypes) {
+		this.welcomeMessageTypes = newWelcomeMessageTypes;
+	}
 }

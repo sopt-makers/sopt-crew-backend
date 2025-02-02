@@ -121,6 +121,24 @@ public class Flash extends BaseTimeEntity {
 		this.imageURL = imageURL;
 	}
 
+	public void updateFlash(Flash updatedFlash) {
+		this.leaderUserId = updatedFlash.leaderUserId;
+		this.meetingId = updatedFlash.meetingId;
+		this.title = updatedFlash.title;
+		this.desc = updatedFlash.desc;
+		this.flashTimingType = updatedFlash.flashTimingType;
+		this.startDate = updatedFlash.startDate;
+		this.endDate = updatedFlash.endDate;
+		this.activityStartDate = updatedFlash.activityStartDate;
+		this.activityEndDate = updatedFlash.activityEndDate;
+		this.flashPlaceType = updatedFlash.flashPlaceType;
+		this.flashPlace = updatedFlash.flashPlace;
+		this.minimumCapacity = updatedFlash.minimumCapacity;
+		this.maximumCapacity = updatedFlash.maximumCapacity;
+		this.createdGeneration = updatedFlash.createdGeneration;
+		this.imageURL = updatedFlash.imageURL;
+	}
+
 	public boolean checkFlashMeetingLeader(Integer userId) {
 		return this.leaderUserId.equals(userId);
 	}
