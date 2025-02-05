@@ -24,6 +24,8 @@ public class MeetingV2GetAllMeetingQueryDto extends PageOptionsDto {
 
 	String query;
 
+	boolean useAdPagination = true;
+
 	public MeetingV2GetAllMeetingQueryDto(Integer page, Integer take) {
 		super(page, take);
 	}

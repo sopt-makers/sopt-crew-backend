@@ -59,7 +59,7 @@ import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
+import org.sopt.makers.crew.main.global.util.PageableFactory;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.global.util.UserPartUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
@@ -89,7 +89,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -315,9 +314,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	public MeetingV2GetAllMeetingDto getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand) {
-		Sort sort = Sort.by(Sort.Direction.ASC, "id");
+
 		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand,
-			new AdvertisementCustomPageable(queryCommand.getPage() - 1, sort), time);
+			PageableFactory.createPageable(queryCommand, queryCommand.isUseAdPagination()), time);
 		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
