@@ -14,18 +14,20 @@ import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.flash.v2.dto.mapper.FlashMapper;
-import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyDto;
-import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateFlashResponseDto;
+import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyDto;
+import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateAndUpdateResponseDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2GetFlashByMeetingIdResponseDto;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingForFlashResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,8 +54,8 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 
 	@Override
 	@Transactional
-	public FlashV2CreateFlashResponseDto createFlash(
-		FlashV2CreateFlashBodyDto requestBody, Integer userId) {
+	public FlashV2CreateAndUpdateResponseDto createFlash(
+		FlashV2CreateAndUpdateFlashBodyDto requestBody, Integer userId) {
 		User user = userV2Service.getUserByUserId(userId);
 
 		if (user.getActivities() == null) {
@@ -64,16 +66,16 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		MeetingV2CreateMeetingForFlashResponseDto meetingV2CreateMeetingForFlashResponseDto = meetingV2Service.createMeetingForFlash(
+		MeetingV2CreateAndUpdateMeetingForFlashResponseDto meetingV2CreateAndUpdateMeetingForFlashResponseDto = meetingV2Service.createMeetingForFlash(
 			userId, requestBody.flashBody());
 
-		Flash flash = flashMapper.toFlashntity(meetingV2CreateMeetingForFlashResponseDto,
+		Flash flash = flashMapper.toFlashEntity(meetingV2CreateAndUpdateMeetingForFlashResponseDto,
 			ACTIVE_GENERATION, user.getId(), realTime);
 
 		flashRepository.save(flash);
 		tagV2Service.createFlashTag(requestBody.welcomeMessageTypes(), flash.getId());
 
-		return FlashV2CreateFlashResponseDto.from(flash.getMeetingId());
+		return FlashV2CreateAndUpdateResponseDto.from(flash.getMeetingId());
 	}
 
 	public FlashV2GetFlashByMeetingIdResponseDto getFlashByMeetingId(Integer meetingId, Integer userId) {
@@ -100,6 +102,41 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		return FlashV2GetFlashByMeetingIdResponseDto.of(meetingId, flash, welcomeMessageTypes,
 			approvedCount, isHost, isApply, isApproved,
 			meetingLeader, applyWholeInfoDtos, realTime.now());
+	}
+
+	@Caching(evict = {
+		@CacheEvict(value = "meetingCache", key = "#meetingId"),
+		@CacheEvict(value = "meetingLeaderCache", key = "#userId"),
+	})
+	@Override
+	@Transactional
+	public FlashV2CreateAndUpdateResponseDto updateFlash(Integer meetingId,
+		FlashV2CreateAndUpdateFlashBodyDto requestBody,
+		Integer userId) {
+		User user = userV2Service.getUserByUserId(userId);
+
+		Flash flash = flashRepository.findByMeetingId(meetingId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
+
+		if (user.getActivities() == null) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		if (requestBody.flashBody().files().size() > INTRO_IMAGE_LIST_SIZE) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		MeetingV2CreateAndUpdateMeetingForFlashResponseDto meetingV2CreateAndUpdateMeetingForFlashResponseDto = meetingV2Service.updateMeetingForFlash(
+			meetingId, userId, requestBody.flashBody());
+
+		Flash updatedFlash = flashMapper.toFlashEntity(meetingV2CreateAndUpdateMeetingForFlashResponseDto,
+			ACTIVE_GENERATION, user.getId(), realTime);
+
+		flash.updateFlash(updatedFlash);
+
+		tagV2Service.updateFlashTag(requestBody.welcomeMessageTypes(), flash.getId());
+
+		return FlashV2CreateAndUpdateResponseDto.from(flash.getMeetingId());
 	}
 
 	private List<ApplyWholeInfoDto> getApplyWholeInfoDtos(Applies applies, Integer meetingId, Integer userId) {

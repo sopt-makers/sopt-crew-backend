@@ -1,6 +1,8 @@
-package org.sopt.makers.crew.main.flash.v2.dto.request;
+package org.sopt.makers.crew.main.meeting.v2.dto.response;
 
 import java.util.List;
+
+import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
@@ -8,8 +10,12 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Schema(name = "FlashV2CreateFlashBodyWithoutWelcomeMessageDto", description = "번쩍 모임 생성 및 수정 request body dto (환영 메시지 타입 제외)")
-public record FlashV2CreateFlashBodyWithoutWelcomeMessageDto(
+@Schema(name = "MeetingV2CreateAndUpdateMeetingForFlashResponseDto", description = "번쩍 모임 생성 및 수정 request body dto")
+public record MeetingV2CreateAndUpdateMeetingForFlashResponseDto(
+	@Schema(description = "모임 id", example = "1")
+	@NotNull
+	Integer meetingId,
+
 	@Schema(example = "알고보면 쓸데있는 개발 프로세스", description = "번쩍 모임 제목")
 	@Size(min = 1, max = 30)
 	@NotNull String title,
@@ -56,4 +62,20 @@ public record FlashV2CreateFlashBodyWithoutWelcomeMessageDto(
 	@Size(max = 1)
 	List<String> files
 ) {
+	public static MeetingV2CreateAndUpdateMeetingForFlashResponseDto of(
+		Integer meetingId, FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody) {
+		return new MeetingV2CreateAndUpdateMeetingForFlashResponseDto(
+			meetingId,
+			flashBody.title(),
+			flashBody.desc(),
+			flashBody.flashTimingType(),
+			flashBody.activityStartDate(),
+			flashBody.activityEndDate(),
+			flashBody.flashPlaceType(),
+			flashBody.flashPlace(),
+			flashBody.minimumCapacity(),
+			flashBody.maximumCapacity(),
+			flashBody.files()
+		);
+	}
 }

@@ -2,8 +2,8 @@ package org.sopt.makers.crew.main.flash.v2;
 
 import java.security.Principal;
 
-import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateFlashBodyDto;
-import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateFlashResponseDto;
+import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyDto;
+import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateAndUpdateResponseDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2GetFlashByMeetingIdResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,8 +24,8 @@ public interface FlashV2Api {
 		@ApiResponse(responseCode = "201", description = "meetingId: 10"),
 		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
 	})
-	ResponseEntity<FlashV2CreateFlashResponseDto> createFlash(
-		@Valid @RequestBody FlashV2CreateFlashBodyDto requestBody,
+	ResponseEntity<FlashV2CreateAndUpdateResponseDto> createFlash(
+		@Valid @RequestBody FlashV2CreateAndUpdateFlashBodyDto requestBody,
 		Principal principal);
 
 	@Operation(summary = "번쩍 모임 상세 조회")
@@ -35,5 +35,15 @@ public interface FlashV2Api {
 	})
 	ResponseEntity<FlashV2GetFlashByMeetingIdResponseDto> getFlashByMeetingId(
 		@PathVariable Integer meetingId,
+		Principal principal);
+
+	@Operation(summary = "번쩍 모임 수정")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "meetingId: 10"),
+		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
+	})
+	ResponseEntity<FlashV2CreateAndUpdateResponseDto> updateFlash(
+		@PathVariable Integer meetingId,
+		@Valid @RequestBody FlashV2CreateAndUpdateFlashBodyDto requestBody,
 		Principal principal);
 }
