@@ -102,6 +102,7 @@ public interface MeetingV2Api {
 		@Parameter(name = "isOnlyActiveGeneration", description = "활동기수만 참여여부", example = "true", schema = @Schema(type = "boolean", format = "boolean")),
 		@Parameter(name = "joinableParts", description = "검색할 활동 파트 다중 선택. OR 조건으로 검색됨 </br> Available values : PM, DESIGN, IOS, ANDROID, SERVER, WEB", example = "PM,DESIGN,IOS,ANDROID,SERVER,WEB", schema = @Schema(type = "array[string]", format = "array[string]")),
 		@Parameter(name = "query", description = "검색 내용", example = "고수스터디 검색", schema = @Schema(type = "string", format = "string")),
+		@Parameter(name = "paginationType", description = "페이지네이션 타입", example = "ADVERTISEMENT", schema = @Schema(type = "string", format = "string"))
 	})
 	ResponseEntity<MeetingV2GetAllMeetingDto> getMeetings(@ModelAttribute MeetingV2GetAllMeetingQueryDto queryCommand,
 		Principal principal);
