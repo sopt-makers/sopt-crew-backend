@@ -25,7 +25,7 @@ public class MeetingV2GetAllMeetingQueryDto extends PageOptionsDto {
 
 	String query;
 
-	PaginationType paginationType = PaginationType.DEFAULT;
+	PaginationType paginationType = PaginationType.ADVERTISEMENT;
 
 	public MeetingV2GetAllMeetingQueryDto(Integer page, Integer take) {
 		super(page, take);
