@@ -60,6 +60,7 @@ import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.global.pagination.AdvertisementPageableStrategy;
 import org.sopt.makers.crew.main.global.pagination.DefaultPageableStrategy;
 import org.sopt.makers.crew.main.global.pagination.PageableStrategy;
+import org.sopt.makers.crew.main.global.pagination.PaginationType;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.Time;
@@ -124,9 +125,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final MeetingMapper meetingMapper;
 	private final FlashMeetingMapper flashMeetingMapper;
 	private final ApplyMapper applyMapper;
-
-	private final DefaultPageableStrategy defaultPageableStrategy;
-	private final AdvertisementPageableStrategy advertisementPageableStrategy;
 
 	private final ImageSetting imageSetting;
 
@@ -341,7 +339,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private PageableStrategy getPageableStrategy(MeetingV2GetAllMeetingQueryDto queryCommand) {
-		if (queryCommand.isUseAdPagination()) {
+		if (queryCommand.getPaginationType().equals(PaginationType.ADVERTISEMENT)) {
 			return new AdvertisementPageableStrategy();
 		} else {
 			return new DefaultPageableStrategy();
