@@ -57,9 +57,11 @@ import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
+import org.sopt.makers.crew.main.global.pagination.AdvertisementPageableStrategy;
+import org.sopt.makers.crew.main.global.pagination.DefaultPageableStrategy;
+import org.sopt.makers.crew.main.global.pagination.PageableStrategy;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.global.util.PageableFactory;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.global.util.UserPartUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
@@ -89,6 +91,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -121,6 +124,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final MeetingMapper meetingMapper;
 	private final FlashMeetingMapper flashMeetingMapper;
 	private final ApplyMapper applyMapper;
+
+	private final DefaultPageableStrategy defaultPageableStrategy;
+	private final AdvertisementPageableStrategy advertisementPageableStrategy;
 
 	private final ImageSetting imageSetting;
 
@@ -314,9 +320,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	public MeetingV2GetAllMeetingDto getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand) {
+		PageableStrategy pageableStrategy = getPageableStrategy(queryCommand);
+		Pageable pageable = pageableStrategy.createPageable(queryCommand);
 
-		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand,
-			PageableFactory.createPageable(queryCommand, queryCommand.isUseAdPagination()), time);
+		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand, pageable, time);
 		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
@@ -331,6 +338,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)meetings.getTotalElements());
 
 		return MeetingV2GetAllMeetingDto.of(meetingResponseDtos, pageMetaDto);
+	}
+
+	private PageableStrategy getPageableStrategy(MeetingV2GetAllMeetingQueryDto queryCommand) {
+		if (queryCommand.isUseAdPagination()) {
+			return new AdvertisementPageableStrategy();
+		} else {
+			return new DefaultPageableStrategy();
+		}
 	}
 
 	/**
