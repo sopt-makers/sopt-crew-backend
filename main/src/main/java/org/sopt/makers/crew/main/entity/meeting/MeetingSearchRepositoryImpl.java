@@ -8,11 +8,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.sopt.makers.crew.main.global.constant.CrewConst;
-import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.global.constant.CrewConst;
+import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,7 +21,9 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -67,19 +69,39 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		return query.fetch();
 	}
 
+	/**
+	 * 특정 조건을 기반으로 모집된 모임(Meeting) 리스트를 조회하는 메서드.
+	 * 모집 상태(모집중 → 모집전 → 모집마감)별 우선순위 정렬 후 최신순으로 정렬하여 페이징 처리한다.
+	 *
+	 * @param queryCommand 사용자가 입력한 검색 조건을 포함하는 DTO
+	 * @param pageable     페이징 처리 정보 (페이지 번호, 페이지 크기 등)
+	 * @param time         현재 시간을 제공하는 Time 객체
+	 * @return 정렬 및 필터링된 모임 리스트
+	 */
 	private List<Meeting> getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time) {
+		BooleanExpression statusCondition = eqStatus(queryCommand.getStatus(), time);
+
+		NumberExpression<Integer> statusOrder = new CaseBuilder()
+			.when(meeting.startDate.loe(time.now()).and(meeting.endDate.goe(time.now()))).then(1)
+			.when(meeting.startDate.after(time.now())).then(2)
+			.when(meeting.endDate.before(time.now())).then(3)
+			.otherwise(4);
+
 		return queryFactory
 			.selectFrom(meeting)
 			.where(
 				eqCategory(queryCommand.getCategory()),
-				eqStatus(queryCommand.getStatus(), time),
+				statusCondition,
 				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration()),
 				eqJoinableParts(queryCommand.getJoinableParts()),
 				eqQuery(queryCommand.getQuery())
 			)
 			.innerJoin(meeting.user, user)
 			.fetchJoin()
-			.orderBy(meeting.id.desc())
+			.orderBy(
+				statusOrder.asc(),
+				meeting.id.desc()
+			)
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())
 			.fetch();
