@@ -322,7 +322,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Pageable pageable = pageableStrategy.createPageable(queryCommand);
 
 		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand, pageable, time);
-		List<Integer> meetingIds = meetings.stream().map(Meeting::getId).toList();
+		List<Integer> meetingIds = meetings.stream()
+			.map(Meeting::getId)
+			.toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
 
