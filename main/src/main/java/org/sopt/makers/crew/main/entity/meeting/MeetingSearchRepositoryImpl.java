@@ -3,6 +3,7 @@ package org.sopt.makers.crew.main.entity.meeting;
 import static org.sopt.makers.crew.main.entity.meeting.QMeeting.*;
 import static org.sopt.makers.crew.main.entity.user.QUser.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,9 +42,9 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 
 	@Override
 	public Page<Meeting> findAllByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time) {
-
-		List<Meeting> meetings = getMeetings(queryCommand, pageable, time);
-		JPAQuery<Long> countQuery = getCount(queryCommand, time);
+		LocalDateTime now = time.now();
+		List<Meeting> meetings = getMeetings(queryCommand, pageable, now);
+		JPAQuery<Long> countQuery = getCount(queryCommand, now);
 
 		return PageableExecutionUtils.getPage(meetings,
 			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
@@ -51,17 +52,18 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 
 	/**
 	 * @param meetingIds : 조회하려는 모임 id 리스트
+	 * @param time: RealTime 객체
 	 * @implSpec : meetingIds 가 null 인 경우, '지금 모집중인 모임' 반환
 	 * */
 	@Override
 	public List<Meeting> findRecommendMeetings(List<Integer> meetingIds, Time time) {
-
+		LocalDateTime now = time.now();
 		JPAQuery<Meeting> query = queryFactory.selectFrom(meeting)
 			.innerJoin(meeting.user, user)
 			.fetchJoin();
 
 		if (meetingIds == null) {
-			query.where(eqStatus(List.of(String.valueOf(EnMeetingStatus.APPLY_ABLE.getValue())), time));
+			query.where(eqStatus(List.of(String.valueOf(EnMeetingStatus.APPLY_ABLE.getValue())), now));
 			return query.fetch();
 		}
 
@@ -75,16 +77,17 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	 *
 	 * @param queryCommand 사용자가 입력한 검색 조건을 포함하는 DTO
 	 * @param pageable     페이징 처리 정보 (페이지 번호, 페이지 크기 등)
-	 * @param time         현재 시간을 제공하는 Time 객체
+	 * @param now         현재 시간을 제공하는 LocalDateTime now 객체
 	 * @return 정렬 및 필터링된 모임 리스트
 	 */
-	private List<Meeting> getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time) {
-		BooleanExpression statusCondition = eqStatus(queryCommand.getStatus(), time);
+	private List<Meeting> getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable,
+		LocalDateTime now) {
+		BooleanExpression statusCondition = eqStatus(queryCommand.getStatus(), now);
 
 		NumberExpression<Integer> statusOrder = new CaseBuilder()
-			.when(meeting.startDate.loe(time.now()).and(meeting.endDate.goe(time.now()))).then(1)
-			.when(meeting.startDate.after(time.now())).then(2)
-			.when(meeting.endDate.before(time.now())).then(3)
+			.when(meeting.startDate.loe(now).and(meeting.endDate.goe(now))).then(1)
+			.when(meeting.startDate.after(now)).then(2)
+			.when(meeting.endDate.before(now)).then(3)
 			.otherwise(4);
 
 		return queryFactory
@@ -107,13 +110,13 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.fetch();
 	}
 
-	private JPAQuery<Long> getCount(MeetingV2GetAllMeetingQueryDto queryCommand, Time time) {
+	private JPAQuery<Long> getCount(MeetingV2GetAllMeetingQueryDto queryCommand, LocalDateTime now) {
 		return queryFactory
 			.select(meeting.count())
 			.from(meeting)
 			.where(
 				eqCategory(queryCommand.getCategory()),
-				eqStatus(queryCommand.getStatus(), time),
+				eqStatus(queryCommand.getStatus(), now),
 				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration()),
 				eqJoinableParts(queryCommand.getJoinableParts()),
 				eqQuery(queryCommand.getQuery())
@@ -133,29 +136,28 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		return meeting.category.in(categoryList);
 	}
 
-	private BooleanExpression eqStatus(List<String> statues, Time time) {
-
-		if (statues == null || statues.isEmpty()) {
+	private BooleanExpression eqStatus(List<String> statuses, LocalDateTime now) {
+		if (statuses == null || statuses.isEmpty()) {
 			return null;
 		}
 
 		List<BooleanExpression> conditions = new ArrayList<>();
 
-		List<Integer> statuesInt = statues.stream()
+		List<Integer> statusesInt = statuses.stream()
 			.map(Integer::parseInt)
 			.toList();
 
-		for (Integer status : statuesInt) {
+		for (Integer status : statusesInt) {
 			if (status == EnMeetingStatus.BEFORE_START.getValue()) {
-				BooleanExpression condition = meeting.startDate.after(time.now());
+				BooleanExpression condition = meeting.startDate.after(now);
 				conditions.add(condition);
 			} else if (status == EnMeetingStatus.APPLY_ABLE.getValue()) {
-				BooleanExpression afterStartDate = meeting.startDate.loe(time.now());
-				BooleanExpression beforeEndDate = meeting.endDate.goe(time.now());
+				BooleanExpression afterStartDate = meeting.startDate.loe(now);
+				BooleanExpression beforeEndDate = meeting.endDate.goe(now);
 				BooleanExpression condition = afterStartDate.and(beforeEndDate);
 				conditions.add(condition);
 			} else if (status == EnMeetingStatus.RECRUITMENT_COMPLETE.getValue()) {
-				BooleanExpression condition = meeting.endDate.before(time.now());
+				BooleanExpression condition = meeting.endDate.before(now);
 				conditions.add(condition);
 			}
 		}

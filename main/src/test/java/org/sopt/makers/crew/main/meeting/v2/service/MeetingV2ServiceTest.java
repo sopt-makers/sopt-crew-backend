@@ -642,6 +642,12 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 					"capacity", "isMentorNeeded", "targetActiveGeneration",
 					"joinableParts", "status", "approvedCount"
 				).containsExactly(
+					tuple("스터디 구합니다 - 신청전", "스터디", false,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, false, null,
+						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
+					),
 					tuple("세미나 구합니다 - 신청후", "세미나", false,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
@@ -653,12 +659,6 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
 						10, false, null,
 						new MeetingJoinablePart[] {PM, SERVER}, 2, 0
-					),
-					tuple("스터디 구합니다 - 신청전", "스터디", false,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, false, null,
-						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
 					)
 				);
 
@@ -744,10 +744,10 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 				.extracting(
 					"title", "category"
 				).containsExactly(
-					tuple("세미나 구합니다 - 신청후", "세미나"),
-					tuple("스터디 구합니다 - 신청후", "스터디"),
+					tuple("스터디 구합니다1", "행사"),
 					tuple("스터디 구합니다 - 신청전", "스터디"),
-					tuple("스터디 구합니다1", "행사")
+					tuple("세미나 구합니다 - 신청후", "세미나"),
+					tuple("스터디 구합니다 - 신청후", "스터디")
 				);
 		}
 
