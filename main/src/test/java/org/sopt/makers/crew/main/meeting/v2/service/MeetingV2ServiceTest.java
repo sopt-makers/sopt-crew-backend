@@ -528,6 +528,18 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 					"capacity", "isMentorNeeded", "targetActiveGeneration",
 					"joinableParts", "status", "approvedCount"
 				).containsExactly(
+					tuple("스터디 구합니다1", "행사", true,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, true, 35,
+						new MeetingJoinablePart[] {PM, SERVER}, 1, 2
+					),
+					tuple("스터디 구합니다 - 신청전", "스터디", false,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, false, null,
+						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
+					),
 					tuple("세미나 구합니다 - 신청후", "세미나", false,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
@@ -539,38 +551,24 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
 						10, false, null,
 						new MeetingJoinablePart[] {PM, SERVER}, 2, 0
-					),
-					tuple("스터디 구합니다 - 신청전", "스터디", false,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, false, null,
-						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
-					),
-					tuple("스터디 구합니다1", "행사", true,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, true, 35,
-						new MeetingJoinablePart[] {PM, SERVER}, 1, 2
 					)
-
 				);
 
 			Assertions.assertThat(meetingCreatorDtos)
 				.extracting("name", "orgId", "profileImage", "activities", "phone")
 				.containsExactly(
-					tuple("모임개설자2", 1005, "profile5.jpg",
-						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
-						"010-6666-6666"),
-					tuple("모임개설자2", 1005, "profile5.jpg",
-						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
-						"010-6666-6666"),
-					tuple("모임개설자2", 1005, "profile5.jpg",
-						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
-						"010-6666-6666"),
 					tuple("모임개설자", 1001, "profile1.jpg",
 						List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
-						"010-1234-5678")
-
+						"010-1234-5678"),
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666"),
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666"),
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666")
 				);
 		}
 
