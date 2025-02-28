@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.flash.v2.service;
 
 import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
+import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
@@ -13,11 +14,15 @@ import org.sopt.makers.crew.main.entity.flash.FlashRepository;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
+import org.sopt.makers.crew.main.external.notification.PushNotificationService;
+import org.sopt.makers.crew.main.external.notification.dto.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.flash.v2.dto.mapper.FlashMapper;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateAndUpdateResponseDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2GetFlashByMeetingIdResponseDto;
+import org.sopt.makers.crew.main.global.config.PushNotificationProperties;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
+import org.sopt.makers.crew.main.global.dto.OrgIdListDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.util.Time;
@@ -43,6 +48,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 	private final UserV2Service userV2Service;
 	private final TagV2Service tagV2Service;
 	private final MeetingV2Service meetingV2Service;
+	private final PushNotificationService pushNotificationService;
 
 	private final FlashRepository flashRepository;
 	private final ApplyRepository applyRepository;
@@ -51,6 +57,8 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 	private final FlashMapper flashMapper;
 
 	private final Time realTime;
+
+	private final PushNotificationProperties pushNotificationProperties;
 
 	@Override
 	@Transactional
@@ -74,6 +82,10 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 
 		flashRepository.save(flash);
 		tagV2Service.createFlashTag(requestBody.welcomeMessageTypes(), flash.getId());
+
+		OrgIdListDto orgIdListDto = userReader.findAllOrgIds();
+
+		sendPushNotification(orgIdListDto.getOrgIds(), flash.getMeetingId(), flash.getTitle());
 
 		return FlashV2CreateAndUpdateResponseDto.from(flash.getMeetingId());
 	}
@@ -147,5 +159,20 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		return applies.getAppliesMap().get(meetingId).stream()
 			.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
 			.toList();
+	}
+
+	private void sendPushNotification(List<Integer> orgIds, Integer meetingId, String pushNotificationContent) {
+		String[] orgIdArray = orgIds.stream()
+			.map(String::valueOf)
+			.toArray(String[]::new);
+
+		String pushNotificationWeblink = pushNotificationProperties.getPushWebUrl() + "/detail?id=" + meetingId;
+
+		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(orgIdArray,
+			NEW_FLASH_PUSH_NOTIFICATION_TITLE.getValue(),
+			pushNotificationContent,
+			PUSH_NOTIFICATION_CATEGORY.getValue(), pushNotificationWeblink);
+
+		pushNotificationService.sendPushNotification(pushRequestDto);
 	}
 }
