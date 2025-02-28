@@ -1,19 +1,13 @@
 package org.sopt.makers.crew.main.post.v2.service;
 
 import static java.util.stream.Collectors.*;
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.sopt.makers.crew.main.global.exception.BadRequestException;
-import org.sopt.makers.crew.main.global.exception.ForbiddenException;
-import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
-import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
-import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
@@ -29,9 +23,16 @@ import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
-import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
 import org.sopt.makers.crew.main.external.notification.dto.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
+import org.sopt.makers.crew.main.global.config.PushNotificationProperties;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
+import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
+import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
@@ -45,7 +46,6 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -70,8 +70,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	private final MemberBlockService memberBlockService;
 	private final UserV2Service userV2Service;
 
-	@Value("${push-notification.web-url}")
-	private String pushWebUrl;
+	private final PushNotificationProperties pushNotificationProperties;
 
 	private final Time time;
 
@@ -115,7 +114,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 
 		String[] userIds = userIdList.toArray(new String[0]);
 		String pushNotificationContent = String.format("[%s의 새 글] : \"%s\"", user.getName(), post.getTitle());
-		String pushNotificationWeblink = pushWebUrl + "/detail?id=" + meeting.getId();
+		String pushNotificationWeblink = pushNotificationProperties.getPushWebUrl() + "/detail?id=" + meeting.getId();
 
 		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(userIds,
 			NEW_POST_PUSH_NOTIFICATION_TITLE.getValue(), pushNotificationContent, PUSH_NOTIFICATION_CATEGORY.getValue(),
@@ -184,7 +183,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 		Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
 
 		String pushNotificationContent = String.format("[%s의 글] : \"%s\"", user.getName(), post.getTitle());
-		String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
+		String pushNotificationWeblink = pushNotificationProperties.getPushWebUrl() + "/post?id=" + post.getId();
 
 		String[] userOrgIds = requestBody.getOrgIds().stream().map(Object::toString).toArray(String[]::new);
 
