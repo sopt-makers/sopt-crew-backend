@@ -1,9 +1,9 @@
 package org.sopt.makers.crew.main.internal;
 
 import org.sopt.makers.crew.main.internal.dto.ApprovedStudyCountResponseDto;
+import org.sopt.makers.crew.main.internal.dto.InternalMeetingCountResponseDto;
 import org.sopt.makers.crew.main.internal.dto.TopFastestAppliedMeetingsResponseDto;
 import org.sopt.makers.crew.main.internal.service.InternalMeetingStatsService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +37,16 @@ public class InternalMeetingStatsController implements InternalMeetingStatsApi {
 
 		TopFastestAppliedMeetingsResponseDto response = internalMeetingStatsService.getTopFastestAppliedMeetings(
 			orgId, queryCount, queryYear);
+		return ResponseEntity.ok(response);
+	}
+
+	@Override
+	@GetMapping("/studies")
+	public ResponseEntity<InternalMeetingCountResponseDto> getMeetingCountByGeneration(
+		@RequestParam(name = "generation") Integer generation) {
+
+		InternalMeetingCountResponseDto response = internalMeetingStatsService.getMeetingCountByGeneration(
+			generation);
 		return ResponseEntity.ok(response);
 	}
 }
