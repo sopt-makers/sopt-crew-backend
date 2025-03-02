@@ -30,4 +30,6 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 
 	@Query("SELECT m FROM Meeting m JOIN FETCH m.user ORDER BY m.id DESC LIMIT 20")
 	List<Meeting> findTop20ByOrderByIdDesc();
+
+	Integer countAllByCreatedGeneration(Integer generation);
 }
