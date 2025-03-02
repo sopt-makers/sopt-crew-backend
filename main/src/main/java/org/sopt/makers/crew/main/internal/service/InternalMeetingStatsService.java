@@ -61,6 +61,6 @@ public class InternalMeetingStatsService {
 	public InternalMeetingCountResponseDto getMeetingCountByGeneration(Integer generation) {
 		Integer meetingCount = meetingRepository.countAllByCreatedGeneration(generation);
 
-		return InternalMeetingCountResponseDto.of(meetingCount);
+		return InternalMeetingCountResponseDto.from(meetingCount);
 	}
 }
