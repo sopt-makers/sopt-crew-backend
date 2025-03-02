@@ -77,7 +77,6 @@ public class CommentV2ServiceTest {
                 .mStartDate(LocalDateTime.of(2024, Month.APRIL, 1, 0, 0))
                 .mEndDate(LocalDateTime.of(2030, Month.APRIL, 20, 0, 0))
                 .leaderDesc("저는 이런 사람이에요.")
-                .targetDesc("이런 사람이 왔으면 좋겠어요")
                 .note("유의사항은 이거에요")
                 .isMentorNeeded(true)
                 .canJoinOnlyActiveGeneration(true)

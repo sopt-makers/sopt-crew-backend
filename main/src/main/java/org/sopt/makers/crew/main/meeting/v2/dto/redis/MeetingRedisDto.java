@@ -55,7 +55,7 @@ public class MeetingRedisDto {
 
 	public Meeting toEntity() {
 		return new Meeting(null, userId, title, category, imageURL, startDate, endDate, capacity, desc, processDesc,
-			mStartDate, mEndDate, leaderDesc, null, note, isMentorNeeded, canJoinOnlyActiveGeneration,
+			mStartDate, mEndDate, leaderDesc, note, isMentorNeeded, canJoinOnlyActiveGeneration,
 			createdGeneration, targetActiveGeneration, joinableParts);
 	}
 
