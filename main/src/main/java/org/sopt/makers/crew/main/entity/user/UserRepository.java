@@ -36,7 +36,4 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
 	@Query("SELECT u.orgId FROM User u")
 	List<Integer> findAllOrgIds();
-
-	@Query("SELECT u.orgId FROM User u WHERE u.orgId IN (126, 184, 188, 190)")
-	List<Integer> findTestOrgIds();
 }

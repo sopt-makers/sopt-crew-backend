@@ -21,6 +21,6 @@ public class UserReader {
 
 	@Cacheable(value = "orgIdCache", key = "'allOrgIds'")
 	public OrgIdListDto findAllOrgIds() {
-		return OrgIdListDto.of(userRepository.findTestOrgIds());
+		return OrgIdListDto.of(userRepository.findAllOrgIds());
 	}
 }
