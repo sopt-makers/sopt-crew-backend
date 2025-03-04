@@ -171,7 +171,7 @@ public class Meeting extends BaseTimeEntity {
 	public Meeting(User user, Integer userId, String title, MeetingCategory category,
 		List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
 		String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
-		String leaderDesc, String targetDesc, String note, Boolean isMentorNeeded,
+		String leaderDesc, String note, Boolean isMentorNeeded,
 		Boolean canJoinOnlyActiveGeneration, Integer createdGeneration,
 		Integer targetActiveGeneration, MeetingJoinablePart[] joinableParts) {
 		this.user = user;

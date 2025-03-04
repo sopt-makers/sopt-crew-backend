@@ -40,3 +40,6 @@ out/
 application-secret.properties
 
 .DS_Store
+
+### Qclass
+src/main/generated/

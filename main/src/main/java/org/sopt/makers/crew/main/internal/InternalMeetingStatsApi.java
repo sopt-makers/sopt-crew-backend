@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.internal;
 
 import org.sopt.makers.crew.main.internal.dto.ApprovedStudyCountResponseDto;
+import org.sopt.makers.crew.main.internal.dto.InternalMeetingCountResponseDto;
 import org.sopt.makers.crew.main.internal.dto.TopFastestAppliedMeetingsResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,4 +33,11 @@ public interface InternalMeetingStatsApi {
 		@RequestParam(name = "query-count", required = false, defaultValue = "3") Integer queryCount,
 		@RequestParam(name = "query-year") Integer queryYear
 		);
+
+	@Operation(summary = "[Internal] 특정 기수의 총 스터디 개수 반환", description = "특정 기수의 총 스터디 개수를 반환합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "특정 기수의 총 스터디 개수 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(example = "{\"meetingCount\": 1}"))),
+		@ApiResponse(responseCode = "400", description = "올바르지 않은 요청입니다.", content = @Content(mediaType = "application/json"))})
+	ResponseEntity<InternalMeetingCountResponseDto> getMeetingCountByGeneration(
+		@RequestParam(name = "generation") Integer generation);
 }

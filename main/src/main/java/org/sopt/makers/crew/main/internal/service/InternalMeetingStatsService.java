@@ -7,10 +7,12 @@ import java.util.Optional;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.internal.dto.ApprovedStudyCountResponseDto;
+import org.sopt.makers.crew.main.internal.dto.InternalMeetingCountResponseDto;
 import org.sopt.makers.crew.main.internal.dto.TopFastestAppliedMeetingResponseDto;
 import org.sopt.makers.crew.main.internal.dto.TopFastestAppliedMeetingsResponseDto;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class InternalMeetingStatsService {
 	private final ApplyRepository applyRepository;
 	private final UserRepository userRepository;
+	private final MeetingRepository meetingRepository;
 
 	public ApprovedStudyCountResponseDto getApprovedStudyCountByOrgId(Integer orgId) {
 		User user = userRepository.findByOrgId(orgId).orElse(null);
@@ -38,7 +41,8 @@ public class InternalMeetingStatsService {
 		return ApprovedStudyCountResponseDto.of(user.getOrgId(), approvedStudyCount);
 	}
 
-	public TopFastestAppliedMeetingsResponseDto getTopFastestAppliedMeetings(Integer orgId, Integer queryCount, Integer queryYear) {
+	public TopFastestAppliedMeetingsResponseDto getTopFastestAppliedMeetings(Integer orgId, Integer queryCount,
+		Integer queryYear) {
 		Optional<User> user = userRepository.findByOrgId(orgId);
 
 		if (user.isEmpty()) {
@@ -52,5 +56,11 @@ public class InternalMeetingStatsService {
 			.toList();
 
 		return TopFastestAppliedMeetingsResponseDto.from(responseDtos);
+	}
+
+	public InternalMeetingCountResponseDto getMeetingCountByGeneration(Integer generation) {
+		Integer meetingCount = meetingRepository.countAllByCreatedGeneration(generation);
+
+		return InternalMeetingCountResponseDto.from(meetingCount);
 	}
 }

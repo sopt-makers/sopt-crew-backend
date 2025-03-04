@@ -22,22 +22,22 @@ import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.meeting.CoLeader;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
-import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
-import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
-import org.sopt.makers.crew.main.external.redisContainerBaseTest;
-import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.external.redisContainerBaseTest;
+import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
-import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
@@ -528,6 +528,18 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 					"capacity", "isMentorNeeded", "targetActiveGeneration",
 					"joinableParts", "status", "approvedCount"
 				).containsExactly(
+					tuple("스터디 구합니다1", "행사", true,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, true, 35,
+						new MeetingJoinablePart[] {PM, SERVER}, 1, 2
+					),
+					tuple("스터디 구합니다 - 신청전", "스터디", false,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, false, null,
+						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
+					),
 					tuple("세미나 구합니다 - 신청후", "세미나", false,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
@@ -539,38 +551,24 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
 						10, false, null,
 						new MeetingJoinablePart[] {PM, SERVER}, 2, 0
-					),
-					tuple("스터디 구합니다 - 신청전", "스터디", false,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, false, null,
-						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
-					),
-					tuple("스터디 구합니다1", "행사", true,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, true, 35,
-						new MeetingJoinablePart[] {PM, SERVER}, 1, 2
 					)
-
 				);
 
 			Assertions.assertThat(meetingCreatorDtos)
 				.extracting("name", "orgId", "profileImage", "activities", "phone")
 				.containsExactly(
-					tuple("모임개설자2", 1005, "profile5.jpg",
-						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
-						"010-6666-6666"),
-					tuple("모임개설자2", 1005, "profile5.jpg",
-						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
-						"010-6666-6666"),
-					tuple("모임개설자2", 1005, "profile5.jpg",
-						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
-						"010-6666-6666"),
 					tuple("모임개설자", 1001, "profile1.jpg",
 						List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
-						"010-1234-5678")
-
+						"010-1234-5678"),
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666"),
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666"),
+					tuple("모임개설자2", 1005, "profile5.jpg",
+						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
+						"010-6666-6666")
 				);
 		}
 
@@ -644,6 +642,12 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 					"capacity", "isMentorNeeded", "targetActiveGeneration",
 					"joinableParts", "status", "approvedCount"
 				).containsExactly(
+					tuple("스터디 구합니다 - 신청전", "스터디", false,
+						LocalDateTime.of(2024, 5, 29, 0, 0),
+						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+						10, false, null,
+						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
+					),
 					tuple("세미나 구합니다 - 신청후", "세미나", false,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
@@ -655,12 +659,6 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
 						10, false, null,
 						new MeetingJoinablePart[] {PM, SERVER}, 2, 0
-					),
-					tuple("스터디 구합니다 - 신청전", "스터디", false,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, false, null,
-						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
 					)
 				);
 
@@ -701,8 +699,8 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 				.extracting(
 					"title", "category"
 				).containsExactly(
-					tuple("스터디 구합니다 - 신청전", "스터디"),
-					tuple("스터디 구합니다1", "행사")
+					tuple("스터디 구합니다1", "행사"),
+					tuple("스터디 구합니다 - 신청전", "스터디")
 				);
 		}
 
@@ -746,10 +744,10 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 				.extracting(
 					"title", "category"
 				).containsExactly(
-					tuple("세미나 구합니다 - 신청후", "세미나"),
-					tuple("스터디 구합니다 - 신청후", "스터디"),
+					tuple("스터디 구합니다1", "행사"),
 					tuple("스터디 구합니다 - 신청전", "스터디"),
-					tuple("스터디 구합니다1", "행사")
+					tuple("세미나 구합니다 - 신청후", "세미나"),
+					tuple("스터디 구합니다 - 신청후", "스터디")
 				);
 		}
 
