@@ -3,13 +3,15 @@ package org.sopt.makers.crew.main.auth.v2.service;
 import org.sopt.makers.crew.main.auth.v2.dto.request.AuthV2RequestDto;
 import org.sopt.makers.crew.main.auth.v2.dto.response.AuthV2ResponseDto;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
-import org.sopt.makers.crew.main.global.jwt.JwtTokenProvider;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.playground.PlaygroundService;
 import org.sopt.makers.crew.main.external.playground.dto.request.PlaygroundUserRequestDto;
 import org.sopt.makers.crew.main.external.playground.dto.response.PlaygroundUserResponseDto;
+import org.sopt.makers.crew.main.global.dto.OrgIdListDto;
+import org.sopt.makers.crew.main.global.jwt.JwtTokenProvider;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +55,9 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 		User newUser = responseDto.toEntity();
 		User savedUser = userRepository.save(newUser);
 		log.info("New user signup: {} {}", savedUser.getId(), savedUser.getName());
+
+		updateOrgIds();
+
 		return savedUser;
 	}
 
@@ -73,6 +78,9 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 		coLeaderRepository.findAllByUserIdWithMeeting(userId).forEach(
 			coLeader -> clearCacheForCoLeader(coLeader.getMeeting().getId())
 		);
+
+		updateOrgIds();
+
 		log.info("Cache cleared for user: {}", userId);
 	}
 
@@ -89,4 +97,14 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 	public void clearCacheForCoLeader(Integer meetingId) {
 
 	}
+
+	@CachePut(value = "orgIdCache", key = "'allOrgIds'")
+	public OrgIdListDto updateOrgIds() {
+		OrgIdListDto latestOrgIds = OrgIdListDto.of(userRepository.findAllOrgIds());
+
+		log.info("OrgId cache updated: {}", latestOrgIds);
+
+		return latestOrgIds;
+	}
+
 }
