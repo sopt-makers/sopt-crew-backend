@@ -1,16 +1,12 @@
 package org.sopt.makers.crew.main.comment.v2.service;
 
-import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.NEW_COMMENT_MENTION_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.NEW_COMMENT_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
+import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import lombok.RequiredArgsConstructor;
 
 import org.sopt.makers.crew.main.comment.v2.dto.CommentMapper;
 import org.sopt.makers.crew.main.comment.v2.dto.request.CommentV2CreateCommentBodyDto;
@@ -22,13 +18,6 @@ import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2ReportCommentR
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.CommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.comment.v2.dto.response.ReplyDto;
-import org.sopt.makers.crew.main.global.exception.BadRequestException;
-import org.sopt.makers.crew.main.global.exception.ErrorStatus;
-import org.sopt.makers.crew.main.global.exception.ForbiddenException;
-import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
-import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.global.util.MentionSecretStringRemover;
-import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.comment.Comments;
@@ -41,12 +30,21 @@ import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
-import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
 import org.sopt.makers.crew.main.external.notification.dto.PushNotificationRequestDto;
-import org.springframework.beans.factory.annotation.Value;
+import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
+import org.sopt.makers.crew.main.global.config.PushNotificationProperties;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ErrorStatus;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
+import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.util.MentionSecretStringRemover;
+import org.sopt.makers.crew.main.global.util.Time;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -67,8 +65,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 
 	private final CommentMapper commentMapper;
 
-	@Value("${push-notification.web-url}")
-	private String pushWebUrl;
+	private final PushNotificationProperties pushNotificationProperties;
 
 	private final Time time;
 
@@ -117,7 +114,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 			requestBody.getContents());
 		String pushNotificationContent = String.format("[%s의 댓글] : \"%s\"",
 			user.getName(), secretStringRemovedContent);
-		String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
+		String pushNotificationWeblink = pushNotificationProperties.getPushWebUrl() + "/post?id=" + post.getId();
 
 		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(userIds,
 			NEW_COMMENT_PUSH_NOTIFICATION_TITLE.getValue(),
@@ -282,7 +279,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		Post post = postRepository.findByIdOrThrow(requestBody.getPostId());
 
 		String pushNotificationContent = "\"" + requestBody.getContent() + "\"";
-		String pushNotificationWeblink = pushWebUrl + "/post?id=" + post.getId();
+		String pushNotificationWeblink = pushNotificationProperties.getPushWebUrl() + "/post?id=" + post.getId();
 
 		String[] userOrgIds = requestBody.getOrgIds().stream()
 			.map(Object::toString)

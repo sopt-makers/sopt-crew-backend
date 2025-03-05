@@ -51,7 +51,7 @@ import org.sopt.makers.crew.main.entity.user.enums.UserPart;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto;
-import org.sopt.makers.crew.main.global.config.ImageSetting;
+import org.sopt.makers.crew.main.global.config.ImageSettingProperties;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
@@ -126,7 +126,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final FlashMeetingMapper flashMeetingMapper;
 	private final ApplyMapper applyMapper;
 
-	private final ImageSetting imageSetting;
+	private final ImageSettingProperties imageSettingProperties;
 
 	private final Time time;
 
@@ -512,7 +512,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		User user = userRepository.findByIdOrThrow(userId);
 
 		if (flashBody.files().isEmpty()) {
-			flashBody.files().add(imageSetting.getDefaultFlashImage());
+			flashBody.files().add(imageSettingProperties.getDefaultFlashImage());
 		}
 
 		Meeting flashMeeting = flashMeetingMapper.toMeetingEntityForFlash(flashBody, user, user.getId(), time.now());
@@ -530,7 +530,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		User user = userRepository.findByIdOrThrow(userId);
 
 		if (updatedFlashBody.files().isEmpty()) {
-			updatedFlashBody.files().add(imageSetting.getDefaultFlashImage());
+			updatedFlashBody.files().add(imageSettingProperties.getDefaultFlashImage());
 		}
 
 		Meeting flashMeeting = meetingRepository.findById(meetingId)
