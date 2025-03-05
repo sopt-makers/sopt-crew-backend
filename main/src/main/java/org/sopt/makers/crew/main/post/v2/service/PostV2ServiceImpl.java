@@ -24,7 +24,7 @@ import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
-import org.sopt.makers.crew.main.external.notification.dto.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
 import org.sopt.makers.crew.main.global.config.PushNotificationProperties;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;

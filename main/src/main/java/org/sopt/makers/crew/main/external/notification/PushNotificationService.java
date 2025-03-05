@@ -4,7 +4,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.UUID;
 
-import org.sopt.makers.crew.main.external.notification.dto.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
