@@ -44,16 +44,4 @@ public class FlashCreatedEventListener {
 
 		log.info("FlashCreatedEvent 알림 발송 완료");
 	}
-
-	@Async("taskExecutor")
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	public void checkThread2(FlashCreatedEventDto event) {
-		log.info("두번째: {}", event.pushNotificationContent());
-	}
-
-	@Async("taskExecutor")
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	public void checkThread3(FlashCreatedEventDto event) {
-		log.info("세번째: {}", event.pushNotificationContent());
-	}
 }

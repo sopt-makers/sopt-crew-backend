@@ -83,19 +83,8 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 
 		OrgIdListDto orgIdListDto = userReader.findAllOrgIds();
 
-		log.info("========== 스프링 이벤트 발행 메서드 호출완료 ==========");
-
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt(); // 인터럽트 상태 복구
-			log.warn("Thread sleep interrupted", e);
-		}
-
 		eventPublisher.publishEvent(
 			new FlashCreatedEventDto(orgIdListDto.getOrgIds(), flash.getMeetingId(), flash.getTitle()));
-
-		log.info("========== 스프링 이벤트 발행 메서드 종료 ==========");
 
 		return FlashV2CreateAndUpdateResponseDto.from(flash.getMeetingId());
 	}
