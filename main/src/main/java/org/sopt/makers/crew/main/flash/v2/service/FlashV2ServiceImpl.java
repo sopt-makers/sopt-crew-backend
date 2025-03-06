@@ -22,6 +22,7 @@ import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.OrgIdListDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
+import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
@@ -54,6 +55,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 	private final FlashMapper flashMapper;
 
 	private final ApplicationEventPublisher eventPublisher;
+	private final ActiveGenerationProvider activeGenerationProvider;
 	private final Time realTime;
 
 	@Override
@@ -74,7 +76,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			userId, requestBody.flashBody());
 
 		Flash flash = flashMapper.toFlashEntity(meetingV2CreateAndUpdateMeetingForFlashResponseDto,
-			ACTIVE_GENERATION, user.getId(), realTime);
+			activeGenerationProvider.getActiveGeneration(), user.getId(), realTime);
 
 		flashRepository.save(flash);
 		tagV2Service.createFlashTag(requestBody.welcomeMessageTypes(), flash.getId());
@@ -139,7 +141,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			meetingId, userId, requestBody.flashBody());
 
 		Flash updatedFlash = flashMapper.toFlashEntity(meetingV2CreateAndUpdateMeetingForFlashResponseDto,
-			ACTIVE_GENERATION, user.getId(), realTime);
+			activeGenerationProvider.getActiveGeneration(), user.getId(), realTime);
 
 		flash.updateFlash(updatedFlash);
 
