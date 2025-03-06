@@ -1,11 +1,9 @@
 package org.sopt.makers.crew.main.global.dto;
 
 import java.time.LocalDateTime;
-
 import java.util.List;
 import java.util.Objects;
 
-import org.sopt.makers.crew.main.global.constant.CrewConst;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
@@ -83,11 +81,12 @@ public class MeetingResponseDto {
 		return mEndDate;
 	}
 
-	public static MeetingResponseDto of(Meeting meeting, User meetingCreator, int approvedCount, LocalDateTime now) {
+	public static MeetingResponseDto of(Meeting meeting, User meetingCreator, int approvedCount, LocalDateTime now,
+		Integer activeGeneration) {
 		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meetingCreator);
 		boolean canJoinOnlyActiveGeneration =
-			Objects.equals(meeting.getTargetActiveGeneration(), CrewConst.ACTIVE_GENERATION)
-			&& meeting.getCanJoinOnlyActiveGeneration();
+			Objects.equals(meeting.getTargetActiveGeneration(), activeGeneration)
+				&& meeting.getCanJoinOnlyActiveGeneration();
 
 		return new MeetingResponseDto(meeting.getId(), meeting.getTitle(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), meeting.getCategory().getValue(),
