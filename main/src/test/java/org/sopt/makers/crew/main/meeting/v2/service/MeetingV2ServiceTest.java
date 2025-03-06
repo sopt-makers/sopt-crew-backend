@@ -2,7 +2,6 @@ package org.sopt.makers.crew.main.meeting.v2.service;
 
 import static org.assertj.core.groups.Tuple.*;
 import static org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart.*;
-import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.time.LocalDateTime;
@@ -38,6 +37,7 @@ import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
+import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
@@ -76,6 +76,9 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 
 	@Autowired
 	private ApplyMapper applyMapper;
+
+	@Autowired
+	private ActiveGenerationProvider activeGenerationProvide;
 
 	@Nested
 	class 모임_생성 {
@@ -155,8 +158,9 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 					"준비물은 노트북과 열정입니다.",  // note 필드
 					false,  // isMentorNeeded 필드
 					canJoinOnlyActiveGeneration,  // canJoinOnlyActiveGeneration 필드
-					ACTIVE_GENERATION,  // createdGeneration 필드
-					canJoinOnlyActiveGeneration ? ACTIVE_GENERATION : null,  // targetActiveGeneration 필드
+					activeGenerationProvide.getActiveGeneration(),  // createdGeneration 필드
+					canJoinOnlyActiveGeneration ? activeGenerationProvide.getActiveGeneration() : null,
+					// targetActiveGeneration 필드
 					new MeetingJoinablePart[] {MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS}  // joinableParts 필드
 				);
 

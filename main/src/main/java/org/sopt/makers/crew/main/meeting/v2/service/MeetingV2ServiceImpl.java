@@ -63,6 +63,7 @@ import org.sopt.makers.crew.main.global.pagination.PageableStrategy;
 import org.sopt.makers.crew.main.global.pagination.PaginationType;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.global.util.UserPartUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
@@ -127,6 +128,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final ApplyMapper applyMapper;
 
 	private final ImageSettingProperties imageSettingProperties;
+	private final ActiveGenerationProvider activeGenerationProvider;
 
 	private final Time time;
 
@@ -225,7 +227,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		Meeting meeting = meetingMapper.toMeetingEntity(requestBody,
-			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
+			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()),
+			activeGenerationProvider.getActiveGeneration(), user,
 			user.getId());
 
 		Meeting savedMeeting = meetingRepository.save(meeting);
@@ -321,7 +324,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		PageableStrategy pageableStrategy = getPageableStrategy(queryCommand);
 		Pageable pageable = pageableStrategy.createPageable(queryCommand);
 
-		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand, pageable, time);
+		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand, pageable, time,
+			activeGenerationProvider.getActiveGeneration());
 		List<Integer> meetingIds = meetings.stream()
 			.map(Meeting::getId)
 			.toList();
@@ -330,7 +334,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		List<MeetingResponseDto> meetingResponseDtos = meetings.getContent().stream()
 			.map(meeting -> MeetingResponseDto.of(meeting, meeting.getUser(),
-				allApplies.getApprovedCount(meeting.getId()), time.now()))
+				allApplies.getApprovedCount(meeting.getId()), time.now(),
+				activeGenerationProvider.getActiveGeneration()))
 			.toList();
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetings.getPageable().getPageNumber() + 1,
@@ -405,7 +410,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		updateCoLeaders(requestBody.getCoLeaderUserIds(), meeting);
 
 		Meeting updatedMeeting = meetingMapper.toMeetingEntity(requestBody,
-			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()), ACTIVE_GENERATION, user,
+			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()),
+			activeGenerationProvider.getActiveGeneration(), user,
 			user.getId());
 		meeting.updateMeeting(updatedMeeting);
 	}
@@ -498,7 +504,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		List<MeetingResponseDto> meetingResponseDtos = meetings.stream()
 			.map(meeting -> MeetingResponseDto.of(meeting, meeting.getUser(),
-				allApplies.getApprovedCount(meeting.getId()), time.now()))
+				allApplies.getApprovedCount(meeting.getId()), time.now(),
+				activeGenerationProvider.getActiveGeneration()))
 			.toList();
 
 		return MeetingV2GetRecommendDto.from(meetingResponseDtos);
@@ -515,7 +522,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			flashBody.files().add(imageSettingProperties.getDefaultFlashImage());
 		}
 
-		Meeting flashMeeting = flashMeetingMapper.toMeetingEntityForFlash(flashBody, user, user.getId(), time.now());
+		Meeting flashMeeting = flashMeetingMapper.toMeetingEntityForFlash(flashBody, user, user.getId(), time.now(),
+			activeGenerationProvider.getActiveGeneration());
 
 		meetingRepository.save(flashMeeting);
 
@@ -539,7 +547,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		flashMeeting.validateMeetingCreator(userId);
 
 		Meeting updatedFlashMeeting = flashMeetingMapper.toMeetingEntityForFlash(updatedFlashBody, user, user.getId(),
-			time.now());
+			time.now(), activeGenerationProvider.getActiveGeneration());
 
 		flashMeeting.updateMeeting(updatedFlashMeeting);
 
@@ -598,14 +606,15 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private Integer createTargetActiveGeneration(Boolean canJoinOnlyActiveGeneration) {
-		return Boolean.TRUE.equals(canJoinOnlyActiveGeneration) ? ACTIVE_GENERATION : null;
+		return Boolean.TRUE.equals(canJoinOnlyActiveGeneration) ? activeGenerationProvider.getActiveGeneration() : null;
 	}
 
 	private List<UserActivityVO> filterUserActivities(User user, Meeting meeting) {
 		// 현재 활동기수만 지원 가능할 경우 -> 현재 활동 기수에 해당하는 파트만 필터링
-		if (meeting.getTargetActiveGeneration() == ACTIVE_GENERATION && meeting.getCanJoinOnlyActiveGeneration()) {
+		if (meeting.getTargetActiveGeneration() == activeGenerationProvider.getActiveGeneration()
+			&& meeting.getCanJoinOnlyActiveGeneration()) {
 			List<UserActivityVO> filteredActivities = user.getActivities().stream()
-				.filter(activity -> activity.getGeneration() == ACTIVE_GENERATION)
+				.filter(activity -> activity.getGeneration() == activeGenerationProvider.getActiveGeneration())
 				.collect(Collectors.toList());
 
 			// 활동 기수가 아닌 경우 예외 처리

@@ -28,7 +28,7 @@ public interface FlashMeetingMapper {
 	@Mapping(source = "flashBody.activityStartDate", target = "mStartDate", qualifiedByName = "getStartDate")
 	@Mapping(source = "flashBody.activityEndDate", target = "mEndDate", qualifiedByName = "getEndDate")
 	@Mapping(target = "category", expression = "java(org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory.FLASH)")
-	@Mapping(target = "createdGeneration", expression = "java(org.sopt.makers.crew.main.global.constant.CrewConst.ACTIVE_GENERATION)")
+	@Mapping(source = "activeGeneration", target = "createdGeneration")
 	@Mapping(target = "processDesc", constant = "") // null 대신 빈 문자열로 NPE 방지
 	@Mapping(target = "leaderDesc", constant = "") // null 대신 빈 문자열로 NPE 방지
 	@Mapping(target = "note", constant = "") // null 대신 빈 문자열로 NPE 방지
@@ -37,8 +37,13 @@ public interface FlashMeetingMapper {
 	@Mapping(target = "targetActiveGeneration", expression = "java(null)") // 번쩍 정책에 맞게 null
 	@Mapping(target = "joinableParts", expression = "java(org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart.values())")
 		// 번쩍 정책에 맞게 모든 파트 허용
-	Meeting toMeetingEntityForFlash(FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody,
-		User user, Integer userId, LocalDateTime now);
+	Meeting toMeetingEntityForFlash(
+		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto flashBody,
+		User user,
+		Integer userId,
+		LocalDateTime now,
+		Integer activeGeneration
+	);
 
 	@Named("getImageURL")
 	static List<ImageUrlVO> getImageURL(List<String> files) {
