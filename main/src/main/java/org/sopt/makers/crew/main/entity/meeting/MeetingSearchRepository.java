@@ -8,7 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface MeetingSearchRepository {
-	Page<Meeting> findAllByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time);
+	Page<Meeting> findAllByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time,
+		Integer activeGeneration);
 
 	List<Meeting> findRecommendMeetings(List<Integer> meetingIds, Time time);
 }

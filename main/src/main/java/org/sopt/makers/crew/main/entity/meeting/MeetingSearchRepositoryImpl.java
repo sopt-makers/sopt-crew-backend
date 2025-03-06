@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
-import org.sopt.makers.crew.main.global.constant.CrewConst;
 import org.sopt.makers.crew.main.global.pagination.PaginationType;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
@@ -41,7 +40,8 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	 * @note: status 처리 유의
 	 * */
 	@Override
-	public Page<Meeting> findAllByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time) {
+	public Page<Meeting> findAllByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time,
+		Integer activeGeneration) {
 		LocalDateTime now = time.now();
 
 		List<String> categoryNames = queryCommand.getCategory();
@@ -56,15 +56,16 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		if (categories.size() == 1 && categories.contains(MeetingCategory.FLASH)
 			&& queryCommand.getPaginationType() == PaginationType.DEFAULT) {
 
-			List<Meeting> flashMeetings = getFlashMeetingsForFlashCarousel(queryCommand, pageable, now);
-			JPAQuery<Long> countQuery = getCount(queryCommand, now);
+			List<Meeting> flashMeetings = getFlashMeetingsForFlashCarousel(queryCommand, pageable, now,
+				activeGeneration);
+			JPAQuery<Long> countQuery = getCount(queryCommand, now, activeGeneration);
 
 			return PageableExecutionUtils.getPage(flashMeetings,
 				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
 		}
 
-		List<Meeting> meetings = getMeetings(queryCommand, pageable, now);
-		JPAQuery<Long> countQuery = getCount(queryCommand, now);
+		List<Meeting> meetings = getMeetings(queryCommand, pageable, now, activeGeneration);
+		JPAQuery<Long> countQuery = getCount(queryCommand, now, activeGeneration);
 
 		return PageableExecutionUtils.getPage(meetings,
 			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
@@ -101,7 +102,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	 * @return 정렬 및 필터링된 모임 리스트
 	 */
 	private List<Meeting> getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable,
-		LocalDateTime now) {
+		LocalDateTime now, Integer activeGeneration) {
 		BooleanExpression statusCondition = eqStatus(queryCommand.getStatus(), now);
 
 		NumberExpression<Integer> statusOrder = new CaseBuilder()
@@ -115,7 +116,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.where(
 				eqCategory(queryCommand.getCategory()),
 				statusCondition,
-				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration()),
+				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration(), activeGeneration),
 				eqJoinableParts(queryCommand.getJoinableParts()),
 				eqQuery(queryCommand.getQuery())
 			)
@@ -131,7 +132,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	}
 
 	private List<Meeting> getFlashMeetingsForFlashCarousel(MeetingV2GetAllMeetingQueryDto queryCommand,
-		Pageable pageable, LocalDateTime now) {
+		Pageable pageable, LocalDateTime now, Integer activeGeneration) {
 		BooleanExpression statusCondition = eqStatus(queryCommand.getStatus(), now);
 
 		NumberExpression<Integer> statusOrder = new CaseBuilder()
@@ -143,7 +144,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.where(
 				meeting.category.eq(MeetingCategory.FLASH),
 				statusCondition,
-				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration()),
+				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration(), activeGeneration),
 				eqJoinableParts(queryCommand.getJoinableParts()),
 				eqQuery(queryCommand.getQuery())
 			)
@@ -159,14 +160,15 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.fetch();
 	}
 
-	private JPAQuery<Long> getCount(MeetingV2GetAllMeetingQueryDto queryCommand, LocalDateTime now) {
+	private JPAQuery<Long> getCount(MeetingV2GetAllMeetingQueryDto queryCommand, LocalDateTime now,
+		Integer activeGeneration) {
 		return queryFactory
 			.select(meeting.count())
 			.from(meeting)
 			.where(
 				eqCategory(queryCommand.getCategory()),
 				eqStatus(queryCommand.getStatus(), now),
-				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration()),
+				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration(), activeGeneration),
 				eqJoinableParts(queryCommand.getJoinableParts()),
 				eqQuery(queryCommand.getQuery())
 			);
@@ -223,11 +225,11 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		return combinedCondition;
 	}
 
-	private BooleanExpression isOnlyActiveGeneration(boolean isOnlyActiveGeneration) {
+	private BooleanExpression isOnlyActiveGeneration(boolean isOnlyActiveGeneration, Integer activeGeneration) {
 
 		if (isOnlyActiveGeneration) {
 			return meeting.canJoinOnlyActiveGeneration.eq(true)
-				.and(meeting.targetActiveGeneration.eq(CrewConst.ACTIVE_GENERATION));
+				.and(meeting.targetActiveGeneration.eq(activeGeneration));
 		}
 
 		return null;
