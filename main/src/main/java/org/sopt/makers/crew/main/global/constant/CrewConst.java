@@ -9,7 +9,7 @@ public final class CrewConst {
 	/**
 	 * 매 기수 시작하기 전에 수정 필요
 	 * */
-	public static final Integer ACTIVE_GENERATION = 35;
+	public static final Integer ACTIVE_GENERATION = 36;
 
 	public static final String DAY_START_TIME = " 00:00:00";
 	public static final String DAY_END_TIME = " 23:59:59";

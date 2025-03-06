@@ -2,18 +2,17 @@ package org.sopt.makers.crew.main.internal.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.CustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllMeetingDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingResponseDto;
-import org.sopt.makers.crew.main.internal.dto.UserOrgIdRequestDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -29,6 +28,7 @@ public class InternalMeetingService {
 	private final MeetingRepository meetingRepository;
 	private final MemberBlockService memberBlockService;
 
+	private final ActiveGenerationProvider activeGenerationProvider;
 	private final Time time;
 
 	/**
@@ -44,7 +44,8 @@ public class InternalMeetingService {
 		Sort sort = Sort.by(Sort.Direction.ASC, "id");
 
 		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand,
-			new CustomPageable(queryCommand.getPage() - 1, queryCommand.getTake(), sort), time);
+			new CustomPageable(queryCommand.getPage() - 1, queryCommand.getTake(), sort), time,
+			activeGenerationProvider.getActiveGeneration());
 
 		List<Long> userOrgIds = meetings.getContent()
 			.stream()

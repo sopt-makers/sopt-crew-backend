@@ -5,19 +5,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.sopt.makers.crew.main.entity.meeting.CoLeader;
-import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
-import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
-import org.sopt.makers.crew.main.global.exception.BaseException;
-import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.meeting.CoLeader;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.global.exception.BaseException;
+import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
+import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.user.v2.dto.response.ApplyV2GetAppliedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.MeetingV2GetCreatedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
@@ -42,6 +43,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 	private final MeetingRepository meetingRepository;
 	private final CoLeaderRepository coLeaderRepository;
 
+	private final ActiveGenerationProvider activeGenerationProvider;
 	private final Time time;
 
 	@Override
@@ -111,7 +113,8 @@ public class UserV2ServiceImpl implements UserV2Service {
 
 		List<MeetingV2GetCreatedMeetingByUserResponseDto> meetingByUserDtos = myMeetings.stream()
 			.map(meeting -> MeetingV2GetCreatedMeetingByUserResponseDto.of(meeting,
-				coLeaders.isCoLeader(meeting.getId(), userId), applies.getApprovedCount(meeting.getId()), time.now()))
+				coLeaders.isCoLeader(meeting.getId(), userId), applies.getApprovedCount(meeting.getId()), time.now(),
+				activeGenerationProvider.getActiveGeneration()))
 			.toList();
 
 		return UserV2GetCreatedMeetingByUserResponseDto.of(meetingByUserDtos);
@@ -132,7 +135,8 @@ public class UserV2ServiceImpl implements UserV2Service {
 		List<ApplyV2GetAppliedMeetingByUserResponseDto> appliedMeetingByUserDtos = myApplies.stream()
 			.map(apply -> ApplyV2GetAppliedMeetingByUserResponseDto.of(apply.getId(), apply.getStatus().getValue(),
 				MeetingV2GetCreatedMeetingByUserResponseDto.of(apply.getMeeting(), false,
-					allApplies.getApprovedCount(apply.getMeetingId()), time.now())))
+					allApplies.getApprovedCount(apply.getMeetingId()), time.now(),
+					activeGenerationProvider.getActiveGeneration())))
 			.toList();
 
 		return UserV2GetAppliedMeetingByUserResponseDto.of(appliedMeetingByUserDtos);
