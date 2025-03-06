@@ -2,12 +2,12 @@ package org.sopt.makers.crew.main.user.v2.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
-import org.sopt.makers.crew.main.global.constant.CrewConst;
-import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -75,9 +75,9 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	int approvedCount
 ) {
 	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, boolean isCoLeader, int approvedCount,
-		LocalDateTime now) {
+		LocalDateTime now, Integer activeGeneration) {
 		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meeting.getUser());
-		boolean canJoinOnlyActiveGeneration = meeting.getTargetActiveGeneration() == CrewConst.ACTIVE_GENERATION
+		boolean canJoinOnlyActiveGeneration = Objects.equals(meeting.getTargetActiveGeneration(), activeGeneration)
 			&& meeting.getCanJoinOnlyActiveGeneration();
 
 		return new MeetingV2GetCreatedMeetingByUserResponseDto(meeting.getId(), meeting.getTitle(),
