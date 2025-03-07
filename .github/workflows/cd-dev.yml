@@ -43,6 +43,6 @@ jobs:
           username: ${{ secrets.DEV_SERVER_USER }}
           key: ${{ secrets.DEV_SERVER_KEY }}
           script: |
-            cd ~
+            cd ~/crew
             chmod +x ./deploy.sh
             ./deploy.sh
