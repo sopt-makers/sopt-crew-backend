@@ -12,14 +12,14 @@
 # 기술스택
 
 - DB: PostgreSQL
-- ORM: jpa, TypeORM
+- ORM: jpa
 - API 문서: Swagger
 - 배포: AWS EC2, Docker Compose, Docker hub
 - 인증: JWT
 - 테스트: JUnit5, Jest 
-- 서버 프레임워크: Spring, NestJS
+- 서버 프레임워크: Spring
 - 웹서버 프레임워크: Caddy
-- 언어: Java, Typescript
+- 언어: Java
 
 # 아키텍처
 
@@ -33,103 +33,11 @@
 6. Service는 Repository로부터 받은 데이터를 가공해서 Controller에게 전달한다.
 7. Controller는 Service로부터 받은 데이터를 가공해서 Client에게 전달한다.
 
-## 프로젝트 디렉토리 구조
-
-```bash
-.
-├── Dockerfile 
-├── jest.config.ts
-├── nest-cli.json
-├── package-lock.json
-├── package.json
-├── src
-│   ├── app.module.ts # 모든 모듈을 import하는 모듈
-│   ├── auth # 인증 관련 모듈
-│   ├── common # 여러 모듈에서 공통적으로 사용하는 코드들을 관리
-│   │   ├── constant # constant 관리
-│   │   ├── decorator # decorator 관리
-│   │   ├── dto # dto 관리
-│   │   ├── enum # enum 관리
-│   │   ├── interceptor # interceptor 관리
-│   │   ├── pagination # pagination 관리
-│   │   └── utils # utils 관리
-│   ├── db # DB 관련 모듈
-│   ├── entity # DB entity 관리
-│   │   ├── apply # 모임 신청 관련 entity
-│   │   ├── meeting # 모임 관련 entity
-│   │   ├── notice # 공지사항 관련 entity
-│   │   └── user # 사용자 관련 entity
-│   ├── health # health check 관련 모듈
-│   ├── internal-api # Makers 내부 API 관련 모듈
-│   ├── main.ts # NestJS의 entry point
-│   ├── meeting # 모임 관련 모듈
-│   ├── notice # 공지사항 관련 모듈
-│   ├── shared # 여러 모듈에서 공유하는 모듈
-│   └── user # 사용자 관련 모듈
-├── test # test 관리
-│   ├── e2e # e2e test 관리
-│   ├── integration # integration test 관리
-│   └── unit # unit test 관리
-├── tsconfig.build.json # build를 위한 typescript 설정
-├── tsconfig.json # typescript 설정
-└── typings # type 관리
-    └── global.d.ts # 전역으로 사용할 type 관리
-```
-
-## 모듈 디렉토리 구조
-
-### 도메인 모듈 디렉토리 구조
-
-```bash
-foo # 예시 모듈
-├── foo.module.ts # 모듈 entry
-└── v${버전} # 버전별로 디렉토리를 나눠서 관리
-    ├── dto # dto 관리
-    │   ├── foo-v${버전}-${호출하는 함수 명} # 호출하는 함수 명에 따라 디렉토리를 나눠서 관리
-    │   │   ├── foo-v${버전}-${호출하는 함수 명}-query.dto.ts
-    │   │   ├── foo-v${버전}-${호출하는 함수 명}-response.dto.ts
-    │   │   ├── foo-v${버전}-${호출하는 함수 명}-headers.dto.ts
-    │   │   └── foo-v${버전}-${호출하는 함수 명}-body.dto.ts
-    ├── interface # interface 관리
-    │   └── foo-v${버전}-${interface명}.interface.ts
-    ├── type # type 관리
-    │   └── foo-v${버전}-${type명}.type.ts
-    ├── constant # constant 관리
-    │   └── foo-v${버전}-${constant명}.constant.ts
-    ├── enum # enum 관리
-    │   └── foo-v${버전}-${enum명}.enum.ts
-    ├── ...
-    ├── foo-v${버전}.controller.ts # controller 관리
-    ├── foo-v${버전}.module.ts # module 관리
-    └── foo-v${버전}.service.ts # service 관리
-```
-
-- Controller: 요청을 받아서, Service를 호출한다.
-- Service: Entity Module의 Repository나 Internal Module을 호출해서 로직을 처리한다.
-- 기타 enum, type, interface 등은 해당 모듈 안에서만 쓰이는 경우에 모듈 내부에서 관리한다.
-
-### 엔티티 모듈 디렉토리 구조
-
-```bash
-bar # 예시 모듈
-├── bar.entity.ts # entity 모델 관리
-├── bar.repository.ts # entity repository 관리
-└── enum # enum 관리
-    └── bar-${enum명}.enum.ts
-```
-
-- entity: DB entity를 관리한다. DB entity는 DB의 테이블과 1:1로 매칭된다.
-- repository: DB entity에 접근하는 로직을 관리한다. 순수하게 하나의 entity만 접근하는 로직이어야 한다.
-- 기타 enum, type, interface 등은 해당 모듈 안에서만 쓰이는 경우에 모듈 내부에서 관리한다.
-
 # 개발
 
 ## 환경 변수
 
 - 환경 변수는 dev/prod 환경에 따라 다르게 설정되어야 한다.
-  - NestJS
-    - dev 환경: .dev.env
-    - prod 환경: .prod.env
   - Spring
     - dev 환경: application-dev.yml
     - prod 환경: application-prod.yml
