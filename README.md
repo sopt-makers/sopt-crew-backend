@@ -19,7 +19,7 @@
 - 테스트: JUnit5, Jest 
 - 서버 프레임워크: Spring
 - 웹서버 프레임워크: Caddy
-- 언어: Java, 
+- 언어: Java
 
 # 아키텍처
 
