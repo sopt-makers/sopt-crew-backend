@@ -36,12 +36,6 @@ jobs:
           docker push makerscrew/main:production
         working-directory: ${{ env.working-directory-spring }}
 
-      - name: docker image 빌드 및 푸시 (nestjs)
-        run: |
-          docker build --platform linux/amd64 -t makerscrew/server:production .
-          docker push makerscrew/server:production
-        working-directory: ${{ env.working-directory-nestjs }}
-
       - name: 도커 컨테이너 실행
         uses: appleboy/ssh-action@master
         with:
