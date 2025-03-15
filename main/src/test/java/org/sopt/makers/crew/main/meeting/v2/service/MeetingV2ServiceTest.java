@@ -6,6 +6,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -1084,7 +1085,7 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 		}
 
 		@Test
-		@DisplayName("모임 신청자 인원 조회시, 신청 번호 조회시 연속적인 번호가 나와야한다.")
+		@DisplayName("모임 신청자 인원 조회시, 정렬된 정보여야 하고 신청 번호 조회시 연속적인 번호가 나와야한다.")
 		void getMeeting_extract_field() {
 			//given
 			Integer meetingId = 1;
@@ -1101,6 +1102,8 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 			List<Integer> expectedNumbers = IntStream.rangeClosed(1, size)
 				.boxed().toList();
 
+			Assertions.assertThat(responseDto.getAppliedInfo())
+				.isSortedAccordingTo(Comparator.comparing(ApplyWholeInfoDto::getAppliedDate));
 			Assertions.assertThat(applyNumbers).isEqualTo(expectedNumbers);
 		}
 
