@@ -4,9 +4,12 @@ import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.sopt.makers.crew.main.entity.apply.Applies;
+import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.flash.Flash;
 import org.sopt.makers.crew.main.entity.flash.FlashRepository;
@@ -154,9 +157,12 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		if (!applies.hasApplies(meetingId)) {
 			return List.of();
 		}
+		AtomicInteger applyNumber = new AtomicInteger(1);
 
 		return applies.getAppliesMap().get(meetingId).stream()
-			.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
+			.sorted(Comparator.comparing(Apply::getAppliedDate))
+			.map(apply -> ApplyWholeInfoDto.ofIncludeApplyNumber(apply, apply.getUser(), userId,
+				applyNumber.getAndIncrement()))
 			.toList();
 	}
 }
