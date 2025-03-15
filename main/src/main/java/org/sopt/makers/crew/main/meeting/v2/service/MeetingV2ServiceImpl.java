@@ -77,6 +77,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyD
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDetailDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
@@ -314,10 +315,15 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Page<ApplyInfoDto> applyInfoDtos = applyRepository.findApplyList(queryCommand,
 			PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()),
 			meetingId, meeting.getUserId(), userId);
-		PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
-		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)applyInfoDtos.getTotalElements());
 
-		return MeetingGetApplyListResponseDto.of(applyInfoDtos.getContent(), pageMetaDto);
+		AtomicInteger applyNumbers = new AtomicInteger(1);
+		Page<ApplyInfoDetailDto> applyInfoDetailDtos = applyInfoDtos.map(
+			a -> ApplyInfoDetailDto.toApplyInfoDetailDto(a, applyNumbers.getAndIncrement()));
+
+		PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
+		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)applyInfoDetailDtos.getTotalElements());
+
+		return MeetingGetApplyListResponseDto.of(applyInfoDetailDtos.getContent(), pageMetaDto);
 	}
 
 	@Override
