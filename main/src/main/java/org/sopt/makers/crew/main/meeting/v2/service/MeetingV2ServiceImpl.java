@@ -487,6 +487,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (applies.hasApplies(meetingId)) {
 			AtomicInteger applyNumber = new AtomicInteger(1);
 			applyWholeInfoDtos = applies.getAppliesMap().get(meetingId).stream()
+				.sorted(Comparator.comparing(Apply::getAppliedDate))
 				.map(apply -> ApplyWholeInfoDto.ofIncludeApplyNumber(apply, apply.getUser(), userId,
 					applyNumber.getAndIncrement()))
 				.toList();
