@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -484,8 +485,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		List<ApplyWholeInfoDto> applyWholeInfoDtos = new ArrayList<>();
 		if (applies.hasApplies(meetingId)) {
+			AtomicInteger applyNumber = new AtomicInteger(1);
 			applyWholeInfoDtos = applies.getAppliesMap().get(meetingId).stream()
-				.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
+				.map(apply -> ApplyWholeInfoDto.ofIncludeApplyNumber(apply, apply.getUser(), userId,
+					applyNumber.getAndIncrement()))
 				.toList();
 		}
 
