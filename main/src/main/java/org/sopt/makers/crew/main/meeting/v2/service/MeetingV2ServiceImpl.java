@@ -312,18 +312,31 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Integer meetingId,
 		Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+
+		Page<ApplyInfoDetailDto> applyInfoDetails = madeApplyInfoDetails(
+			queryCommand, meetingId, userId, meeting);
+
+		PageMetaDto pageMetaDto = madePageMetaDto(queryCommand,
+			applyInfoDetails);
+
+		return MeetingGetApplyListResponseDto.of(applyInfoDetails.getContent(), pageMetaDto);
+	}
+
+	private Page<ApplyInfoDetailDto> madeApplyInfoDetails(MeetingGetAppliesQueryDto queryCommand, Integer meetingId,
+		Integer userId, Meeting meeting) {
 		Page<ApplyInfoDto> applyInfoDtos = applyRepository.findApplyList(queryCommand,
 			PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()),
 			meetingId, meeting.getUserId(), userId);
 
 		AtomicInteger applyNumbers = new AtomicInteger(1);
-		Page<ApplyInfoDetailDto> applyInfoDetailDtos = applyInfoDtos.map(
+		return applyInfoDtos.map(
 			a -> ApplyInfoDetailDto.toApplyInfoDetailDto(a, applyNumbers.getAndIncrement()));
-
+	}
+	
+	private PageMetaDto madePageMetaDto(MeetingGetAppliesQueryDto queryCommand,
+		Page<ApplyInfoDetailDto> applyInfoDetailDtos) {
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
-		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)applyInfoDetailDtos.getTotalElements());
-
-		return MeetingGetApplyListResponseDto.of(applyInfoDetailDtos.getContent(), pageMetaDto);
+		return new PageMetaDto(pageOptionsDto, (int)applyInfoDetailDtos.getTotalElements());
 	}
 
 	@Override
