@@ -4,9 +4,12 @@ import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.sopt.makers.crew.main.entity.apply.Applies;
+import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.flash.Flash;
 import org.sopt.makers.crew.main.entity.flash.FlashRepository;
@@ -154,9 +157,16 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		if (!applies.hasApplies(meetingId)) {
 			return List.of();
 		}
+		List<Apply> sortedApplies = applies.getAppliesMap().get(meetingId).stream()
+			.sorted(Comparator.comparing(Apply::getAppliedDate))
+			.toList();
 
-		return applies.getAppliesMap().get(meetingId).stream()
-			.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
+		return IntStream.rangeClosed(1, sortedApplies.size())
+			.mapToObj(i -> ApplyWholeInfoDto.of(
+				sortedApplies.get(i - 1),
+				sortedApplies.get(i - 1).getUser(),
+				userId,
+				i))
 			.toList();
 	}
 }

@@ -6,7 +6,9 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -45,6 +47,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyD
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
@@ -79,6 +82,35 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 
 	@Autowired
 	private ActiveGenerationProvider activeGenerationProvide;
+
+	private Meeting createMeetingFixture(Integer index, User user) {
+
+		List<ImageUrlVO> imageUrlVOList = Arrays.asList(
+			new ImageUrlVO(1, "https://example.com/image1.png"),
+			new ImageUrlVO(2, "https://example.com/image2.png")
+		);
+
+		return Meeting.builder()
+			.userId(user.getId())
+			.user(user)
+			.title("Weekly Coding Meetup" + index)
+			.category(MeetingCategory.STUDY)
+			.imageURL(imageUrlVOList)
+			.startDate(LocalDateTime.of(2024, 5, 29, 0, 0))
+			.endDate(LocalDateTime.of(2024, 5, 31, 0, 0))
+			.capacity(50)
+			.desc("Let's gather and improve our coding skills.")
+			.processDesc("Online meeting via Zoom.")
+			.mStartDate(LocalDateTime.of(2024, 5, 29, 0, 0))  // 모임 시작일: 4일 후
+			.mEndDate(LocalDateTime.of(2024, 5, 31, 0, 0))    // 모임 종료일: 5일 후
+			.leaderDesc("John Doe is an experienced software engineer.")
+			.note("Bring your best coding questions!")
+			.isMentorNeeded(true)
+			.canJoinOnlyActiveGeneration(false)
+			.createdGeneration(34)
+			.joinableParts(new MeetingJoinablePart[] {WEB, SERVER})
+			.build();
+	}
 
 	@Nested
 	class 모임_생성 {
@@ -1052,6 +1084,29 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 			Assertions.assertThat(responseDto.getApprovedApplyCount()).isEqualTo(2);
 		}
 
+		@Test
+		@DisplayName("모임 신청자 인원 조회시, 정렬된 정보여야 하고 신청 번호 조회시 연속적인 번호가 나와야한다.")
+		void getMeeting_extract_field() {
+			//given
+			Integer meetingId = 1;
+			Integer userId = 4;
+
+			//when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+
+			//then
+			int size = responseDto.getAppliedInfo().size(); // 사이즈 값 까지의 값이 하나씩 있어야 한다.
+			List<Integer> applyNumbers = responseDto.getAppliedInfo().stream()
+				.map(ApplyWholeInfoDto::getApplyNumber)
+				.toList();
+			List<Integer> expectedNumbers = IntStream.rangeClosed(1, size)
+				.boxed().toList();
+
+			Assertions.assertThat(responseDto.getAppliedInfo())
+				.isSortedAccordingTo(Comparator.comparing(ApplyWholeInfoDto::getAppliedDate));
+			Assertions.assertThat(applyNumbers).isEqualTo(expectedNumbers);
+		}
+
 	}
 
 	@Nested
@@ -1983,34 +2038,5 @@ public class MeetingV2ServiceTest extends redisContainerBaseTest {
 				.isInstanceOf(ForbiddenException.class)
 				.hasMessage(FORBIDDEN_EXCEPTION.getErrorCode());
 		}
-	}
-
-	private Meeting createMeetingFixture(Integer index, User user) {
-
-		List<ImageUrlVO> imageUrlVOList = Arrays.asList(
-			new ImageUrlVO(1, "https://example.com/image1.png"),
-			new ImageUrlVO(2, "https://example.com/image2.png")
-		);
-
-		return Meeting.builder()
-			.userId(user.getId())
-			.user(user)
-			.title("Weekly Coding Meetup" + index)
-			.category(MeetingCategory.STUDY)
-			.imageURL(imageUrlVOList)
-			.startDate(LocalDateTime.of(2024, 5, 29, 0, 0))
-			.endDate(LocalDateTime.of(2024, 5, 31, 0, 0))
-			.capacity(50)
-			.desc("Let's gather and improve our coding skills.")
-			.processDesc("Online meeting via Zoom.")
-			.mStartDate(LocalDateTime.of(2024, 5, 29, 0, 0))  // 모임 시작일: 4일 후
-			.mEndDate(LocalDateTime.of(2024, 5, 31, 0, 0))    // 모임 종료일: 5일 후
-			.leaderDesc("John Doe is an experienced software engineer.")
-			.note("Bring your best coding questions!")
-			.isMentorNeeded(true)
-			.canJoinOnlyActiveGeneration(false)
-			.createdGeneration(34)
-			.joinableParts(new MeetingJoinablePart[] {WEB, SERVER})
-			.build();
 	}
 }
