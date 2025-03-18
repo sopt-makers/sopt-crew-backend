@@ -6,7 +6,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
@@ -157,12 +157,16 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		if (!applies.hasApplies(meetingId)) {
 			return List.of();
 		}
-		AtomicInteger applyNumber = new AtomicInteger(1);
-
-		return applies.getAppliesMap().get(meetingId).stream()
+		List<Apply> sortedApplies = applies.getAppliesMap().get(meetingId).stream()
 			.sorted(Comparator.comparing(Apply::getAppliedDate))
-			.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId,
-				applyNumber.getAndIncrement()))
+			.toList();
+
+		return IntStream.rangeClosed(1, sortedApplies.size())
+			.mapToObj(i -> ApplyWholeInfoDto.of(
+				sortedApplies.get(i - 1),
+				sortedApplies.get(i - 1).getUser(),
+				userId,
+				i))
 			.toList();
 	}
 }
