@@ -332,7 +332,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		return applyInfoDtos.map(
 			a -> ApplyInfoDetailDto.toApplyInfoDetailDto(a, applyNumbers.getAndIncrement()));
 	}
-	
+
 	private PageMetaDto madePageMetaDto(MeetingGetAppliesQueryDto queryCommand,
 		Page<ApplyInfoDetailDto> applyInfoDetailDtos) {
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
@@ -507,7 +507,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			AtomicInteger applyNumber = new AtomicInteger(1);
 			applyWholeInfoDtos = applies.getAppliesMap().get(meetingId).stream()
 				.sorted(Comparator.comparing(Apply::getAppliedDate))
-				.map(apply -> ApplyWholeInfoDto.ofIncludeApplyNumber(apply, apply.getUser(), userId,
+				.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId,
 					applyNumber.getAndIncrement()))
 				.toList();
 		}

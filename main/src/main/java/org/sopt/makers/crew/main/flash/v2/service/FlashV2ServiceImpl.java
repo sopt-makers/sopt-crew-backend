@@ -161,7 +161,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 
 		return applies.getAppliesMap().get(meetingId).stream()
 			.sorted(Comparator.comparing(Apply::getAppliedDate))
-			.map(apply -> ApplyWholeInfoDto.ofIncludeApplyNumber(apply, apply.getUser(), userId,
+			.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId,
 				applyNumber.getAndIncrement()))
 			.toList();
 	}
