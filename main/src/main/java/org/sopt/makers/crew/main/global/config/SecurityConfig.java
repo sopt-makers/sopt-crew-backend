@@ -53,7 +53,7 @@ public class SecurityConfig {
 			actuatorEndPoint + "/health",
 			actuatorEndPoint + "/prometheus",
 			actuatorEndPoint + "/caches/**",
-			actuatorEndPoint + "/cachecontents",
+			actuatorEndPoint + "/cachecontents/**",
 			actuatorEndPoint + "/metrics/**",
 			"/internal/**"
 		};
