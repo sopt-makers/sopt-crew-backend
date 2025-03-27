@@ -17,6 +17,6 @@ public class MeetingReader {
 	@Cacheable(value = "meetingCache", key = "#meetingId")
 	public MeetingCacheDto getMeetingById(Integer meetingId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-		return MeetingCacheDto.of(meeting);
+		return MeetingCacheDto.from(meeting);
 	}
 }

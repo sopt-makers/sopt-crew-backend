@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class CacheQueryService {
+	private static final String CACHE_TYPE_CAFFEINE = "Caffeine";
 	private final CacheManager cacheManager;
 
 	public List<CacheInfo> getCacheList() {
@@ -31,7 +32,7 @@ public class CacheQueryService {
 				cacheInfos.add(new CacheInfo(
 					cacheName,
 					nativeCache.estimatedSize(),
-					"Caffeine"
+					CACHE_TYPE_CAFFEINE
 				));
 			}
 		});

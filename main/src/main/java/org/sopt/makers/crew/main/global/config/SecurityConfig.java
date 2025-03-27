@@ -27,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @EnableWebSecurity
 public class SecurityConfig {
-
 	private static final String[] SWAGGER_URL = {
 		"/swagger-resources/**",
 		"/favicon.ico",

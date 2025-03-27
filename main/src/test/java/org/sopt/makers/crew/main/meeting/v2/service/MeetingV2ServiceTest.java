@@ -32,7 +32,7 @@ import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
-import org.sopt.makers.crew.main.external.CaffeineCacheConfig;
+import org.sopt.makers.crew.main.external.CaffeineTestConfig;
 import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
@@ -61,7 +61,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 
 @IntegratedTest
-@Import(CaffeineCacheConfig.class)
+@Import(CaffeineTestConfig.class)
 public class MeetingV2ServiceTest {
 
 	@Autowired

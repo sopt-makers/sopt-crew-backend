@@ -95,7 +95,7 @@ public class MeetingCacheDto {
 		this.joinableParts = joinableParts;
 	}
 
-	public static MeetingCacheDto of(Meeting meeting) {
+	public static MeetingCacheDto from(Meeting meeting) {
 		return new MeetingCacheDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(), meeting.getCategory(),
 			meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(), meeting.getCapacity(),
 			meeting.getDesc(), meeting.getProcessDesc(), meeting.getmStartDate(), meeting.getmEndDate(),

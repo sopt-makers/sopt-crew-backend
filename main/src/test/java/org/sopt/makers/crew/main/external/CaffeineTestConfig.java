@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 @TestConfiguration
-public class CaffeineCacheConfig {
+public class CaffeineTestConfig {
 
 	@Bean
 	public CacheManager cacheManager() {
@@ -22,5 +22,5 @@ public class CaffeineCacheConfig {
 
 		return cacheManager;
 	}
-	
+
 }
