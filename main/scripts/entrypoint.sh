@@ -12,7 +12,7 @@ else
 fi
 
 # JAVA_OPTS 구성
-export JAVA_OPTS="-javaagent:/pinpoint-agent/pinpoint-bootstrap-3.0.1.jar \
+export JAVA_OPTS="-javaagent:/pinpoint-agent/pinpoint-bootstrap-2.5.4.jar \
 -Dpinpoint.agentId=$AGENT_ID \
 -Dpinpoint.applicationName=$APPLICATION_NAME \
 -Dpinpoint.profiler.profiles.active=release"
