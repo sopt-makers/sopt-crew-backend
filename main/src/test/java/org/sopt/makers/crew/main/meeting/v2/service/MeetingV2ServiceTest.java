@@ -32,7 +32,7 @@ import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
-import org.sopt.makers.crew.main.external.redisContainerBaseTest;
+import org.sopt.makers.crew.main.external.CaffeineTestConfig;
 import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
@@ -54,13 +54,15 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingR
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 
 @IntegratedTest
-public class MeetingV2ServiceTest extends redisContainerBaseTest {
+@Import(CaffeineTestConfig.class)
+public class MeetingV2ServiceTest {
 
 	@Autowired
 	private MeetingV2Service meetingV2Service;

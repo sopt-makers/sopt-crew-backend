@@ -27,10 +27,12 @@ spring:
         format_sql: ture
       dialect: org.hibernate.dialect.PostgreSQLDialect
       storage_engine: innodb
-  data:
-    redis:
-      host: redis
-      port: 6379
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=24h
+
+
 
 jwt:
   header: Authorization
@@ -86,19 +88,23 @@ management:
         exclude: "*"
     web:
       exposure:
-        include: info, health, prometheus
+        include: info, health, prometheus, caches, cachecontents
       base-path: ${ACTUATOR_PATH}
   endpoint:
     health:
       enabled: true
     info:
       enabled: true
-    prometheus:
+    caches:
       enabled: true
-  prometheus:
+    cachecontents:
+      enabled: true
     metrics:
-      export:
         enabled: true
+    prometheus:
+      metrics:
+        export:
+          enabled: true
 
 custom:
   paths:
