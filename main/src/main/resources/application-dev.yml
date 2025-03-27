@@ -31,10 +31,6 @@ spring:
     type: caffeine
     caffeine:
       spec: maximumSize=500,expireAfterWrite=24h
-  data:
-#    redis:
-#      host: localhost
-#      port: 6379
 
 
 
