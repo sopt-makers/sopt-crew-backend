@@ -81,6 +81,9 @@ playground:
 management:
   server:
     port: ${ACTUATOR_PORT}
+  health:
+    redis:
+      enabled: false
   endpoints:
     enabled-by-default: false
     jmx:
