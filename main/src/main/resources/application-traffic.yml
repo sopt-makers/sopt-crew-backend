@@ -103,7 +103,7 @@ management:
     cachecontents:
       enabled: true
     metrics:
-        enabled: true
+      enabled: true
     prometheus:
       metrics:
         export:
@@ -111,12 +111,12 @@ management:
 
 custom:
   paths:
-    eventApply: ${DEV_EVENT_APPLY_PATH}
+    eventApply: ${PROD_EVENT_APPLY_PATH}
 
 sentry:
   dsn: ${SENTRY_DSN}
-  environment: ${DEV_SENTRY_ENVIRONMENT}
-  servername: ${DEV_SENTRY_SERVERNAME}
+  environment: ${TRAFFIC_SENTRY_ENVIRONMENT}
+  servername: ${TRAFFIC_SENTRY_SERVERNAME}
 
 logging:
   slack:
@@ -130,5 +130,5 @@ img:
   flash: ${FLASH_IMAGE}
 
 thread-pool:
-  core-size: ${DEV_THREAD_CORE_SIZE}
-  thread-name-prefix: ${DEV_THREAD_NAME_PREFIX}
+  core-size: ${PROD_THREAD_CORE_SIZE}
+  thread-name-prefix: ${PROD_THREAD_CORE_SIZE}
