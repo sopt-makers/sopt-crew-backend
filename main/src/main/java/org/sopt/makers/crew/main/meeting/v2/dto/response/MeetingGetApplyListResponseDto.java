@@ -2,12 +2,12 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 
 import java.util.List;
 
+import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
@@ -16,7 +16,7 @@ public class MeetingGetApplyListResponseDto {
 
 	@Schema(description = "신청 목록", example = "")
 	@NotNull
-	private final List<ApplyInfoDto> apply;
+	private final List<ApplyInfoDetailDto> apply;
 
 	@NotNull
 	private final PageMetaDto meta;

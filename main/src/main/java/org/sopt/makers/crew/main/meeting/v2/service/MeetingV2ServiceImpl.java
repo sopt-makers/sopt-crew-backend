@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -76,6 +77,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyD
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDetailDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
@@ -185,34 +187,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		return getResponseDto(meetings, postMap, applies);
 	}
 
-	private List<Post> filterLatestPostsByMeetingId(List<Post> posts) {
-		return posts.stream()
-			.collect(Collectors.groupingBy(Post::getMeetingId,
-				Collectors.maxBy(Comparator.comparing(Post::getCreatedDate))))
-			.values()
-			.stream()
-			.flatMap(Optional::stream)
-			.collect(Collectors.toList());
-	}
-
-	private List<MeetingV2GetMeetingBannerResponseDto> getResponseDto(List<Meeting> meetings,
-		Map<Integer, Post> postMap, Applies applies) {
-		return meetings.stream()
-			.map(meeting -> {
-				MeetingV2GetMeetingBannerResponseUserDto meetingCreatorDto = MeetingV2GetMeetingBannerResponseUserDto.of(
-					meeting.getUser());
-
-				LocalDateTime recentActivityDate = null;
-				if (postMap.containsKey(meeting.getId())) {
-					recentActivityDate = postMap.get(meeting.getId()).getCreatedDate();
-				}
-
-				return MeetingV2GetMeetingBannerResponseDto.of(meeting, recentActivityDate,
-					applies.getAppliedCount(meeting.getId()), applies.getApprovedCount(meeting.getId()),
-					meetingCreatorDto, time.now());
-			}).toList();
-	}
-
 	@Override
 	@Transactional
 	public MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateMeetingBodyDto requestBody, Integer userId) {
@@ -310,13 +284,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Integer meetingId,
 		Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-		Page<ApplyInfoDto> applyInfoDtos = applyRepository.findApplyList(queryCommand,
-			PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()),
-			meetingId, meeting.getUserId(), userId);
-		PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
-		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)applyInfoDtos.getTotalElements());
 
-		return MeetingGetApplyListResponseDto.of(applyInfoDtos.getContent(), pageMetaDto);
+		Page<ApplyInfoDetailDto> applyInfoDetails = madeApplyInfoDetails(
+			queryCommand, meetingId, userId, meeting);
+
+		PageMetaDto pageMetaDto = madePageMetaDto(queryCommand,
+			applyInfoDetails);
+
+		return MeetingGetApplyListResponseDto.of(applyInfoDetails.getContent(), pageMetaDto);
 	}
 
 	@Override
@@ -343,14 +318,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)meetings.getTotalElements());
 
 		return MeetingV2GetAllMeetingDto.of(meetingResponseDtos, pageMetaDto);
-	}
-
-	private PageableStrategy getPageableStrategy(MeetingV2GetAllMeetingQueryDto queryCommand) {
-		if (queryCommand.getPaginationType().equals(PaginationType.ADVERTISEMENT)) {
-			return new AdvertisementPageableStrategy();
-		} else {
-			return new DefaultPageableStrategy();
-		}
 	}
 
 	/**
@@ -484,8 +451,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		List<ApplyWholeInfoDto> applyWholeInfoDtos = new ArrayList<>();
 		if (applies.hasApplies(meetingId)) {
+			AtomicInteger applyNumber = new AtomicInteger(1);
 			applyWholeInfoDtos = applies.getAppliesMap().get(meetingId).stream()
-				.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId))
+				.sorted(Comparator.comparing(Apply::getAppliedDate))
+				.map(apply -> ApplyWholeInfoDto.of(apply, apply.getUser(), userId,
+					applyNumber.getAndIncrement()))
 				.toList();
 		}
 
@@ -552,6 +522,59 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		flashMeeting.updateMeeting(updatedFlashMeeting);
 
 		return MeetingV2CreateAndUpdateMeetingForFlashResponseDto.of(flashMeeting.getId(), updatedFlashBody);
+	}
+
+	private PageableStrategy getPageableStrategy(MeetingV2GetAllMeetingQueryDto queryCommand) {
+		if (queryCommand.getPaginationType().equals(PaginationType.ADVERTISEMENT)) {
+			return new AdvertisementPageableStrategy();
+		} else {
+			return new DefaultPageableStrategy();
+		}
+	}
+
+	private Page<ApplyInfoDetailDto> madeApplyInfoDetails(MeetingGetAppliesQueryDto queryCommand, Integer meetingId,
+		Integer userId, Meeting meeting) {
+		Page<ApplyInfoDto> applyInfoDtos = applyRepository.findApplyList(queryCommand,
+			PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()),
+			meetingId, meeting.getUserId(), userId);
+
+		AtomicInteger applyNumbers = new AtomicInteger(1);
+		return applyInfoDtos.map(
+			a -> ApplyInfoDetailDto.toApplyInfoDetailDto(a, applyNumbers.getAndIncrement()));
+	}
+
+	private PageMetaDto madePageMetaDto(MeetingGetAppliesQueryDto queryCommand,
+		Page<ApplyInfoDetailDto> applyInfoDetailDtos) {
+		PageOptionsDto pageOptionsDto = new PageOptionsDto(queryCommand.getPage(), queryCommand.getTake());
+		return new PageMetaDto(pageOptionsDto, (int)applyInfoDetailDtos.getTotalElements());
+	}
+
+	private List<Post> filterLatestPostsByMeetingId(List<Post> posts) {
+		return posts.stream()
+			.collect(Collectors.groupingBy(Post::getMeetingId,
+				Collectors.maxBy(Comparator.comparing(Post::getCreatedDate))))
+			.values()
+			.stream()
+			.flatMap(Optional::stream)
+			.collect(Collectors.toList());
+	}
+
+	private List<MeetingV2GetMeetingBannerResponseDto> getResponseDto(List<Meeting> meetings,
+		Map<Integer, Post> postMap, Applies applies) {
+		return meetings.stream()
+			.map(meeting -> {
+				MeetingV2GetMeetingBannerResponseUserDto meetingCreatorDto = MeetingV2GetMeetingBannerResponseUserDto.of(
+					meeting.getUser());
+
+				LocalDateTime recentActivityDate = null;
+				if (postMap.containsKey(meeting.getId())) {
+					recentActivityDate = postMap.get(meeting.getId()).getCreatedDate();
+				}
+
+				return MeetingV2GetMeetingBannerResponseDto.of(meeting, recentActivityDate,
+					applies.getAppliedCount(meeting.getId()), applies.getApprovedCount(meeting.getId()),
+					meetingCreatorDto, time.now());
+			}).toList();
 	}
 
 	private void deleteCsvFile(String filePath) {

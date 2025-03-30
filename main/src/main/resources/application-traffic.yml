@@ -4,37 +4,39 @@ server:
 spring:
   config:
     activate:
-      on-profile: local
+      on-profile: traffic
     import: application-secret.properties
   datasource:
     driver-class-name: org.postgresql.Driver
-    jdbc-url: jdbc:postgresql://${LOCAL_DB_HOST}:${LOCAL_DB_PORT}/${LOCAL_DB_NAME}?currentSchema=${LOCAL_DB_SCHEMA}
-    username: ${LOCAL_DB_USERNAME}
-    password: ${LOCAL_DB_PASSWORD}
+    jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_DB_NAME}?currentSchema=${TRAFFIC_DB_SCHEMA}
+    username: ${TRAFFIC_DB_USERNAME}
+    password: ${TRAFFIC_DB_PASSWORD}
   playground-datasource:
-    jdbc-url: jdbc:postgresql://${LOCAL_DB_HOST}:${LOCAL_DB_PORT}/${LOCAL_PLAYGROUND_DB_NAME}?currentSchema=${LOCAL_PLAYGROUND_DB_SCHEMA}
-    username: ${LOCAL_PLAYGROUND_DB_USERNAME}
-    password: ${LOCAL_PLAYGROUND_DB_PASSWORD}
+    jdbc-url: jdbc:postgresql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_PLAYGROUND_DB_NAME}?currentSchema=${DEV_PLAYGROUND_DB_SCHEMA}
+    username: ${DEV_PLAYGROUND_DB_USERNAME}
+    password: ${DEV_PLAYGROUND_DB_PASSWORD}
   jpa:
     open-in-view: false
     hibernate:
       naming:
         physical-strategy: org.sopt.makers.crew.main.global.config.CamelCaseNamingStrategy
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         show_sql: true
         format_sql: true
       dialect: org.hibernate.dialect.PostgreSQLDialect
       storage_engine: innodb
-  data:
-    redis:
-      host: localhost
-      port: 6379
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=24h
+
+
 
 jwt:
   header: Authorization
-  secret: ${LOCAL_JWT_SECRET}
+  secret: ${DEV_JWT_SECRET}
   access-token:
     expire-length: ${ACCESS_TOKEN_EXPIRED_TIME}
 
@@ -63,22 +65,25 @@ springdoc:
       enabled: true
 
 push-notification:
-  web-url: ${LOCAL_WEB_PAGE_URL}
-  x-api-key: ${LOCAL_PUSH_API_KEY}
+  web-url: ${DEV_WEB_PAGE_URL}
+  x-api-key: ${DEV_PUSH_API_KEY}
   service: ${PUSH_NOTIFICATION_SERVICE}
-  push-server-url: ${LOCAL_PUSH_SERVER_URL}
+  push-server-url: ${DEV_PUSH_SERVER_URL}
 
 notice:
   secret-key: ${NOTICE_SECRET_KEY}
 
 playground:
   server:
-    url: ${LOCAL_PLAYGROUND_URL}
+    url: ${DEV_PLAYGROUND_URL}
     endpoint: ${PLAYGROUND_ENDPOINT}
 
 management:
   server:
     port: ${ACTUATOR_PORT}
+  health:
+    redis:
+      enabled: false
   endpoints:
     enabled-by-default: false
     jmx:
@@ -86,19 +91,23 @@ management:
         exclude: "*"
     web:
       exposure:
-        include: info, health, prometheus
+        include: info, health, prometheus, caches, cachecontents
       base-path: ${ACTUATOR_PATH}
   endpoint:
     health:
       enabled: true
     info:
       enabled: true
-    prometheus:
+    caches:
       enabled: true
-  prometheus:
+    cachecontents:
+      enabled: true
     metrics:
-      export:
         enabled: true
+    prometheus:
+      metrics:
+        export:
+          enabled: true
 
 custom:
   paths:
@@ -111,11 +120,11 @@ sentry:
 
 logging:
   slack:
-    webhook-uri: ${LOCAL_SENTRY_SLACK_WEBHOOK_URI}
+    webhook-uri: ${SENTRY_SLACK_WEBHOOK_URI}
   config: classpath:logback-spring.xml
   sentry:
-    repository-uri: ${LOCAL_SENTRY_REPOSITORY_URI}
-    environment: local
+    repository-uri: ${SENTRY_REPOSITORY_URI}
+    environment: traffic
 
 img:
   flash: ${FLASH_IMAGE}
