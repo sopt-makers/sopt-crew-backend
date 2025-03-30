@@ -38,7 +38,7 @@ jwt:
   header: Authorization
   secret: ${DEV_JWT_SECRET}
   access-token:
-    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
+    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME}
 
 aws-property:
   aws-region: ${AWS_REGION}
@@ -124,7 +124,7 @@ logging:
   config: classpath:logback-spring.xml
   sentry:
     repository-uri: ${SENTRY_REPOSITORY_URI}
-    environment: dev
+    environment: traffic
 
 img:
   flash: ${FLASH_IMAGE}
