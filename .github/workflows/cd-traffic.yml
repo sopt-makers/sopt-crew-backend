@@ -1,8 +1,8 @@
-name: Makers_Crew Main CD
+name: Makers_Crew Dev CD
 on:
   workflow_run:
     workflows: [ "Makers_Crew CI" ]
-    branches: [ "main" ]
+    branches: [ "traffic" ]
     types: [ completed ]
 
 jobs:
@@ -31,16 +31,16 @@ jobs:
 
       - name: docker image 빌드 및 푸시 (Spring)
         run: |
-          docker build --platform linux/amd64 -t makerscrew/main:production --build-arg SPRING_PROFILES_ACTIVE=prod .
-          docker push makerscrew/main:production
+          docker build --platform linux/amd64 -t makerscrew/main:traffic --build-arg SPRING_PROFILES_ACTIVE=traffic .
+          docker push makerscrew/main:traffic
         working-directory: ${{ env.working-directory-spring }}
 
       - name: 도커 컨테이너 실행
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.PROD_SERVER_IP }}
-          username: ${{ secrets.PROD_SERVER_USER }}
-          key: ${{ secrets.PROD_SERVER_KEY }}
+          host: ${{ secrets.TRAFFIC_SERVER_IP }}
+          username: ${{ secrets.TRAFFIC_SERVER_USER }}
+          key: ${{ secrets.TRAFFIC_SERVER_KEY }}
           script: |
             cd ~
             chmod +x ./deploy.sh
