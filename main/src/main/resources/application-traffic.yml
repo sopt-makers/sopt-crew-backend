@@ -8,9 +8,9 @@ spring:
     import: application-secret.properties
   datasource:
     driver-class-name: org.postgresql.Driver
-    jdbc-url: jdbc:postgresql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_DB_NAME}?currentSchema=${TRAFFIC_DB_SCHEMA}
-    username: ${DEV_DB_USERNAME}
-    password: ${DEV_DB_PASSWORD}
+    jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_DB_NAME}?currentSchema=${TRAFFIC_DB_SCHEMA}
+    username: ${TRAFFIC_DB_USERNAME}
+    password: ${TRAFFIC_DB_PASSWORD}
   playground-datasource:
     jdbc-url: jdbc:postgresql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_PLAYGROUND_DB_NAME}?currentSchema=${DEV_PLAYGROUND_DB_SCHEMA}
     username: ${DEV_PLAYGROUND_DB_USERNAME}
@@ -81,6 +81,9 @@ playground:
 management:
   server:
     port: ${ACTUATOR_PORT}
+  health:
+    redis:
+      enabled: false
   endpoints:
     enabled-by-default: false
     jmx:
