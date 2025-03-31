@@ -75,7 +75,6 @@ playground:
     url: ${PROD_PLAYGROUND_URL}
     endpoint: ${PLAYGROUND_ENDPOINT}
 
-
 management:
   server:
     port: ${ACTUATOR_PORT}
@@ -101,7 +100,7 @@ management:
     cachecontents:
       enabled: true
     metrics:
-        enabled: true
+      enabled: true
     prometheus:
       metrics:
         export:

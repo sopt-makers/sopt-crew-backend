@@ -12,9 +12,9 @@ spring:
     username: ${TRAFFIC_DB_USERNAME}
     password: ${TRAFFIC_DB_PASSWORD}
   playground-datasource:
-    jdbc-url: jdbc:postgresql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_PLAYGROUND_DB_NAME}?currentSchema=${DEV_PLAYGROUND_DB_SCHEMA}
-    username: ${DEV_PLAYGROUND_DB_USERNAME}
-    password: ${DEV_PLAYGROUND_DB_PASSWORD}
+    jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_PLAYGROUND_DB_NAME}?currentSchema=${TRAFFIC_PLAYGROUND_DB_SCHEMA}
+    username: ${TRAFFIC_PLAYGROUND_DB_USERNAME}
+    password: ${TRAFFIC_PLAYGROUND_DB_PASSWORD}
   jpa:
     open-in-view: false
     hibernate:
@@ -31,8 +31,6 @@ spring:
     type: caffeine
     caffeine:
       spec: maximumSize=500,expireAfterWrite=24h
-
-
 
 jwt:
   header: Authorization
@@ -103,7 +101,7 @@ management:
     cachecontents:
       enabled: true
     metrics:
-        enabled: true
+      enabled: true
     prometheus:
       metrics:
         export:
@@ -111,12 +109,12 @@ management:
 
 custom:
   paths:
-    eventApply: ${DEV_EVENT_APPLY_PATH}
+    eventApply: ${PROD_EVENT_APPLY_PATH}
 
 sentry:
   dsn: ${SENTRY_DSN}
-  environment: ${DEV_SENTRY_ENVIRONMENT}
-  servername: ${DEV_SENTRY_SERVERNAME}
+  environment: ${TRAFFIC_SENTRY_ENVIRONMENT}
+  servername: ${TRAFFIC_SENTRY_SERVERNAME}
 
 logging:
   slack:
@@ -130,5 +128,5 @@ img:
   flash: ${FLASH_IMAGE}
 
 thread-pool:
-  core-size: ${DEV_THREAD_CORE_SIZE}
-  thread-name-prefix: ${DEV_THREAD_NAME_PREFIX}
+  core-size: ${PROD_THREAD_CORE_SIZE}
+  thread-name-prefix: ${PROD_THREAD_CORE_SIZE}
