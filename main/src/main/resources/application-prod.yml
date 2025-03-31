@@ -23,7 +23,7 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
-        format_sql: ture
+        format_sql: true
       dialect: org.hibernate.dialect.PostgreSQLDialect
       storage_engine: innodb
   data:
@@ -74,7 +74,6 @@ playground:
   server:
     url: ${PROD_PLAYGROUND_URL}
     endpoint: ${PLAYGROUND_ENDPOINT}
-
 
 management:
   server:
