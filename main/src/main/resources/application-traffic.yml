@@ -32,8 +32,6 @@ spring:
     caffeine:
       spec: maximumSize=500,expireAfterWrite=24h
 
-
-
 jwt:
   header: Authorization
   secret: ${DEV_JWT_SECRET}
