@@ -58,6 +58,15 @@
         </root>
     </springProfile>
 
+    <springProfile name="traffic">
+        <include resource="console-appender.xml"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="Sentry"/>
+            <appender-ref ref="ASYNC_SLACK"/>
+        </root>
+    </springProfile>
+
     <springProfile name="test">
         <include resource="console-appender.xml"/>
         <root level="INFO">
