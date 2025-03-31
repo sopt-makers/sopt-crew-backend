@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 	entityManagerFactoryRef = "secondEntityManagerFactory",
 	transactionManagerRef = "secondTransactionManager"
 )
-@Profile({"local", "dev", "prod", "test"})
+@Profile({"local", "dev", "prod", "test", "traffic"})
 public class PlaygroundDataSourceConfig {
 	@Bean
 	@ConfigurationProperties("spring.playground-datasource")
@@ -58,7 +58,7 @@ public class PlaygroundDataSourceConfig {
 		 * test 환경일 경우, none(기본값) 으로 한다. schema.sql 을 사용하여 테이블을 생성한다.
 		 */
 
-		String[] activeProfiles = {"local", "dev", "prod"};
+		String[] activeProfiles = {"local", "dev", "prod", "traffic"};
 		if (Arrays.stream(activeProfiles)
 			.anyMatch(profile -> profile.equals(System.getProperty("spring.profiles.active")))) {
 			properties.put("hibernate.hbm2ddl.auto", "validate");
