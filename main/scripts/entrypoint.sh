@@ -6,6 +6,9 @@ if [ "$SPRING_PROFILES_ACTIVE" = "dev" ]; then
 elif [ "$SPRING_PROFILES_ACTIVE" = "prod" ]; then
     export AGENT_ID="prod-agent"
     export APPLICATION_NAME="spring-prod"
+elif [ "$SPRING_PROFILES_ACTIVE" = "traffic" ]; then
+    export AGENT_ID="traffic-agent"
+    export APPLICATION_NAME="spring-traffic"
 else
     export AGENT_ID="agent-in-docker"
     export APPLICATION_NAME="spring"
