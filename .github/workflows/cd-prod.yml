@@ -1,9 +1,9 @@
 name: Makers_Crew Main CD
 on:
   workflow_run:
-    workflows: ["Makers_Crew CI"]
-    branches: ["main"]
-    types: [completed]
+    workflows: [ "Makers_Crew CI" ]
+    branches: [ "main" ]
+    types: [ completed ]
 
 jobs:
   deploy:
@@ -11,7 +11,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     env:
       working-directory-spring: main
-      working-directory-nestjs: server
     steps:
       - name: Checkout
         uses: actions/checkout@v3
