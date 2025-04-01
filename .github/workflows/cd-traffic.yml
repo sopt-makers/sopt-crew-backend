@@ -15,7 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.workflow_run.base_branch }}
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Docker build 가능하도록 환경 설정
         uses: docker/setup-buildx-action@v2
