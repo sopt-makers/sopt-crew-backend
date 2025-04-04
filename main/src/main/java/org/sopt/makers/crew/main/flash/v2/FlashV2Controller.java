@@ -45,7 +45,7 @@ public class FlashV2Controller implements FlashV2Api {
 	) {
 		Integer userId = UserUtil.getUserId(principal);
 
-		return ResponseEntity.ok(flashV2Service.getFlashByMeetingId(meetingId, userId));
+		return ResponseEntity.ok(flashV2Service.getFlashDetail(meetingId, userId));
 	}
 
 	@Override
