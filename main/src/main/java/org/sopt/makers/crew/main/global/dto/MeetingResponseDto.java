@@ -83,7 +83,7 @@ public class MeetingResponseDto {
 
 	public static MeetingResponseDto of(Meeting meeting, User meetingCreator, int approvedCount, LocalDateTime now,
 		Integer activeGeneration) {
-		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meetingCreator);
+		MeetingCreatorDto creatorDto = MeetingCreatorDto.from(meetingCreator);
 		boolean canJoinOnlyActiveGeneration =
 			Objects.equals(meeting.getTargetActiveGeneration(), activeGeneration)
 				&& meeting.getCanJoinOnlyActiveGeneration();
