@@ -6,6 +6,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 import org.sopt.makers.crew.main.entity.apply.Applies;
@@ -28,6 +29,7 @@ import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingLeaderUserIdDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
@@ -92,12 +94,10 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		return FlashV2CreateAndUpdateResponseDto.from(flash.getMeetingId());
 	}
 
-	public FlashV2GetFlashByMeetingIdResponseDto getFlashByMeetingId(Integer meetingId, Integer userId) {
+	public FlashV2GetFlashByMeetingIdResponseDto getFlashDetail(Integer meetingId, Integer userId) {
+		Flash flash = validateAndSyncFlashLeader(meetingId);
+
 		User user = userV2Service.getUserByUserId(userId);
-
-		Flash flash = flashRepository.findByMeetingId(meetingId)
-			.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
-
 		MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(flash.getLeaderUserId());
 
 		Applies applies = new Applies(
@@ -168,5 +168,21 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 				userId,
 				i))
 			.toList();
+	}
+
+	private Flash validateAndSyncFlashLeader(Integer meetingId) {
+		MeetingLeaderUserIdDto meetingLeaderUserIdDto = meetingV2Service.getMeetingLeaderUserIdByMeetingId(meetingId);
+		Integer meetingLeaderUserId = meetingLeaderUserIdDto.userId();
+
+		Flash flash = flashRepository.findByMeetingId(meetingId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
+
+		if (!Objects.equals(flash.getLeaderUserId(), meetingLeaderUserId)) {
+			flash.updateLeaderUserId(meetingLeaderUserId);
+			flashRepository.save(flash);
+			meetingV2Service.evictMeetingRelatedCaches(meetingId, meetingLeaderUserId);
+		}
+
+		return flash;
 	}
 }

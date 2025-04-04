@@ -157,4 +157,7 @@ public class Flash extends BaseTimeEntity {
 		return EnMeetingStatus.RECRUITMENT_COMPLETE;
 	}
 
+	public void updateLeaderUserId(Integer newLeaderUserId) {
+		this.leaderUserId = newLeaderUserId;
+	}
 }

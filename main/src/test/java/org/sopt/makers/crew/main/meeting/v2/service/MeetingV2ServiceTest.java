@@ -854,7 +854,8 @@ public class MeetingV2ServiceTest {
 			Integer userId = 1;
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				userId);
 
 			// then
 			Assertions.assertThat(responseDto)
@@ -926,7 +927,8 @@ public class MeetingV2ServiceTest {
 			Integer userId = 5;
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				userId);
 
 			// then
 			Assertions.assertThat(responseDto)
@@ -998,7 +1000,8 @@ public class MeetingV2ServiceTest {
 			Integer userId = 2;
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				userId);
 
 			// then
 			Assertions.assertThat(responseDto)
@@ -1018,7 +1021,8 @@ public class MeetingV2ServiceTest {
 			Integer userId = 4;
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				userId);
 
 			// then
 			Assertions.assertThat(responseDto)
@@ -1038,7 +1042,8 @@ public class MeetingV2ServiceTest {
 			Integer userId = 4;
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				userId);
 
 			// then
 			Assertions.assertThat(responseDto.getStatus()).isEqualTo(0);
@@ -1052,7 +1057,8 @@ public class MeetingV2ServiceTest {
 			Integer userId = 4;
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				userId);
 
 			// then
 			Assertions.assertThat(responseDto.getStatus()).isEqualTo(1);
@@ -1066,7 +1072,8 @@ public class MeetingV2ServiceTest {
 			Integer userId = 4;
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				userId);
 
 			// then
 			Assertions.assertThat(responseDto.getStatus()).isEqualTo(2);
@@ -1080,7 +1087,8 @@ public class MeetingV2ServiceTest {
 			Integer userId = 4;
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				userId);
 
 			// then
 			Assertions.assertThat(responseDto.getApprovedApplyCount()).isEqualTo(2);
@@ -1094,7 +1102,8 @@ public class MeetingV2ServiceTest {
 			Integer userId = 4;
 
 			//when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingById(meetingId, userId);
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				userId);
 
 			//then
 			int size = responseDto.getAppliedInfo().size(); // 사이즈 값 까지의 값이 하나씩 있어야 한다.
