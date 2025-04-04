@@ -326,6 +326,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	 * 		  3. meeting 삭제
 	 * */
 
+	@Caching(evict = {
+		@CacheEvict(value = "meetingCache", key = "#meetingId"),
+		@CacheEvict(value = "meetingLeaderCache", key = "#userId"),
+		@CacheEvict(value = "coLeadersCache", key = "#meetingId")
+	})
 	@Override
 	@Transactional
 	public void deleteMeeting(Integer meetingId, Integer userId) {

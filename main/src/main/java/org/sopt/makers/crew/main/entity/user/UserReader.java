@@ -16,7 +16,7 @@ public class UserReader {
 
 	@Cacheable(value = "meetingLeaderCache", key = "#userId")
 	public MeetingCreatorDto getMeetingLeader(Integer userId) {
-		return MeetingCreatorDto.of(userRepository.findByIdOrThrow(userId));
+		return MeetingCreatorDto.from(userRepository.findByIdOrThrow(userId));
 	}
 
 	@Cacheable(value = "orgIdCache", key = "'allOrgIds'")
