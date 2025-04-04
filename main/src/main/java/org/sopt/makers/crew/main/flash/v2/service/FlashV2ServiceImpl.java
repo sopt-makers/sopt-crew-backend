@@ -182,7 +182,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			if (!Objects.equals(flash.getLeaderUserId(), meetingLeaderUserId)) {
 				flash.updateLeaderUserId(meetingLeaderUserId);
 				flashRepository.save(flash);
-				meetingV2Service.evictRelatedCaches(meetingId, meetingLeaderUserId);
+				meetingV2Service.evictMeetingRelatedCaches(meetingId, meetingLeaderUserId);
 			}
 		});
 	}
