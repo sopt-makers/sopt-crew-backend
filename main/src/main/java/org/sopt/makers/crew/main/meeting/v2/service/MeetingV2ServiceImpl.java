@@ -81,6 +81,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDetailDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingLeaderUserIdDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
@@ -438,7 +439,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	public MeetingV2GetMeetingByIdResponseDto getMeetingById(Integer meetingId, Integer userId) {
+	public MeetingV2GetMeetingByIdResponseDto getMeetingDetail(Integer meetingId, Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
 		Meeting meeting = meetingReader.getMeetingById(meetingId).toEntity();
@@ -527,6 +528,20 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		flashMeeting.updateMeeting(updatedFlashMeeting);
 
 		return MeetingV2CreateAndUpdateMeetingForFlashResponseDto.of(flashMeeting.getId(), updatedFlashBody);
+	}
+
+	@Override
+	public MeetingLeaderUserIdDto getMeetingLeaderUserIdByMeetingId(Integer meetingId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+		return MeetingLeaderUserIdDto.from(meeting);
+	}
+
+	@Override
+	@Caching(evict = {
+		@CacheEvict(value = "meetingCache", key = "#meetingId"),
+		@CacheEvict(value = "meetingLeaderCache", key = "#userId"),
+	})
+	public void evictMeetingRelatedCaches(Integer meetingId, Integer userId) {
 	}
 
 	private PageableStrategy getPageableStrategy(MeetingV2GetAllMeetingQueryDto queryCommand) {
