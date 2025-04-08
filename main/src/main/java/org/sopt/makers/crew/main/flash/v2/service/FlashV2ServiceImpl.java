@@ -96,7 +96,8 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 	}
 
 	public FlashV2GetFlashByMeetingIdResponseDto getFlashDetail(Integer meetingId, Integer userId) {
-		Flash flash = checkFlashLeaderSyncAndPublishEvent(meetingId);
+		Flash flash = findFlashByMeetingId(meetingId);
+		checkLeaderSync(meetingId, flash);
 
 		User user = userV2Service.getUserByUserId(userId);
 		MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(flash.getLeaderUserId());
@@ -130,8 +131,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		Integer userId) {
 		User user = userV2Service.getUserByUserId(userId);
 
-		Flash flash = flashRepository.findByMeetingId(meetingId)
-			.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
+		Flash flash = findFlashByMeetingId(meetingId);
 
 		if (user.getActivities() == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
@@ -171,20 +171,27 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			.toList();
 	}
 
-	private Flash checkFlashLeaderSyncAndPublishEvent(Integer meetingId) {
+	private Flash findFlashByMeetingId(Integer meetingId) {
+		return flashRepository.findByMeetingId(meetingId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
+	}
+
+	private void checkLeaderSync(Integer meetingId, Flash flash) {
 		MeetingLeaderUserIdDto meetingLeaderUserIdDto = meetingV2Service.getMeetingLeaderUserIdByMeetingId(meetingId);
 		Integer meetingLeaderUserId = meetingLeaderUserIdDto.userId();
 
-		Flash flash = flashRepository.findByMeetingId(meetingId)
-			.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
-
-		if (!Objects.equals(flash.getLeaderUserId(), meetingLeaderUserId)) {
-			Integer oldLeaderUserId = flash.getLeaderUserId();
-			FlashLeaderSyncEventDto event = FlashLeaderSyncEventDto.of(
-				meetingId, oldLeaderUserId, meetingLeaderUserId);
-			eventPublisher.publishEvent(event);
+		if (isLeaderUserIdMismatch(flash.getLeaderUserId(), meetingLeaderUserId)) {
+			publishLeaderSyncEvent(meetingId, flash.getLeaderUserId(), meetingLeaderUserId);
 		}
+	}
 
-		return flash;
+	private boolean isLeaderUserIdMismatch(Integer flashLeaderUserId, Integer meetingLeaderUserId) {
+		return !Objects.equals(flashLeaderUserId, meetingLeaderUserId);
+	}
+
+	private void publishLeaderSyncEvent(Integer meetingId, Integer oldLeaderUserId, Integer newLeaderUserId) {
+		FlashLeaderSyncEventDto event = FlashLeaderSyncEventDto.of(
+			meetingId, oldLeaderUserId, newLeaderUserId);
+		eventPublisher.publishEvent(event);
 	}
 }
