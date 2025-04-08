@@ -62,5 +62,7 @@ public interface MeetingV2Service {
 
 	MeetingLeaderUserIdDto getMeetingLeaderUserIdByMeetingId(Integer meetingId);
 
-	void evictMeetingRelatedCaches(Integer meetingId, Integer userId);
+	void evictMeetingCache(Integer meetingId);
+
+	void evictLeaderCache(Integer userId);
 }

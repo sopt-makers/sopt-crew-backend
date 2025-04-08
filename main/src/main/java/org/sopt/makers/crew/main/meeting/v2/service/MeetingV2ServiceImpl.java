@@ -539,9 +539,15 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Override
 	@Caching(evict = {
 		@CacheEvict(value = "meetingCache", key = "#meetingId"),
+	})
+	public void evictMeetingCache(Integer meetingId) {
+	}
+
+	@Override
+	@Caching(evict = {
 		@CacheEvict(value = "meetingLeaderCache", key = "#userId"),
 	})
-	public void evictMeetingRelatedCaches(Integer meetingId, Integer userId) {
+	public void evictLeaderCache(Integer userId) {
 	}
 
 	private PageableStrategy getPageableStrategy(MeetingV2GetAllMeetingQueryDto queryCommand) {
