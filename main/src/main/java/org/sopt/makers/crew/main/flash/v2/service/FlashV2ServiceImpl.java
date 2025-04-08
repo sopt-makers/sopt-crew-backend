@@ -18,6 +18,7 @@ import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.external.notification.dto.event.FlashCreatedEventDto;
+import org.sopt.makers.crew.main.flash.v2.dto.event.FlashLeaderSyncEventDto;
 import org.sopt.makers.crew.main.flash.v2.dto.mapper.FlashMapper;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateAndUpdateResponseDto;
@@ -95,7 +96,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 	}
 
 	public FlashV2GetFlashByMeetingIdResponseDto getFlashDetail(Integer meetingId, Integer userId) {
-		Flash flash = validateAndSyncFlashLeader(meetingId);
+		Flash flash = checkFlashLeaderSyncAndPublishEvent(meetingId);
 
 		User user = userV2Service.getUserByUserId(userId);
 		MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(flash.getLeaderUserId());
@@ -170,7 +171,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			.toList();
 	}
 
-	private Flash validateAndSyncFlashLeader(Integer meetingId) {
+	private Flash checkFlashLeaderSyncAndPublishEvent(Integer meetingId) {
 		MeetingLeaderUserIdDto meetingLeaderUserIdDto = meetingV2Service.getMeetingLeaderUserIdByMeetingId(meetingId);
 		Integer meetingLeaderUserId = meetingLeaderUserIdDto.userId();
 
@@ -178,9 +179,10 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
 
 		if (!Objects.equals(flash.getLeaderUserId(), meetingLeaderUserId)) {
-			flash.updateLeaderUserId(meetingLeaderUserId);
-			flashRepository.save(flash);
-			meetingV2Service.evictMeetingRelatedCaches(meetingId, meetingLeaderUserId);
+			Integer oldLeaderUserId = flash.getLeaderUserId();
+			FlashLeaderSyncEventDto event = FlashLeaderSyncEventDto.of(
+				meetingId, oldLeaderUserId, meetingLeaderUserId);
+			eventPublisher.publishEvent(event);
 		}
 
 		return flash;
