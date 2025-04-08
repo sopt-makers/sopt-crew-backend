@@ -547,7 +547,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Caching(evict = {
 		@CacheEvict(value = "meetingLeaderCache", key = "#userId"),
 	})
-	public void evictLeaderCache(Integer userId) {
+	public void evictMeetingLeaderCache(Integer userId) {
 	}
 
 	private PageableStrategy getPageableStrategy(MeetingV2GetAllMeetingQueryDto queryCommand) {

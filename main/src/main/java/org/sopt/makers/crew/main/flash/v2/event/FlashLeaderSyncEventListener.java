@@ -49,8 +49,8 @@ public class FlashLeaderSyncEventListener {
 			flashRepository.save(flash);
 
 			meetingV2Service.evictMeetingCache(event.meetingId());
-			meetingV2Service.evictLeaderCache(event.oldLeaderUserId());
-			meetingV2Service.evictLeaderCache(event.newLeaderUserId());
+			meetingV2Service.evictMeetingLeaderCache(event.oldLeaderUserId());
+			meetingV2Service.evictMeetingLeaderCache(event.newLeaderUserId());
 
 			log.info("Flash 리더 업데이트 완료 - meetingId: {}, newLeaderId: {}",
 				event.meetingId(), event.newLeaderUserId());

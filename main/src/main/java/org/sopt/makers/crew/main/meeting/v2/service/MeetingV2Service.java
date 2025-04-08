@@ -64,5 +64,5 @@ public interface MeetingV2Service {
 
 	void evictMeetingCache(Integer meetingId);
 
-	void evictLeaderCache(Integer userId);
+	void evictMeetingLeaderCache(Integer userId);
 }
