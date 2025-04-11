@@ -38,7 +38,7 @@ public class MeetingCreatorDto {
 	@NotNull
 	private final String phone;
 
-	public static MeetingCreatorDto of(User user) {
+	public static MeetingCreatorDto from(User user) {
 		return new MeetingCreatorDto(user.getId(), user.getName(), user.getOrgId(), user.getProfileImage(),
 			user.getActivities(), user.getPhone());
 	}

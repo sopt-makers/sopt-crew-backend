@@ -34,21 +34,30 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 	@Override
 	@Transactional
 	public AuthV2ResponseDto loginUser(AuthV2RequestDto requestDto) {
+		String token = requestDto.authToken();
+		boolean hasToken = token != null && !token.isEmpty();
+		log.info("로그인 시도: 토큰 존재 여부={}", hasToken);
+
 		PlaygroundUserResponseDto responseDto = fetchPlaygroundUser(requestDto);
+		log.info("Playground API 호출 성공: 토큰 유효함");
+
 		User curUser = userRepository.findByOrgId(responseDto.getId())
 			.orElseGet(() -> signUpNewUser(responseDto));
-
 		if (updateUserIfChanged(curUser, responseDto)) {
 			clearCacheForUser(curUser.getId());
 		}
-
 		String accessToken = jwtTokenProvider.generateAccessToken(curUser.getId(), curUser.getName());
-		log.info("Access token generated for user {}: {}", curUser.getId(), accessToken);
+		log.info("로그인 완료: userId={}", curUser.getId());
 		return AuthV2ResponseDto.of(accessToken);
 	}
 
 	private PlaygroundUserResponseDto fetchPlaygroundUser(AuthV2RequestDto requestDto) {
-		return playgroundService.getUser(PlaygroundUserRequestDto.of(requestDto.authToken()));
+		try {
+			return playgroundService.getUser(PlaygroundUserRequestDto.of(requestDto.authToken()));
+		} catch (feign.FeignException.Unauthorized e) {
+			log.info("Playground API 호출 실패: 토큰 만료 또는 유효하지 않음");
+			throw e;
+		}
 	}
 
 	private User signUpNewUser(PlaygroundUserResponseDto responseDto) {
