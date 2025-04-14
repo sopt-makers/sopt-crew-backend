@@ -144,9 +144,13 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Optional<User> user = userRepository.findByOrgId(queryDto.getOrgUserId());
 		List<MeetingV2GetAllMeetingByOrgUserMeetingDto> userJoinedList = new ArrayList<>();
 
-		if (!user.isEmpty()) {
+		if (user.isPresent()) {
 			User existUser = user.get();
-			List<Meeting> myMeetings = meetingRepository.findAllByUserId(existUser.getId());
+			List<Integer> coLeaderInMeetingIds = coLeaderRepository.findAllByUserId(existUser.getId())
+				.stream().map(CoLeader::getMeeting).map(Meeting::getId).toList();
+
+			List<Meeting> myMeetings = meetingRepository.findAllByUserIdOrIdInWithUser(existUser.getId(),
+				coLeaderInMeetingIds);
 
 			userJoinedList = Stream
 				.concat(myMeetings.stream(),
@@ -171,7 +175,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	/**
 	 * @Note: 최근 활동 여부는 게시글 생성일자를 기준으로 진행한다.
-	 * */
+	 */
 	@Override
 	public List<MeetingV2GetMeetingBannerResponseDto> getMeetingBanner() {
 
@@ -323,9 +327,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	/**
 	 * @note: 1. like(Comment, post 관련) -> comment -> post 순으로 삭제
-	 * 		  2. apply 삭제
-	 * 		  3. meeting 삭제
-	 * */
+	 * 2. apply 삭제
+	 * 3. meeting 삭제
+	 */
 
 	@Caching(evict = {
 		@CacheEvict(value = "meetingCache", key = "#meetingId"),
