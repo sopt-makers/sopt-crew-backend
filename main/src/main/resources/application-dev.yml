@@ -36,7 +36,7 @@ jwt:
   header: Authorization
   secret: ${DEV_JWT_SECRET}
   access-token:
-    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
+    expire-length: ${DEV_ACCESS_TOKEN_EXPIRED_TIME} # 10분
 
 aws-property:
   aws-region: ${AWS_REGION}
