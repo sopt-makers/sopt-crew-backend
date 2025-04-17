@@ -36,7 +36,7 @@ jwt:
   header: Authorization
   secret: ${DEV_JWT_SECRET}
   access-token:
-    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
+    expire-length: ${DEV_ACCESS_TOKEN_EXPIRED_TIME} # 10분
 
 aws-property:
   aws-region: ${AWS_REGION}
@@ -89,23 +89,21 @@ management:
         exclude: "*"
     web:
       exposure:
-        include: info, health, prometheus, caches, cachecontents
+        include: health, info, metrics, prometheus, caches, cachecontents
       base-path: ${ACTUATOR_PATH}
   endpoint:
     health:
       enabled: true
     info:
       enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
     caches:
       enabled: true
     cachecontents:
       enabled: true
-    metrics:
-      enabled: true
-    prometheus:
-      metrics:
-        export:
-          enabled: true
 
 custom:
   paths:
