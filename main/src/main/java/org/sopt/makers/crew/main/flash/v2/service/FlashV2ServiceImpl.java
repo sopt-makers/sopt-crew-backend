@@ -33,6 +33,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingLeaderUserIdDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateAndUpdateFlashTagResponseDto;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
 import org.springframework.cache.annotation.CacheEvict;
@@ -85,7 +86,8 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			activeGenerationProvider.getActiveGeneration(), user.getId(), realTime);
 
 		flashRepository.save(flash);
-		tagV2Service.createFlashTag(requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
+		TagV2CreateAndUpdateFlashTagResponseDto tagResponseDto = tagV2Service.createFlashTag(
+			requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
 			flash.getId());
 
 		OrgIdListDto orgIdListDto = userReader.findAllOrgIds();
@@ -93,7 +95,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		eventPublisher.publishEvent(
 			new FlashCreatedEventDto(orgIdListDto.getOrgIds(), flash.getMeetingId(), flash.getTitle()));
 
-		return FlashV2CreateAndUpdateResponseDto.from(flash.getMeetingId());
+		return FlashV2CreateAndUpdateResponseDto.of(flash.getMeetingId(), tagResponseDto.tagId());
 	}
 
 	public FlashV2GetFlashByMeetingIdResponseDto getFlashDetail(Integer meetingId, Integer userId) {
@@ -150,9 +152,11 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 
 		flash.updateFlash(updatedFlash);
 
-		// tagV2Service.updateFlashTag(requestBody.welcomeMessageTypes(), flash.getId());
+		TagV2CreateAndUpdateFlashTagResponseDto tagResponseDto = tagV2Service.updateFlashTag(
+			requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
+			flash.getId());
 
-		return FlashV2CreateAndUpdateResponseDto.from(flash.getMeetingId());
+		return FlashV2CreateAndUpdateResponseDto.of(flash.getMeetingId(), tagResponseDto.tagId());
 	}
 
 	private List<ApplyWholeInfoDto> getApplyWholeInfoDtos(Applies applies, Integer meetingId, Integer userId) {

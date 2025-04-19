@@ -7,9 +7,13 @@ import jakarta.validation.constraints.NotNull;
 public record FlashV2CreateAndUpdateResponseDto(
 	@Schema(description = "모임 id - 번쩍 카테고리", example = "1")
 	@NotNull
-	Integer meetingId
+	Integer meetingId,
+
+	@Schema(description = "태그 id - 번쩍 카테고리", example = "1")
+	@NotNull
+	Integer tagId
 ) {
-	public static FlashV2CreateAndUpdateResponseDto from(Integer meetingId) {
-		return new FlashV2CreateAndUpdateResponseDto(meetingId);
+	public static FlashV2CreateAndUpdateResponseDto of(Integer meetingId, Integer tagId) {
+		return new FlashV2CreateAndUpdateResponseDto(meetingId, tagId);
 	}
 }
