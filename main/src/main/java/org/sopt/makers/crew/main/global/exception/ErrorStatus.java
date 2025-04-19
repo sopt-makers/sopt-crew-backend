@@ -34,6 +34,8 @@ public enum ErrorStatus {
 	LEADER_CANNOT_BE_CO_LEADER_APPLY("모임장은 공동 모임장이 될 수 없습니다."),
 	NOT_ALLOW_MEETING_APPLY("허용되지 않는 모임 신청입니다."),
 	IO_EXCEPTION("파일 입출력 오류가 발생했습니다."),
+	INVALID_WELCOME_MESSAGE_TYPE("유효하지 않은 환영 메시지 타입입니다."),
+	INVALID_MEETING_KEYWORD_TYPE("유효하지 않은 모임 키워드 타입입니다."),
 
 	/**
 	 * 400 BAD_REQUEST - 유효성 검사 관련 에러
