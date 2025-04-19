@@ -85,7 +85,8 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			activeGenerationProvider.getActiveGeneration(), user.getId(), realTime);
 
 		flashRepository.save(flash);
-		tagV2Service.createFlashTag(requestBody.welcomeMessageTypes(), requestBody.meetingKeywordType(), flash.getId());
+		tagV2Service.createFlashTag(requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
+			flash.getId());
 
 		OrgIdListDto orgIdListDto = userReader.findAllOrgIds();
 
@@ -149,7 +150,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 
 		flash.updateFlash(updatedFlash);
 
-		tagV2Service.updateFlashTag(requestBody.welcomeMessageTypes(), flash.getId());
+		// tagV2Service.updateFlashTag(requestBody.welcomeMessageTypes(), flash.getId());
 
 		return FlashV2CreateAndUpdateResponseDto.from(flash.getMeetingId());
 	}

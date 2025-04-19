@@ -19,6 +19,6 @@ public record FlashV2CreateAndUpdateFlashBodyDto(
 
 	@Schema(example = "[\"운동\", \"자기개발\"]", description = "모임 키워드 타입 리스트")
 	@Size(min = 1, max = 2)
-	List<String> meetingKeywordType
+	List<String> meetingKeywordTypes
 ) {
 }
