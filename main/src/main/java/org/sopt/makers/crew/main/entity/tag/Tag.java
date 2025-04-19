@@ -97,4 +97,8 @@ public class Tag extends BaseTimeEntity {
 	public void updateWelcomeMessageTypes(List<WelcomeMessageType> newWelcomeMessageTypes) {
 		this.welcomeMessageTypes = newWelcomeMessageTypes;
 	}
+
+	public void updateMeetingKeywordTypeEnums(List<MeetingKeywordType> newMeetingKeywordTypes) {
+		this.meetingKeywordTypes = newMeetingKeywordTypes;
+	}
 }
