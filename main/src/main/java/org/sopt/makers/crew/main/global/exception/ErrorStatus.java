@@ -36,6 +36,7 @@ public enum ErrorStatus {
 	IO_EXCEPTION("파일 입출력 오류가 발생했습니다."),
 	INVALID_WELCOME_MESSAGE_TYPE("유효하지 않은 환영 메시지 타입입니다."),
 	INVALID_MEETING_KEYWORD_TYPE("유효하지 않은 모임 키워드 타입입니다."),
+	INVALID_MEETING_KEYWORD_SIZE("모임 키워드는 최소 1개 이상, 최대 2개까지 선택해야 합니다."),
 
 	/**
 	 * 400 BAD_REQUEST - 유효성 검사 관련 에러

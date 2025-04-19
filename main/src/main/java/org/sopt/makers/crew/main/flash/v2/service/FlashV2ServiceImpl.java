@@ -85,7 +85,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			activeGenerationProvider.getActiveGeneration(), user.getId(), realTime);
 
 		flashRepository.save(flash);
-		tagV2Service.createFlashTag(requestBody.welcomeMessageTypes(), flash.getId());
+		tagV2Service.createFlashTag(requestBody.welcomeMessageTypes(), requestBody.meetingKeywordType(), flash.getId());
 
 		OrgIdListDto orgIdListDto = userReader.findAllOrgIds();
 

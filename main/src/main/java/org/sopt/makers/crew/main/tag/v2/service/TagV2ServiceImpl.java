@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.sopt.makers.crew.main.entity.tag.Tag;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
 import org.sopt.makers.crew.main.entity.tag.WelcomeMessageTypeProjection;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.TagType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
@@ -24,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class TagV2ServiceImpl implements TagV2Service {
 
+	private static final int MAX_MEETING_KEYWORD_SIZE = 2;
 	private final TagRepository tagRepository;
 
 	// 여기에 createGeneralMeetingTag 메서드도 추가하면 될 것 같습니다 나중에! (추후 일반 모임에 태그 추가 시 작성)
@@ -31,21 +33,30 @@ public class TagV2ServiceImpl implements TagV2Service {
 	@Override
 	@Transactional
 	public TagV2CreateFlashTagResponseDto createFlashTag(List<String> welcomeMessageTypes,
+		List<String> meetingKeywordTypes,
 		Integer flashId) {
-
 		if (flashId == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
+		if (meetingKeywordTypes == null || meetingKeywordTypes.isEmpty()
+			|| meetingKeywordTypes.size() > MAX_MEETING_KEYWORD_SIZE) {
+			throw new BadRequestException(INVALID_MEETING_KEYWORD_SIZE.getErrorCode());
+		}
+
+		List<MeetingKeywordType> meetingKeywordTypeEnums = meetingKeywordTypes.stream()
+			.map(MeetingKeywordType::ofValue)
+			.toList();
+
 		if (welcomeMessageTypes == null || welcomeMessageTypes.isEmpty()) {
-			return saveTag(flashId, List.of());
+			return saveTag(flashId, List.of(), meetingKeywordTypeEnums);
 		}
 
 		List<WelcomeMessageType> welcomeMessageTypeEnums = welcomeMessageTypes.stream()
 			.map(WelcomeMessageType::ofValue)
 			.toList();
 
-		return saveTag(flashId, welcomeMessageTypeEnums);
+		return saveTag(flashId, welcomeMessageTypeEnums, meetingKeywordTypeEnums);
 	}
 
 	@Override
@@ -72,8 +83,9 @@ public class TagV2ServiceImpl implements TagV2Service {
 		return TagV2CreateFlashTagResponseDto.from(tag.getId());
 	}
 
-	private TagV2CreateFlashTagResponseDto saveTag(Integer flashId, List<WelcomeMessageType> welcomeMessageTypeEnums) {
-		Tag tag = Tag.createFlashMeetingTag(TagType.FLASH, flashId, welcomeMessageTypeEnums);
+	private TagV2CreateFlashTagResponseDto saveTag(Integer flashId, List<WelcomeMessageType> welcomeMessageTypes,
+		List<MeetingKeywordType> meetingKeywordTypes) {
+		Tag tag = Tag.createFlashMeetingTag(TagType.FLASH, flashId, welcomeMessageTypes, meetingKeywordTypes);
 		tagRepository.save(tag);
 		return TagV2CreateFlashTagResponseDto.from(tag.getId());
 	}
