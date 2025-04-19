@@ -21,7 +21,7 @@ public interface FlashV2Api {
 
 	@Operation(summary = "번쩍 모임 생성")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "201", description = "meetingId: 10"),
+		@ApiResponse(responseCode = "201", description = "meetingId: 10, tagId: 4"),
 		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
 	})
 	ResponseEntity<FlashV2CreateAndUpdateResponseDto> createFlash(
@@ -39,7 +39,7 @@ public interface FlashV2Api {
 
 	@Operation(summary = "번쩍 모임 수정")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "meetingId: 10"),
+		@ApiResponse(responseCode = "200", description = "meetingId: 10, tagId: 5"),
 		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
 	})
 	ResponseEntity<FlashV2CreateAndUpdateResponseDto> updateFlash(
