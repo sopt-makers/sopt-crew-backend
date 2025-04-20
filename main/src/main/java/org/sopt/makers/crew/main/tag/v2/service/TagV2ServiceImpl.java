@@ -4,16 +4,16 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import org.sopt.makers.crew.main.entity.tag.Tag;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
 import org.sopt.makers.crew.main.entity.tag.WelcomeMessageTypeProjection;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.TagType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
-import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateFlashTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateAndUpdateFlashTagResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,28 +24,24 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class TagV2ServiceImpl implements TagV2Service {
 
+	private static final int MAX_MEETING_KEYWORD_SIZE = 2;
 	private final TagRepository tagRepository;
 
 	// 여기에 createGeneralMeetingTag 메서드도 추가하면 될 것 같습니다 나중에! (추후 일반 모임에 태그 추가 시 작성)
 
 	@Override
 	@Transactional
-	public TagV2CreateFlashTagResponseDto createFlashTag(List<String> welcomeMessageTypes,
+	public TagV2CreateAndUpdateFlashTagResponseDto createFlashTag(List<String> welcomeMessageTypes,
+		List<String> meetingKeywordTypes,
 		Integer flashId) {
-
 		if (flashId == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		if (welcomeMessageTypes == null || welcomeMessageTypes.isEmpty()) {
-			return saveTag(flashId, List.of());
-		}
+		List<WelcomeMessageType> welcomeMessageTypeEnums = toWelcomeMessageTypes(welcomeMessageTypes);
+		List<MeetingKeywordType> meetingKeywordTypeEnums = toMeetingKeywordTypes(meetingKeywordTypes);
 
-		List<WelcomeMessageType> welcomeMessageTypeEnums = welcomeMessageTypes.stream()
-			.map(WelcomeMessageType::ofValue)
-			.toList();
-
-		return saveTag(flashId, welcomeMessageTypeEnums);
+		return saveTag(flashId, welcomeMessageTypeEnums, meetingKeywordTypeEnums);
 	}
 
 	@Override
@@ -61,27 +57,44 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 	@Override
 	@Transactional
-	public TagV2CreateFlashTagResponseDto updateFlashTag(List<String> welcomeMessageTypes, Integer flashId) {
+	public TagV2CreateAndUpdateFlashTagResponseDto updateFlashTag(List<String> welcomeMessageTypes,
+		List<String> meetingKeywordTypes,
+		Integer flashId) {
 		Tag tag = tagRepository.findTagByFlashId(flashId)
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_TAG.getErrorCode()));
 
-		List<WelcomeMessageType> welcomeMessageTypeEnums = convertToWelcomeMessageTypeList(welcomeMessageTypes);
+		List<WelcomeMessageType> welcomeMessageTypeEnums = toWelcomeMessageTypes(welcomeMessageTypes);
+		List<MeetingKeywordType> meetingKeywordTypeEnums = toMeetingKeywordTypes(meetingKeywordTypes);
 
 		tag.updateWelcomeMessageTypes(welcomeMessageTypeEnums);
+		tag.updateMeetingKeywordTypeEnums(meetingKeywordTypeEnums);
 
-		return TagV2CreateFlashTagResponseDto.from(tag.getId());
+		return TagV2CreateAndUpdateFlashTagResponseDto.from(tag.getId());
 	}
 
-	private TagV2CreateFlashTagResponseDto saveTag(Integer flashId, List<WelcomeMessageType> welcomeMessageTypeEnums) {
-		Tag tag = Tag.createFlashMeetingTag(TagType.FLASH, flashId, welcomeMessageTypeEnums);
+	private TagV2CreateAndUpdateFlashTagResponseDto saveTag(Integer flashId,
+		List<WelcomeMessageType> welcomeMessageTypes,
+		List<MeetingKeywordType> meetingKeywordTypes) {
+		Tag tag = Tag.createFlashMeetingTag(TagType.FLASH, flashId, welcomeMessageTypes, meetingKeywordTypes);
 		tagRepository.save(tag);
-		return TagV2CreateFlashTagResponseDto.from(tag.getId());
+		return TagV2CreateAndUpdateFlashTagResponseDto.from(tag.getId());
 	}
 
-	private List<WelcomeMessageType> convertToWelcomeMessageTypeList(List<String> welcomeMessageTypes) {
-		return Optional.ofNullable(welcomeMessageTypes)
-			.filter(list -> !list.isEmpty())
-			.map(list -> list.stream().map(WelcomeMessageType::ofValue).toList())
-			.orElse(Collections.emptyList());
+	private List<WelcomeMessageType> toWelcomeMessageTypes(List<String> values) {
+		if (values == null || values.isEmpty()) {
+			return List.of();
+		}
+		return values.stream()
+			.map(WelcomeMessageType::ofValue)
+			.toList();
+	}
+
+	private List<MeetingKeywordType> toMeetingKeywordTypes(List<String> values) {
+		if (values == null || values.isEmpty() || values.size() > MAX_MEETING_KEYWORD_SIZE) {
+			throw new BadRequestException(INVALID_MEETING_KEYWORD_SIZE.getErrorCode());
+		}
+		return values.stream()
+			.map(MeetingKeywordType::ofValue)
+			.toList();
 	}
 }
