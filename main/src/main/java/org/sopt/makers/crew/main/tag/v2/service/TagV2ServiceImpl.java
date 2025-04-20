@@ -38,8 +38,8 @@ public class TagV2ServiceImpl implements TagV2Service {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		List<MeetingKeywordType> meetingKeywordTypeEnums = toMeetingKeywordTypes(meetingKeywordTypes);
 		List<WelcomeMessageType> welcomeMessageTypeEnums = toWelcomeMessageTypes(welcomeMessageTypes);
+		List<MeetingKeywordType> meetingKeywordTypeEnums = toMeetingKeywordTypes(meetingKeywordTypes);
 
 		return saveTag(flashId, welcomeMessageTypeEnums, meetingKeywordTypeEnums);
 	}
