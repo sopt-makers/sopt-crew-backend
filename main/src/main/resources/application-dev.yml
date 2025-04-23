@@ -33,10 +33,9 @@ spring:
       spec: maximumSize=500,expireAfterWrite=24h
 
 jwt:
-  header: Authorization
   secret: ${DEV_JWT_SECRET}
   access-token:
-    expire-length: ${DEV_ACCESS_TOKEN_EXPIRED_TIME} # 10분
+    expire-length: ${DEV_ACCESS_TOKEN_EXPIRED_TIME}
 
 aws-property:
   aws-region: ${AWS_REGION}
