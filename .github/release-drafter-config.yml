@@ -2,9 +2,9 @@ name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 categories:
   - title: '🎁 새로운 기능이 추가되었어요'
-    labels: ['🎁 feature']
+    labels: [ '🎁 feature' ]
   - title: '🐞 기존 버그가 수정되었어요'
-    labels: ['🐞 fix']
+    labels: [ '🐞 fix' ]
   - title: '🐬 코드를 개선했어요'
     labels:
       - '🛠️ refactor'
@@ -15,6 +15,8 @@ categories:
       - '🪄 setting'
       - '📚 documentation'
       - '🏭 environment'
+  - title: '🚨 핫픽스 수정사항'
+    labels: [ '🔥 hotfix' ]
   - title: '🚀 배포'
     labels:
       - '🚀 deployment'

@@ -19,4 +19,5 @@ public interface CoLeaderRepository extends JpaRepository<CoLeader, Integer> {
 	@Query("SELECT c FROM CoLeader c JOIN FETCH c.meeting WHERE c.user.id =:userId")
 	List<CoLeader> findAllByUserIdWithMeeting(Integer userId);
 
+	boolean existsByMeetingIdAndUserId(Integer meetingId, Integer userId);
 }
