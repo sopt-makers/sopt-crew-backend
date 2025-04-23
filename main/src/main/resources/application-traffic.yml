@@ -33,7 +33,6 @@ spring:
       spec: maximumSize=500,expireAfterWrite=24h
 
 jwt:
-  header: Authorization
   secret: ${DEV_JWT_SECRET}
   access-token:
     expire-length: ${ACCESS_TOKEN_EXPIRED_TIME}
