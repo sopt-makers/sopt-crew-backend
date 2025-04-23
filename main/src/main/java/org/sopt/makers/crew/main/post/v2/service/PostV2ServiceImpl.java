@@ -1,6 +1,5 @@
 package org.sopt.makers.crew.main.post.v2.service;
 
-import static java.util.stream.Collectors.*;
 import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
@@ -15,6 +14,7 @@ import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.like.Like;
 import org.sopt.makers.crew.main.entity.like.LikeRepository;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -65,6 +65,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
 	private final ReportRepository reportRepository;
+	private final CoLeaderRepository coLeaderRepository;
 
 	private final PushNotificationService pushNotificationService;
 	private final MemberBlockService memberBlockService;
@@ -90,10 +91,10 @@ public class PostV2ServiceImpl implements PostV2Service {
 
 		boolean isInMeeting = applies.stream()
 			.anyMatch(apply -> apply.getUserId().equals(userId) && apply.getStatus().equals(EnApplyStatus.APPROVE));
-
 		boolean isMeetingCreator = meeting.getUserId().equals(userId);
+		boolean isCoLeader = coLeaderRepository.existsByMeetingIdAndUserId(meeting.getId(), userId);
 
-		if (isInMeeting == false && isMeetingCreator == false) {
+		if (!isInMeeting && !isMeetingCreator && !isCoLeader) {
 			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
 		}
 
@@ -110,7 +111,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 		List<String> userIdList = applyRepository.findAllByMeetingIdAndStatus(meeting.getId(), EnApplyStatus.APPROVE)
 			.stream()
 			.map(apply -> String.valueOf(apply.getUser().getOrgId()))
-			.collect(toList());
+			.toList();
 
 		String[] userIds = userIdList.toArray(new String[0]);
 		String pushNotificationContent = String.format("[%s의 새 글] : \"%s\"", user.getName(), post.getTitle());
