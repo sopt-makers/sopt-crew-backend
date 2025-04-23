@@ -89,23 +89,21 @@ management:
         exclude: "*"
     web:
       exposure:
-        include: info, health, prometheus, caches, cachecontents
+        include: health, info, metrics, prometheus, caches, cachecontents
       base-path: ${ACTUATOR_PATH}
   endpoint:
     health:
       enabled: true
     info:
       enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
     caches:
       enabled: true
     cachecontents:
       enabled: true
-    metrics:
-      enabled: true
-    prometheus:
-      metrics:
-        export:
-          enabled: true
 
 custom:
   paths:
