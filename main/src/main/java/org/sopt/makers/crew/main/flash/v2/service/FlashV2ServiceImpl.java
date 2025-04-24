@@ -21,7 +21,7 @@ import org.sopt.makers.crew.main.external.notification.dto.event.FlashCreatedEve
 import org.sopt.makers.crew.main.flash.v2.dto.event.FlashLeaderSyncEventDto;
 import org.sopt.makers.crew.main.flash.v2.dto.mapper.FlashMapper;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyDto;
-import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateAndUpdateResponseDto;
+import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateResponseDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2GetFlashByMeetingIdResponseDto;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.OrgIdListDto;
@@ -67,7 +67,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 
 	@Override
 	@Transactional
-	public FlashV2CreateAndUpdateResponseDto createFlash(
+	public FlashV2CreateResponseDto createFlash(
 		FlashV2CreateAndUpdateFlashBodyDto requestBody, Integer userId) {
 		User user = userV2Service.getUserByUserId(userId);
 
@@ -95,7 +95,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		eventPublisher.publishEvent(
 			new FlashCreatedEventDto(orgIdListDto.getOrgIds(), flash.getMeetingId(), flash.getTitle()));
 
-		return FlashV2CreateAndUpdateResponseDto.of(flash.getMeetingId(), tagResponseDto.tagId());
+		return FlashV2CreateResponseDto.of(flash.getMeetingId(), tagResponseDto.tagId());
 	}
 
 	public FlashV2GetFlashByMeetingIdResponseDto getFlashDetail(Integer meetingId, Integer userId) {

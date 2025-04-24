@@ -3,7 +3,7 @@ package org.sopt.makers.crew.main.flash.v2;
 import java.security.Principal;
 
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyDto;
-import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateAndUpdateResponseDto;
+import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateResponseDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2GetFlashByMeetingIdResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +24,7 @@ public interface FlashV2Api {
 		@ApiResponse(responseCode = "201", description = "meetingId: 10, tagId: 4"),
 		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
 	})
-	ResponseEntity<FlashV2CreateAndUpdateResponseDto> createFlash(
+	ResponseEntity<FlashV2CreateResponseDto> createFlash(
 		@Valid @RequestBody FlashV2CreateAndUpdateFlashBodyDto requestBody,
 		Principal principal);
 
