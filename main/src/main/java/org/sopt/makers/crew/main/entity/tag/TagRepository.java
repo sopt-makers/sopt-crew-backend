@@ -9,5 +9,7 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
 
 	Optional<Tag> findTagByFlashId(Integer flashId);
 
+	Optional<Tag> findTagByMeetingId(Integer meetingId);
+
 	void deleteByFlashId(Integer flashId);
 }

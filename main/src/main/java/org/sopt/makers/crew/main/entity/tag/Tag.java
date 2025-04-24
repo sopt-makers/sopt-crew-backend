@@ -70,11 +70,11 @@ public class Tag extends BaseTimeEntity {
 		this.meetingKeywordTypes = meetingKeywordTypes;
 	}
 
-	public static Tag createGeneralMeetingTag(TagType tagType, Integer meetingId,
+	public static Tag createGeneralMeetingTag(Integer meetingId,
 		List<WelcomeMessageType> welcomeMessageTypes,
 		List<MeetingKeywordType> meetingKeywordTypes) {
 		return Tag.builder()
-			.tagType(tagType)
+			.tagType(TagType.MEETING)
 			.meetingId(meetingId)
 			.flashId(null)
 			.welcomeMessageTypes(welcomeMessageTypes)
@@ -82,11 +82,11 @@ public class Tag extends BaseTimeEntity {
 			.build();
 	}
 
-	public static Tag createFlashMeetingTag(TagType tagType, Integer flashId,
+	public static Tag createFlashMeetingTag(Integer flashId,
 		List<WelcomeMessageType> welcomeMessageTypes,
 		List<MeetingKeywordType> meetingKeywordTypes) {
 		return Tag.builder()
-			.tagType(tagType)
+			.tagType(TagType.FLASH)
 			.meetingId(null)
 			.flashId(flashId)
 			.welcomeMessageTypes(welcomeMessageTypes)
