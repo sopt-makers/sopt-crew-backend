@@ -42,7 +42,7 @@ public interface FlashV2Api {
 		@ApiResponse(responseCode = "200", description = "meetingId: 10, tagId: 5"),
 		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
 	})
-	ResponseEntity<FlashV2CreateAndUpdateResponseDto> updateFlash(
+	ResponseEntity<Void> updateFlash(
 		@PathVariable Integer meetingId,
 		@Valid @RequestBody FlashV2CreateAndUpdateFlashBodyDto requestBody,
 		Principal principal);

@@ -129,7 +129,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 	})
 	@Override
 	@Transactional
-	public FlashV2CreateAndUpdateResponseDto updateFlash(Integer meetingId,
+	public void updateFlash(Integer meetingId,
 		FlashV2CreateAndUpdateFlashBodyDto requestBody,
 		Integer userId) {
 		User user = userV2Service.getUserByUserId(userId);
@@ -152,11 +152,9 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 
 		flash.updateFlash(updatedFlash);
 
-		TagV2CreateAndUpdateFlashTagResponseDto tagResponseDto = tagV2Service.updateFlashTag(
+		tagV2Service.updateFlashTag(
 			requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
 			flash.getId());
-
-		return FlashV2CreateAndUpdateResponseDto.of(flash.getMeetingId(), tagResponseDto.tagId());
 	}
 
 	private List<ApplyWholeInfoDto> getApplyWholeInfoDtos(Applies applies, Integer meetingId, Integer userId) {

@@ -50,12 +50,13 @@ public class FlashV2Controller implements FlashV2Api {
 
 	@Override
 	@PutMapping("{meetingId}")
-	public ResponseEntity<FlashV2CreateAndUpdateResponseDto> updateFlash(
+	public ResponseEntity<Void> updateFlash(
 		@PathVariable Integer meetingId,
 		@Valid @RequestBody FlashV2CreateAndUpdateFlashBodyDto requestBody,
 		Principal principal
 	) {
 		Integer userId = UserUtil.getUserId(principal);
-		return ResponseEntity.ok(flashV2Service.updateFlash(meetingId, requestBody, userId));
+		flashV2Service.updateFlash(meetingId, requestBody, userId);
+		return ResponseEntity.ok().build();
 	}
 }

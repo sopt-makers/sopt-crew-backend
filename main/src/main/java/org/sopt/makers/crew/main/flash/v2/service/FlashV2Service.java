@@ -10,6 +10,6 @@ public interface FlashV2Service {
 
 	FlashV2GetFlashByMeetingIdResponseDto getFlashDetail(Integer meetingId, Integer userId);
 
-	FlashV2CreateAndUpdateResponseDto updateFlash(Integer meetingId,
+	void updateFlash(Integer meetingId,
 		FlashV2CreateAndUpdateFlashBodyDto requestBody, Integer userId);
 }
