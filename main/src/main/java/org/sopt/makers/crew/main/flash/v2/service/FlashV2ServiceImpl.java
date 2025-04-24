@@ -86,7 +86,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			activeGenerationProvider.getActiveGeneration(), user.getId(), realTime);
 
 		flashRepository.save(flash);
-		TagV2CreateAndUpdateFlashTagResponseDto tagResponseDto = tagV2Service.createFlashTag(
+		TagV2CreateAndUpdateFlashTagResponseDto tagResponseDto = tagV2Service.createFlashMeetingTag(
 			requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
 			flash.getId());
 
@@ -152,7 +152,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 
 		flash.updateFlash(updatedFlash);
 
-		tagV2Service.updateFlashTag(
+		tagV2Service.updateFlashMeetingTag(
 			requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
 			flash.getId());
 	}
