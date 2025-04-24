@@ -88,6 +88,17 @@ public class MeetingV2CreateMeetingBodyDto {
 		""", description = "공동 모임장 userId (크루에서 사용하는 userId)")
 	private List<Integer> coLeaderUserIds;
 
+	@Schema(example = """
+		["YB 환영", "OB 환영"]
+		""", description = "환영 메시지 타입 리스트")
+	private List<String> welcomeMessageTypes;
+
+	@Schema(example = """
+		["운동", "자기개발"]
+		""", description = "모임 키워드 타입 리스트")
+	@Size(min = 1, max = 2)
+	private List<String> meetingKeywordTypes;
+
 	public String getmStartDate() {
 		return mStartDate;
 	}

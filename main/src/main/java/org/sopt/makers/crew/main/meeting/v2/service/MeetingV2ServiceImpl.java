@@ -92,6 +92,8 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBann
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateAndUpdateGeneralMeetingTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
@@ -125,6 +127,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final UserReader userReader;
 
 	private final S3Service s3Service;
+	private final TagV2Service tagV2Service;
 
 	private final MeetingMapper meetingMapper;
 	private final FlashMeetingMapper flashMeetingMapper;
@@ -201,7 +204,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		if (requestBody.getFiles().size() == ZERO || requestBody.getJoinableParts().length == ZERO) {
+		if (requestBody.getFiles().isEmpty() || requestBody.getJoinableParts().length == ZERO) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
@@ -219,7 +222,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			coLeaderRepository.saveAll(coLeaders);
 		}
 
-		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId());
+		TagV2CreateAndUpdateGeneralMeetingTagResponseDto tagResponseDto = tagV2Service.createGeneralMeetingTag(
+			requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(), meeting.getId());
+
+		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId(), tagResponseDto.tagId());
 	}
 
 	@Override
@@ -378,7 +384,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	})
 	@Override
 	@Transactional
-	public void updateMeeting(Integer meetingId, MeetingV2CreateMeetingBodyDto requestBody, Integer userId) {
+	public void updateMeeting(Integer meetingId, MeetingV2CreateMeetingBodyDto requestBody,
+		Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
@@ -390,7 +397,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()),
 			activeGenerationProvider.getActiveGeneration(), user,
 			user.getId());
+
 		meeting.updateMeeting(updatedMeeting);
+
+		tagV2Service.updateGeneralMeetingTag(requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(),
+			meeting.getId());
 	}
 
 	private void updateCoLeaders(List<Integer> coLeaderUserIds, Meeting updatedMeeting) {
