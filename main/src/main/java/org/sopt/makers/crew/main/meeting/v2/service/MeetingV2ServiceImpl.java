@@ -45,6 +45,8 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
+import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
@@ -481,9 +483,15 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.toList();
 		}
 
+		List<WelcomeMessageType> welcomeMessageTypes = tagV2Service.getWelcomeMessageTypesByMeetingId(
+			meeting.getId());
+
+		List<MeetingKeywordType> meetingKeywordTypes = tagV2Service.getMeetingKeywordsTypesByMeetingId(
+			meeting.getId());
+
 		return MeetingV2GetMeetingByIdResponseDto.of(meetingId, meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
 			approvedCount, isHost, isApply, isApproved,
-			meetingLeader, applyWholeInfoDtos, time.now());
+			meetingLeader, applyWholeInfoDtos, welcomeMessageTypes, meetingKeywordTypes, time.now());
 	}
 
 	@Override

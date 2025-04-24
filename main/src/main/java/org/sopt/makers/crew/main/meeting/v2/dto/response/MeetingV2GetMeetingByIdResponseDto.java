@@ -7,6 +7,8 @@ import org.sopt.makers.crew.main.entity.meeting.CoLeader;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
+import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -139,15 +141,32 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final List<ApplyWholeInfoDto> appliedInfo;
 
+	@Schema(description = "환영 메시지 타입 목록")
+	@NotNull
+	private final List<String> welcomeMessageTypes;
+
+	@Schema(description = "모임 키워드 타입 목록")
+	@NotNull
+	private final List<String> meetingKeywordTypes;
+
 	public static MeetingV2GetMeetingByIdResponseDto of(Integer meetingId, Meeting meeting, List<CoLeader> coLeaders,
 		boolean isCoLeader, long approvedCount, Boolean isHost, Boolean isApply,
 		Boolean isApproved, MeetingCreatorDto meetingCreatorDto,
-		List<ApplyWholeInfoDto> appliedInfo, LocalDateTime now) {
+		List<ApplyWholeInfoDto> appliedInfo, List<WelcomeMessageType> welcomeMessageTypes,
+		List<MeetingKeywordType> meetingKeywordTypes, LocalDateTime now) {
 
 		Integer meetingStatus = meeting.getMeetingStatusValue(now);
 
 		List<MeetingV2CoLeaderResponseDto> coLeaderResponseDtos = coLeaders.stream()
 			.map(coLeader -> MeetingV2CoLeaderResponseDto.of(coLeader.getUser()))
+			.toList();
+
+		List<String> welcomeMessageTypeValues = welcomeMessageTypes.stream()
+			.map(WelcomeMessageType::getValue)
+			.toList();
+
+		List<String> meetingKeywordTypeValues = meetingKeywordTypes.stream()
+			.map(MeetingKeywordType::getValue)
 			.toList();
 
 		return new MeetingV2GetMeetingByIdResponseDto(meetingId, meeting.getUserId(), meeting.getTitle(),
@@ -157,7 +176,8 @@ public class MeetingV2GetMeetingByIdResponseDto {
 			meeting.getIsMentorNeeded(), meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), coLeaderResponseDtos, isCoLeader,
 			meetingStatus,
-			approvedCount, isHost, isApply, isApproved, meetingCreatorDto, appliedInfo);
+			approvedCount, isHost, isApply, isApproved, meetingCreatorDto, appliedInfo, welcomeMessageTypeValues,
+			meetingKeywordTypeValues);
 	}
 
 	public LocalDateTime getmStartDate() {

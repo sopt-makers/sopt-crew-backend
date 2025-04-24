@@ -5,6 +5,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import java.util.Collections;
 import java.util.List;
 
+import org.sopt.makers.crew.main.entity.tag.MeetingKeywordsTypeProjection;
 import org.sopt.makers.crew.main.entity.tag.Tag;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
 import org.sopt.makers.crew.main.entity.tag.WelcomeMessageTypeProjection;
@@ -56,13 +57,46 @@ public class TagV2ServiceImpl implements TagV2Service {
 	}
 
 	@Override
+	public List<WelcomeMessageType> getWelcomeMessageTypesByMeetingId(Integer meetingId) {
+		if (meetingId == null) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		return tagRepository.findWelcomeMessageTypesByMeetingId(meetingId)
+			.map(WelcomeMessageTypeProjection::getWelcomeMessageTypes)
+			.orElse(Collections.emptyList());
+	}
+
+	@Override
 	public List<WelcomeMessageType> getWelcomeMessageTypesByFlashId(Integer flashId) {
 		if (flashId == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		return tagRepository.findByFlashId(flashId)
+		return tagRepository.findWelcomeMessageTypesByFlashId(flashId)
 			.map(WelcomeMessageTypeProjection::getWelcomeMessageTypes)
+			.orElse(Collections.emptyList());
+	}
+
+	@Override
+	public List<MeetingKeywordType> getMeetingKeywordsTypesByMeetingId(Integer meetingId) {
+		if (meetingId == null) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		return tagRepository.findMeetingKeywordTypesByMeetingId(meetingId)
+			.map(MeetingKeywordsTypeProjection::getMeetingKeywordTypes)
+			.orElse(Collections.emptyList());
+	}
+
+	@Override
+	public List<MeetingKeywordType> getMeetingKeywordsTypesByFlashId(Integer flashId) {
+		if (flashId == null) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		return tagRepository.findMeetingKeywordTypesByFlashId(flashId)
+			.map(MeetingKeywordsTypeProjection::getMeetingKeywordTypes)
 			.orElse(Collections.emptyList());
 	}
 
