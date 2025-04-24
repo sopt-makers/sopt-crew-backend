@@ -75,7 +75,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOr
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDetailDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
@@ -197,7 +197,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	@Transactional
-	public MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateMeetingBodyDto requestBody, Integer userId) {
+	public MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
+		Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
 		if (user.getActivities() == null) {
@@ -384,7 +385,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	})
 	@Override
 	@Transactional
-	public void updateMeeting(Integer meetingId, MeetingV2CreateMeetingBodyDto requestBody,
+	public void updateMeeting(Integer meetingId, MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
 		Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 

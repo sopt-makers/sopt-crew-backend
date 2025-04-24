@@ -9,7 +9,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOr
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
@@ -57,7 +57,7 @@ public interface MeetingV2Api {
 	@ApiResponses(value = {@ApiResponse(responseCode = "201", description = "성공"),
 		@ApiResponse(responseCode = "400", description = "\"이미지 파일이 없습니다.\" or \"한 개 이상의 파트를 입력해주세요\" or \"프로필을 입력해주세요\"", content = @Content),})
 	ResponseEntity<MeetingV2CreateMeetingResponseDto> createMeeting(
-		@Valid @RequestBody MeetingV2CreateMeetingBodyDto requestBody,
+		@Valid @RequestBody MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
 		Principal principal);
 
 	@Operation(summary = "일반 모임 지원")
@@ -112,7 +112,7 @@ public interface MeetingV2Api {
 
 	@Operation(summary = "모임 수정", description = "모임 내용을 수정합니다.")
 	ResponseEntity<Void> updateMeeting(@PathVariable Integer meetingId,
-		@RequestBody @Valid MeetingV2CreateMeetingBodyDto requestBody, Principal principal);
+		@RequestBody @Valid MeetingV2CreateAndUpdateMeetingBodyDto requestBody, Principal principal);
 
 	@Operation(summary = "모임 지원자 상태 변경", description = "모임 지원자의 지원 상태를 변경합니다.")
 	ResponseEntity<Void> updateApplyStatus(@PathVariable Integer meetingId,

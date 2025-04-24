@@ -45,7 +45,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
@@ -142,7 +142,7 @@ public class MeetingV2ServiceTest {
 			};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -249,7 +249,7 @@ public class MeetingV2ServiceTest {
 			};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -313,7 +313,7 @@ public class MeetingV2ServiceTest {
 			};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -365,7 +365,7 @@ public class MeetingV2ServiceTest {
 			};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -417,7 +417,7 @@ public class MeetingV2ServiceTest {
 			};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -463,7 +463,7 @@ public class MeetingV2ServiceTest {
 			MeetingJoinablePart[] joinableParts = null;
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -510,7 +510,7 @@ public class MeetingV2ServiceTest {
 			};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -1945,7 +1945,7 @@ public class MeetingV2ServiceTest {
 			};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto dto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto dto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -1989,7 +1989,7 @@ public class MeetingV2ServiceTest {
 			};
 
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto dto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto dto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"수정1", // title
 				files, // files (모임 이미지 리스트)
 				"행사", // category
