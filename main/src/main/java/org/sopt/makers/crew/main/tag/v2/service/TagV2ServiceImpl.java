@@ -12,8 +12,8 @@ import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
-import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateAndUpdateFlashTagResponseDto;
-import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateAndUpdateGeneralMeetingTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateFlashTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +29,7 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 	@Override
 	@Transactional
-	public TagV2CreateAndUpdateGeneralMeetingTagResponseDto createGeneralMeetingTag(List<String> welcomeMessageTypes,
+	public TagV2CreateGeneralMeetingTagResponseDto createGeneralMeetingTag(List<String> welcomeMessageTypes,
 		List<String> meetingKeywordTypes, Integer meetingId) {
 		if (meetingId == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
@@ -43,7 +43,7 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 	@Override
 	@Transactional
-	public TagV2CreateAndUpdateFlashTagResponseDto createFlashMeetingTag(List<String> welcomeMessageTypes,
+	public TagV2CreateFlashTagResponseDto createFlashMeetingTag(List<String> welcomeMessageTypes,
 		List<String> meetingKeywordTypes, Integer flashId) {
 		if (flashId == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
@@ -94,18 +94,18 @@ public class TagV2ServiceImpl implements TagV2Service {
 		tag.updateMeetingKeywordTypeEnums(meetingKeywordTypeEnums);
 	}
 
-	private TagV2CreateAndUpdateGeneralMeetingTagResponseDto saveGeneralMeetingTag(Integer meetingId,
+	private TagV2CreateGeneralMeetingTagResponseDto saveGeneralMeetingTag(Integer meetingId,
 		List<WelcomeMessageType> welcomeMessageTypes, List<MeetingKeywordType> meetingKeywordTypes) {
 		Tag tag = Tag.createGeneralMeetingTag(meetingId, welcomeMessageTypes, meetingKeywordTypes);
 		tagRepository.save(tag);
-		return TagV2CreateAndUpdateGeneralMeetingTagResponseDto.from(tag.getId());
+		return TagV2CreateGeneralMeetingTagResponseDto.from(tag.getId());
 	}
 
-	private TagV2CreateAndUpdateFlashTagResponseDto saveFlashMeetingTag(Integer flashId,
+	private TagV2CreateFlashTagResponseDto saveFlashMeetingTag(Integer flashId,
 		List<WelcomeMessageType> welcomeMessageTypes, List<MeetingKeywordType> meetingKeywordTypes) {
 		Tag tag = Tag.createFlashMeetingTag(flashId, welcomeMessageTypes, meetingKeywordTypes);
 		tagRepository.save(tag);
-		return TagV2CreateAndUpdateFlashTagResponseDto.from(tag.getId());
+		return TagV2CreateFlashTagResponseDto.from(tag.getId());
 	}
 
 	private List<WelcomeMessageType> toWelcomeMessageTypes(List<String> values) {

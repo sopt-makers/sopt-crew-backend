@@ -33,7 +33,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingLeaderUserIdDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
-import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateAndUpdateFlashTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateFlashTagResponseDto;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
 import org.springframework.cache.annotation.CacheEvict;
@@ -86,7 +86,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			activeGenerationProvider.getActiveGeneration(), user.getId(), realTime);
 
 		flashRepository.save(flash);
-		TagV2CreateAndUpdateFlashTagResponseDto tagResponseDto = tagV2Service.createFlashMeetingTag(
+		TagV2CreateFlashTagResponseDto tagResponseDto = tagV2Service.createFlashMeetingTag(
 			requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
 			flash.getId());
 

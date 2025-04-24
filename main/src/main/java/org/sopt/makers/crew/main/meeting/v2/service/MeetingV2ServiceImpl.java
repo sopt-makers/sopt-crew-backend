@@ -92,7 +92,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBann
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
-import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateAndUpdateGeneralMeetingTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
@@ -223,7 +223,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			coLeaderRepository.saveAll(coLeaders);
 		}
 
-		TagV2CreateAndUpdateGeneralMeetingTagResponseDto tagResponseDto = tagV2Service.createGeneralMeetingTag(
+		TagV2CreateGeneralMeetingTagResponseDto tagResponseDto = tagV2Service.createGeneralMeetingTag(
 			requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(), meeting.getId());
 
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId(), tagResponseDto.tagId());
