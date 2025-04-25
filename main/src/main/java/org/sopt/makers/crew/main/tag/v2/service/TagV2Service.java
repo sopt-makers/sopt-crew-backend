@@ -9,7 +9,7 @@ import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTa
 
 public interface TagV2Service {
 	TagV2CreateFlashTagResponseDto createFlashMeetingTag(List<String> welcomeMessageTypes,
-		List<String> meetingKeywordTypes, Integer flashId);
+		List<String> meetingKeywordTypes, Integer flashId, Integer meetingId);
 
 	TagV2CreateGeneralMeetingTagResponseDto createGeneralMeetingTag(List<String> welcomeMessageTypes,
 		List<String> meetingKeywordTypes, Integer meetingId);

@@ -89,7 +89,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		flashRepository.save(flash);
 		TagV2CreateFlashTagResponseDto tagResponseDto = tagV2Service.createFlashMeetingTag(
 			requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
-			flash.getId());
+			flash.getId(), flash.getMeetingId());
 
 		OrgIdListDto orgIdListDto = userReader.findAllOrgIds();
 

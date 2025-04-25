@@ -36,8 +36,8 @@ public class Tag extends BaseTimeEntity {
 
 	/**
 	 * @implSpec : 모임태그 or 번쩍태그 구분
-	 * @implNote : 모임태그일 경우, flashId == null
-	 * @implNote : 번쩍태그일 경우, meetingId == null
+	 * @implNote : 모임태그일 경우, flashId == null,
+	 * @implNote : 번쩍태그일 경우 null인 정보 없음
 	 * */
 	@Enumerated(EnumType.STRING)
 	@Column(name = "tagType")
@@ -82,12 +82,12 @@ public class Tag extends BaseTimeEntity {
 			.build();
 	}
 
-	public static Tag createFlashMeetingTag(Integer flashId,
+	public static Tag createFlashMeetingTag(Integer flashId, Integer meetingId,
 		List<WelcomeMessageType> welcomeMessageTypes,
 		List<MeetingKeywordType> meetingKeywordTypes) {
 		return Tag.builder()
 			.tagType(TagType.FLASH)
-			.meetingId(null)
+			.meetingId(meetingId)
 			.flashId(flashId)
 			.welcomeMessageTypes(welcomeMessageTypes)
 			.meetingKeywordTypes(meetingKeywordTypes)
