@@ -8,13 +8,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.sopt.makers.crew.main.entity.tag.MeetingKeywordsTypeProjection;
-import org.sopt.makers.crew.main.entity.tag.MeetingTagInfoProjection;
 import org.sopt.makers.crew.main.entity.tag.Tag;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
-import org.sopt.makers.crew.main.entity.tag.WelcomeMessageTypeProjection;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
+import org.sopt.makers.crew.main.entity.tag.projection.MeetingKeywordsTypeProjection;
+import org.sopt.makers.crew.main.entity.tag.projection.MeetingTagInfoProjection;
+import org.sopt.makers.crew.main.entity.tag.projection.WelcomeMessageTypeProjection;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateFlashTagResponseDto;

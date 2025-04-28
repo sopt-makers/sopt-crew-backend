@@ -3,6 +3,9 @@ package org.sopt.makers.crew.main.entity.tag;
 import java.util.List;
 import java.util.Optional;
 
+import org.sopt.makers.crew.main.entity.tag.projection.MeetingKeywordsTypeProjection;
+import org.sopt.makers.crew.main.entity.tag.projection.MeetingTagInfoProjection;
+import org.sopt.makers.crew.main.entity.tag.projection.WelcomeMessageTypeProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TagRepository extends JpaRepository<Tag, Integer> {
