@@ -45,7 +45,8 @@ public class Tag extends BaseTimeEntity {
 	private TagType tagType;
 
 	@Column(name = "meetingId")
-	private Integer meetingId;
+	@NotNull
+	private Integer meetingId; // DB에 반영
 
 	@Column(name = "flashId")
 	private Integer flashId;
