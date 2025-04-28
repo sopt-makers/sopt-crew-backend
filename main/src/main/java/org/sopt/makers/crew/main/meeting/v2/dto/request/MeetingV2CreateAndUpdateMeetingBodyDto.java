@@ -84,7 +84,7 @@ public class MeetingV2CreateAndUpdateMeetingBodyDto {
 	private MeetingJoinablePart[] joinableParts;
 
 	@Schema(example = """
-		[251, 942]
+		[1304, 1305]
 		""", description = "공동 모임장 userId (크루에서 사용하는 userId)")
 	private List<Integer> coLeaderUserIds;
 
