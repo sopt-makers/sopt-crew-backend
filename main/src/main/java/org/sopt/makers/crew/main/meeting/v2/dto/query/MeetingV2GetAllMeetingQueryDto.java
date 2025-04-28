@@ -2,9 +2,9 @@ package org.sopt.makers.crew.main.meeting.v2.dto.query;
 
 import java.util.List;
 
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.global.pagination.PaginationType;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -14,18 +14,20 @@ import lombok.Setter;
 @Setter
 public class MeetingV2GetAllMeetingQueryDto extends PageOptionsDto {
 
-	List<String> category;
+	private List<String> category;
 
-	List<String> status;
+	private List<String> keyword;
+
+	private List<String> status;
 
 	@NotNull
-	Boolean isOnlyActiveGeneration;
+	private Boolean isOnlyActiveGeneration;
 
-	MeetingJoinablePart[] joinableParts;
+	private MeetingJoinablePart[] joinableParts;
 
-	String query;
+	private String query;
 
-	PaginationType paginationType = PaginationType.ADVERTISEMENT;
+	private PaginationType paginationType = PaginationType.ADVERTISEMENT;
 
 	public MeetingV2GetAllMeetingQueryDto(Integer page, Integer take) {
 		super(page, take);

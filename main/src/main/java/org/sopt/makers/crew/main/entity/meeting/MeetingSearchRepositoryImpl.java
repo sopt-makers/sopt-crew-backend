@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.entity.meeting;
 
 import static org.sopt.makers.crew.main.entity.meeting.QMeeting.*;
+import static org.sopt.makers.crew.main.entity.tag.QTag.*;
 import static org.sopt.makers.crew.main.entity.user.QUser.*;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.global.pagination.PaginationType;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
@@ -21,10 +23,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -115,6 +119,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.selectFrom(meeting)
 			.where(
 				eqCategory(queryCommand.getCategory()),
+				eqKeyword(queryCommand.getKeyword()),
 				statusCondition,
 				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration(), activeGeneration),
 				eqJoinableParts(queryCommand.getJoinableParts()),
@@ -167,6 +172,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.from(meeting)
 			.where(
 				eqCategory(queryCommand.getCategory()),
+				eqKeyword(queryCommand.getKeyword()),
 				eqStatus(queryCommand.getStatus(), now),
 				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration(), activeGeneration),
 				eqJoinableParts(queryCommand.getJoinableParts()),
@@ -175,16 +181,33 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	}
 
 	private BooleanExpression eqCategory(List<String> categories) {
-
 		if (categories == null || categories.isEmpty()) {
 			return null;
 		}
 
-		List<MeetingCategory> categoryList = categories.stream()
+		List<MeetingCategory> meetingCategories = categories.stream()
 			.map(MeetingCategory::ofValue)
-			.collect(Collectors.toList());
+			.toList();
 
-		return meeting.category.in(categoryList);
+		return meeting.category.in(meetingCategories);
+	}
+
+	private BooleanExpression eqKeyword(List<String> keywords) {
+		if (keywords == null || keywords.isEmpty()) {
+			return null;
+		}
+
+		String[] keywordNames = keywords.stream()
+			.map(keyword -> MeetingKeywordType.ofValue(keyword).name())
+			.toArray(String[]::new);
+
+		return JPAExpressions.selectOne()
+			.from(tag)
+			.where(
+				tag.meetingId.eq(meeting.id),
+				containsAnyKeyword(tag.meetingKeywordTypes, keywordNames)
+			)
+			.exists();
 	}
 
 	private BooleanExpression eqStatus(List<String> statuses, LocalDateTime now) {
@@ -261,4 +284,31 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		return meeting.title.contains(query);
 	}
 
+	/**
+	 * JSONB 배열에서 여러 키워드 중 하나라도 포함하는지 확인하는 표현식
+	 */
+	private BooleanExpression containsAnyKeyword(Expression<?> jsonbField, String[] keywords) {
+		BooleanExpression result = createLikeExpression(jsonbField, keywords[0]);
+
+		if (keywords.length == 1) {
+			return result;
+		}
+
+		for (int i = 1; i < keywords.length; i++) {
+			result = result.or(createLikeExpression(jsonbField, keywords[i]));
+		}
+
+		return result;
+	}
+
+	/**
+	 * JSON 필드에서 특정 키워드를 포함하는지 확인하는 LIKE 표현식 생성
+	 */
+	private BooleanExpression createLikeExpression(Expression<?> jsonbField, String keyword) {
+		return Expressions.booleanTemplate(
+			"cast({0} as text) like {1}",
+			jsonbField,
+			"%\"" + keyword + "\"%"
+		);
+	}
 }

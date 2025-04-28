@@ -105,9 +105,26 @@ public class MeetingCacheDto {
 	}
 
 	public Meeting toEntity() {
-		return new Meeting(null, userId, title, category, imageURL, startDate, endDate, capacity, desc, processDesc,
-			mStartDate, mEndDate, leaderDesc, note, isMentorNeeded, canJoinOnlyActiveGeneration,
-			createdGeneration, targetActiveGeneration, joinableParts);
+		return Meeting.builder()
+			.userId(userId)
+			.title(title)
+			.category(category)
+			.imageURL(imageURL)
+			.startDate(startDate)
+			.endDate(endDate)
+			.capacity(capacity)
+			.desc(desc)
+			.processDesc(processDesc)
+			.mStartDate(mStartDate)
+			.mEndDate(mEndDate)
+			.leaderDesc(leaderDesc)
+			.note(note)
+			.isMentorNeeded(isMentorNeeded)
+			.canJoinOnlyActiveGeneration(canJoinOnlyActiveGeneration)
+			.createdGeneration(createdGeneration)
+			.targetActiveGeneration(targetActiveGeneration)
+			.joinableParts(joinableParts)
+			.build();
 	}
 
 	public LocalDateTime getmStartDate() {
