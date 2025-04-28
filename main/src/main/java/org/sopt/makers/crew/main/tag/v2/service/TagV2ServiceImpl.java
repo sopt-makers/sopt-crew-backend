@@ -4,8 +4,12 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.entity.tag.MeetingKeywordsTypeProjection;
+import org.sopt.makers.crew.main.entity.tag.MeetingTagInfoProjection;
 import org.sopt.makers.crew.main.entity.tag.Tag;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
 import org.sopt.makers.crew.main.entity.tag.WelcomeMessageTypeProjection;
@@ -15,6 +19,7 @@ import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateFlashTagResponseDto;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -130,6 +135,21 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 		tag.updateWelcomeMessageTypes(welcomeMessageTypeEnums);
 		tag.updateMeetingKeywordTypeEnums(meetingKeywordTypeEnums);
+	}
+
+	@Override
+	public Map<Integer, TagV2MeetingTagsResponseDto> getMeetingTagsByMeetingIds(List<Integer> meetingIds) {
+		List<MeetingTagInfoProjection> meetingTagInfoProjections = tagRepository.findByMeetingIdIn(meetingIds);
+
+		return meetingTagInfoProjections.stream()
+			.collect(Collectors.toMap(
+				MeetingTagInfoProjection::getMeetingId,
+				projection -> TagV2MeetingTagsResponseDto.of(
+					Optional.ofNullable(projection.getMeetingKeywordTypes()).orElse(Collections.emptyList()),
+					Optional.ofNullable(projection.getWelcomeMessageTypes()).orElse(Collections.emptyList())
+				),
+				(existing, replacement) -> existing // 중복 시 첫 번째 값 유지
+			));
 	}
 
 	private TagV2CreateGeneralMeetingTagResponseDto saveGeneralMeetingTag(Integer meetingId,

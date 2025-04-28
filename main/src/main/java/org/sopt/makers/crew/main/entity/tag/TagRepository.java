@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.entity.tag;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +19,6 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
 	Optional<Tag> findTagByMeetingId(Integer meetingId);
 
 	void deleteByFlashId(Integer flashId);
+
+	List<MeetingTagInfoProjection> findByMeetingIdIn(List<Integer> meetingIds);
 }

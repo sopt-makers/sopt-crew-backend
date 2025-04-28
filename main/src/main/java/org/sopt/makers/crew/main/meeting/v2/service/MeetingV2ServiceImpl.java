@@ -95,6 +95,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBann
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
@@ -315,16 +316,25 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand, pageable, time,
 			activeGenerationProvider.getActiveGeneration());
+
 		List<Integer> meetingIds = meetings.stream()
 			.map(Meeting::getId)
 			.toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
 
+		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
+			meetingIds);
+
 		List<MeetingResponseDto> meetingResponseDtos = meetings.getContent().stream()
-			.map(meeting -> MeetingResponseDto.of(meeting, meeting.getUser(),
-				allApplies.getApprovedCount(meeting.getId()), time.now(),
-				activeGenerationProvider.getActiveGeneration()))
+			.map(meeting -> MeetingResponseDto.of(
+				meeting,
+				meeting.getUser(),
+				allApplies.getApprovedCount(meeting.getId()),
+				time.now(),
+				activeGenerationProvider.getActiveGeneration(),
+				allTagsResponseDto)
+			)
 			.toList();
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetings.getPageable().getPageNumber() + 1,
@@ -483,11 +493,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.toList();
 		}
 
-		List<WelcomeMessageType> welcomeMessageTypes = tagV2Service.getWelcomeMessageTypesByMeetingId(
-			meeting.getId());
-
-		List<MeetingKeywordType> meetingKeywordTypes = tagV2Service.getMeetingKeywordsTypesByMeetingId(
-			meeting.getId());
+		List<WelcomeMessageType> welcomeMessageTypes = tagV2Service.getWelcomeMessageTypesByMeetingId(meetingId);
+		List<MeetingKeywordType> meetingKeywordTypes = tagV2Service.getMeetingKeywordsTypesByMeetingId(meetingId);
 
 		return MeetingV2GetMeetingByIdResponseDto.of(meetingId, meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
 			approvedCount, isHost, isApply, isApproved,
@@ -498,14 +505,24 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2GetRecommendDto getRecommendMeetingsByIds(List<Integer> meetingIds, Integer userId) {
 
 		List<Meeting> meetings = meetingRepository.findRecommendMeetings(meetingIds, time);
-		List<Integer> foundMeetingIds = meetings.stream().map(Meeting::getId).toList();
+		List<Integer> foundMeetingIds = meetings.stream()
+			.map(Meeting::getId)
+			.toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(foundMeetingIds));
 
+		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
+			meetingIds);
+
 		List<MeetingResponseDto> meetingResponseDtos = meetings.stream()
-			.map(meeting -> MeetingResponseDto.of(meeting, meeting.getUser(),
-				allApplies.getApprovedCount(meeting.getId()), time.now(),
-				activeGenerationProvider.getActiveGeneration()))
+			.map(meeting -> MeetingResponseDto.of(
+				meeting,
+				meeting.getUser(),
+				allApplies.getApprovedCount(meeting.getId()),
+				time.now(),
+				activeGenerationProvider.getActiveGeneration(),
+				allTagsResponseDto)
+			)
 			.toList();
 
 		return MeetingV2GetRecommendDto.from(meetingResponseDtos);
