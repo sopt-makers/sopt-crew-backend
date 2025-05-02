@@ -170,7 +170,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	/**
 	 * @Note: 최근 활동 여부는 게시글 생성일자를 기준으로 진행한다.
-	 * */
+	 */
 	@Override
 	public List<MeetingV2GetMeetingBannerResponseDto> getMeetingBanner() {
 
@@ -269,6 +269,32 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	@Transactional
+	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithStress(MeetingV2ApplyMeetingDto requestBody,
+		Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+
+		validateMeetingCategoryEvent(meeting);
+
+		User user = userRepository.findByIdOrThrow(userId);
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
+
+		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
+
+		validateMeetingCapacity(meeting, applies);
+		validateUserAlreadyAppliedStressVersion(userId, applies);
+		validateApplyPeriod(meeting);
+		validateUserActivities(user);
+		validateUserJoinableParts(user, meeting);
+		coLeaders.validateCoLeader(meeting.getId(), user.getId());
+		meeting.validateIsNotMeetingLeader(userId);
+
+		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.STRESS, meeting, user, userId);
+		Apply savedApply = applyRepository.save(apply);
+		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+	}
+
+	@Override
+	@Transactional
 	public void applyMeetingCancel(Integer meetingId, Integer userId) {
 		boolean exists = applyRepository.existsByMeetingIdAndUserId(meetingId, userId);
 
@@ -322,9 +348,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	/**
 	 * @note: 1. like(Comment, post 관련) -> comment -> post 순으로 삭제
-	 * 		  2. apply 삭제
-	 * 		  3. meeting 삭제
-	 * */
+	 * 2. apply 삭제
+	 * 3. meeting 삭제
+	 */
 
 	@Override
 	@Transactional
@@ -677,6 +703,12 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (hasApplied) {
 			throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
 		}
+	}
+
+	private void validateUserAlreadyAppliedStressVersion(Integer userId, List<Apply> applies) {
+		boolean hasApplied = applies.stream()
+			.anyMatch(appliedInfo -> appliedInfo.getUser().getId().equals(userId));
+
 	}
 
 	private void validateApplyPeriod(Meeting meeting) {

@@ -1,31 +1,42 @@
 package org.sopt.makers.crew.main.entity.apply.enums;
 
 import java.util.Arrays;
+
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 
-/** 지원 구분 */
+/**
+ * 지원 구분
+ */
 public enum EnApplyType {
-    /** 지원 */
-    APPLY(0),
+	/**
+	 * 지원
+	 */
+	APPLY(0),
 
-    /** 초대 */
-    INVITE(1);
+	/**
+	 * 초대
+	 */
+	INVITE(1),
+	/**
+	 * 부하용 테스트
+	 */
+	STRESS(2);
 
-    private final int value;
+	private final int value;
 
-    EnApplyType(int value) {
-        this.value = value;
-    }
+	EnApplyType(int value) {
+		this.value = value;
+	}
 
-    public static EnApplyType ofValue(Integer dbData) {
-        return Arrays.stream(EnApplyType.values())
-                .filter(v -> v.getValue()==(dbData))
-                .findFirst()
-                .orElseThrow(() -> new BadRequestException(
-                        String.format("EnApplyType 클래스에 value = [%s] 값을 가진 enum 객체가 없습니다.", dbData)));
-    }
+	public static EnApplyType ofValue(Integer dbData) {
+		return Arrays.stream(EnApplyType.values())
+			.filter(v -> v.getValue() == (dbData))
+			.findFirst()
+			.orElseThrow(() -> new BadRequestException(
+				String.format("EnApplyType 클래스에 value = [%s] 값을 가진 enum 객체가 없습니다.", dbData)));
+	}
 
-    public int getValue() {
-        return value;
-    }
+	public int getValue() {
+		return value;
+	}
 }

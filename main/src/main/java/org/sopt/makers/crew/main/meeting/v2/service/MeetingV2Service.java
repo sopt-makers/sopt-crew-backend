@@ -33,6 +33,8 @@ public interface MeetingV2Service {
 
 	MeetingV2ApplyMeetingResponseDto applyEventMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId);
 
+	MeetingV2ApplyMeetingResponseDto applyEventMeetingWithStress(MeetingV2ApplyMeetingDto requestBody, Integer userId);
+
 	void applyMeetingCancel(Integer meetingId, Integer userId);
 
 	MeetingGetApplyListResponseDto findApplyList(MeetingGetAppliesQueryDto queryCommand, Integer meetingId,
