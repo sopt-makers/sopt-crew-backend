@@ -100,9 +100,6 @@ create table if not exists flash
     "startDate"         timestamp                                      not null,
     "endDate"           timestamp                                      not null,
     "meetingId"         integer
-    constraint fk_meeting
-    references meeting
-    on delete cascade
     );
 
 create table if not exists tag
@@ -110,9 +107,7 @@ create table if not exists tag
     id                     serial
     primary key,
     "tagType"              varchar                        not null,
-    "meetingId"            integer
-    references meeting
-    on delete cascade,
+    "meetingId"            integer,
     "flashId"              integer,
     "welcomeMessageTypes"  jsonb,
     "meetingKeywordTypes"  jsonb,
