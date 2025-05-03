@@ -51,11 +51,8 @@ public class TagV2ServiceImpl implements TagV2Service {
 	@Transactional
 	public TagV2CreateFlashTagResponseDto createFlashMeetingTag(List<String> welcomeMessageTypes,
 		List<String> meetingKeywordTypes, Integer flashId, Integer meetingId) {
-		if (flashId == null) {
-			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
-		}
 
-		if (meetingId == null) {
+		if (flashId == null || meetingId == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
