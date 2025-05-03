@@ -82,6 +82,7 @@ management:
   health:
     redis:
       enabled: false
+
   endpoints:
     enabled-by-default: false
     jmx:
@@ -104,6 +105,7 @@ management:
       enabled: true
     cachecontents:
       enabled: true
+
 
 custom:
   paths:

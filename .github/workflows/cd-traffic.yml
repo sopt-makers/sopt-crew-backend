@@ -21,7 +21,7 @@ jobs:
 
       - name: Create application.properties from secret
         run: |
-          echo "${{ secrets.APPLICATION_SECRET_SPRING }}" > ./main/src/main/resources/application-secret.properties
+          echo "${{ secrets.APPLICATION_SECRET_TRAFFIC_SPRING }}" > ./main/src/main/resources/application-secret.properties
         shell: bash
 
       - name: Docker hub에 로그인

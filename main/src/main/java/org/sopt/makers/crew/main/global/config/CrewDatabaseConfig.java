@@ -75,7 +75,7 @@ public class CrewDatabaseConfig {
 		 * test 환경일 경우, none(기본값) 으로 한다. schema.sql 을 사용하여 테이블을 생성한다. (하단 코드 참고)
 		 */
 
-		String[] activeProfiles = {"local", "dev", "prod"};
+		String[] activeProfiles = {"local", "dev", "prod", "traffic"};
 		if (Arrays.stream(activeProfiles)
 			.anyMatch(profile -> profile.equals(System.getProperty("spring.profiles.active")))) {
 			properties.put("hibernate.hbm2ddl.auto", "validate");

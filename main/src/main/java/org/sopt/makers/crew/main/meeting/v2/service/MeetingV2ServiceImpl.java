@@ -274,6 +274,32 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	@Transactional
+	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithStress(MeetingV2ApplyMeetingDto requestBody,
+		Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+
+		validateMeetingCategoryEvent(meeting);
+
+		User user = userRepository.findByIdOrThrow(userId);
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
+
+		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
+
+		validateMeetingCapacity(meeting, applies);
+		validateUserAlreadyAppliedStressVersion(userId, applies);
+		validateApplyPeriod(meeting);
+		validateUserActivities(user);
+		validateUserJoinableParts(user, meeting);
+		coLeaders.validateCoLeader(meeting.getId(), user.getId());
+		meeting.validateIsNotMeetingLeader(userId);
+
+		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.STRESS, meeting, user, userId);
+		Apply savedApply = applyRepository.save(apply);
+		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+	}
+
+	@Override
+	@Transactional
 	public void applyMeetingCancel(Integer meetingId, Integer userId) {
 		boolean exists = applyRepository.existsByMeetingIdAndUserId(meetingId, userId);
 
@@ -707,6 +733,12 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (hasApplied) {
 			throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
 		}
+	}
+
+	private void validateUserAlreadyAppliedStressVersion(Integer userId, List<Apply> applies) {
+		boolean hasApplied = applies.stream()
+			.anyMatch(appliedInfo -> appliedInfo.getUser().getId().equals(userId));
+
 	}
 
 	private void validateApplyPeriod(Meeting meeting) {
