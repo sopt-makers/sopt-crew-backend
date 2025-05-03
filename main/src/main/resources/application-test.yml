@@ -112,13 +112,6 @@ sentry:
   environment: ${DEV_SENTRY_ENVIRONMENT}
   servername: ${DEV_SENTRY_SERVERNAME}
 
-logging:
-  slack:
-    webhook-uri: ${SENTRY_SLACK_WEBHOOK_URI}
-  config: classpath:logback-spring.xml
-  sentry:
-    repository-uri: ${SENTRY_REPOSITORY_URI}
-    environment: test
 
 img:
   flash: ${FLASH_IMAGE}
