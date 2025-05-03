@@ -284,9 +284,6 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		return meeting.title.contains(query);
 	}
 
-	/**
-	 * JSONB 배열에서 여러 키워드 중 하나라도 포함하는지 확인하는 표현식
-	 */
 	private BooleanExpression containsAnyKeyword(Expression<?> jsonbField, String[] keywords) {
 		if (keywords.length == 0) {
 			return Expressions.asBoolean(true).isTrue();
@@ -301,9 +298,6 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		return result;
 	}
 
-	/**
-	 * JSON 필드에서 특정 키워드를 포함하는지 확인하는 LIKE 표현식 생성
-	 */
 	private BooleanExpression createLikeExpression(Expression<?> jsonbField, String keyword) {
 		return Expressions.booleanTemplate(
 			"cast({0} as text) like {1}",
