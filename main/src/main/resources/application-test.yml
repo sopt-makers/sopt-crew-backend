@@ -31,9 +31,10 @@ spring:
       spec: maximumSize=500,expireAfterWrite=24h
 
 jwt:
+  header: Authorization
   secret: ${TEST_JWT_SECRET}
   access-token:
-    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME}
+    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
 
 aws-property:
   aws-region: ${AWS_REGION}
@@ -110,6 +111,7 @@ sentry:
   dsn: ${SENTRY_DSN}
   environment: ${DEV_SENTRY_ENVIRONMENT}
   servername: ${DEV_SENTRY_SERVERNAME}
+
 
 img:
   flash: ${FLASH_IMAGE}
