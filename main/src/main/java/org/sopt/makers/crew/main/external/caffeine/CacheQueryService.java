@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
@@ -76,10 +77,10 @@ public class CacheQueryService {
 	}
 
 	private Cache getRequiredCache(String cacheName) {
-		if (getCacheElementCount(cacheName) <= 0) {
+		Cache cache = cacheManager.getCache(cacheName);
+		if (Objects.isNull(cache))
 			throw new NotFoundException(NOT_FOUND_CACHE);
-		}
-		return cacheManager.getCache(cacheName);
+		return cache;
 	}
 
 	public void clearCache(String cacheName) {
@@ -116,9 +117,4 @@ public class CacheQueryService {
 			.count();
 	}
 
-	private long getCacheKeyElement(String cacheName) {
-		return cacheManager.getCacheNames()
-			.stream().filter(name -> name.equals(cacheName))
-			.count();
-	}
 }
