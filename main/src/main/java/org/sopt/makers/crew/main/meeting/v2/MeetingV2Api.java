@@ -9,7 +9,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOr
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
@@ -57,7 +57,7 @@ public interface MeetingV2Api {
 	@ApiResponses(value = {@ApiResponse(responseCode = "201", description = "성공"),
 		@ApiResponse(responseCode = "400", description = "\"이미지 파일이 없습니다.\" or \"한 개 이상의 파트를 입력해주세요\" or \"프로필을 입력해주세요\"", content = @Content),})
 	ResponseEntity<MeetingV2CreateMeetingResponseDto> createMeeting(
-		@Valid @RequestBody MeetingV2CreateMeetingBodyDto requestBody,
+		@Valid @RequestBody MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
 		Principal principal);
 
 	@Operation(summary = "일반 모임 지원")
@@ -97,7 +97,8 @@ public interface MeetingV2Api {
 	@Parameters({
 		@Parameter(name = "page", description = "페이지, default = 1", example = "1", schema = @Schema(type = "integer", format = "int32")),
 		@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50", schema = @Schema(type = "integer", format = "int32")),
-		@Parameter(name = "category", description = "카테고리", example = "스터디,번개", schema = @Schema(type = "string", format = "string")),
+		@Parameter(name = "category", description = "카테고리", example = "스터디,번쩍", schema = @Schema(type = "string", format = "string")),
+		@Parameter(name = "keyword", description = "키워드", example = "먹방,자기개발,기타", schema = @Schema(type = "string", format = "string")),
 		@Parameter(name = "status", description = "모임 모집 상태", example = "0,1", schema = @Schema(type = "string", format = "string")),
 		@Parameter(name = "isOnlyActiveGeneration", description = "활동기수만 참여여부", example = "true", schema = @Schema(type = "boolean", format = "boolean")),
 		@Parameter(name = "joinableParts", description = "검색할 활동 파트 다중 선택. OR 조건으로 검색됨 </br> Available values : PM, DESIGN, IOS, ANDROID, SERVER, WEB", example = "PM,DESIGN,IOS,ANDROID,SERVER,WEB", schema = @Schema(type = "array[string]", format = "array[string]")),
@@ -112,7 +113,7 @@ public interface MeetingV2Api {
 
 	@Operation(summary = "모임 수정", description = "모임 내용을 수정합니다.")
 	ResponseEntity<Void> updateMeeting(@PathVariable Integer meetingId,
-		@RequestBody @Valid MeetingV2CreateMeetingBodyDto requestBody, Principal principal);
+		@RequestBody @Valid MeetingV2CreateAndUpdateMeetingBodyDto requestBody, Principal principal);
 
 	@Operation(summary = "모임 지원자 상태 변경", description = "모임 지원자의 지원 상태를 변경합니다.")
 	ResponseEntity<Void> updateApplyStatus(@PathVariable Integer meetingId,

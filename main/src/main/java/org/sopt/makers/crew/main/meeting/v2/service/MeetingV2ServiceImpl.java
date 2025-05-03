@@ -45,6 +45,8 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
+import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
@@ -75,7 +77,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOr
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDetailDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
@@ -92,6 +94,9 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBann
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
+import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
@@ -125,6 +130,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final UserReader userReader;
 
 	private final S3Service s3Service;
+	private final TagV2Service tagV2Service;
 
 	private final MeetingMapper meetingMapper;
 	private final FlashMeetingMapper flashMeetingMapper;
@@ -194,14 +200,15 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	@Transactional
-	public MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateMeetingBodyDto requestBody, Integer userId) {
+	public MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
+		Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
 		if (user.getActivities() == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		if (requestBody.getFiles().size() == ZERO || requestBody.getJoinableParts().length == ZERO) {
+		if (requestBody.getFiles().isEmpty() || requestBody.getJoinableParts().length == ZERO) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
@@ -219,7 +226,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			coLeaderRepository.saveAll(coLeaders);
 		}
 
-		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId());
+		TagV2CreateGeneralMeetingTagResponseDto tagResponseDto = tagV2Service.createGeneralMeetingTag(
+			requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(), meeting.getId());
+
+		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId(), tagResponseDto.tagId());
 	}
 
 	@Override
@@ -306,16 +316,25 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand, pageable, time,
 			activeGenerationProvider.getActiveGeneration());
+
 		List<Integer> meetingIds = meetings.stream()
 			.map(Meeting::getId)
 			.toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
 
+		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
+			meetingIds);
+
 		List<MeetingResponseDto> meetingResponseDtos = meetings.getContent().stream()
-			.map(meeting -> MeetingResponseDto.of(meeting, meeting.getUser(),
-				allApplies.getApprovedCount(meeting.getId()), time.now(),
-				activeGenerationProvider.getActiveGeneration()))
+			.map(meeting -> MeetingResponseDto.of(
+				meeting,
+				meeting.getUser(),
+				allApplies.getApprovedCount(meeting.getId()),
+				time.now(),
+				activeGenerationProvider.getActiveGeneration(),
+				allTagsResponseDto)
+			)
 			.toList();
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetings.getPageable().getPageNumber() + 1,
@@ -378,7 +397,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	})
 	@Override
 	@Transactional
-	public void updateMeeting(Integer meetingId, MeetingV2CreateMeetingBodyDto requestBody, Integer userId) {
+	public void updateMeeting(Integer meetingId, MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
+		Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
@@ -390,7 +410,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()),
 			activeGenerationProvider.getActiveGeneration(), user,
 			user.getId());
+
 		meeting.updateMeeting(updatedMeeting);
+
+		tagV2Service.updateGeneralMeetingTag(requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(),
+			meeting.getId());
 	}
 
 	private void updateCoLeaders(List<Integer> coLeaderUserIds, Meeting updatedMeeting) {
@@ -469,23 +493,36 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.toList();
 		}
 
+		List<WelcomeMessageType> welcomeMessageTypes = tagV2Service.getWelcomeMessageTypesByMeetingId(meetingId);
+		List<MeetingKeywordType> meetingKeywordTypes = tagV2Service.getMeetingKeywordsTypesByMeetingId(meetingId);
+
 		return MeetingV2GetMeetingByIdResponseDto.of(meetingId, meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
 			approvedCount, isHost, isApply, isApproved,
-			meetingLeader, applyWholeInfoDtos, time.now());
+			meetingLeader, applyWholeInfoDtos, welcomeMessageTypes, meetingKeywordTypes, time.now());
 	}
 
 	@Override
 	public MeetingV2GetRecommendDto getRecommendMeetingsByIds(List<Integer> meetingIds, Integer userId) {
 
 		List<Meeting> meetings = meetingRepository.findRecommendMeetings(meetingIds, time);
-		List<Integer> foundMeetingIds = meetings.stream().map(Meeting::getId).toList();
+		List<Integer> foundMeetingIds = meetings.stream()
+			.map(Meeting::getId)
+			.toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(foundMeetingIds));
 
+		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
+			meetingIds);
+
 		List<MeetingResponseDto> meetingResponseDtos = meetings.stream()
-			.map(meeting -> MeetingResponseDto.of(meeting, meeting.getUser(),
-				allApplies.getApprovedCount(meeting.getId()), time.now(),
-				activeGenerationProvider.getActiveGeneration()))
+			.map(meeting -> MeetingResponseDto.of(
+				meeting,
+				meeting.getUser(),
+				allApplies.getApprovedCount(meeting.getId()),
+				time.now(),
+				activeGenerationProvider.getActiveGeneration(),
+				allTagsResponseDto)
+			)
 			.toList();
 
 		return MeetingV2GetRecommendDto.from(meetingResponseDtos);

@@ -2,9 +2,11 @@ drop table if exists "advertisement" cascade;
 drop table if exists "apply" cascade;
 drop table if exists "comment" cascade;
 drop table if exists "like" cascade;
+drop table if exists "tag" cascade;
+drop table if exists "flash" cascade;
+drop table if exists "post" cascade;
 drop table if exists "meeting" cascade;
 drop table if exists "notice" cascade;
-drop table if exists "post" cascade;
 drop table if exists "report" cascade;
 drop table if exists "user" cascade;
 drop table if exists "co_leader" cascade;
@@ -75,6 +77,42 @@ create table if not exists co_leader
     on delete cascade,
     "createdTimestamp"  timestamp default CURRENT_TIMESTAMP not null,
     "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP not null
+);
+
+create table if not exists flash
+(
+    id                  serial
+    primary key,
+    "leaderUserId"      integer                                        not null,
+    title               varchar(30)                                    not null,
+    "desc"              text,
+    "activityStartDate" timestamp                                      not null,
+    "activityEndDate"   timestamp                                      not null,
+    "flashPlace"        varchar(255),
+    "minimumCapacity"   integer                                        not null,
+    "maximumCapacity"   integer                                        not null,
+    "imageURL"          jsonb,
+    "createdTimestamp"  timestamp default CURRENT_TIMESTAMP            not null,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP            not null,
+    "createdGeneration" integer                                        not null,
+    "flashTimingType"   varchar,
+    "flashPlaceType"    varchar,
+    "startDate"         timestamp                                      not null,
+    "endDate"           timestamp                                      not null,
+    "meetingId"         integer
+    );
+
+create table if not exists tag
+(
+    id                     serial
+    primary key,
+    "tagType"              varchar                        not null,
+    "meetingId"            integer,
+    "flashId"              integer,
+    "welcomeMessageTypes"  jsonb,
+    "meetingKeywordTypes"  jsonb,
+    "createdTimestamp"     timestamp default CURRENT_TIMESTAMP not null,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP not null
 );
 
 create table if not exists apply

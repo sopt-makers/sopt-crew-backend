@@ -8,7 +8,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOr
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingLeaderUserIdDto;
@@ -28,7 +28,7 @@ public interface MeetingV2Service {
 
 	List<MeetingV2GetMeetingBannerResponseDto> getMeetingBanner();
 
-	MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateMeetingBodyDto requestBody, Integer userId);
+	MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateAndUpdateMeetingBodyDto requestBody, Integer userId);
 
 	MeetingV2ApplyMeetingResponseDto applyGeneralMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId);
 
@@ -43,7 +43,7 @@ public interface MeetingV2Service {
 
 	void deleteMeeting(Integer meetingId, Integer userId);
 
-	void updateMeeting(Integer meetingId, MeetingV2CreateMeetingBodyDto requestBody, Integer userId);
+	void updateMeeting(Integer meetingId, MeetingV2CreateAndUpdateMeetingBodyDto requestBody, Integer userId);
 
 	void updateApplyStatus(Integer meetingId, ApplyV2UpdateStatusBodyDto requestBody, Integer userId);
 

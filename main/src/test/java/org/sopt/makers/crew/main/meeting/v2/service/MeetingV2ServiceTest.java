@@ -45,7 +45,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
@@ -141,8 +141,14 @@ public class MeetingV2ServiceTest {
 				MeetingJoinablePart.IOS
 			};
 
+			// 환영 태그 목록
+			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
+
+			// 모임 키워드 목록
+			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -158,7 +164,9 @@ public class MeetingV2ServiceTest {
 				false, // isMentorNeeded (멘토 필요 여부)
 				canJoinOnlyActiveGeneration, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinableParts, // joinableParts (대상 파트 목록)
-				null
+				null, // coLeaders (공동모임장 리스트)
+				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
+				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
 			// when
@@ -195,7 +203,7 @@ public class MeetingV2ServiceTest {
 					activeGenerationProvide.getActiveGeneration(),  // createdGeneration 필드
 					canJoinOnlyActiveGeneration ? activeGenerationProvide.getActiveGeneration() : null,
 					// targetActiveGeneration 필드
-					new MeetingJoinablePart[] {MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS}  // joinableParts 필드
+					new MeetingJoinablePart[] {MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS} // joinableParts 필드
 				);
 
 			Assertions.assertThat(foundMeeting.getImageURL())
@@ -248,8 +256,14 @@ public class MeetingV2ServiceTest {
 				MeetingJoinablePart.IOS
 			};
 
+			// 환영 태그 목록
+			List<String> welcomeMessageTypes = List.of("YB 환영", "OB 환영");
+
+			// 모임 키워드 목록
+			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -265,7 +279,9 @@ public class MeetingV2ServiceTest {
 				false, // isMentorNeeded (멘토 필요 여부)
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinableParts, // joinableParts (대상 파트 목록)
-				List.of(savedJointLeader1.getId(), savedJointLeader2.getId())
+				List.of(savedJointLeader1.getId(), savedJointLeader2.getId()), // coLeaders (공동모임장 리스트)
+				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
+				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
 			// when
@@ -312,8 +328,14 @@ public class MeetingV2ServiceTest {
 				MeetingJoinablePart.IOS
 			};
 
+			// 환영 태그 목록
+			List<String> welcomeMessageTypes = List.of("YB 환영", "OB 환영");
+
+			// 모임 키워드 목록
+			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -329,7 +351,9 @@ public class MeetingV2ServiceTest {
 				false, // isMentorNeeded (멘토 필요 여부)
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinableParts, // joinableParts (대상 파트 목록)
-				List.of(0, Integer.MAX_VALUE)
+				List.of(0, Integer.MAX_VALUE), // coLeaders (공동모임장 리스트)
+				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
+				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
 			// when, then
@@ -364,8 +388,14 @@ public class MeetingV2ServiceTest {
 				MeetingJoinablePart.IOS
 			};
 
+			// 환영 태그 목록
+			List<String> welcomeMessageTypes = List.of("YB 환영", "OB 환영");
+
+			// 모임 키워드 목록
+			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -381,7 +411,9 @@ public class MeetingV2ServiceTest {
 				false, // isMentorNeeded (멘토 필요 여부)
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinableParts, // joinableParts (대상 파트 목록)
-				List.of(savedUser.getId())
+				List.of(savedUser.getId()), // coLeaders (공동모임장 리스트)
+				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
+				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
 			// when, then
@@ -416,8 +448,14 @@ public class MeetingV2ServiceTest {
 				MeetingJoinablePart.IOS
 			};
 
+			// 환영 태그 목록
+			List<String> welcomeMessageTypes = List.of("YB 환영", "OB 환영");
+
+			// 모임 키워드 목록
+			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -433,7 +471,9 @@ public class MeetingV2ServiceTest {
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinableParts, // joinableParts (대상 파트 목록)
-				null
+				null, // coLeaders (공동모임장 리스트)
+				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
+				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
 			// when, then
@@ -462,8 +502,14 @@ public class MeetingV2ServiceTest {
 			// 대상 파트 목록
 			MeetingJoinablePart[] joinableParts = null;
 
+			// 환영 태그 목록
+			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
+
+			// 모임 키워드 목록
+			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -479,7 +525,9 @@ public class MeetingV2ServiceTest {
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinableParts, // joinableParts (대상 파트 목록)
-				null
+				null, // coLeaders (공동모임장 리스트)
+				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
+				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
 			// when, then
@@ -509,8 +557,14 @@ public class MeetingV2ServiceTest {
 				MeetingJoinablePart.IOS
 			};
 
+			// 환영 태그 목록
+			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
+
+			// 모임 키워드 목록
+			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -526,7 +580,9 @@ public class MeetingV2ServiceTest {
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinableParts, // joinableParts (대상 파트 목록)
-				null
+				null, // coLeaders (공동모임장 리스트)
+				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
+				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
 			// when, then
@@ -1944,8 +2000,14 @@ public class MeetingV2ServiceTest {
 				MeetingJoinablePart.IOS
 			};
 
+			// 환영 태그 목록
+			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
+
+			// 모임 키워드 목록
+			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto dto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto dto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -1961,7 +2023,9 @@ public class MeetingV2ServiceTest {
 				false, // isMentorNeeded (멘토 필요 여부)
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinableParts, // joinableParts (대상 파트 목록)
-				null
+				null, // coLeaders (공동모임장 리스트)
+				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
+				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 			// when, then
 			Assertions.assertThatThrownBy(
@@ -1988,8 +2052,14 @@ public class MeetingV2ServiceTest {
 				MeetingJoinablePart.IOS
 			};
 
+			// 환영 태그 목록
+			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
+
+			// 모임 키워드 목록
+			List<String> meetingKeywordTypes = List.of("운동", "먹방");
+
 			// DTO 생성
-			MeetingV2CreateMeetingBodyDto dto = new MeetingV2CreateMeetingBodyDto(
+			MeetingV2CreateAndUpdateMeetingBodyDto dto = new MeetingV2CreateAndUpdateMeetingBodyDto(
 				"수정1", // title
 				files, // files (모임 이미지 리스트)
 				"행사", // category
@@ -2005,7 +2075,9 @@ public class MeetingV2ServiceTest {
 				false, // isMentorNeeded (멘토 필요 여부)
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinableParts, // joinableParts (대상 파트 목록)
-				List.of(3, 4)
+				List.of(3, 4), // coLeaders (공동모임장 리스트)
+				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
+				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
 			// when

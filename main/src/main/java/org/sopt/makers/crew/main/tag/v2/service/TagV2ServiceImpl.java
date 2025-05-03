@@ -2,18 +2,23 @@ package org.sopt.makers.crew.main.tag.v2.service;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.entity.tag.Tag;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
-import org.sopt.makers.crew.main.entity.tag.WelcomeMessageTypeProjection;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
-import org.sopt.makers.crew.main.entity.tag.enums.TagType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
+import org.sopt.makers.crew.main.entity.tag.projection.MeetingKeywordsTypeProjection;
+import org.sopt.makers.crew.main.entity.tag.projection.MeetingTagInfoProjection;
+import org.sopt.makers.crew.main.entity.tag.projection.WelcomeMessageTypeProjection;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
-import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateAndUpdateFlashTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateFlashTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,21 +32,44 @@ public class TagV2ServiceImpl implements TagV2Service {
 	private static final int MAX_MEETING_KEYWORD_SIZE = 2;
 	private final TagRepository tagRepository;
 
-	// 여기에 createGeneralMeetingTag 메서드도 추가하면 될 것 같습니다 나중에! (추후 일반 모임에 태그 추가 시 작성)
-
 	@Override
 	@Transactional
-	public TagV2CreateAndUpdateFlashTagResponseDto createFlashTag(List<String> welcomeMessageTypes,
-		List<String> meetingKeywordTypes,
-		Integer flashId) {
-		if (flashId == null) {
+	public TagV2CreateGeneralMeetingTagResponseDto createGeneralMeetingTag(List<String> welcomeMessageTypes,
+		List<String> meetingKeywordTypes, Integer meetingId) {
+		if (meetingId == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
 		List<WelcomeMessageType> welcomeMessageTypeEnums = toWelcomeMessageTypes(welcomeMessageTypes);
 		List<MeetingKeywordType> meetingKeywordTypeEnums = toMeetingKeywordTypes(meetingKeywordTypes);
 
-		return saveTag(flashId, welcomeMessageTypeEnums, meetingKeywordTypeEnums);
+		return saveGeneralMeetingTag(meetingId, welcomeMessageTypeEnums, meetingKeywordTypeEnums);
+	}
+
+	@Override
+	@Transactional
+	public TagV2CreateFlashTagResponseDto createFlashMeetingTag(List<String> welcomeMessageTypes,
+		List<String> meetingKeywordTypes, Integer flashId, Integer meetingId) {
+
+		if (flashId == null || meetingId == null) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		List<WelcomeMessageType> welcomeMessageTypeEnums = toWelcomeMessageTypes(welcomeMessageTypes);
+		List<MeetingKeywordType> meetingKeywordTypeEnums = toMeetingKeywordTypes(meetingKeywordTypes);
+
+		return saveFlashMeetingTag(flashId, meetingId, welcomeMessageTypeEnums, meetingKeywordTypeEnums);
+	}
+
+	@Override
+	public List<WelcomeMessageType> getWelcomeMessageTypesByMeetingId(Integer meetingId) {
+		if (meetingId == null) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		return tagRepository.findWelcomeMessageTypesByMeetingId(meetingId)
+			.map(WelcomeMessageTypeProjection::getWelcomeMessageTypes)
+			.orElse(List.of());
 	}
 
 	@Override
@@ -50,16 +78,51 @@ public class TagV2ServiceImpl implements TagV2Service {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
-		return tagRepository.findByFlashId(flashId)
+		return tagRepository.findWelcomeMessageTypesByFlashId(flashId)
 			.map(WelcomeMessageTypeProjection::getWelcomeMessageTypes)
-			.orElse(Collections.emptyList());
+			.orElse(List.of());
+	}
+
+	@Override
+	public List<MeetingKeywordType> getMeetingKeywordsTypesByMeetingId(Integer meetingId) {
+		if (meetingId == null) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		return tagRepository.findMeetingKeywordTypesByMeetingId(meetingId)
+			.map(MeetingKeywordsTypeProjection::getMeetingKeywordTypes)
+			.orElse(List.of());
+	}
+
+	@Override
+	public List<MeetingKeywordType> getMeetingKeywordsTypesByFlashId(Integer flashId) {
+		if (flashId == null) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		return tagRepository.findMeetingKeywordTypesByFlashId(flashId)
+			.map(MeetingKeywordsTypeProjection::getMeetingKeywordTypes)
+			.orElse(List.of());
 	}
 
 	@Override
 	@Transactional
-	public TagV2CreateAndUpdateFlashTagResponseDto updateFlashTag(List<String> welcomeMessageTypes,
-		List<String> meetingKeywordTypes,
-		Integer flashId) {
+	public void updateGeneralMeetingTag(List<String> welcomeMessageTypes,
+		List<String> meetingKeywordTypes, Integer meetingId) {
+		Tag tag = tagRepository.findTagByMeetingId(meetingId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_TAG.getErrorCode()));
+
+		List<WelcomeMessageType> welcomeMessageTypeEnums = toWelcomeMessageTypes(welcomeMessageTypes);
+		List<MeetingKeywordType> meetingKeywordTypeEnums = toMeetingKeywordTypes(meetingKeywordTypes);
+
+		tag.updateWelcomeMessageTypes(welcomeMessageTypeEnums);
+		tag.updateMeetingKeywordTypeEnums(meetingKeywordTypeEnums);
+	}
+
+	@Override
+	@Transactional
+	public void updateFlashMeetingTag(List<String> welcomeMessageTypes,
+		List<String> meetingKeywordTypes, Integer flashId) {
 		Tag tag = tagRepository.findTagByFlashId(flashId)
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_TAG.getErrorCode()));
 
@@ -68,16 +131,35 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 		tag.updateWelcomeMessageTypes(welcomeMessageTypeEnums);
 		tag.updateMeetingKeywordTypeEnums(meetingKeywordTypeEnums);
-
-		return TagV2CreateAndUpdateFlashTagResponseDto.from(tag.getId());
 	}
 
-	private TagV2CreateAndUpdateFlashTagResponseDto saveTag(Integer flashId,
-		List<WelcomeMessageType> welcomeMessageTypes,
-		List<MeetingKeywordType> meetingKeywordTypes) {
-		Tag tag = Tag.createFlashMeetingTag(TagType.FLASH, flashId, welcomeMessageTypes, meetingKeywordTypes);
+	@Override
+	public Map<Integer, TagV2MeetingTagsResponseDto> getMeetingTagsByMeetingIds(List<Integer> meetingIds) {
+		List<MeetingTagInfoProjection> meetingTagInfoProjections = tagRepository.findByMeetingIdIn(meetingIds);
+
+		return meetingTagInfoProjections.stream()
+			.collect(Collectors.toMap(
+				MeetingTagInfoProjection::getMeetingId,
+				projection -> TagV2MeetingTagsResponseDto.of(
+					Optional.ofNullable(projection.getMeetingKeywordTypes()).orElse(List.of()),
+					Optional.ofNullable(projection.getWelcomeMessageTypes()).orElse(List.of())
+				),
+				(existing, replacement) -> existing
+			));
+	}
+
+	private TagV2CreateGeneralMeetingTagResponseDto saveGeneralMeetingTag(Integer meetingId,
+		List<WelcomeMessageType> welcomeMessageTypes, List<MeetingKeywordType> meetingKeywordTypes) {
+		Tag tag = Tag.createGeneralMeetingTag(meetingId, welcomeMessageTypes, meetingKeywordTypes);
 		tagRepository.save(tag);
-		return TagV2CreateAndUpdateFlashTagResponseDto.from(tag.getId());
+		return TagV2CreateGeneralMeetingTagResponseDto.from(tag.getId());
+	}
+
+	private TagV2CreateFlashTagResponseDto saveFlashMeetingTag(Integer flashId, Integer meetingId,
+		List<WelcomeMessageType> welcomeMessageTypes, List<MeetingKeywordType> meetingKeywordTypes) {
+		Tag tag = Tag.createFlashMeetingTag(flashId, meetingId, welcomeMessageTypes, meetingKeywordTypes);
+		tagRepository.save(tag);
+		return TagV2CreateFlashTagResponseDto.from(tag.getId());
 	}
 
 	private List<WelcomeMessageType> toWelcomeMessageTypes(List<String> values) {
