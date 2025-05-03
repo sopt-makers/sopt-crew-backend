@@ -77,7 +77,6 @@ public class CacheQueryService {
 
 	private Cache getRequiredCache(String cacheName) {
 		if (getCacheElementCount(cacheName) <= 0) {
-			log.warn(LOG_CLEAR_CACHE, cacheName);
 			throw new NotFoundException(NOT_FOUND_CACHE);
 		}
 		return cacheManager.getCache(cacheName);
@@ -97,7 +96,6 @@ public class CacheQueryService {
 	public void evictCache(String cacheName, Integer key) {
 		log.info(LOG_EVICT_CACHE, cacheName);
 		if (getCacheElementCount(cacheName) <= 0) {
-			log.warn(LOG_CLEAR_CACHE, cacheName);
 			throw new NotFoundException(NOT_FOUND_CACHE);
 		}
 		if (!getRequiredCache(cacheName).evictIfPresent(key))
