@@ -14,11 +14,13 @@ import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
+@Builder(access = AccessLevel.PRIVATE)
 @Schema(description = "모임 상세 조회 dto")
 public class MeetingV2GetMeetingByIdResponseDto {
 
@@ -149,12 +151,21 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final List<String> meetingKeywordTypes;
 
-	public static MeetingV2GetMeetingByIdResponseDto of(Integer meetingId, Meeting meeting, List<CoLeader> coLeaders,
-		boolean isCoLeader, long approvedCount, Boolean isHost, Boolean isApply,
-		Boolean isApproved, MeetingCreatorDto meetingCreatorDto,
-		List<ApplyWholeInfoDto> appliedInfo, List<WelcomeMessageType> welcomeMessageTypes,
-		List<MeetingKeywordType> meetingKeywordTypes, LocalDateTime now) {
-
+	public static MeetingV2GetMeetingByIdResponseDto of(
+		Integer meetingId,
+		Meeting meeting,
+		List<CoLeader> coLeaders,
+		boolean isCoLeader,
+		long approvedCount,
+		Boolean isHost,
+		Boolean isApply,
+		Boolean isApproved,
+		MeetingCreatorDto meetingCreatorDto,
+		List<ApplyWholeInfoDto> appliedInfo,
+		List<WelcomeMessageType> welcomeMessageTypes,
+		List<MeetingKeywordType> meetingKeywordTypes,
+		LocalDateTime now
+	) {
 		Integer meetingStatus = meeting.getMeetingStatusValue(now);
 
 		List<MeetingV2CoLeaderResponseDto> coLeaderResponseDtos = coLeaders.stream()
@@ -169,15 +180,38 @@ public class MeetingV2GetMeetingByIdResponseDto {
 			.map(MeetingKeywordType::getValue)
 			.toList();
 
-		return new MeetingV2GetMeetingByIdResponseDto(meetingId, meeting.getUserId(), meeting.getTitle(),
-			meeting.getCategory().getValue(), meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(),
-			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getmStartDate(),
-			meeting.getmEndDate(), meeting.getLeaderDesc(), meeting.getNote(),
-			meeting.getIsMentorNeeded(), meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
-			meeting.getTargetActiveGeneration(), meeting.getJoinableParts(), coLeaderResponseDtos, isCoLeader,
-			meetingStatus,
-			approvedCount, isHost, isApply, isApproved, meetingCreatorDto, appliedInfo, welcomeMessageTypeValues,
-			meetingKeywordTypeValues);
+		return MeetingV2GetMeetingByIdResponseDto.builder()
+			.id(meetingId)
+			.userId(meeting.getUserId())
+			.title(meeting.getTitle())
+			.category(meeting.getCategory().getValue())
+			.imageURL(meeting.getImageURL())
+			.startDate(meeting.getStartDate())
+			.endDate(meeting.getEndDate())
+			.capacity(meeting.getCapacity())
+			.desc(meeting.getDesc())
+			.processDesc(meeting.getProcessDesc())
+			.mStartDate(meeting.getmStartDate())
+			.mEndDate(meeting.getmEndDate())
+			.leaderDesc(meeting.getLeaderDesc())
+			.note(meeting.getNote())
+			.isMentorNeeded(meeting.getIsMentorNeeded())
+			.canJoinOnlyActiveGeneration(meeting.getCanJoinOnlyActiveGeneration())
+			.createdGeneration(meeting.getCreatedGeneration())
+			.targetActiveGeneration(meeting.getTargetActiveGeneration())
+			.joinableParts(meeting.getJoinableParts())
+			.coMeetingLeaders(coLeaderResponseDtos)
+			.isCoLeader(isCoLeader)
+			.status(meetingStatus)
+			.approvedApplyCount(approvedCount)
+			.host(isHost)
+			.apply(isApply)
+			.approved(isApproved)
+			.user(meetingCreatorDto)
+			.appliedInfo(appliedInfo)
+			.welcomeMessageTypes(welcomeMessageTypeValues)
+			.meetingKeywordTypes(meetingKeywordTypeValues)
+			.build();
 	}
 
 	public LocalDateTime getmStartDate() {
