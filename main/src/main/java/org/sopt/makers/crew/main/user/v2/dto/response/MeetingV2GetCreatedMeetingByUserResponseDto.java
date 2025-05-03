@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.user.v2.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -44,7 +45,7 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	@NotNull
 	@Getter(AccessLevel.NONE)
 	boolean isCoLeader,
-	/**
+	/*
 	 * 썸네일 이미지
 	 *
 	 * @apiNote 여러개여도 첫번째 이미지만 사용
@@ -76,7 +77,7 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 ) {
 	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, boolean isCoLeader, int approvedCount,
 		LocalDateTime now, Integer activeGeneration) {
-		MeetingCreatorDto creatorDto = MeetingCreatorDto.of(meeting.getUser());
+		MeetingCreatorDto creatorDto = MeetingCreatorDto.from(meeting.getUser());
 		boolean canJoinOnlyActiveGeneration = Objects.equals(meeting.getTargetActiveGeneration(), activeGeneration)
 			&& meeting.getCanJoinOnlyActiveGeneration();
 
@@ -87,4 +88,62 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 			creatorDto, approvedCount, approvedCount);
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		MeetingV2GetCreatedMeetingByUserResponseDto that = (MeetingV2GetCreatedMeetingByUserResponseDto)o;
+		return status == that.status &&
+			isCoLeader == that.isCoLeader &&
+			capacity == that.capacity &&
+			appliedCount == that.appliedCount &&
+			approvedCount == that.approvedCount &&
+			Objects.equals(id, that.id) &&
+			Objects.equals(title, that.title) &&
+			Objects.equals(targetActiveGeneration, that.targetActiveGeneration) &&
+			Arrays.equals(joinableParts, that.joinableParts) &&
+			Objects.equals(category, that.category) &&
+			Objects.equals(canJoinOnlyActiveGeneration, that.canJoinOnlyActiveGeneration) &&
+			Objects.equals(imageURL, that.imageURL) &&
+			Objects.equals(isMentorNeeded, that.isMentorNeeded) &&
+			Objects.equals(mStartDate, that.mStartDate) &&
+			Objects.equals(mEndDate, that.mEndDate) &&
+			Objects.equals(user, that.user);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = Objects.hash(id, title, targetActiveGeneration, category, canJoinOnlyActiveGeneration,
+			status, isCoLeader, imageURL, isMentorNeeded, mStartDate, mEndDate,
+			capacity, user, appliedCount, approvedCount);
+		result = 31 * result + Arrays.hashCode(joinableParts);
+		return result;
+	}
+
+	@Override
+	public String toString() {
+		return "MeetingV2GetCreatedMeetingByUserResponseDto[" +
+			"id=" + id + ", " +
+			"title=" + title + ", " +
+			"targetActiveGeneration=" + targetActiveGeneration + ", " +
+			"joinableParts=" + Arrays.toString(joinableParts) + ", " +
+			"category=" + category + ", " +
+			"canJoinOnlyActiveGeneration=" + canJoinOnlyActiveGeneration + ", " +
+			"status=" + status + ", " +
+			"isCoLeader=" + isCoLeader + ", " +
+			"imageURL=" + imageURL + ", " +
+			"isMentorNeeded=" + isMentorNeeded + ", " +
+			"mStartDate=" + mStartDate + ", " +
+			"mEndDate=" + mEndDate + ", " +
+			"capacity=" + capacity + ", " +
+			"user=" + user + ", " +
+			"appliedCount=" + appliedCount + ", " +
+			"approvedCount=" + approvedCount + "]";
+	}
+
+	public boolean getIsCoLeader() {
+		return isCoLeader;
+	}
 }

@@ -18,7 +18,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Getter;
 
 @Getter
-public class MeetingRedisDto {
+public class MeetingCacheDto {
 	private final Integer id;
 	private final Integer userId;
 	private final String title;
@@ -53,23 +53,8 @@ public class MeetingRedisDto {
 	private final Integer targetActiveGeneration;
 	private final MeetingJoinablePart[] joinableParts;
 
-	public Meeting toEntity() {
-		return new Meeting(null, userId, title, category, imageURL, startDate, endDate, capacity, desc, processDesc,
-			mStartDate, mEndDate, leaderDesc, note, isMentorNeeded, canJoinOnlyActiveGeneration,
-			createdGeneration, targetActiveGeneration, joinableParts);
-	}
-
-	public static MeetingRedisDto of(Meeting meeting) {
-		return new MeetingRedisDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(), meeting.getCategory(),
-			meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(), meeting.getCapacity(),
-			meeting.getDesc(), meeting.getProcessDesc(), meeting.getmStartDate(), meeting.getmEndDate(),
-			meeting.getLeaderDesc(), meeting.getNote(), meeting.getIsMentorNeeded(),
-			meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
-			meeting.getTargetActiveGeneration(), meeting.getJoinableParts());
-	}
-
 	@JsonCreator
-	public MeetingRedisDto(
+	public MeetingCacheDto(
 		@JsonProperty("id") Integer id,
 		@JsonProperty("userId") Integer userId,
 		@JsonProperty("title") String title,
@@ -108,6 +93,21 @@ public class MeetingRedisDto {
 		this.createdGeneration = createdGeneration;
 		this.targetActiveGeneration = targetActiveGeneration;
 		this.joinableParts = joinableParts;
+	}
+
+	public static MeetingCacheDto from(Meeting meeting) {
+		return new MeetingCacheDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(), meeting.getCategory(),
+			meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(), meeting.getCapacity(),
+			meeting.getDesc(), meeting.getProcessDesc(), meeting.getmStartDate(), meeting.getmEndDate(),
+			meeting.getLeaderDesc(), meeting.getNote(), meeting.getIsMentorNeeded(),
+			meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
+			meeting.getTargetActiveGeneration(), meeting.getJoinableParts());
+	}
+
+	public Meeting toEntity() {
+		return new Meeting(null, userId, title, category, imageURL, startDate, endDate, capacity, desc, processDesc,
+			mStartDate, mEndDate, leaderDesc, note, isMentorNeeded, canJoinOnlyActiveGeneration,
+			createdGeneration, targetActiveGeneration, joinableParts);
 	}
 
 	public LocalDateTime getmStartDate() {

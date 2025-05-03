@@ -195,7 +195,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 		Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
 
-		return ResponseEntity.ok(meetingV2Service.getMeetingById(meetingId, userId));
+		return ResponseEntity.ok(meetingV2Service.getMeetingDetail(meetingId, userId));
 	}
 
 	@Override

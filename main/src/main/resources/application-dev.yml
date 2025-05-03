@@ -27,16 +27,16 @@ spring:
         format_sql: true
       dialect: org.hibernate.dialect.PostgreSQLDialect
       storage_engine: innodb
-  data:
-    redis:
-      host: redis
-      port: 6379
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=24h
 
 jwt:
   header: Authorization
   secret: ${DEV_JWT_SECRET}
   access-token:
-    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
+    expire-length: ${DEV_ACCESS_TOKEN_EXPIRED_TIME} # 10분
 
 aws-property:
   aws-region: ${AWS_REGION}
@@ -79,6 +79,9 @@ playground:
 management:
   server:
     port: ${ACTUATOR_PORT}
+  health:
+    redis:
+      enabled: false
   endpoints:
     enabled-by-default: false
     jmx:
@@ -86,19 +89,21 @@ management:
         exclude: "*"
     web:
       exposure:
-        include: info, health, prometheus
+        include: health, info, metrics, prometheus, caches, cachecontents
       base-path: ${ACTUATOR_PATH}
   endpoint:
     health:
       enabled: true
     info:
       enabled: true
+    metrics:
+      enabled: true
     prometheus:
       enabled: true
-  prometheus:
-    metrics:
-      export:
-        enabled: true
+    caches:
+      enabled: true
+    cachecontents:
+      enabled: true
 
 custom:
   paths:
@@ -109,13 +114,6 @@ sentry:
   environment: ${DEV_SENTRY_ENVIRONMENT}
   servername: ${DEV_SENTRY_SERVERNAME}
 
-logging:
-  slack:
-    webhook-uri: ${SENTRY_SLACK_WEBHOOK_URI}
-  config: classpath:logback-spring.xml
-  sentry:
-    repository-uri: ${SENTRY_REPOSITORY_URI}
-    environment: dev
 
 img:
   flash: ${FLASH_IMAGE}

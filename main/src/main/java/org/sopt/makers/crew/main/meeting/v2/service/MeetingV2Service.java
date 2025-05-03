@@ -11,6 +11,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingLeaderUserIdDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
@@ -51,7 +52,7 @@ public interface MeetingV2Service {
 	AppliesCsvFileUrlResponseDto getAppliesCsvFileUrl(Integer meetingId, List<Integer> status, String order,
 		Integer userId);
 
-	MeetingV2GetMeetingByIdResponseDto getMeetingById(Integer meetingId, Integer userId);
+	MeetingV2GetMeetingByIdResponseDto getMeetingDetail(Integer meetingId, Integer userId);
 
 	MeetingV2GetRecommendDto getRecommendMeetingsByIds(List<Integer> meetingIds, Integer userId);
 
@@ -60,4 +61,10 @@ public interface MeetingV2Service {
 
 	MeetingV2CreateAndUpdateMeetingForFlashResponseDto updateMeetingForFlash(Integer meetingId, Integer userId,
 		FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto updatedFlashBody);
+
+	MeetingLeaderUserIdDto getMeetingLeaderUserIdByMeetingId(Integer meetingId);
+
+	void evictMeetingCache(Integer meetingId);
+
+	void evictMeetingLeaderCache(Integer userId);
 }

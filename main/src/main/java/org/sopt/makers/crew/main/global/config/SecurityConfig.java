@@ -27,13 +27,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @EnableWebSecurity
 public class SecurityConfig {
-
-	private final JwtTokenProvider jwtTokenProvider;
-	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-
-	@Value("${management.endpoints.web.base-path}")
-	private String actuatorEndPoint;
-
 	private static final String[] SWAGGER_URL = {
 		"/swagger-resources/**",
 		"/favicon.ico",
@@ -44,6 +37,10 @@ public class SecurityConfig {
 		"/docs/swagger-ui/index.html",
 		"/swagger-ui/swagger-ui.css",
 	};
+	private final JwtTokenProvider jwtTokenProvider;
+	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+	@Value("${management.endpoints.web.base-path}")
+	private String actuatorEndPoint;
 
 	private String[] getAuthWhitelist() {
 		return new String[] {
@@ -54,6 +51,9 @@ public class SecurityConfig {
 			"/auth/v2/**",
 			actuatorEndPoint + "/health",
 			actuatorEndPoint + "/prometheus",
+			actuatorEndPoint + "/caches/**",
+			actuatorEndPoint + "/cachecontents/**",
+			actuatorEndPoint + "/metrics/**",
 			"/internal/**"
 		};
 	}

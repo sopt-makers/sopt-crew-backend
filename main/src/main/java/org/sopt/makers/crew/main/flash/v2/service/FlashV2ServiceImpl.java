@@ -6,6 +6,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 import org.sopt.makers.crew.main.entity.apply.Applies;
@@ -17,6 +18,7 @@ import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.external.notification.dto.event.FlashCreatedEventDto;
+import org.sopt.makers.crew.main.flash.v2.dto.event.FlashLeaderSyncEventDto;
 import org.sopt.makers.crew.main.flash.v2.dto.mapper.FlashMapper;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateAndUpdateResponseDto;
@@ -28,6 +30,7 @@ import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingLeaderUserIdDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
@@ -92,12 +95,11 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		return FlashV2CreateAndUpdateResponseDto.from(flash.getMeetingId());
 	}
 
-	public FlashV2GetFlashByMeetingIdResponseDto getFlashByMeetingId(Integer meetingId, Integer userId) {
+	public FlashV2GetFlashByMeetingIdResponseDto getFlashDetail(Integer meetingId, Integer userId) {
+		Flash flash = findFlashByMeetingId(meetingId);
+		checkLeaderSync(meetingId, flash);
+
 		User user = userV2Service.getUserByUserId(userId);
-
-		Flash flash = flashRepository.findByMeetingId(meetingId)
-			.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
-
 		MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(flash.getLeaderUserId());
 
 		Applies applies = new Applies(
@@ -129,8 +131,7 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		Integer userId) {
 		User user = userV2Service.getUserByUserId(userId);
 
-		Flash flash = flashRepository.findByMeetingId(meetingId)
-			.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
+		Flash flash = findFlashByMeetingId(meetingId);
 
 		if (user.getActivities() == null) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
@@ -168,5 +169,29 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 				userId,
 				i))
 			.toList();
+	}
+
+	private Flash findFlashByMeetingId(Integer meetingId) {
+		return flashRepository.findByMeetingId(meetingId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_FLASH.getErrorCode()));
+	}
+
+	private void checkLeaderSync(Integer meetingId, Flash flash) {
+		MeetingLeaderUserIdDto meetingLeaderUserIdDto = meetingV2Service.getMeetingLeaderUserIdByMeetingId(meetingId);
+		Integer meetingLeaderUserId = meetingLeaderUserIdDto.userId();
+
+		if (isLeaderUserIdMismatch(flash.getLeaderUserId(), meetingLeaderUserId)) {
+			publishLeaderSyncEvent(meetingId, flash.getLeaderUserId(), meetingLeaderUserId);
+		}
+	}
+
+	private boolean isLeaderUserIdMismatch(Integer flashLeaderUserId, Integer meetingLeaderUserId) {
+		return !Objects.equals(flashLeaderUserId, meetingLeaderUserId);
+	}
+
+	private void publishLeaderSyncEvent(Integer meetingId, Integer oldLeaderUserId, Integer newLeaderUserId) {
+		FlashLeaderSyncEventDto event = FlashLeaderSyncEventDto.of(
+			meetingId, oldLeaderUserId, newLeaderUserId);
+		eventPublisher.publishEvent(event);
 	}
 }
