@@ -288,11 +288,11 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	 * JSONB 배열에서 여러 키워드 중 하나라도 포함하는지 확인하는 표현식
 	 */
 	private BooleanExpression containsAnyKeyword(Expression<?> jsonbField, String[] keywords) {
-		BooleanExpression result = createLikeExpression(jsonbField, keywords[0]);
-
-		if (keywords.length == 1) {
-			return result;
+		if (keywords.length == 0) {
+			return Expressions.asBoolean(true).isTrue();
 		}
+
+		BooleanExpression result = createLikeExpression(jsonbField, keywords[0]);
 
 		for (int i = 1; i < keywords.length; i++) {
 			result = result.or(createLikeExpression(jsonbField, keywords[i]));
