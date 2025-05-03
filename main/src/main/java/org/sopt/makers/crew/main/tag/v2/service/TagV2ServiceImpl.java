@@ -2,7 +2,6 @@ package org.sopt.makers.crew.main.tag.v2.service;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -70,7 +69,7 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 		return tagRepository.findWelcomeMessageTypesByMeetingId(meetingId)
 			.map(WelcomeMessageTypeProjection::getWelcomeMessageTypes)
-			.orElse(Collections.emptyList());
+			.orElse(List.of());
 	}
 
 	@Override
@@ -81,7 +80,7 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 		return tagRepository.findWelcomeMessageTypesByFlashId(flashId)
 			.map(WelcomeMessageTypeProjection::getWelcomeMessageTypes)
-			.orElse(Collections.emptyList());
+			.orElse(List.of());
 	}
 
 	@Override
@@ -92,7 +91,7 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 		return tagRepository.findMeetingKeywordTypesByMeetingId(meetingId)
 			.map(MeetingKeywordsTypeProjection::getMeetingKeywordTypes)
-			.orElse(Collections.emptyList());
+			.orElse(List.of());
 	}
 
 	@Override
@@ -103,7 +102,7 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 		return tagRepository.findMeetingKeywordTypesByFlashId(flashId)
 			.map(MeetingKeywordsTypeProjection::getMeetingKeywordTypes)
-			.orElse(Collections.emptyList());
+			.orElse(List.of());
 	}
 
 	@Override
@@ -142,10 +141,10 @@ public class TagV2ServiceImpl implements TagV2Service {
 			.collect(Collectors.toMap(
 				MeetingTagInfoProjection::getMeetingId,
 				projection -> TagV2MeetingTagsResponseDto.of(
-					Optional.ofNullable(projection.getMeetingKeywordTypes()).orElse(Collections.emptyList()),
-					Optional.ofNullable(projection.getWelcomeMessageTypes()).orElse(Collections.emptyList())
+					Optional.ofNullable(projection.getMeetingKeywordTypes()).orElse(List.of()),
+					Optional.ofNullable(projection.getWelcomeMessageTypes()).orElse(List.of())
 				),
-				(existing, replacement) -> existing // 중복 시 첫 번째 값 유지
+				(existing, replacement) -> existing
 			));
 	}
 
