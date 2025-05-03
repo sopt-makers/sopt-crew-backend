@@ -97,7 +97,7 @@ public interface MeetingV2Api {
 	@Parameters({
 		@Parameter(name = "page", description = "페이지, default = 1", example = "1", schema = @Schema(type = "integer", format = "int32")),
 		@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50", schema = @Schema(type = "integer", format = "int32")),
-		@Parameter(name = "category", description = "카테고리", example = "스터디,번개", schema = @Schema(type = "string", format = "string")),
+		@Parameter(name = "category", description = "카테고리", example = "스터디,번쩍", schema = @Schema(type = "string", format = "string")),
 		@Parameter(name = "keyword", description = "키워드", example = "먹방,자기개발,기타", schema = @Schema(type = "string", format = "string")),
 		@Parameter(name = "status", description = "모임 모집 상태", example = "0,1", schema = @Schema(type = "string", format = "string")),
 		@Parameter(name = "isOnlyActiveGeneration", description = "활동기수만 참여여부", example = "true", schema = @Schema(type = "boolean", format = "boolean")),
