@@ -264,4 +264,8 @@ public class Meeting extends BaseTimeEntity {
 		return mEndDate;
 	}
 
+	public Meeting withId(Integer id) {
+		this.id = id;
+		return this;
+	}
 }

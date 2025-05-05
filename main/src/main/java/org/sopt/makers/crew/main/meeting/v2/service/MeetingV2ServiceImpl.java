@@ -276,7 +276,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Transactional
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithStress(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
-		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+		// Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+		Meeting meeting = meetingReader.getMeetingById(requestBody.getMeetingId()).toEntity();
 
 		validateMeetingCategoryEvent(meeting);
 
