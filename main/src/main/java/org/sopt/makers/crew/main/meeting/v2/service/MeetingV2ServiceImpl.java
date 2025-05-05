@@ -568,7 +568,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake()),
 			meetingId, meeting.getUserId(), userId);
 
-		AtomicInteger applyNumbers = new AtomicInteger(1);
+		Integer startPage = (queryCommand.getPage() - 1) * queryCommand.getTake();
+
+		AtomicInteger applyNumbers = new AtomicInteger(startPage + 1);
 		return applyInfoDtos.map(
 			a -> ApplyInfoDetailDto.toApplyInfoDetailDto(a, applyNumbers.getAndIncrement()));
 	}
