@@ -95,6 +95,15 @@ public class MeetingV2Controller implements MeetingV2Api {
 			.body(meetingV2Service.applyEventMeetingWithStress(requestBody, userId));
 	}
 
+	@PostMapping("/apply/legacy")
+	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyEventMeetingLegacy(
+		@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
+		Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(meetingV2Service.applyEventMeetingLegacyWithStress(requestBody, userId));
+	}
+
 	@Override
 	@DeleteMapping("/{meetingId}/apply")
 	@ResponseStatus(HttpStatus.OK)

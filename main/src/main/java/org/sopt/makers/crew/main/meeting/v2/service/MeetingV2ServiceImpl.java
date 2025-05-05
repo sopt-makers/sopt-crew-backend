@@ -301,6 +301,32 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	@Transactional
+	public MeetingV2ApplyMeetingResponseDto applyEventMeetingLegacyWithStress(MeetingV2ApplyMeetingDto requestBody,
+		Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+
+		validateMeetingCategoryEvent(meeting);
+
+		User user = userRepository.findByIdOrThrow(userId);
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
+
+		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
+
+		validateMeetingCapacity(meeting, applies);
+		validateUserAlreadyAppliedStressVersion(userId, applies);
+		validateApplyPeriod(meeting);
+		validateUserActivities(user);
+		validateUserJoinableParts(user, meeting);
+		coLeaders.validateCoLeader(meeting.getId(), user.getId());
+		meeting.validateIsNotMeetingLeader(userId);
+
+		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.STRESS, meeting, user, userId);
+		Apply savedApply = applyRepository.save(apply);
+		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+	}
+
+	@Override
+	@Transactional
 	public void applyMeetingCancel(Integer meetingId, Integer userId) {
 		boolean exists = applyRepository.existsByMeetingIdAndUserId(meetingId, userId);
 

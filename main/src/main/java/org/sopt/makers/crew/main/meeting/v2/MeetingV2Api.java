@@ -78,6 +78,15 @@ public interface MeetingV2Api {
 		@RequestBody MeetingV2ApplyMeetingDto requestBody,
 		Principal principal);
 
+	@Operation(hidden = true, summary = "행사 모임 지원 - Legacy")
+	@ApiResponses(value = {@ApiResponse(responseCode = "201", description = "지원 완료"),
+		@ApiResponse(responseCode = "400", description =
+			"\"모임이 없습니다\" or \"기수/파트를 설정해주세요\" or \"정원이 꽉찼습니다\" or \"활동 기수가 아닙니다\" " +
+				"or \"지원 가능한 파트가 아닙니다\" or \"지원 가능한 기간이 아닙니다\"", content = @Content),})
+	ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyEventMeetingLegacy(
+		@RequestBody MeetingV2ApplyMeetingDto requestBody,
+		Principal principal);
+
 	@Operation(summary = "모임 지원 취소")
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "지원 취소 완료"),
 		@ApiResponse(responseCode = "400", description =
