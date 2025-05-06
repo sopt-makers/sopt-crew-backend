@@ -44,23 +44,26 @@ public class AdminV2Controller {
 		List<Property> allProperties = adminService.findAllProperties();
 
 		allProperties.sort(Comparator.comparing(Property::getKey));
-
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-		Map<String, String> formattedJsonMap = new HashMap<>();
-		for (Property property : allProperties) {
-			if (property.getProperties() != null) {
-				String prettyJson = objectMapper.writeValueAsString(property.getProperties());
-				formattedJsonMap.put(property.getKey(), prettyJson);
+		try {
+			Map<String, String> formattedJsonMap = new HashMap<>();
+			for (Property property : allProperties) {
+				if (property.getProperties() != null) {
+					String prettyJson = objectMapper.writeValueAsString(property.getProperties());
+					formattedJsonMap.put(property.getKey(), prettyJson);
+				}
 			}
+
+			model.addObject("allProperties", allProperties);
+			model.addObject("formattedJsonMap", formattedJsonMap);
+			model.addObject("adminKey", adminKey);
+			model.setViewName("propertyPage");
+
+			return model;
+		} finally {
+			objectMapper.disable(SerializationFeature.INDENT_OUTPUT);
 		}
-
-		model.addObject("allProperties", allProperties);
-		model.addObject("formattedJsonMap", formattedJsonMap);
-		model.addObject("adminKey", adminKey);
-		model.setViewName("propertyPage");
-
-		return model;
 	}
 
 	/**
