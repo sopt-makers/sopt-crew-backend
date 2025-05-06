@@ -33,6 +33,11 @@ public class AdminV2Controller {
 	@Value("${custom.paths.adminKey}")
 	private String adminKey;
 
+	/**
+	 * propertyPage 조회
+	 *
+	 * @return propertyPage로 이동
+	 */
 	@GetMapping("/propertyPage")
 	public ModelAndView propertyPage(ModelAndView model) throws JsonProcessingException {
 		List<Property> allProperties = adminService.findAllProperties();
@@ -55,21 +60,15 @@ public class AdminV2Controller {
 		return model;
 	}
 
+	/**
+	 * property 수정
+	 *
+	 * @param key                : 프로퍼티 키 값
+	 * @param json               :  프로퍼티 json 값
+	 * @param redirectAttributes : redirect 시 메시지를 보여주기 위한 값
+	 * @return propertyPage로 이동
+	 */
 	@PostMapping("/property/update")
-	public String updateProperty(@RequestParam String key, @RequestParam String propertyKey,
-		@RequestParam Object propertyValue, RedirectAttributes redirectAttributes) {
-		try {
-			Property property = adminService.findPropertyByKey(key);
-			property.getProperties().put(propertyKey, propertyValue);
-			adminService.updateProperty(key, property.getProperties());
-			redirectAttributes.addFlashAttribute("message", "Property가 성공적으로 업데이트되었습니다.");
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("error", "Property 업데이트 중 오류가 발생했습니다: " + e.getMessage());
-		}
-		return getRedirectUrl();
-	}
-
-	@PostMapping("/property/update-json")
 	public String updatePropertyJson(@RequestParam String key, @RequestParam String json,
 		RedirectAttributes redirectAttributes) {
 		try {
@@ -84,14 +83,22 @@ public class AdminV2Controller {
 		return getRedirectUrl();
 	}
 
+	/**
+	 * property 추가
+	 *
+	 * @param key                : 프로퍼티 키 값
+	 * @param json               :  프로퍼티 json 값
+	 * @param redirectAttributes : redirect 시 메시지를 보여주기 위한 값
+	 * @return propertyPage로 이동
+	 */
 	@PostMapping("/property/add")
-	public String addProperty(@RequestParam String propertyKey, @RequestParam String propertyValue,
+	public String addProperty(@RequestParam String key, @RequestParam String json,
 		RedirectAttributes redirectAttributes) {
 		try {
-			Map<String, Object> addProperties = objectMapper.readValue(propertyValue,
+			Map<String, Object> addProperties = objectMapper.readValue(json,
 				new TypeReference<>() {
 				});
-			adminService.addProperty(propertyKey, addProperties);
+			adminService.addProperty(key, addProperties);
 			redirectAttributes.addFlashAttribute("message", "Property가 성공적으로 추가되었습니다.");
 		} catch (Exception e) {
 			redirectAttributes.addFlashAttribute("error", "Property 추가 중 오류가 발생했습니다: " + e.getMessage());
@@ -99,11 +106,18 @@ public class AdminV2Controller {
 		return getRedirectUrl();
 	}
 
+	/**
+	 * property 삭제
+	 *
+	 * @param key                : 프로퍼티 키 값
+	 * @param redirectAttributes : redirect 시 메시지를 보여주기 위한 값
+	 * @return propertyPage로 이동
+	 */
 	@PostMapping("/property/delete")
-	public String deletePropertyWithDeleteMapping(@RequestParam String propertyKey,
+	public String deletePropertyWithDeleteMapping(@RequestParam String key,
 		RedirectAttributes redirectAttributes) {
 		try {
-			adminService.deleteProperty(propertyKey);
+			adminService.deleteProperty(key);
 			redirectAttributes.addFlashAttribute("message", "Property가 성공적으로 삭제되었습니다.");
 		} catch (Exception e) {
 			redirectAttributes.addFlashAttribute("error", "Property 삭제 중 오류가 발생했습니다: " + e.getMessage());
