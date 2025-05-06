@@ -45,6 +45,8 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	@Transactional
 	public void deleteProperty(String propertyKey) {
+		propertyRepository.findByKey(propertyKey)
+			.orElseThrow(() -> new NotFoundException("프로퍼티 키가 존재하지 않습니다 해당 키 : " + propertyKey));
 		propertyRepository.deleteByKey(propertyKey);
 	}
 
