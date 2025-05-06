@@ -58,6 +58,12 @@
             position: relative;
         }
 
+        .json-actions {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+        }
+
         .btn {
             border: none;
             border-radius: 4px;
@@ -303,9 +309,9 @@
     <div class="add-property-section">
         <div class="section-title">새 속성 추가</div>
         <form class="add-form" method="post" th:action="@{/admin/v2/{adminKey}/property/add(adminKey=${adminKey})}">
-            <input name="key" placeholder="속성 키" required type="text"/>
-            <input id="jsonInput" name="json" placeholder="속성 값 (JSON 형식)" required type="text"/>
-            <button onclick="return validateJson()" type="submit">추가</button>
+            <input name="propertyKey" placeholder="속성 키" required type="text"/>
+            <input name="propertyValue" placeholder="속성 값 (JSON 형식)" required type="text"/>
+            <button type="submit">추가</button>
         </form>
     </div>
 </div>
@@ -318,7 +324,7 @@
             <span class="close" onclick="closeEditModal()">&times;</span>
         </div>
         <form class="modal-form" id="editForm" method="post"
-              th:action="@{/admin/v2/{adminKey}/property/update(adminKey=${adminKey})}">
+              th:action="@{/admin/v2/{adminKey}/property/update-json(adminKey=${adminKey})}">
             <input id="editPropertyKey" name="key" type="hidden">
             <textarea id="editPropertyJson" name="json"></textarea>
             <button type="submit">저장</button>
@@ -336,7 +342,7 @@
             <button class="btn-cancel" onclick="closeDeleteModal()">취소</button>
             <form id="deleteForm" method="post"
                   th:action="@{/admin/v2/{adminKey}/property/delete(adminKey=${adminKey})}">
-                <input id="deletePropertyKeyInput" name="key" type="hidden">
+                <input id="deletePropertyKeyInput" name="propertyKey" type="hidden">
                 <button class="btn-confirm-delete" type="submit">삭제</button>
             </form>
         </div>
@@ -381,17 +387,6 @@
         }
         if (event.target === document.getElementById('deleteModal')) {
             closeDeleteModal();
-        }
-    }
-
-    function validateJson(inputElement) {
-        const jsonInput = inputElement || document.getElementById('jsonInput').value;
-        try {
-            JSON.parse(jsonInput);
-            return true;
-        } catch (e) {
-            alert('유효한 JSON 형식이 아닙니다: ' + e.message);
-            return false;
         }
     }
 </script>

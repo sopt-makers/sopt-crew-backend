@@ -3,11 +3,8 @@ package org.sopt.makers.crew.main.admin.v2.service;
 import java.util.List;
 import java.util.Map;
 
-import org.sopt.makers.crew.main.admin.v2.service.dto.HomeProperties;
-import org.sopt.makers.crew.main.admin.v2.service.vo.PropertyVo;
 import org.sopt.makers.crew.main.entity.property.Property;
 import org.sopt.makers.crew.main.entity.property.PropertyRepository;
-import org.sopt.makers.crew.main.global.exception.ErrorStatus;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +16,6 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class AdminServiceImpl implements AdminService {
 
-	private static final String HOME_TOP_CONTENTS_KEY = "top";
-	private static final String HOME_MIDDLE_CONTENTS_KEY = "middle";
-	private static final String HOME_BOTTOM_CONTENTS_KEY = "bottom";
 	private final PropertyRepository propertyRepository;
 
 	@Override
@@ -51,18 +45,7 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	@Transactional
 	public void deleteProperty(String propertyKey) {
-		propertyRepository.findByKey(propertyKey)
-			.orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_PROPERTY_KEY + propertyKey));
 		propertyRepository.deleteByKey(propertyKey);
-	}
-
-	@Override
-	public HomeProperties findHomeProperties() {
-		return HomeProperties.from(List.of(
-			PropertyVo.newInstance(findPropertyByKey(HOME_TOP_CONTENTS_KEY)),
-			PropertyVo.newInstance(findPropertyByKey(HOME_MIDDLE_CONTENTS_KEY)),
-			PropertyVo.newInstance(findPropertyByKey(HOME_BOTTOM_CONTENTS_KEY))
-		));
 	}
 
 }
