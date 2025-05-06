@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.admin.v2;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,8 @@ public class AdminV2Controller {
 	@GetMapping("/propertyPage")
 	public ModelAndView propertyPage(ModelAndView model) throws JsonProcessingException {
 		List<Property> allProperties = adminService.findAllProperties();
+
+		allProperties.sort(Comparator.comparing(Property::getKey));
 
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
