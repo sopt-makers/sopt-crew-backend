@@ -58,12 +58,6 @@
             position: relative;
         }
 
-        .json-actions {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-        }
-
         .btn {
             border: none;
             border-radius: 4px;
@@ -310,8 +304,8 @@
         <div class="section-title">새 속성 추가</div>
         <form class="add-form" method="post" th:action="@{/admin/v2/{adminKey}/property/add(adminKey=${adminKey})}">
             <input name="key" placeholder="속성 키" required type="text"/>
-            <input name="json" placeholder="속성 값 (JSON 형식)" required type="text"/>
-            <button type="submit">추가</button>
+            <input id="jsonInput" name="json" placeholder="속성 값 (JSON 형식)" required type="text"/>
+            <button onclick="return validateJson()" type="submit">추가</button>
         </form>
     </div>
 </div>
@@ -387,6 +381,17 @@
         }
         if (event.target === document.getElementById('deleteModal')) {
             closeDeleteModal();
+        }
+    }
+
+    function validateJson(inputElement) {
+        const jsonInput = inputElement || document.getElementById('jsonInput').value;
+        try {
+            JSON.parse(jsonInput);
+            return true;
+        } catch (e) {
+            alert('유효한 JSON 형식이 아닙니다: ' + e.message);
+            return false;
         }
     }
 </script>
