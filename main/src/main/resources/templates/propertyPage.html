@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Property 관리 페이지</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .property-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .card-actions {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .property-key {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 10px;
+            padding-right: 100px;
+        }
+
+        .property-json {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            font-family: monospace;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .json-actions {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+            color: white;
+        }
+
+        .btn-edit {
+            background-color: #007bff;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #6c757d;
+            padding: 20px;
+        }
+
+        .add-property-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .add-form {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .add-form input {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex: 1;
+        }
+
+        .add-form button {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .edit-modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            border-radius: 8px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .modal-form textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .modal-form button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* 삭제 확인 모달 */
+        .delete-modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .delete-modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 30%;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .delete-modal-content p {
+            margin: 20px 0;
+            font-size: 16px;
+        }
+
+        .delete-modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+
+        .btn-confirm-delete {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Crew Property 관리 페이지</h1>
+
+    <div class="alert alert-success" th:if="${message}" th:text="${message}">
+        Property가 성공적으로 업데이트되었습니다.
+    </div>
+
+    <div class="alert alert-danger" th:if="${error}" th:text="${error}">
+        오류가 발생했습니다.
+    </div>
+
+    <div class="empty-message" th:if="${#lists.isEmpty(allProperties)}">
+        등록된 Property가 없습니다.
+    </div>
+
+    <div th:unless="${#lists.isEmpty(allProperties)}">
+        <div class="property-card" th:each="property : ${allProperties}">
+            <div class="card-actions">
+                <button class="btn btn-edit"
+                        onclick="openEditModal(this)"
+                        th:attr="data-key=${property.key}, data-json=${formattedJsonMap.get(property.key)}">
+                    수정
+                </button>
+                <button class="btn btn-delete"
+                        onclick="openDeleteModal(this)"
+                        th:attr="data-key=${property.key}">
+                    삭제
+                </button>
+            </div>
+            <div class="property-key" th:text="${property.key}">Property Key</div>
+
+            <div th:if="${!#maps.isEmpty(property.properties)}">
+                <div class="property-json">
+                    <pre th:utext="${formattedJsonMap.get(property.key)}"></pre>
+                </div>
+            </div>
+
+            <div class="empty-message" th:if="${#maps.isEmpty(property.properties)}">
+                설정된 속성이 없습니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- 새 속성 추가 섹션 -->
+    <div class="add-property-section">
+        <div class="section-title">새 속성 추가</div>
+        <form class="add-form" method="post" th:action="@{/admin/v2/{adminKey}/property/add(adminKey=${adminKey})}">
+            <input name="propertyKey" placeholder="속성 키" required type="text"/>
+            <input name="propertyValue" placeholder="속성 값 (JSON 형식)" required type="text"/>
+            <button type="submit">추가</button>
+        </form>
+    </div>
+</div>
+
+<!-- 수정 모달 -->
+<div class="edit-modal" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">속성 수정</div>
+            <span class="close" onclick="closeEditModal()">&times;</span>
+        </div>
+        <form class="modal-form" id="editForm" method="post"
+              th:action="@{/admin/v2/{adminKey}/property/update-json(adminKey=${adminKey})}">
+            <input id="editPropertyKey" name="key" type="hidden">
+            <textarea id="editPropertyJson" name="json"></textarea>
+            <button type="submit">저장</button>
+        </form>
+    </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="delete-modal" id="deleteModal">
+    <div class="delete-modal-content">
+        <h3>Property 삭제</h3>
+        <p>이 Property를 삭제하시겠습니까?</p>
+        <p id="deletePropertyKey" style="font-weight: bold;"></p>
+        <div class="delete-modal-actions">
+            <button class="btn-cancel" onclick="closeDeleteModal()">취소</button>
+            <form id="deleteForm" method="post"
+                  th:action="@{/admin/v2/{adminKey}/property/delete(adminKey=${adminKey})}">
+                <input id="deletePropertyKeyInput" name="propertyKey" type="hidden">
+                <button class="btn-confirm-delete" type="submit">삭제</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openEditModal(button) {
+        var key = button.getAttribute('data-key');
+        var jsonStr = button.getAttribute('data-json');
+
+        document.getElementById('editPropertyKey').value = key;
+        document.getElementById('editPropertyJson').value = jsonStr;
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    function openDeleteModal(button) {
+        var key = button.getAttribute('data-key');
+        document.getElementById('deletePropertyKey').textContent = key;
+        document.getElementById('deletePropertyKeyInput').value = key;
+        document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    window.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeEditModal();
+            closeDeleteModal();
+        }
+    });
+
+    window.onclick = function (event) {
+        if (event.target === document.getElementById('editModal')) {
+            closeEditModal();
+        }
+        if (event.target === document.getElementById('deleteModal')) {
+            closeDeleteModal();
+        }
+    }
+</script>
+</body>
+</html>
