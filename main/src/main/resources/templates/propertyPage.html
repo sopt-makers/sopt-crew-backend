@@ -324,7 +324,7 @@
             <span class="close" onclick="closeEditModal()">&times;</span>
         </div>
         <form class="modal-form" id="editForm" method="post"
-              th:action="@{/admin/v2/{adminKey}/property/update-json(adminKey=${adminKey})}">
+              th:action="@{/admin/v2/{adminKey}/property/update(adminKey=${adminKey})}">
             <input id="editPropertyKey" name="key" type="hidden">
             <textarea id="editPropertyJson" name="json"></textarea>
             <button type="submit">저장</button>
