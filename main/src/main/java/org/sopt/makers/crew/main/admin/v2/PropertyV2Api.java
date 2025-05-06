@@ -2,7 +2,6 @@ package org.sopt.makers.crew.main.admin.v2;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.admin.v2.dto.HomePropertyResponse;
 import org.sopt.makers.crew.main.admin.v2.dto.PropertyResponse;
 import org.springframework.http.ResponseEntity;
 
@@ -20,11 +19,4 @@ public interface PropertyV2Api {
 		@ApiResponse(responseCode = "401", description = "유효하지 않는 토큰입니다.", content = @Content)
 	})
 	ResponseEntity<List<PropertyResponse>> allProperties();
-
-	@Operation(summary = "프로퍼티/홈 컨텐츠 조회")
-	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "성공"),
-		@ApiResponse(responseCode = "401", description = "유효하지 않는 토큰입니다.", content = @Content)
-	})
-	ResponseEntity<HomePropertyResponse> getHomeProperty();
 }
