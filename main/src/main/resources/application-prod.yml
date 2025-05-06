@@ -107,6 +107,7 @@ management:
 custom:
   paths:
     eventApply: ${PROD_EVENT_APPLY_PATH}
+    adminKey: ${ADMIN_SECRET}
 
 sentry:
   dsn: ${SENTRY_DSN}
