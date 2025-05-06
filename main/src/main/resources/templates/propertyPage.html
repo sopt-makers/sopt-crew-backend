@@ -309,8 +309,8 @@
     <div class="add-property-section">
         <div class="section-title">새 속성 추가</div>
         <form class="add-form" method="post" th:action="@{/admin/v2/{adminKey}/property/add(adminKey=${adminKey})}">
-            <input name="propertyKey" placeholder="속성 키" required type="text"/>
-            <input name="propertyValue" placeholder="속성 값 (JSON 형식)" required type="text"/>
+            <input name="key" placeholder="속성 키" required type="text"/>
+            <input name="json" placeholder="속성 값 (JSON 형식)" required type="text"/>
             <button type="submit">추가</button>
         </form>
     </div>
@@ -342,7 +342,7 @@
             <button class="btn-cancel" onclick="closeDeleteModal()">취소</button>
             <form id="deleteForm" method="post"
                   th:action="@{/admin/v2/{adminKey}/property/delete(adminKey=${adminKey})}">
-                <input id="deletePropertyKeyInput" name="propertyKey" type="hidden">
+                <input id="deletePropertyKeyInput" name="key" type="hidden">
                 <button class="btn-confirm-delete" type="submit">삭제</button>
             </form>
         </div>
