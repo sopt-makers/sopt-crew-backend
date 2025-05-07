@@ -19,6 +19,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PropertyV2Controller implements PropertyV2Api {
 
+	private static final String HOME_TOP_CONTENTS_KEY = "top";
+	private static final String HOME_MIDDLE_CONTENTS_KEY = "middle";
+	private static final String HOME_BOTTOM_CONTENTS_KEY = "bottom";
 	private final AdminService adminService;
 	private final JsonPrettierService jsonPrettierService;
 
@@ -39,9 +42,9 @@ public class PropertyV2Controller implements PropertyV2Api {
 	}
 
 	private List<Property> combineMainHomeProperty() {
-		Property topContentProperty = adminService.findPropertyByKey("top");
-		Property middleContentProperty = adminService.findPropertyByKey("middle");
-		Property bottomContentProperty = adminService.findPropertyByKey("bottom");
+		Property topContentProperty = adminService.findPropertyByKey(HOME_TOP_CONTENTS_KEY);
+		Property middleContentProperty = adminService.findPropertyByKey(HOME_MIDDLE_CONTENTS_KEY);
+		Property bottomContentProperty = adminService.findPropertyByKey(HOME_BOTTOM_CONTENTS_KEY);
 
 		return List.of(topContentProperty, middleContentProperty, bottomContentProperty);
 	}
