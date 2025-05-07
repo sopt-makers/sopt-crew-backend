@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.admin.v2.service.vo.MainPageContentVo;
-import org.sopt.makers.crew.main.admin.v2.service.vo.PropertyVo;
+import org.sopt.makers.crew.main.entity.property.Property;
 import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,15 +25,21 @@ public class JsonPrettierServiceImpl implements JsonPrettierService {
 	private final ObjectMapper objectMapper;
 
 	@Override
-	public List<MainPageContentVo> prettierHomeContent(List<PropertyVo> homeProperties) {
+	public MainPageContentVo prettierHomeContent(Map<String, Object> json) throws IOException {
+		return objectMapper.convertValue(json.toString(), new TypeReference<>() {
+		});
+	}
+
+	@Override
+	public List<MainPageContentVo> prettierHomeContent(List<Property> homeProperties) {
 		return homeProperties.stream()
 			.map(p -> {
-				Map<String, Object> properties = p.properties();
+				Map<String, Object> properties = p.getProperties();
 				List<Integer> meetingIds = objectMapper.convertValue(properties.get("meetingIds"),
 					new TypeReference<>() {
 					});
-
-				return MainPageContentVo.newInstance(properties.get("title").toString(), meetingIds);
+				
+				return MainPageContentVo.of(properties.get("title").toString(), meetingIds);
 			}).toList();
 	}
 
@@ -44,15 +50,15 @@ public class JsonPrettierServiceImpl implements JsonPrettierService {
 	}
 
 	@Override
-	public Map<String, String> prettierJson(List<PropertyVo> allProperties) {
+	public Map<String, String> prettierJson(List<Property> allProperties) {
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
 		return allProperties.stream()
 			.collect(Collectors.toMap(
-				PropertyVo::key,
+				Property::getKey,
 				p -> {
 					try {
-						return objectMapper.writeValueAsString(p.properties());
+						return objectMapper.writeValueAsString(p.getProperties());
 					} catch (JsonProcessingException e) {
 						throw new ServerException(HttpStatus.INTERNAL_SERVER_ERROR);
 					}
