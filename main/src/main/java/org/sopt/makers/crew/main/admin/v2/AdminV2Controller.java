@@ -1,11 +1,11 @@
 package org.sopt.makers.crew.main.admin.v2;
 
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.sopt.makers.crew.main.admin.v2.service.AdminService;
+import org.sopt.makers.crew.main.admin.v2.service.JsonPrettierService;
 import org.sopt.makers.crew.main.entity.property.Property;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -30,6 +28,7 @@ public class AdminV2Controller {
 
 	private final AdminService adminService;
 	private final ObjectMapper objectMapper;
+	private final JsonPrettierService jsonPrettierService;
 
 	@Value("${custom.paths.adminKey}")
 	private String adminKey;
@@ -40,30 +39,20 @@ public class AdminV2Controller {
 	 * @return propertyPage로 이동
 	 */
 	@GetMapping("/propertyPage")
-	public ModelAndView propertyPage(ModelAndView model) throws JsonProcessingException {
+	public ModelAndView propertyPage(ModelAndView model) {
 		List<Property> allProperties = adminService.findAllProperties();
 
 		allProperties.sort(Comparator.comparing(Property::getKey));
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-		try {
-			Map<String, String> formattedJsonMap = new HashMap<>();
-			for (Property property : allProperties) {
-				if (property.getProperties() != null) {
-					String prettyJson = objectMapper.writeValueAsString(property.getProperties());
-					formattedJsonMap.put(property.getKey(), prettyJson);
-				}
-			}
+		Map<String, String> formattedJsonMap = jsonPrettierService.prettierJson(allProperties);
 
-			model.addObject("allProperties", allProperties);
-			model.addObject("formattedJsonMap", formattedJsonMap);
-			model.addObject("adminKey", adminKey);
-			model.setViewName("propertyPage");
+		model.addObject("allProperties", allProperties);
+		model.addObject("formattedJsonMap", formattedJsonMap);
+		model.addObject("adminKey", adminKey);
+		model.setViewName("propertyPage");
 
-			return model;
-		} finally {
-			objectMapper.disable(SerializationFeature.INDENT_OUTPUT);
-		}
+		return model;
 	}
 
 	/**
@@ -78,9 +67,8 @@ public class AdminV2Controller {
 	public String updatePropertyJson(@RequestParam String key, @RequestParam String json,
 		RedirectAttributes redirectAttributes) {
 		try {
-			Map<String, Object> updatedProperties = objectMapper.readValue(json,
-				new TypeReference<>() {
-				});
+			Map<String, Object> updatedProperties = jsonPrettierService.readValue(json);
+
 			adminService.updateProperty(key, updatedProperties);
 			redirectAttributes.addFlashAttribute("message", "Property가 성공적으로 업데이트되었습니다.");
 		} catch (Exception e) {
@@ -101,9 +89,7 @@ public class AdminV2Controller {
 	public String addProperty(@RequestParam String key, @RequestParam String json,
 		RedirectAttributes redirectAttributes) {
 		try {
-			Map<String, Object> addProperties = objectMapper.readValue(json,
-				new TypeReference<>() {
-				});
+			Map<String, Object> addProperties = jsonPrettierService.readValue(json);
 			adminService.addProperty(key, addProperties);
 			redirectAttributes.addFlashAttribute("message", "Property가 성공적으로 추가되었습니다.");
 		} catch (Exception e) {
