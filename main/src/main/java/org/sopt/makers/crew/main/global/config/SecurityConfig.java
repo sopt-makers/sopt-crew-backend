@@ -49,6 +49,7 @@ public class SecurityConfig {
 			"/meeting/v2/org-user/**",
 			"/auth/v2",
 			"/auth/v2/**",
+			"/admin/v2/**",
 			actuatorEndPoint + "/health",
 			actuatorEndPoint + "/prometheus",
 			actuatorEndPoint + "/caches/**",
