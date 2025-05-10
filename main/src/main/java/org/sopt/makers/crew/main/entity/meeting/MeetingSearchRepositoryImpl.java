@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
@@ -259,20 +259,22 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	}
 
 	private BooleanExpression eqJoinableParts(MeetingJoinablePart[] joinableParts) {
-
-		if (joinableParts == null || joinableParts.length == 0) {
+		if (ObjectUtils.isEmpty(joinableParts)) {
 			return null;
 		}
 
-		String joinablePartsToString = Arrays.stream(joinableParts)
-			.map(Enum::name) // 각 요소를 큰따옴표로 감쌉니다.
-			.collect(Collectors.joining(",", "'{", "}'")); // 요소들을 쉼표로 연결하고 중괄호로 감쌉니다.
+		return Arrays.stream(joinableParts)
+			.map(this::createPartCondition)
+			.reduce(BooleanExpression::or)
+			.orElse(null);
+	}
 
-		// SQL 템플릿을 사용하여 BooleanExpression 생성
+	private BooleanExpression createPartCondition(MeetingJoinablePart part) {
+		String partArray = "'{" + part.name() + "}'";
+
 		return Expressions.booleanTemplate(
-			"arraycontains({0}, " + joinablePartsToString + ") || '' = 'true'",
-			meeting.joinableParts,
-			joinablePartsToString
+			"arraycontains({0}, " + partArray + ") || '' = 'true'",
+			meeting.joinableParts
 		);
 	}
 
