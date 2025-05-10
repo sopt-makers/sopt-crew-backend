@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
@@ -258,7 +259,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	}
 
 	private BooleanExpression eqJoinableParts(MeetingJoinablePart[] joinableParts) {
-		if (joinableParts == null || joinableParts.length == 0) {
+		if (ObjectUtils.isEmpty(joinableParts)) {
 			return null;
 		}
 
