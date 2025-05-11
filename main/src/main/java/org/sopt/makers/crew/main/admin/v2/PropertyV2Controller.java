@@ -9,6 +9,7 @@ import org.sopt.makers.crew.main.admin.v2.service.JsonPrettierService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,15 @@ public class PropertyV2Controller implements PropertyV2Api {
 		return ResponseEntity.ok(
 			HomePropertyResponse.from(
 				jsonPrettierService.prettierHomeContent(adminService.findHomeProperties().propertyVos())));
+	}
+
+	@GetMapping
+	public ResponseEntity<PropertyResponse> getProperty(@RequestParam String key) {
+		return ResponseEntity.ok(
+			PropertyResponse.from(
+				adminService.findPropertyByKey(key)
+			)
+		);
 	}
 
 }
