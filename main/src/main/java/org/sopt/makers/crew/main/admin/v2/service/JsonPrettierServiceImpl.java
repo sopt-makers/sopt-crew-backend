@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.admin.v2.service.vo.MainPageContentVo;
-import org.sopt.makers.crew.main.entity.property.Property;
+import org.sopt.makers.crew.main.admin.v2.service.vo.PropertyVo;
 import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,16 +25,10 @@ public class JsonPrettierServiceImpl implements JsonPrettierService {
 	private final ObjectMapper objectMapper;
 
 	@Override
-	public MainPageContentVo prettierHomeContent(Map<String, Object> json) throws IOException {
-		return objectMapper.convertValue(json, new TypeReference<>() {
-		});
-	}
-
-	@Override
-	public List<MainPageContentVo> prettierHomeContent(List<Property> homeProperties) {
+	public List<MainPageContentVo> prettierHomeContent(List<PropertyVo> homeProperties) {
 		return homeProperties.stream()
 			.map(p -> {
-				Map<String, Object> properties = p.getProperties();
+				Map<String, Object> properties = p.properties();
 				List<Integer> meetingIds = objectMapper.convertValue(properties.get("meetingIds"),
 					new TypeReference<>() {
 					});
@@ -50,15 +44,15 @@ public class JsonPrettierServiceImpl implements JsonPrettierService {
 	}
 
 	@Override
-	public Map<String, String> prettierJson(List<Property> allProperties) {
+	public Map<String, String> prettierJson(List<PropertyVo> allProperties) {
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
 		return allProperties.stream()
 			.collect(Collectors.toMap(
-				Property::getKey,
+				PropertyVo::key,
 				p -> {
 					try {
-						return objectMapper.writeValueAsString(p.getProperties());
+						return objectMapper.writeValueAsString(p.properties());
 					} catch (JsonProcessingException e) {
 						throw new ServerException(HttpStatus.INTERNAL_SERVER_ERROR);
 					}
