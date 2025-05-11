@@ -116,6 +116,10 @@ dependencies {
     // JSR305 (The compiler helps interpret null-safety-related annotations)
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
 
+    // thymeleaf
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+
 }
 
 tasks.named('test') {
