@@ -26,7 +26,7 @@ public class JsonPrettierServiceImpl implements JsonPrettierService {
 
 	@Override
 	public MainPageContentVo prettierHomeContent(Map<String, Object> json) throws IOException {
-		return objectMapper.convertValue(json.toString(), new TypeReference<>() {
+		return objectMapper.convertValue(json, new TypeReference<>() {
 		});
 	}
 
@@ -38,7 +38,7 @@ public class JsonPrettierServiceImpl implements JsonPrettierService {
 				List<Integer> meetingIds = objectMapper.convertValue(properties.get("meetingIds"),
 					new TypeReference<>() {
 					});
-				
+
 				return MainPageContentVo.of(properties.get("title").toString(), meetingIds);
 			}).toList();
 	}
