@@ -4,10 +4,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import org.sopt.makers.crew.main.admin.v2.service.AdminKeyProvider;
 import org.sopt.makers.crew.main.admin.v2.service.AdminService;
 import org.sopt.makers.crew.main.admin.v2.service.JsonPrettierService;
 import org.sopt.makers.crew.main.entity.property.Property;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,9 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,11 +24,8 @@ import lombok.RequiredArgsConstructor;
 public class AdminV2Controller {
 
 	private final AdminService adminService;
-	private final ObjectMapper objectMapper;
 	private final JsonPrettierService jsonPrettierService;
-
-	@Value("${custom.paths.adminKey}")
-	private String adminKey;
+	private final AdminKeyProvider adminKeyProvider;
 
 	/**
 	 * propertyPage 조회
@@ -39,18 +33,18 @@ public class AdminV2Controller {
 	 * @return propertyPage로 이동
 	 */
 	@GetMapping("/propertyPage")
-	public ModelAndView propertyPage(ModelAndView model) {
+	public ModelAndView propertyPage() {
 		List<Property> allProperties = adminService.findAllProperties();
 
 		allProperties.sort(Comparator.comparing(Property::getKey));
-		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
 		Map<String, String> formattedJsonMap = jsonPrettierService.prettierJson(allProperties);
 
+		ModelAndView model = new ModelAndView("propertyPage");
+
 		model.addObject("allProperties", allProperties);
 		model.addObject("formattedJsonMap", formattedJsonMap);
-		model.addObject("adminKey", adminKey);
-		model.setViewName("propertyPage");
+		model.addObject("adminKey", adminKeyProvider.getAdminKey());
 
 		return model;
 	}
@@ -118,6 +112,6 @@ public class AdminV2Controller {
 	}
 
 	private String getRedirectUrl() {
-		return "redirect:/admin/v2/" + adminKey + "/propertyPage";
+		return "redirect:/admin/v2/" + adminKeyProvider.getAdminKey() + "/propertyPage";
 	}
 }
