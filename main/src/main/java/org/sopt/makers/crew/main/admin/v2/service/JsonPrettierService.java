@@ -5,15 +5,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.sopt.makers.crew.main.admin.v2.service.vo.MainPageContentVo;
-import org.sopt.makers.crew.main.entity.property.Property;
+import org.sopt.makers.crew.main.admin.v2.service.vo.PropertyVo;
 
 public interface JsonPrettierService {
 
-	MainPageContentVo prettierHomeContent(Map<String, Object> json) throws IOException;
-
-	List<MainPageContentVo> prettierHomeContent(List<Property> homeProperties);
+	List<MainPageContentVo> prettierHomeContent(List<PropertyVo> homeProperties);
 
 	Map<String, Object> readValue(String json) throws IOException;
 
-	Map<String, String> prettierJson(List<Property> allProperties);
+	Map<String, String> prettierJson(List<PropertyVo> allProperties);
 }

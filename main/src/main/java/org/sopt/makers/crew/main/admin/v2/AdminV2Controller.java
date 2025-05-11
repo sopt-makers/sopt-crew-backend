@@ -1,13 +1,12 @@
 package org.sopt.makers.crew.main.admin.v2;
 
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 
+import org.sopt.makers.crew.main.admin.v2.service.AdminFacade;
 import org.sopt.makers.crew.main.admin.v2.service.AdminKeyProvider;
 import org.sopt.makers.crew.main.admin.v2.service.AdminService;
 import org.sopt.makers.crew.main.admin.v2.service.JsonPrettierService;
-import org.sopt.makers.crew.main.entity.property.Property;
+import org.sopt.makers.crew.main.admin.v2.service.dto.AdminPagePresenter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +25,7 @@ public class AdminV2Controller {
 	private final AdminService adminService;
 	private final JsonPrettierService jsonPrettierService;
 	private final AdminKeyProvider adminKeyProvider;
+	private final AdminFacade adminFacade;
 
 	/**
 	 * propertyPage 조회
@@ -34,16 +34,13 @@ public class AdminV2Controller {
 	 */
 	@GetMapping("/propertyPage")
 	public ModelAndView propertyPage() {
-		List<Property> allProperties = adminService.findAllProperties();
 
-		allProperties.sort(Comparator.comparing(Property::getKey));
-
-		Map<String, String> formattedJsonMap = jsonPrettierService.prettierJson(allProperties);
+		AdminPagePresenter mainPagePresenter = adminFacade.madeViewData();
 
 		ModelAndView model = new ModelAndView("propertyPage");
 
-		model.addObject("allProperties", allProperties);
-		model.addObject("formattedJsonMap", formattedJsonMap);
+		model.addObject("allProperties", mainPagePresenter.properties());
+		model.addObject("formattedJsonMap", mainPagePresenter.formattedJson());
 		model.addObject("adminKey", adminKeyProvider.getAdminKey());
 
 		return model;
