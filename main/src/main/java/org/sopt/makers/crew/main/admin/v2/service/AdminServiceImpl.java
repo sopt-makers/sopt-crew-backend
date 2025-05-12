@@ -7,6 +7,7 @@ import org.sopt.makers.crew.main.admin.v2.service.dto.HomeProperties;
 import org.sopt.makers.crew.main.admin.v2.service.vo.PropertyVo;
 import org.sopt.makers.crew.main.entity.property.Property;
 import org.sopt.makers.crew.main.entity.property.PropertyRepository;
+import org.sopt.makers.crew.main.global.exception.ErrorStatus;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +52,7 @@ public class AdminServiceImpl implements AdminService {
 	@Transactional
 	public void deleteProperty(String propertyKey) {
 		propertyRepository.findByKey(propertyKey)
-			.orElseThrow(() -> new NotFoundException("프로퍼티 키가 존재하지 않습니다 해당 키 : " + propertyKey));
+			.orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_PROPERTY_KEY + propertyKey));
 		propertyRepository.deleteByKey(propertyKey);
 	}
 
