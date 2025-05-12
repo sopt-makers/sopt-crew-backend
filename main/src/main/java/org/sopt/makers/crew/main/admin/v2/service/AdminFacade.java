@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.sopt.makers.crew.main.admin.v2.service.dto.AdminPagePresenter;
 import org.sopt.makers.crew.main.admin.v2.service.dto.PropertyDto;
+
 import org.sopt.makers.crew.main.admin.v2.service.vo.PropertyVo;
 import org.sopt.makers.crew.main.entity.property.Property;
 import org.springframework.stereotype.Service;
@@ -36,5 +37,6 @@ public class AdminFacade {
 	public PropertyDto findPropertyByKey(String key) {
 		return PropertyDto.from(adminService.findPropertyByKey(key));
 	}
+
 
 }
