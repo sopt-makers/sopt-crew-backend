@@ -162,6 +162,8 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 			Objects.equals(canJoinOnlyActiveGeneration, that.canJoinOnlyActiveGeneration) &&
 			Objects.equals(imageURL, that.imageURL) &&
 			Objects.equals(isMentorNeeded, that.isMentorNeeded) &&
+			Objects.equals(startDate, that.startDate) &&
+			Objects.equals(endDate, that.endDate) &&
 			Objects.equals(mStartDate, that.mStartDate) &&
 			Objects.equals(mEndDate, that.mEndDate) &&
 			Objects.equals(user, that.user) &&
@@ -181,6 +183,8 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 			isCoLeader,
 			imageURL,
 			isMentorNeeded,
+			startDate,
+			endDate,
 			mStartDate,
 			mEndDate,
 			capacity,
@@ -205,6 +209,8 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 			"isCoLeader=" + isCoLeader + ", " +
 			"imageURL=" + imageURL + ", " +
 			"isMentorNeeded=" + isMentorNeeded + ", " +
+			"startDate=" + startDate + ", " +
+			"endDate=" + endDate + ", " +
 			"mStartDate=" + mStartDate + ", " +
 			"mEndDate=" + mEndDate + ", " +
 			"capacity=" + capacity + ", " +
