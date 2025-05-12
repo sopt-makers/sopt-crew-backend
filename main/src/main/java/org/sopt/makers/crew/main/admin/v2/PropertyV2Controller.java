@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.sopt.makers.crew.main.admin.v2.dto.HomePropertyResponse;
 import org.sopt.makers.crew.main.admin.v2.dto.PropertyResponse;
+import org.sopt.makers.crew.main.admin.v2.dto.PropertyValueResponse;
 import org.sopt.makers.crew.main.admin.v2.service.AdminService;
 import org.sopt.makers.crew.main.admin.v2.service.JsonPrettierService;
 import org.springframework.http.ResponseEntity;
@@ -37,9 +38,9 @@ public class PropertyV2Controller implements PropertyV2Api {
 	}
 
 	@GetMapping
-	public ResponseEntity<PropertyResponse> getProperty(@RequestParam String key) {
+	public ResponseEntity<PropertyValueResponse> getProperty(@RequestParam String key) {
 		return ResponseEntity.ok(
-			PropertyResponse.from(
+			PropertyValueResponse.from(
 				adminService.findPropertyByKey(key)
 			)
 		);
