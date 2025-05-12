@@ -145,7 +145,7 @@ public class MeetingV2ServiceTest {
 			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
 
 			// 모임 키워드 목록
-			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
 			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
@@ -260,7 +260,7 @@ public class MeetingV2ServiceTest {
 			List<String> welcomeMessageTypes = List.of("YB 환영", "OB 환영");
 
 			// 모임 키워드 목록
-			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
 			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
@@ -332,7 +332,7 @@ public class MeetingV2ServiceTest {
 			List<String> welcomeMessageTypes = List.of("YB 환영", "OB 환영");
 
 			// 모임 키워드 목록
-			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
 			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
@@ -392,7 +392,7 @@ public class MeetingV2ServiceTest {
 			List<String> welcomeMessageTypes = List.of("YB 환영", "OB 환영");
 
 			// 모임 키워드 목록
-			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
 			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
@@ -452,7 +452,7 @@ public class MeetingV2ServiceTest {
 			List<String> welcomeMessageTypes = List.of("YB 환영", "OB 환영");
 
 			// 모임 키워드 목록
-			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
 			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
@@ -506,7 +506,7 @@ public class MeetingV2ServiceTest {
 			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
 
 			// 모임 키워드 목록
-			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
 			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
@@ -561,7 +561,7 @@ public class MeetingV2ServiceTest {
 			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
 
 			// 모임 키워드 목록
-			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
 			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
@@ -2004,7 +2004,7 @@ public class MeetingV2ServiceTest {
 			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
 
 			// 모임 키워드 목록
-			List<String> meetingKeywordTypes = List.of("자기개발", "네트워킹");
+			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
 			MeetingV2CreateAndUpdateMeetingBodyDto dto = new MeetingV2CreateAndUpdateMeetingBodyDto(

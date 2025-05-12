@@ -14,7 +14,7 @@ public record UserV2GetAppliedMeetingByUserResponseDto(
 	@NotNull
 	Integer count
 ) {
-	public static UserV2GetAppliedMeetingByUserResponseDto of(List<ApplyV2GetAppliedMeetingByUserResponseDto> apply){
+	public static UserV2GetAppliedMeetingByUserResponseDto from(List<ApplyV2GetAppliedMeetingByUserResponseDto> apply) {
 		return new UserV2GetAppliedMeetingByUserResponseDto(apply, apply.size());
 	}
 }

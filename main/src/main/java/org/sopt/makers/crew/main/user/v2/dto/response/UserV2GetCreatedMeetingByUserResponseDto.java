@@ -14,7 +14,8 @@ public record UserV2GetCreatedMeetingByUserResponseDto(
 	@NotNull
 	Integer count
 ) {
-	public static UserV2GetCreatedMeetingByUserResponseDto of(List<MeetingV2GetCreatedMeetingByUserResponseDto> meetings){
+	public static UserV2GetCreatedMeetingByUserResponseDto from(
+		List<MeetingV2GetCreatedMeetingByUserResponseDto> meetings) {
 		return new UserV2GetCreatedMeetingByUserResponseDto(meetings, meetings.size());
 	}
 }

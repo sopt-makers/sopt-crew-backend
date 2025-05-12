@@ -37,10 +37,9 @@ public class MeetingResponseDto {
 	@NotNull
 	private final Integer targetActiveGeneration;
 
-	@Schema(example = "[\n"
-		+ "    \"ANDROID\",\n"
-		+ "    \"IOS\"\n"
-		+ "  ]", description = "대상 파트 목록")
+	@Schema(example = """
+		["ANDROID", "IOS"]
+		""", description = "대상 파트 목록")
 	@NotNull
 	private final MeetingJoinablePart[] joinableParts;
 
@@ -67,6 +66,14 @@ public class MeetingResponseDto {
 	@Schema(example = "false", description = "멘토 필요 여부")
 	@NotNull
 	private final Boolean isMentorNeeded;
+
+	@Schema(description = "모임 모집 시작일", example = "2024-06-11T15:30:00")
+	@NotNull
+	private final LocalDateTime startDate;
+
+	@Schema(description = "모임 모집 종료일", example = "2024-06-17T15:30:00")
+	@NotNull
+	private final LocalDateTime endDate;
 
 	@Schema(description = "모임 활동 시작일", example = "2024-07-31T15:30:00", name = "mStartDate")
 	@NotNull
@@ -127,6 +134,8 @@ public class MeetingResponseDto {
 			meeting.getMeetingStatusValue(now),
 			meeting.getImageURL(),
 			meeting.getIsMentorNeeded(),
+			meeting.getStartDate(),
+			meeting.getEndDate(),
 			meeting.getmStartDate(),
 			meeting.getmEndDate(),
 			meeting.getCapacity(),

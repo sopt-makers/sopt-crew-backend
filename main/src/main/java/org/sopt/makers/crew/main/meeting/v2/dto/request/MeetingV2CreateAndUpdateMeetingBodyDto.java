@@ -94,7 +94,7 @@ public class MeetingV2CreateAndUpdateMeetingBodyDto {
 	private List<String> welcomeMessageTypes;
 
 	@Schema(example = """
-		["운동", "자기개발"]
+		["운동", "자기계발"]
 		""", description = "모임 키워드 타입 리스트")
 	@Size(min = 1, max = 2)
 	private List<String> meetingKeywordTypes;
