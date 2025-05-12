@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.user.v2.service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,6 +20,8 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.global.exception.BaseException;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
+import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
+import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
 import org.sopt.makers.crew.main.user.v2.dto.response.ApplyV2GetAppliedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.MeetingV2GetCreatedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
@@ -38,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class UserV2ServiceImpl implements UserV2Service {
 
+	private final TagV2Service tagV2Service;
 	private final UserRepository userRepository;
 	private final ApplyRepository applyRepository;
 	private final MeetingRepository meetingRepository;
@@ -107,43 +111,66 @@ public class UserV2ServiceImpl implements UserV2Service {
 		List<Integer> coLeaderMeetingIds = getCoLeaderMeetingIds(coLeaderRepository.findAllByUserId(userId));
 
 		List<Meeting> myMeetings = meetingRepository.findAllByUserIdOrIdInWithUser(userId, coLeaderMeetingIds);
-		List<Integer> myMeetingIds = myMeetings.stream().map(Meeting::getId).toList();
+		List<Integer> myMeetingIds = myMeetings.stream()
+			.map(Meeting::getId)
+			.toList();
+
 		Applies applies = new Applies(applyRepository.findAllByMeetingIdIn(myMeetingIds));
 		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingIdIn(myMeetingIds));
 
+		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
+			myMeetingIds);
+
 		List<MeetingV2GetCreatedMeetingByUserResponseDto> meetingByUserDtos = myMeetings.stream()
-			.map(meeting -> MeetingV2GetCreatedMeetingByUserResponseDto.of(meeting,
-				coLeaders.isCoLeader(meeting.getId(), userId), applies.getApprovedCount(meeting.getId()), time.now(),
-				activeGenerationProvider.getActiveGeneration()))
+			.map(meeting -> MeetingV2GetCreatedMeetingByUserResponseDto.of(
+				meeting,
+				coLeaders.isCoLeader(meeting.getId(), userId),
+				applies.getApprovedCount(meeting.getId()),
+				time.now(),
+				activeGenerationProvider.getActiveGeneration(),
+				allTagsResponseDto)
+			)
 			.toList();
 
-		return UserV2GetCreatedMeetingByUserResponseDto.of(meetingByUserDtos);
-	}
-
-	private List<Integer> getCoLeaderMeetingIds(List<CoLeader> coLeaders) {
-		return coLeaders.stream()
-			.map(coLeader -> coLeader.getMeeting().getId()).toList();
+		return UserV2GetCreatedMeetingByUserResponseDto.from(meetingByUserDtos);
 	}
 
 	@Override
 	public UserV2GetAppliedMeetingByUserResponseDto getAppliedMeetingByUser(Integer userId) {
 		List<Apply> myApplies = applyRepository.findAllByUserIdOrderByIdDesc(userId);
-		List<Integer> meetingIds = myApplies.stream().map(Apply::getMeetingId).toList();
+		List<Integer> meetingIds = myApplies.stream()
+			.map(Apply::getMeetingId)
+			.toList();
 
 		Applies allApplies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
 
+		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
+			meetingIds);
+
 		List<ApplyV2GetAppliedMeetingByUserResponseDto> appliedMeetingByUserDtos = myApplies.stream()
-			.map(apply -> ApplyV2GetAppliedMeetingByUserResponseDto.of(apply.getId(), apply.getStatus().getValue(),
-				MeetingV2GetCreatedMeetingByUserResponseDto.of(apply.getMeeting(), false,
-					allApplies.getApprovedCount(apply.getMeetingId()), time.now(),
-					activeGenerationProvider.getActiveGeneration())))
+			.map(apply -> ApplyV2GetAppliedMeetingByUserResponseDto.of(
+				apply.getId(),
+				apply.getStatus().getValue(),
+				MeetingV2GetCreatedMeetingByUserResponseDto.of(
+					apply.getMeeting(),
+					false,
+					allApplies.getApprovedCount(apply.getMeetingId()),
+					time.now(),
+					activeGenerationProvider.getActiveGeneration(),
+					allTagsResponseDto))
+			)
 			.toList();
 
-		return UserV2GetAppliedMeetingByUserResponseDto.of(appliedMeetingByUserDtos);
+		return UserV2GetAppliedMeetingByUserResponseDto.from(appliedMeetingByUserDtos);
 	}
 
 	@Override
 	public User getUserByUserId(Integer userId) {
 		return userRepository.findByIdOrThrow(userId);
+	}
+
+	private List<Integer> getCoLeaderMeetingIds(List<CoLeader> coLeaders) {
+		return coLeaders.stream()
+			.map(coLeader -> coLeader.getMeeting().getId()).toList();
 	}
 }
