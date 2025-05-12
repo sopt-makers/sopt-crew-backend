@@ -33,7 +33,7 @@ public class JsonPrettierServiceImpl implements JsonPrettierService {
 					new TypeReference<>() {
 					});
 
-				return MainPageContentVo.of(properties.get("title").toString(), meetingIds);
+				return MainPageContentVo.newInstance(properties.get("title").toString(), meetingIds);
 			}).toList();
 	}
 
