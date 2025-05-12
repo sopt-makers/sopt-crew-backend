@@ -13,7 +13,7 @@ public enum MeetingKeywordType {
 	FOOD("먹방"),
 	HOBBY("취미"),
 	STUDY("학습"),
-	SELF_DEVELOPMENT("자기개발"),
+	SELF_DEVELOPMENT("자기계발"),
 	NETWORKING("네트워킹"),
 	ETC("기타");
 
