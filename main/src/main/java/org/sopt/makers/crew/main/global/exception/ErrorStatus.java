@@ -72,6 +72,7 @@ public enum ErrorStatus {
 	NOT_FOUND_FLASH("번쩍 모임이 없습니다."), // 예외 처리 NotFound로 수정 필요
 	NOT_FOUND_TAG("존재하지 않는 태그입니다."),
 	NOT_FOUND_PROPERTY_KEY("프로퍼티 키가 존재하지 않습니다 해당 키 :  "),
+	NOT_FOUND_PROPERTY_STRATEGY("적절한 프로퍼티 반환 전략을 찾을 수 없습니다"),
 
 	/**
 	 * 405 METHOD_NOT_ALLOWED
