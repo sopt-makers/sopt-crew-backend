@@ -15,6 +15,11 @@ public class PropertyStrategyManager {
 
 	private final List<PropertyResponseStrategy<?>> strategies;
 
+	/**
+	 * @return T 에 올 수 있는 값은 현재
+	 * PropertyValueResponse :  key를 이용한 단 건 조회
+	 * List<PropertyValueResponse> : 모든 프로퍼티 조회
+	 */
 	@SuppressWarnings("unchecked")
 	public <T> T createResponse(String key) {
 		PropertyResponseStrategy<?> strategy = strategies.stream()

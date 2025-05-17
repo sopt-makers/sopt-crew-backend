@@ -2,11 +2,11 @@ package org.sopt.makers.crew.main.admin.v2;
 
 import java.util.Map;
 
+import org.sopt.makers.crew.main.admin.v2.dto.AdminPagePresenter;
 import org.sopt.makers.crew.main.admin.v2.service.AdminFacade;
 import org.sopt.makers.crew.main.admin.v2.service.AdminKeyProvider;
 import org.sopt.makers.crew.main.admin.v2.service.AdminService;
 import org.sopt.makers.crew.main.admin.v2.service.JsonPrettierService;
-import org.sopt.makers.crew.main.admin.v2.service.dto.AdminPagePresenter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
