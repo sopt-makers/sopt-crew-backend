@@ -2,8 +2,6 @@ package org.sopt.makers.crew.main.admin.v2.dto;
 
 import java.util.Map;
 
-import org.sopt.makers.crew.main.admin.v2.service.dto.PropertyDto;
-
 import org.sopt.makers.crew.main.entity.property.Property;
 
 public record PropertyResponse(String key, Map<String, Object> value) {

@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.admin.v2.service.dto;
+package org.sopt.makers.crew.main.admin.v2.dto;
 
 import java.util.Map;
 
