@@ -56,3 +56,14 @@ VALUES (0, 1, 2, '2024-05-19 00:00:00.913489', 0),
 INSERT INTO co_leader ("meetingId", "userId")
 VALUES (4, 3),
        (4, 5);
+
+INSERT INTO tag (id, "tagType", "meetingId", "flashId", "createdTimestamp", "modifiedTimestamp", "welcomeMessageTypes",
+                 "meetingKeywordTypes")
+VALUES (1, 'MEETING', 1, null, '2025-01-24 14:59:50.033938', '2025-01-24 14:59:50.033938',
+        '["YB_WELCOME", "OB_WELCOME"]', '["ETC"]'),
+       (2, 'MEETING', 2, null, '2025-01-24 14:59:50.033938', '2025-01-24 14:59:50.033938',
+        '["FIRST_MEETING_WELCOME", "OB_WELCOME"]', '["ETC"]'),
+       (3, 'MEETING', 3, null, '2025-01-24 14:59:50.033938', '2025-01-24 14:59:50.033938',
+        '["BEGINNER_WELCOME", "OB_WELCOME"]', '["ETC"]'),
+       (4, 'MEETING', 4, null, '2025-01-24 14:59:50.033938', '2025-01-24 14:59:50.033938',
+        '["EXPERIENCED_WELCOME", "OB_WELCOME"]', '["ETC"]')

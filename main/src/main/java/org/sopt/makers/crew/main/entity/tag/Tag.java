@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.TagType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 
@@ -17,6 +18,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,8 +36,8 @@ public class Tag extends BaseTimeEntity {
 
 	/**
 	 * @implSpec : 모임태그 or 번쩍태그 구분
-	 * @implNote : 모임태그일 경우, flashId == null
-	 * @implNote : 번쩍태그일 경우, meetingId == null
+	 * @implNote : 모임태그일 경우, flashId == null,
+	 * @implNote : 번쩍태그일 경우 null인 정보 없음
 	 * */
 	@Enumerated(EnumType.STRING)
 	@Column(name = "tagType")
@@ -43,7 +45,8 @@ public class Tag extends BaseTimeEntity {
 	private TagType tagType;
 
 	@Column(name = "meetingId")
-	private Integer meetingId;
+	@NotNull
+	private Integer meetingId; // DB에 반영
 
 	@Column(name = "flashId")
 	private Integer flashId;
@@ -52,35 +55,51 @@ public class Tag extends BaseTimeEntity {
 	@Type(JsonBinaryType.class)
 	private List<WelcomeMessageType> welcomeMessageTypes;
 
+	@Column(name = "meetingKeywordTypes", columnDefinition = "jsonb")
+	@Type(JsonBinaryType.class)
+	@Size(min = 1, max = 2)
+	private List<MeetingKeywordType> meetingKeywordTypes;
+
 	@Builder
-	private Tag(TagType tagType, Integer meetingId, Integer flashId, List<WelcomeMessageType> welcomeMessageTypes) {
+	private Tag(TagType tagType, Integer meetingId, Integer flashId,
+		List<WelcomeMessageType> welcomeMessageTypes,
+		List<MeetingKeywordType> meetingKeywordTypes) {
 		this.tagType = tagType;
 		this.meetingId = meetingId;
 		this.flashId = flashId;
 		this.welcomeMessageTypes = welcomeMessageTypes;
+		this.meetingKeywordTypes = meetingKeywordTypes;
 	}
 
-	public static Tag createGeneralMeetingTag(TagType tagType, Integer meetingId,
-		List<WelcomeMessageType> welcomeMessageTypes) {
+	public static Tag createGeneralMeetingTag(Integer meetingId,
+		List<WelcomeMessageType> welcomeMessageTypes,
+		List<MeetingKeywordType> meetingKeywordTypes) {
 		return Tag.builder()
-			.tagType(tagType)
+			.tagType(TagType.MEETING)
 			.meetingId(meetingId)
 			.flashId(null)
 			.welcomeMessageTypes(welcomeMessageTypes)
+			.meetingKeywordTypes(meetingKeywordTypes)
 			.build();
 	}
 
-	public static Tag createFlashMeetingTag(TagType tagType, Integer flashId,
-		List<WelcomeMessageType> welcomeMessageTypes) {
+	public static Tag createFlashMeetingTag(Integer flashId, Integer meetingId,
+		List<WelcomeMessageType> welcomeMessageTypes,
+		List<MeetingKeywordType> meetingKeywordTypes) {
 		return Tag.builder()
-			.tagType(tagType)
-			.meetingId(null)
+			.tagType(TagType.FLASH)
+			.meetingId(meetingId)
 			.flashId(flashId)
 			.welcomeMessageTypes(welcomeMessageTypes)
+			.meetingKeywordTypes(meetingKeywordTypes)
 			.build();
 	}
 
 	public void updateWelcomeMessageTypes(List<WelcomeMessageType> newWelcomeMessageTypes) {
 		this.welcomeMessageTypes = newWelcomeMessageTypes;
+	}
+
+	public void updateMeetingKeywordTypeEnums(List<MeetingKeywordType> newMeetingKeywordTypes) {
+		this.meetingKeywordTypes = newMeetingKeywordTypes;
 	}
 }

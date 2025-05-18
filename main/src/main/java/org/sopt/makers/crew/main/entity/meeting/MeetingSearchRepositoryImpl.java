@@ -1,17 +1,19 @@
 package org.sopt.makers.crew.main.entity.meeting;
 
 import static org.sopt.makers.crew.main.entity.meeting.QMeeting.*;
+import static org.sopt.makers.crew.main.entity.tag.QTag.*;
 import static org.sopt.makers.crew.main.entity.user.QUser.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.global.pagination.PaginationType;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
@@ -21,10 +23,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -115,6 +119,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.selectFrom(meeting)
 			.where(
 				eqCategory(queryCommand.getCategory()),
+				eqKeyword(queryCommand.getKeyword()),
 				statusCondition,
 				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration(), activeGeneration),
 				eqJoinableParts(queryCommand.getJoinableParts()),
@@ -167,6 +172,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.from(meeting)
 			.where(
 				eqCategory(queryCommand.getCategory()),
+				eqKeyword(queryCommand.getKeyword()),
 				eqStatus(queryCommand.getStatus(), now),
 				isOnlyActiveGeneration(queryCommand.getIsOnlyActiveGeneration(), activeGeneration),
 				eqJoinableParts(queryCommand.getJoinableParts()),
@@ -175,16 +181,33 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	}
 
 	private BooleanExpression eqCategory(List<String> categories) {
-
 		if (categories == null || categories.isEmpty()) {
 			return null;
 		}
 
-		List<MeetingCategory> categoryList = categories.stream()
+		List<MeetingCategory> meetingCategories = categories.stream()
 			.map(MeetingCategory::ofValue)
-			.collect(Collectors.toList());
+			.toList();
 
-		return meeting.category.in(categoryList);
+		return meeting.category.in(meetingCategories);
+	}
+
+	private BooleanExpression eqKeyword(List<String> keywords) {
+		if (keywords == null || keywords.isEmpty()) {
+			return null;
+		}
+
+		String[] keywordNames = keywords.stream()
+			.map(keyword -> MeetingKeywordType.ofValue(keyword).name())
+			.toArray(String[]::new);
+
+		return JPAExpressions.selectOne()
+			.from(tag)
+			.where(
+				tag.meetingId.eq(meeting.id),
+				containsAnyKeyword(tag.meetingKeywordTypes, keywordNames)
+			)
+			.exists();
 	}
 
 	private BooleanExpression eqStatus(List<String> statuses, LocalDateTime now) {
@@ -236,20 +259,22 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	}
 
 	private BooleanExpression eqJoinableParts(MeetingJoinablePart[] joinableParts) {
-
-		if (joinableParts == null || joinableParts.length == 0) {
+		if (ObjectUtils.isEmpty(joinableParts)) {
 			return null;
 		}
 
-		String joinablePartsToString = Arrays.stream(joinableParts)
-			.map(Enum::name) // 각 요소를 큰따옴표로 감쌉니다.
-			.collect(Collectors.joining(",", "'{", "}'")); // 요소들을 쉼표로 연결하고 중괄호로 감쌉니다.
+		return Arrays.stream(joinableParts)
+			.map(this::createPartCondition)
+			.reduce(BooleanExpression::or)
+			.orElse(null);
+	}
 
-		// SQL 템플릿을 사용하여 BooleanExpression 생성
+	private BooleanExpression createPartCondition(MeetingJoinablePart part) {
+		String partArray = "'{" + part.name() + "}'";
+
 		return Expressions.booleanTemplate(
-			"arraycontains({0}, " + joinablePartsToString + ") || '' = 'true'",
-			meeting.joinableParts,
-			joinablePartsToString
+			"arraycontains({0}, " + partArray + ") || '' = 'true'",
+			meeting.joinableParts
 		);
 	}
 
@@ -261,4 +286,25 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		return meeting.title.contains(query);
 	}
 
+	private BooleanExpression containsAnyKeyword(Expression<?> jsonbField, String[] keywords) {
+		if (keywords.length == 0) {
+			return Expressions.asBoolean(true).isTrue();
+		}
+
+		BooleanExpression result = createLikeExpression(jsonbField, keywords[0]);
+
+		for (int i = 1; i < keywords.length; i++) {
+			result = result.or(createLikeExpression(jsonbField, keywords[i]));
+		}
+
+		return result;
+	}
+
+	private BooleanExpression createLikeExpression(Expression<?> jsonbField, String keyword) {
+		return Expressions.booleanTemplate(
+			"cast({0} as text) like {1}",
+			jsonbField,
+			"%\"" + keyword + "\"%"
+		);
+	}
 }

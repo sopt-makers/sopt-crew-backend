@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.entity.tag;
+package org.sopt.makers.crew.main.entity.tag.projection;
 
 import java.util.List;
 

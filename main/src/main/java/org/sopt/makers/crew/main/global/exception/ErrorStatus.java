@@ -34,6 +34,9 @@ public enum ErrorStatus {
 	LEADER_CANNOT_BE_CO_LEADER_APPLY("모임장은 공동 모임장이 될 수 없습니다."),
 	NOT_ALLOW_MEETING_APPLY("허용되지 않는 모임 신청입니다."),
 	IO_EXCEPTION("파일 입출력 오류가 발생했습니다."),
+	INVALID_WELCOME_MESSAGE_TYPE("유효하지 않은 환영 메시지 타입입니다."),
+	INVALID_MEETING_KEYWORD_TYPE("유효하지 않은 모임 키워드 타입입니다."),
+	INVALID_MEETING_KEYWORD_SIZE("모임 키워드는 최소 1개 이상, 최대 2개까지 선택해야 합니다."),
 
 	/**
 	 * 400 BAD_REQUEST - 유효성 검사 관련 에러
@@ -68,6 +71,8 @@ public enum ErrorStatus {
 	NOT_FOUND_COMMENT("존재하지 않는 댓글입니다."), // 예외 처리 NotFound로 수정 필요
 	NOT_FOUND_FLASH("번쩍 모임이 없습니다."), // 예외 처리 NotFound로 수정 필요
 	NOT_FOUND_TAG("존재하지 않는 태그입니다."),
+	NOT_FOUND_PROPERTY_KEY("프로퍼티 키가 존재하지 않습니다 해당 키 :  "),
+	NOT_FOUND_PROPERTY_STRATEGY("적절한 프로퍼티 반환 전략을 찾을 수 없습니다"),
 
 	/**
 	 * 405 METHOD_NOT_ALLOWED

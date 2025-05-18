@@ -6,6 +6,7 @@ import java.util.List;
 import org.sopt.makers.crew.main.entity.flash.Flash;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
@@ -58,6 +59,10 @@ public record FlashV2GetFlashByMeetingIdResponseDto(
 	@Schema(description = "환영 메시지 타입 목록")
 	@NotNull
 	List<String> welcomeMessageTypes,
+
+	@Schema(description = "모임 키워드 타입 목록")
+	@NotNull
+	List<String> meetingKeywordTypes,
 
 	@Schema(description = "번쩍 소개", example = "번쩍 소개 입니다.")
 	@NotNull
@@ -121,6 +126,7 @@ public record FlashV2GetFlashByMeetingIdResponseDto(
 		Integer meetingId,
 		Flash flash,
 		List<WelcomeMessageType> welcomeMessageTypes,
+		List<MeetingKeywordType> meetingKeywordTypes,
 		long approvedCount,
 		boolean isHost,
 		boolean isApply,
@@ -135,6 +141,10 @@ public record FlashV2GetFlashByMeetingIdResponseDto(
 			.map(WelcomeMessageType::getValue)
 			.toList();
 
+		List<String> meetingKeywordTypeValues = meetingKeywordTypes.stream()
+			.map(MeetingKeywordType::getValue)
+			.toList();
+
 		return new FlashV2GetFlashByMeetingIdResponseDto(
 			meetingId,
 			flash.getLeaderUserId(),
@@ -145,6 +155,7 @@ public record FlashV2GetFlashByMeetingIdResponseDto(
 			flash.getMinimumCapacity(),
 			flash.getMaximumCapacity(),
 			welcomeMessageTypeValues,
+			meetingKeywordTypeValues,
 			flash.getDesc(),
 			flash.getActivityStartDate(),
 			flash.getActivityEndDate(),
