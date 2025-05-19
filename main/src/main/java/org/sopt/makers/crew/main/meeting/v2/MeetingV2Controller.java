@@ -92,7 +92,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 		Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(meetingV2Service.applyEventMeeting(requestBody, userId));
+			.body(meetingV2Service.applyEventMeetingWithLock(requestBody, userId));
 	}
 
 	@Override
