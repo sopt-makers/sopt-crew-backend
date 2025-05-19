@@ -23,5 +23,7 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
 
 	void deleteByFlashId(Integer flashId);
 
+	void deleteByMeetingId(Integer meetingId);
+
 	List<MeetingTagInfoProjection> findByMeetingIdIn(List<Integer> meetingIds);
 }
