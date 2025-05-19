@@ -31,8 +31,9 @@ public class UserLockManager {
 		LockWrapper wrapper = getLockWrapper(userId);
 		boolean locked = false;
 
+		wrapper.usageCount.incrementAndGet();
+
 		try {
-			wrapper.usageCount.incrementAndGet();
 			locked = wrapper.lock.tryLock(DEFAULT_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
 			if (!locked) {
@@ -49,7 +50,8 @@ public class UserLockManager {
 				wrapper.lock.unlock();
 			}
 
-			if (wrapper.usageCount.decrementAndGet() == 0) {
+			if (wrapper.usageCount.decrementAndGet() == 0 && (!locked || (!wrapper.lock.isLocked()
+				&& !wrapper.lock.hasQueuedThreads()))) {
 				userLocks.remove(userId, wrapper);
 			}
 		}
