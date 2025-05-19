@@ -1984,7 +1984,7 @@ public class MeetingV2ServiceTest {
 				.user(leader)
 				.userId(leader.getId())
 				.title("모임 지원 테스트")
-				.category(MeetingCategory.STUDY)
+				.category(MeetingCategory.EVENT)
 				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
 				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
 				.endDate(LocalDateTime.of(2029, 4, 27, 23, 59, 59))
