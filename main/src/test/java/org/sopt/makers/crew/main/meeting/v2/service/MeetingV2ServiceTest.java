@@ -68,6 +68,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @IntegratedTest
 @Import(CaffeineTestConfig.class)
@@ -1965,6 +1967,7 @@ public class MeetingV2ServiceTest {
 
 	@Nested
 	@DisplayName("모임 지원 락킹 테스트")
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	class 모임_지원_락킹_테스트 {
 		@Test
 		@DisplayName("동일 사용자가 동시에 여러 신청을 시도할 경우 오직 하나만 성공해야 한다")
@@ -2016,19 +2019,11 @@ public class MeetingV2ServiceTest {
 
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
 
-			// 동시 요청 수
 			int concurrentRequests = 5;
-
-			// ExecutorService 설정
 			ExecutorService executorService = Executors.newFixedThreadPool(concurrentRequests);
-
-			// CountDownLatch 설정 - 모든 스레드가 동시에 시작하도록
 			CountDownLatch startLatch = new CountDownLatch(1);
-
-			// 완료 CountDownLatch - 모든 스레드가 작업을 마친 후 결과 확인
 			CountDownLatch finishLatch = new CountDownLatch(concurrentRequests);
 
-			// 성공 및 실패 횟수 추적
 			AtomicInteger successCount = new AtomicInteger(0);
 			AtomicInteger failCount = new AtomicInteger(0);
 
@@ -2036,19 +2031,15 @@ public class MeetingV2ServiceTest {
 			for (int i = 0; i < concurrentRequests; i++) {
 				executorService.submit(() -> {
 					try {
-						// 모든 스레드가 동시에 시작할 수 있도록 대기
 						startLatch.await();
 
-						// 모임 신청 시도
-						MeetingV2ApplyMeetingResponseDto response =
-							meetingV2Service.applyEventMeetingWithLock(applyDto, applicant.getId());
+						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingWithLock(applyDto,
+							applicant.getId());
 
 						if (response != null && response.getApplyId() != null) {
 							successCount.incrementAndGet();
 						}
 					} catch (Exception e) {
-						System.err.println("신청 실패 원인: " + e.getClass().getName() + " - " + e.getMessage());
-						e.printStackTrace();
 						failCount.incrementAndGet();
 					} finally {
 						finishLatch.countDown();
@@ -2056,26 +2047,16 @@ public class MeetingV2ServiceTest {
 				});
 			}
 
-			// 모든 스레드 동시에 시작
 			startLatch.countDown();
-
-			// 모든 스레드가 작업을 마칠 때까지 대기
 			boolean completedInTime = finishLatch.await(10, TimeUnit.SECONDS);
 
-			// 스레드풀 종료
 			executorService.shutdown();
 
 			// then
-			// 타임아웃 없이 정상 완료되었는지 테스트
 			assertThat(completedInTime).isTrue();
-
-			// 신청 성공은 정확히 1번만 있어야 함
 			assertThat(successCount.get()).isEqualTo(1);
-
-			// 실패는 나머지 요청 수와 같아야 함
 			assertThat(failCount.get()).isEqualTo(concurrentRequests - 1);
 
-			// findAllByMeetingId로 조회한 뒤 필터링하여 확인
 			List<Apply> allApplies = applyRepository.findAllByMeetingId(meeting.getId());
 			List<Apply> userApplies = allApplies.stream()
 				.filter(apply -> apply.getUserId().equals(applicant.getId()))
@@ -2123,7 +2104,6 @@ public class MeetingV2ServiceTest {
 
 			meetingRepository.save(meeting);
 
-			// 여러 사용자 생성
 			int userCount = 5;
 			List<User> applicants = new ArrayList<>();
 
@@ -2139,16 +2119,10 @@ public class MeetingV2ServiceTest {
 				applicants.add(userRepository.save(applicant));
 			}
 
-			// ExecutorService 설정
 			ExecutorService executorService = Executors.newFixedThreadPool(userCount);
-
-			// 시작 CountDownLatch
 			CountDownLatch startLatch = new CountDownLatch(1);
-
-			// 완료 CountDownLatch
 			CountDownLatch finishLatch = new CountDownLatch(userCount);
 
-			// 성공/실패 횟수
 			AtomicInteger successCount = new AtomicInteger(0);
 			AtomicInteger failCount = new AtomicInteger(0);
 			List<Integer> applyIds = Collections.synchronizedList(new ArrayList<>());
@@ -2158,16 +2132,14 @@ public class MeetingV2ServiceTest {
 				final int index = i;
 				executorService.submit(() -> {
 					try {
-						// 모든 스레드가 동시에 시작할 수 있도록 대기
 						startLatch.await();
 
 						User applicant = applicants.get(index);
 						MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(),
 							"지원 동기 " + index);
 
-						// 모임 신청 시도
-						MeetingV2ApplyMeetingResponseDto response =
-							meetingV2Service.applyEventMeetingWithLock(applyDto, applicant.getId());
+						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingWithLock(applyDto,
+							applicant.getId());
 
 						if (response != null && response.getApplyId() != null) {
 							successCount.incrementAndGet();
@@ -2181,34 +2153,24 @@ public class MeetingV2ServiceTest {
 				});
 			}
 
-			// 모든 스레드 동시에 시작
 			startLatch.countDown();
-
-			// 모든 스레드가 작업을 마칠 때까지 대기
 			boolean completedInTime = finishLatch.await(10, TimeUnit.SECONDS);
 
-			// 스레드풀 종료
 			executorService.shutdown();
 
 			// then
-			// 타임아웃 없이 정상 완료되었는지 테스트
 			assertThat(completedInTime).isTrue();
-
-			// 모든 사용자의 신청이 성공해야 함
 			assertThat(successCount.get()).isEqualTo(userCount);
 			assertThat(failCount.get()).isZero();
 
-			// 각 사용자별로 신청 내역 확인
 			for (User applicant : applicants) {
 				boolean exists = applyRepository.existsByMeetingIdAndUserId(meeting.getId(), applicant.getId());
 				assertThat(exists).isTrue();
 			}
 
-			// 전체 신청 내역 수 확인
 			List<Apply> allApplies = applyRepository.findAllByMeetingId(meeting.getId());
 			Assertions.assertThat(allApplies).hasSize(userCount);
 
-			// 모든 신청이 다른 사용자에 의한 것인지 확인
 			Set<Integer> userIds = allApplies.stream()
 				.map(Apply::getUserId)
 				.collect(Collectors.toSet());
@@ -2259,10 +2221,8 @@ public class MeetingV2ServiceTest {
 
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
 
-			// 첫 번째 요청 완료 알림용 CountDownLatch
 			CountDownLatch firstRequestDone = new CountDownLatch(1);
 
-			// 첫 번째 요청 - 모임 신청 및 처리 (락 획득 및 해제)
 			Thread firstThread = new Thread(() -> {
 				try {
 					meetingV2Service.applyEventMeetingWithLock(applyDto, applicant.getId());
@@ -2274,26 +2234,19 @@ public class MeetingV2ServiceTest {
 
 			firstThread.start();
 
-			// 첫 번째 요청이 완료될 때까지 대기
 			boolean firstRequestCompleted = firstRequestDone.await(5, TimeUnit.SECONDS);
 
 			// when
-			// 첫 번째 요청이 성공하면, 두 번째 요청은 실패해야 함 (이미 신청함)
 			assertThat(firstRequestCompleted).isTrue();
-
-			// then
-			// 첫 번째 요청 처리 확인
 			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 			Assertions.assertThat(applies).hasSize(1);
 
-			// 두 번째 요청 - 이미 신청했기 때문에 실패해야 함 (중복 신청)
 			assertThatThrownBy(() -> {
 				meetingV2Service.applyEventMeetingWithLock(applyDto, applicant.getId());
 			})
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("이미 지원한 모임입니다");
 
-			// 신청 내역은 여전히 1개여야 함
 			applies = applyRepository.findAllByMeetingId(meeting.getId());
 			Assertions.assertThat(applies).hasSize(1);
 		}
