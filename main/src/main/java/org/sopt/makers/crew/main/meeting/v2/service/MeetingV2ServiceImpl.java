@@ -444,6 +444,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 			tagRepository.deleteByFlashId(flash.getId());
 			flashRepository.delete(flash);
+		} else {
+			tagRepository.deleteByMeetingId(meetingId);
 		}
 
 		meetingRepository.delete(meeting);
