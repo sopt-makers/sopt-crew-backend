@@ -110,6 +110,7 @@ class MeetingV2ConcurrencyTest {
 			int concurrentRequests = 5;
 			ExecutorService executorService = Executors.newFixedThreadPool(concurrentRequests);
 			CountDownLatch startLatch = new CountDownLatch(1);
+			CountDownLatch readyLatch = new CountDownLatch(concurrentRequests);
 			CountDownLatch finishLatch = new CountDownLatch(concurrentRequests);
 
 			AtomicInteger successCount = new AtomicInteger(0);
@@ -119,6 +120,7 @@ class MeetingV2ConcurrencyTest {
 			for (int i = 0; i < concurrentRequests; i++) {
 				executorService.submit(() -> {
 					try {
+						readyLatch.countDown();
 						startLatch.await();
 
 						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingWithLock(applyDto,
@@ -134,6 +136,10 @@ class MeetingV2ConcurrencyTest {
 					}
 				});
 			}
+
+			readyLatch.await();
+
+			Thread.sleep(1000);
 
 			startLatch.countDown();
 			boolean completedInTime = finishLatch.await(10, TimeUnit.SECONDS);
