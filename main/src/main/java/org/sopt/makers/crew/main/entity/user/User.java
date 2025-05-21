@@ -2,6 +2,17 @@ package org.sopt.makers.crew.main.entity.user;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Type;
+import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
+import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.global.exception.ServerException;
+
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,21 +20,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import org.hibernate.annotations.Type;
-import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
-import org.sopt.makers.crew.main.global.exception.ServerException;
-import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
-
 
 @Entity
 @Getter
@@ -70,6 +71,18 @@ public class User extends BaseTimeEntity {
 	@Column(name = "phone")
 	private String phone;
 
+	/**
+	 * 유저 선호 키워드 타입
+	 */
+	@Column(name = "meetingKeywordTypes", columnDefinition = "jsonb")
+	@Type(JsonBinaryType.class)
+	@Size(min = 1, max = 2)
+	private List<MeetingKeywordType> meetingKeywordTypes;
+
+	@Column(name = "isAlarmed")
+	@ColumnDefault("false")
+	private Boolean isAlarmed;
+
 	@Builder
 	public User(String name, Integer orgId, List<UserActivityVO> activities, String profileImage,
 		String phone) {
@@ -86,8 +99,7 @@ public class User extends BaseTimeEntity {
 
 	/**
 	 * @implSpec : redis 에서 조회한 데이터를 엔티티로 변환할 때 사용하는 메서드
-	 *
-	 * **/
+	 **/
 	public User withUserIdForRedis(Integer id) {
 		this.id = id;
 		return this;
@@ -165,7 +177,6 @@ public class User extends BaseTimeEntity {
 		}
 		return false;
 	}
-
 
 	public List<UserActivityVO> getActivities() {
 		return activities;
