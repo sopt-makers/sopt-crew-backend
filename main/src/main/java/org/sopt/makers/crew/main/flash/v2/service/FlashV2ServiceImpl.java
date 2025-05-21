@@ -19,6 +19,7 @@ import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.external.notification.dto.event.FlashCreatedEventDto;
+import org.sopt.makers.crew.main.external.notification.dto.event.KeywordEventDto;
 import org.sopt.makers.crew.main.flash.v2.dto.event.FlashLeaderSyncEventDto;
 import org.sopt.makers.crew.main.flash.v2.dto.mapper.FlashMapper;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyDto;
@@ -93,8 +94,14 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 
 		OrgIdListDto orgIdListDto = userReader.findAllOrgIds();
 
+		// keyword가 들어가는 친구들에 대한 작업 진행
+
 		eventPublisher.publishEvent(
 			new FlashCreatedEventDto(orgIdListDto.getOrgIds(), flash.getMeetingId(), flash.getTitle()));
+
+		// 여기에 들어가야하는 id는 해당 키워드와 관련한 id들이 다 들어가야하고 해당하는 키워드가 들어가야함!
+		// TODO : 어떻게 해당 dto 만들어서 event  발행시킬 지 고민
+		eventPublisher.publishEvent(new KeywordEventDto());
 
 		return FlashV2CreateResponseDto.of(flash.getMeetingId(), tagResponseDto.tagId());
 	}
