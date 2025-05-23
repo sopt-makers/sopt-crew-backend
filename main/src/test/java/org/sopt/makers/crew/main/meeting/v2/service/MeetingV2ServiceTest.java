@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
-import static org.assertj.core.groups.Tuple.*;
+import static org.assertj.core.api.AssertionsForClassTypes.*;
 import static org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 

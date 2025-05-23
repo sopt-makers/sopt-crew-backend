@@ -114,12 +114,14 @@ public class Meeting extends BaseTimeEntity {
 	 * 모임 시작 기간
 	 */
 	@Column(name = "mStartDate", nullable = false, columnDefinition = "TIMESTAMP")
+	@Getter(AccessLevel.NONE)
 	private LocalDateTime mStartDate;
 
 	/**
 	 * 모임 마감 기간
 	 */
 	@Column(name = "mEndDate", nullable = false, columnDefinition = "TIMESTAMP")
+	@Getter(AccessLevel.NONE)
 	private LocalDateTime mEndDate;
 
 	/**
@@ -263,5 +265,4 @@ public class Meeting extends BaseTimeEntity {
 	public LocalDateTime getmEndDate() {
 		return mEndDate;
 	}
-
 }

@@ -97,6 +97,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDt
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
+import org.sopt.makers.crew.main.user.v2.service.lock.UserLockManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
@@ -131,6 +132,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private final S3Service s3Service;
 	private final TagV2Service tagV2Service;
+
+	private final UserLockManager userLockManager;
 
 	private final MeetingMapper meetingMapper;
 	private final FlashMeetingMapper flashMeetingMapper;
@@ -280,6 +283,62 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
 		Apply savedApply = applyRepository.save(apply);
 		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+	}
+
+	@Override
+	@Transactional
+	public MeetingV2ApplyMeetingResponseDto applyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
+		Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+
+		validateMeetingCategoryNotEvent(meeting);
+
+		User user = userRepository.findByIdOrThrow(userId);
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
+
+		return userLockManager.executeWithLock(userId, () -> {
+			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
+
+			validateMeetingCapacity(meeting, applies);
+			validateUserAlreadyApplied(userId, applies);
+			validateApplyPeriod(meeting);
+			validateUserActivities(user);
+			validateUserJoinableParts(user, meeting);
+			coLeaders.validateCoLeader(meeting.getId(), user.getId());
+			meeting.validateIsNotMeetingLeader(userId);
+
+			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
+			Apply savedApply = applyRepository.save(apply);
+			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+		});
+	}
+
+	@Override
+	@Transactional
+	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
+		Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+
+		validateMeetingCategoryEvent(meeting);
+
+		User user = userRepository.findByIdOrThrow(userId);
+		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
+
+		return userLockManager.executeWithLock(userId, () -> {
+			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
+
+			validateMeetingCapacity(meeting, applies);
+			validateUserAlreadyApplied(userId, applies);
+			validateApplyPeriod(meeting);
+			validateUserActivities(user);
+			validateUserJoinableParts(user, meeting);
+			coLeaders.validateCoLeader(meeting.getId(), user.getId());
+			meeting.validateIsNotMeetingLeader(userId);
+
+			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
+			Apply savedApply = applyRepository.save(apply);
+			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+		});
 	}
 
 	@Override
