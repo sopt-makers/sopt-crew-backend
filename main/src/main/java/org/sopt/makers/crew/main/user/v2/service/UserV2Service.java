@@ -2,7 +2,6 @@ package org.sopt.makers.crew.main.user.v2.service;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
@@ -27,5 +26,5 @@ public interface UserV2Service {
 
 	User getUserByUserId(Integer userId);
 
-	List<Integer> getSameInterestedKeywordOrgIds(List<MeetingKeywordType> meetingKeywords);
+	void updateInterestedKeywords(Integer userId, List<String> keywords);
 }

@@ -74,10 +74,10 @@ public class User extends BaseTimeEntity {
 	/**
 	 * 유저 선호 키워드 타입
 	 */
-	@Column(name = "meetingKeywordTypes", columnDefinition = "jsonb")
+	@Column(name = "interestedKeywords", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
 	@Size(min = 1, max = 2)
-	private List<MeetingKeywordType> meetingKeywordTypes;
+	private List<MeetingKeywordType> interestedKeywords;
 
 	@Column(name = "isAlarmed")
 	@ColumnDefault("false")
@@ -110,6 +110,10 @@ public class User extends BaseTimeEntity {
 			.filter(userActivityVO -> userActivityVO.getPart() != null)
 			.max(Comparator.comparingInt(UserActivityVO::getGeneration))
 			.orElseThrow(() -> new ServerException(INTERNAL_SERVER_ERROR.getErrorCode()));
+	}
+
+	public void updateKeywords(List<MeetingKeywordType> keywords) {
+		this.interestedKeywords = keywords;
 	}
 
 	public boolean updateIfChanged(User playgroundUser) {
