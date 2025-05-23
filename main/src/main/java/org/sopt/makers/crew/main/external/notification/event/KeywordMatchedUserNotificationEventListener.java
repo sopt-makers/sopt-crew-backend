@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class UserKeywordNotificationEventListener {
+public class KeywordMatchedUserNotificationEventListener {
 
 	private final PushNotificationService pushNotificationService;
 	private final PushNotificationProperties pushNotificationProperties;
