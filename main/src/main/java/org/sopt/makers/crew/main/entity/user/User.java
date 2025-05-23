@@ -182,6 +182,13 @@ public class User extends BaseTimeEntity {
 		return false;
 	}
 
+	public List<MeetingKeywordType> getInterestedKeywords() {
+		if (this.interestedKeywords == null) {
+			return List.of();
+		}
+		return interestedKeywords;
+	}
+
 	public List<UserActivityVO> getActivities() {
 		return activities;
 	}
