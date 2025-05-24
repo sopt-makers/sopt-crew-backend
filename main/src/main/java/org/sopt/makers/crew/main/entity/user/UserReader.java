@@ -35,10 +35,10 @@ public class UserReader {
 		List<MeetingKeywordType> meetingKeywords = meetingKeywordTypes.stream()
 			.map(MeetingKeywordType::ofValue)
 			.toList();
-
+		
 		return allUsers.stream()
 			.filter(u -> !Collections.disjoint(u.getInterestedKeywords(), meetingKeywords)
-			).map(KeywordMatchedUserDto::of).toList();
+			).map(KeywordMatchedUserDto::from).toList();
 	}
 
 }
