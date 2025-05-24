@@ -15,6 +15,7 @@ import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaders;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.global.exception.BaseException;
@@ -102,10 +103,9 @@ public class UserV2ServiceImpl implements UserV2Service {
 	}
 
 	/**
-	 * @implSpec  : 유저가 모임장이거나 공동모임장인 모임을 모두 조회한다.
+	 * @implSpec : 유저가 모임장이거나 공동모임장인 모임을 모두 조회한다.
 	 * @implNote : my 의미 == 내가 모임장이거나 공동모임장인 경우
-	 *
-	 * **/
+	 **/
 	@Override
 	public UserV2GetCreatedMeetingByUserResponseDto getCreatedMeetingByUser(Integer userId) {
 		List<Integer> coLeaderMeetingIds = getCoLeaderMeetingIds(coLeaderRepository.findAllByUserId(userId));
@@ -167,6 +167,16 @@ public class UserV2ServiceImpl implements UserV2Service {
 	@Override
 	public User getUserByUserId(Integer userId) {
 		return userRepository.findByIdOrThrow(userId);
+	}
+
+	@Override
+	@Transactional
+	public void updateInterestedKeywords(Integer userId, List<String> keywords) {
+		User user = userRepository.findByIdOrThrow(userId);
+		List<MeetingKeywordType> updateKeywords = keywords.stream()
+			.map(MeetingKeywordType::valueOf)
+			.toList();
+		user.updateKeywords(updateKeywords);
 	}
 
 	private List<Integer> getCoLeaderMeetingIds(List<CoLeader> coLeaders) {
