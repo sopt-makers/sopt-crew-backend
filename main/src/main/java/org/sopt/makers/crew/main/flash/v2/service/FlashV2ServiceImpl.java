@@ -19,7 +19,6 @@ import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
-import org.sopt.makers.crew.main.external.notification.dto.event.FlashCreatedEventDto;
 import org.sopt.makers.crew.main.external.notification.dto.event.KeywordEventDto;
 import org.sopt.makers.crew.main.external.notification.vo.KeywordMatchedUserDto;
 import org.sopt.makers.crew.main.flash.v2.dto.event.FlashLeaderSyncEventDto;
@@ -28,7 +27,6 @@ import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlas
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateResponseDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2GetFlashByMeetingIdResponseDto;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
-import org.sopt.makers.crew.main.global.dto.OrgIdListDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
@@ -93,11 +91,6 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 		TagV2CreateFlashTagResponseDto tagResponseDto = tagV2Service.createFlashMeetingTag(
 			requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
 			flash.getId(), flash.getMeetingId());
-
-		OrgIdListDto orgIdListDto = userReader.findAllOrgIds();
-
-		eventPublisher.publishEvent(
-			new FlashCreatedEventDto(orgIdListDto.getOrgIds(), flash.getMeetingId(), flash.getTitle()));
 
 		List<KeywordMatchedUserDto> keywordMatchedUserDtos = userReader.findByInterestingKeywordTypes(
 			requestBody.meetingKeywordTypes());
