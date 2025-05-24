@@ -2,5 +2,9 @@ package org.sopt.makers.crew.main.user.v2.dto;
 
 import java.util.List;
 
-public record UpdateUserInterestKeywordRequestDto(List<String> keywords) {
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
+public record UpdateUserInterestKeywordRequestDto(
+	@NotNull @NotEmpty List<String> keywords) {
 }
