@@ -1,9 +1,15 @@
 package org.sopt.makers.crew.main.user.v2;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.security.Principal;
 import java.util.List;
 
-import org.sopt.makers.crew.main.user.v2.dto.UpdateUserInterestKeywordRequestDto;
+import org.sopt.makers.crew.main.global.dto.TempResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllUserDto;
@@ -13,12 +19,6 @@ import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileRes
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "사용자")
 public interface UserV2Api {
@@ -64,13 +64,5 @@ public interface UserV2Api {
 	ResponseEntity<UserV2GetCreatedMeetingByUserResponseDto> getCreatedMeetingByUser(
 		Principal principal);
 
-	@Operation(summary = "유저 관심 키워드 설정")
-	@ResponseStatus(HttpStatus.OK)
-	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "성공")
-	})
-	ResponseEntity<Void> updateUserInterestedKeyword(
-		Principal principal, UpdateUserInterestKeywordRequestDto dto
-	);
 
 }

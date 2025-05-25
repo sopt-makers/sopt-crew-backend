@@ -25,6 +25,4 @@ public interface UserV2Service {
 	UserV2GetCreatedMeetingByUserResponseDto getCreatedMeetingByUser(Integer userId);
 
 	User getUserByUserId(Integer userId);
-
-	void updateInterestedKeywords(Integer userId, List<String> keywords);
 }

@@ -52,8 +52,6 @@ import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.enums.UserPart;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
-import org.sopt.makers.crew.main.external.notification.dto.event.KeywordEventDto;
-import org.sopt.makers.crew.main.external.notification.vo.KeywordMatchedUserDto;
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto;
 import org.sopt.makers.crew.main.global.config.ImageSettingProperties;
@@ -102,7 +100,6 @@ import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
 import org.sopt.makers.crew.main.user.v2.service.lock.UserLockManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -131,7 +128,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final TagRepository tagRepository;
 	private final MeetingReader meetingReader;
 	private final CoLeaderReader coLeaderReader;
-	private final ApplicationEventPublisher eventPublisher;
 	private final UserReader userReader;
 
 	private final S3Service s3Service;
@@ -235,12 +231,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		TagV2CreateGeneralMeetingTagResponseDto tagResponseDto = tagV2Service.createGeneralMeetingTag(
 			requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(), meeting.getId());
-
-		List<KeywordMatchedUserDto> keywordMatchedUserDtos = userReader.findByInterestingKeywordTypes(
-			requestBody.getMeetingKeywordTypes());
-
-		eventPublisher.publishEvent(new KeywordEventDto(keywordMatchedUserDtos
-			, meeting.getId(), meeting.getTitle(), meeting.getCategory()));
 
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId(), tagResponseDto.tagId());
 	}

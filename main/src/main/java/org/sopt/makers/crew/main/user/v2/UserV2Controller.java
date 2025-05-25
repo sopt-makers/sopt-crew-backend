@@ -4,7 +4,6 @@ import java.security.Principal;
 import java.util.List;
 
 import org.sopt.makers.crew.main.global.util.UserUtil;
-import org.sopt.makers.crew.main.user.v2.dto.UpdateUserInterestKeywordRequestDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMeetingByUserMeetingDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllUserDto;
@@ -15,12 +14,10 @@ import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -77,14 +74,5 @@ public class UserV2Controller implements UserV2Api {
 
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.ok().body(userV2Service.getCreatedMeetingByUser(userId));
-	}
-
-	@Override
-	@PostMapping("/interestedKeywords")
-	public ResponseEntity<Void> updateUserInterestedKeyword(Principal principal,
-		@Valid UpdateUserInterestKeywordRequestDto dto) {
-		Integer userId = UserUtil.getUserId(principal);
-		userV2Service.updateInterestedKeywords(userId, dto.keywords());
-		return ResponseEntity.status(HttpStatus.OK).build();
 	}
 }
