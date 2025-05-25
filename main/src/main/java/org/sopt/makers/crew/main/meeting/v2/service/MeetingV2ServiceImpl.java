@@ -53,6 +53,7 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.enums.UserPart;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.external.notification.dto.event.KeywordEventDto;
+import org.sopt.makers.crew.main.external.notification.event.NotificationTimeValidator;
 import org.sopt.makers.crew.main.external.notification.vo.KeywordMatchedUserDto;
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto;
@@ -236,13 +237,18 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		TagV2CreateGeneralMeetingTagResponseDto tagResponseDto = tagV2Service.createGeneralMeetingTag(
 			requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(), meeting.getId());
 
-		List<KeywordMatchedUserDto> keywordMatchedUserDtos = userReader.findByInterestingKeywordTypes(
-			requestBody.getMeetingKeywordTypes());
-
-		eventPublisher.publishEvent(new KeywordEventDto(keywordMatchedUserDtos
-			, meeting.getId(), meeting.getTitle(), meeting.getCategory()));
+		if (NotificationTimeValidator.isPublishedTime(time.now())) {
+			publishMeetingEvent(requestBody, meeting);
+		}
 
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId(), tagResponseDto.tagId());
+	}
+
+	private void publishMeetingEvent(MeetingV2CreateAndUpdateMeetingBodyDto requestBody, Meeting meeting) {
+		List<KeywordMatchedUserDto> keywordMatchedUserDtos = userReader.findByInterestingKeywordTypes(
+			requestBody.getMeetingKeywordTypes());
+		eventPublisher.publishEvent(new KeywordEventDto(keywordMatchedUserDtos
+			, meeting.getId(), meeting.getTitle(), meeting.getCategory()));
 	}
 
 	@Override
