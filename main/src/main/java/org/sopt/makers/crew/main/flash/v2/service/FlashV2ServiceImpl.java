@@ -14,11 +14,15 @@ import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.flash.Flash;
 import org.sopt.makers.crew.main.entity.flash.FlashRepository;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.external.notification.dto.event.FlashCreatedEventDto;
+import org.sopt.makers.crew.main.external.notification.dto.event.KeywordEventDto;
+import org.sopt.makers.crew.main.external.notification.event.NotificationTimeValidator;
+import org.sopt.makers.crew.main.external.notification.vo.KeywordMatchedUserDto;
 import org.sopt.makers.crew.main.flash.v2.dto.event.FlashLeaderSyncEventDto;
 import org.sopt.makers.crew.main.flash.v2.dto.mapper.FlashMapper;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyDto;
@@ -91,12 +95,24 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
 			flash.getId(), flash.getMeetingId());
 
-		OrgIdListDto orgIdListDto = userReader.findAllOrgIds();
+		if (NotificationTimeValidator.isPublishedTime(realTime.now())) {
+			publishFlashEvent(requestBody, flash);
+		}
 
+		return FlashV2CreateResponseDto.of(flash.getMeetingId(), tagResponseDto.tagId());
+	}
+
+	private void publishFlashEvent(FlashV2CreateAndUpdateFlashBodyDto requestBody, Flash flash) {
+		// 추후 fe 개발 이후 해당 번쩍 생성 이벤트는 사라질 예정
+		OrgIdListDto orgIdListDto = userReader.findAllOrgIds();
 		eventPublisher.publishEvent(
 			new FlashCreatedEventDto(orgIdListDto.getOrgIds(), flash.getMeetingId(), flash.getTitle()));
 
-		return FlashV2CreateResponseDto.of(flash.getMeetingId(), tagResponseDto.tagId());
+		List<KeywordMatchedUserDto> keywordMatchedUserDtos = userReader.findByInterestingKeywordTypes(
+			requestBody.meetingKeywordTypes());
+
+		eventPublisher.publishEvent(new KeywordEventDto(keywordMatchedUserDtos
+			, flash.getMeetingId(), flash.getTitle(), MeetingCategory.FLASH));
 	}
 
 	public FlashV2GetFlashByMeetingIdResponseDto getFlashDetail(Integer meetingId, Integer userId) {

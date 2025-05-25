@@ -81,6 +81,11 @@ public enum ErrorStatus {
 	TAG_NOT_FOUND_EXCEPTION("해당 태그를 찾을 수 없습니다."),
 
 	/**
+	 * 423 LOCKED
+	 */
+	LOCK_ACQUISITION_TIMEOUT("현재 요청이 처리 중입니다. 잠시 후 다시 시도해주세요."),
+
+	/**
 	 * 500 SERVER_ERROR
 	 */
 	NOTIFICATION_SERVER_ERROR("알림 서버에 에러가 발생했습니다."),
