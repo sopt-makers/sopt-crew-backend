@@ -14,18 +14,19 @@ import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.flash.Flash;
 import org.sopt.makers.crew.main.entity.flash.FlashRepository;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserReader;
-import org.sopt.makers.crew.main.external.notification.dto.event.FlashCreatedEventDto;
+import org.sopt.makers.crew.main.external.notification.dto.event.KeywordEventDto;
+import org.sopt.makers.crew.main.external.notification.vo.KeywordMatchedUserDto;
 import org.sopt.makers.crew.main.flash.v2.dto.event.FlashLeaderSyncEventDto;
 import org.sopt.makers.crew.main.flash.v2.dto.mapper.FlashMapper;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2CreateResponseDto;
 import org.sopt.makers.crew.main.flash.v2.dto.response.FlashV2GetFlashByMeetingIdResponseDto;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
-import org.sopt.makers.crew.main.global.dto.OrgIdListDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
@@ -91,10 +92,11 @@ public class FlashV2ServiceImpl implements FlashV2Service {
 			requestBody.welcomeMessageTypes(), requestBody.meetingKeywordTypes(),
 			flash.getId(), flash.getMeetingId());
 
-		OrgIdListDto orgIdListDto = userReader.findAllOrgIds();
+		List<KeywordMatchedUserDto> keywordMatchedUserDtos = userReader.findByInterestingKeywordTypes(
+			requestBody.meetingKeywordTypes());
 
-		eventPublisher.publishEvent(
-			new FlashCreatedEventDto(orgIdListDto.getOrgIds(), flash.getMeetingId(), flash.getTitle()));
+		eventPublisher.publishEvent(new KeywordEventDto(keywordMatchedUserDtos
+			, flash.getMeetingId(), flash.getTitle(), MeetingCategory.FLASH));
 
 		return FlashV2CreateResponseDto.of(flash.getMeetingId(), tagResponseDto.tagId());
 	}

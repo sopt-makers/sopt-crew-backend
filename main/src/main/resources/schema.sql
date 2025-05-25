@@ -27,6 +27,8 @@ create table if not exists "user"
     "profileImage" varchar,
     activities     jsonb,
     phone          varchar,
+    "interestedKeywords" jsonb,
+    "isAlarmed"    boolean default false,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );

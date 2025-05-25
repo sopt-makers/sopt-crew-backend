@@ -26,4 +26,9 @@ public enum MeetingCategory {
 	public String getValue() {
 		return value;
 	}
+
+	public String getMeetingType() {
+		return FLASH.equals(this) ? "번쩍" : "모임";
+	}
+
 }
