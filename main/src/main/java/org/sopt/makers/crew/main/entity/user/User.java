@@ -16,8 +16,6 @@ import org.sopt.makers.crew.main.global.exception.ServerException;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
@@ -34,10 +32,10 @@ public class User extends BaseTimeEntity {
 
 	/**
 	 * Primary Key
+	 * playGroundId
 	 */
 	@Id
 	@Column(name = "id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
 	/**
@@ -45,12 +43,6 @@ public class User extends BaseTimeEntity {
 	 */
 	@Column(name = "name", nullable = false)
 	private String name;
-
-	/**
-	 * sopt org unique id
-	 */
-	@Column(name = "orgId", nullable = false)
-	private Integer orgId;
 
 	/**
 	 * 활동 목록
@@ -86,8 +78,8 @@ public class User extends BaseTimeEntity {
 	@Builder
 	public User(String name, Integer orgId, List<UserActivityVO> activities, String profileImage,
 		String phone) {
+		this.id = orgId;
 		this.name = name;
-		this.orgId = orgId;
 		this.activities = activities;
 		this.profileImage = profileImage;
 		this.phone = phone;
@@ -123,7 +115,7 @@ public class User extends BaseTimeEntity {
 			isUpdated = true;
 		}
 
-		if (validateAndUpdateOrgId(playgroundUser.getOrgId())) {
+		if (validateAndUpdateOrgId(playgroundUser.getId())) {
 			isUpdated = true;
 		}
 
@@ -151,8 +143,8 @@ public class User extends BaseTimeEntity {
 	}
 
 	private boolean validateAndUpdateOrgId(Integer newOrgId) {
-		if (!Objects.equals(this.orgId, newOrgId)) {
-			this.orgId = newOrgId;
+		if (!Objects.equals(this.id, newOrgId)) {
+			this.id = newOrgId;
 			return true;
 		}
 		return false;
