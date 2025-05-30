@@ -50,12 +50,18 @@ public enum ErrorStatus {
 	DATA_INTEGRITY_VIOLATION("데이터 무결성이 위반되었습니다."),
 	MESSAGE_NOT_READABLE("읽을 수 없는 메시지 형식입니다."),
 	INVALID_INPUT_VALUE("요청값이 올바르지 않습니다. : "),
+	JWK_INVALID_FORMAT("JWK 형식이 잘못되어 공개키를 파싱할 수 없습니다."),
 
 	/**
 	 * 401 UNAUTHORIZED
 	 */
 	UNAUTHORIZED_TOKEN("유효하지 않은 토큰입니다."),
 	UNAUTHORIZED_USER("존재하지 않거나 유효하지 않은 유저입니다."),
+	UNAUTHORIZED_INVALID_KID("해당 kid에 대한 공개키를 찾을 수 없어 인증이 실패했습니다."),
+	JWT_MISSING_AUTH_HEADER("인증 헤더가 존재하지 않습니다."),
+	JWT_PARSE_FAILED("잘못된 형식의 JWT입니다."),
+	JWT_INVALID_CLAIMS("JWT의 클레임이 유효하지 않습니다."),
+	JWT_VERIFICATION_FAILED("JWT 검증에 실패했습니다."),
 
 	/**
 	 * 403 FORBIDDEN
@@ -91,6 +97,9 @@ public enum ErrorStatus {
 	NOTIFICATION_SERVER_ERROR("알림 서버에 에러가 발생했습니다."),
 	CSV_ERROR("csv 처리 과정에 에러가 발생했습니다."),
 	S3_STORAGE_ERROR("s3 스토리지에 에러가 발생했습니다."),
+	EXTERNAL_SERVER_RESPONSE_ERROR("외부 서버 응답 오류"),
+	EXTERNAL_SERVER_COMMUNICATION_ERROR("외부 서버 통신 실패"),
+	JWK_FETCH_FAILED("JWK 서버로부터 키를 가져오지 못했습니다."),
 	INTERNAL_SERVER_ERROR("예상치 못한 서버 에러가 발생했습니다.");
 
 	private final String errorCode;
