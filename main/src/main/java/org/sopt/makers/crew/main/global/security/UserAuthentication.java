@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.global.jwt;
+package org.sopt.makers.crew.main.global.security;
 
 import java.util.Collection;
 

@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.global.jwt;
+package org.sopt.makers.crew.main.global.security;
 
 public enum JwtExceptionType {
 	VALID_JWT_TOKEN,            // 유효한 JWT

@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.external.playground.dto.response;
+package org.sopt.makers.crew.main.external.auth.dto.response;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ public class PlaygroundUserResponseDto {
 			.build();
 	}
 
-	public List<UserActivityVO> getUserActivities(){
+	public List<UserActivityVO> getUserActivities() {
 		return activities.stream()
 			.map(a -> new UserActivityVO(a.part(), a.generation()))
 			.toList();

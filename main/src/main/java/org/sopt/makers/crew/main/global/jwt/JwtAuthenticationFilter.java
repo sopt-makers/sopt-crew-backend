@@ -1,20 +1,22 @@
 package org.sopt.makers.crew.main.global.jwt;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 
-import lombok.RequiredArgsConstructor;
-
 import org.sopt.makers.crew.main.global.exception.ErrorStatus;
+import org.sopt.makers.crew.main.global.security.JwtAuthenticationEntryPoint;
+import org.sopt.makers.crew.main.global.security.JwtExceptionType;
+import org.sopt.makers.crew.main.global.security.UserAuthentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor

@@ -1,9 +1,6 @@
-package org.sopt.makers.crew.main.global.jwt;
+package org.sopt.makers.crew.main.global.security;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
@@ -13,6 +10,9 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -28,7 +28,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
 		ObjectMapper mapper = new ObjectMapper();
-		String jsonResponse = mapper.writeValueAsString(ExceptionResponse.fail(INVALID_INPUT_VALUE_FILTER.getErrorCode()));
+		String jsonResponse = mapper.writeValueAsString(
+			ExceptionResponse.fail(INVALID_INPUT_VALUE_FILTER.getErrorCode()));
 
 		response.getWriter().write(jsonResponse);
 	}
