@@ -99,7 +99,7 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 	public PostDetailBaseDto findPost(Integer userId, Integer postId) {
 		PostDetailBaseDto postDetail = queryFactory.select(
 				new QPostDetailBaseDto(post.id, post.title, post.contents, post.createdDate, post.images,
-					new QPostWriterInfoDto(post.user.id, post.user.orgId, post.user.name, post.user.profileImage),
+					new QPostWriterInfoDto(post.user.id, post.user.id, post.user.name, post.user.profileImage),
 					post.likeCount, ExpressionUtils.as(
 					JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists(),
 					"isLiked"), post.viewCount, post.commentCount,
@@ -121,7 +121,7 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 	private List<PostDetailResponseDto> getContentList(Pageable pageable, Integer meetingId, Integer userId) {
 		List<PostDetailBaseDto> postDetails = queryFactory.select(
 				new QPostDetailBaseDto(post.id, post.title, post.contents, post.createdDate, post.images,
-					new QPostWriterInfoDto(post.user.id, post.user.orgId, post.user.name, post.user.profileImage),
+					new QPostWriterInfoDto(post.user.id, post.user.id, post.user.name, post.user.profileImage),
 					post.likeCount, ExpressionUtils.as(
 					JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists(),
 					"isLiked"), post.viewCount, post.commentCount,

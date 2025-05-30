@@ -68,7 +68,7 @@ public class ReplyDto {
 
 	public static ReplyDto of(Comment comment, boolean isLiked, boolean isWriter, boolean isBlockedComment) {
 		return new ReplyDto(comment.getId(), comment.getContents(),
-			new CommentWriterDto(comment.getUser().getId(), comment.getUser().getOrgId(), comment.getUser().getName(),
+			new CommentWriterDto(comment.getUser().getId(), comment.getUser().getId(), comment.getUser().getName(),
 				comment.getUser().getProfileImage()), comment.getCreatedDate(), comment.getLikeCount(),
 			isLiked, isWriter, comment.getOrder(), isBlockedComment);
 	}
