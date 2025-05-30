@@ -71,10 +71,13 @@ push-notification:
 notice:
   secret-key: ${NOTICE_SECRET_KEY}
 
-playground:
-  server:
-    url: ${DEV_PLAYGROUND_URL}
-    endpoint: ${PLAYGROUND_ENDPOINT}
+external:
+  auth:
+    url: https://auth.api.dev.sopt.org
+    api-key: ${AUTH_API_KEY}
+    service-name: ${OUR_SERVICE_NAME}
+    endpoints:
+      jwk: ${MAKERS_AUTH_JWK_ENDPOINT}
 
 management:
   server:
