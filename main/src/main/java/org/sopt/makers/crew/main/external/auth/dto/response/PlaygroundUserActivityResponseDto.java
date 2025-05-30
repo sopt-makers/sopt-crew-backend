@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.external.playground.dto.response;
+package org.sopt.makers.crew.main.external.auth.dto.response;
 
 public record PlaygroundUserActivityResponseDto(
 	Long id,

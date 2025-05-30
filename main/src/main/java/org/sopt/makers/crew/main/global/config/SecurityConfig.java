@@ -3,9 +3,9 @@ package org.sopt.makers.crew.main.global.config;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import org.sopt.makers.crew.main.global.jwt.JwtAuthenticationEntryPoint;
 import org.sopt.makers.crew.main.global.jwt.JwtAuthenticationFilter;
 import org.sopt.makers.crew.main.global.jwt.JwtTokenProvider;
+import org.sopt.makers.crew.main.global.security.JwtAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
