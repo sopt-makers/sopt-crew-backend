@@ -3,7 +3,6 @@ package org.sopt.makers.crew.main.entity.user;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
@@ -11,8 +10,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
-
-	Optional<User> findByOrgId(Integer orgId);
 
 	default User findByIdOrThrow(Integer userId) {
 		return findById(userId)
@@ -34,6 +31,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 		return users;
 	}
 
-	@Query("SELECT u.orgId FROM User u")
+	@Query("SELECT u.id FROM User u")
 	List<Integer> findAllOrgIds();
 }
