@@ -23,7 +23,6 @@ create table if not exists "user"
     constraint "UQ_cace4a159ff9f2512dd42373760"
     unique,
     name           varchar not null,
-    "orgId"        integer not null,
     "profileImage" varchar,
     activities     jsonb,
     phone          varchar,
