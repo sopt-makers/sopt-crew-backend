@@ -41,7 +41,7 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 		PlaygroundUserResponseDto responseDto = fetchPlaygroundUser(requestDto);
 		log.info("Playground API 호출 성공: 토큰 유효함");
 
-		User curUser = userRepository.findByOrgId(responseDto.getId())
+		User curUser = userRepository.findById(responseDto.getId())
 			.orElseGet(() -> signUpNewUser(responseDto));
 		if (updateUserIfChanged(curUser, responseDto)) {
 			clearCacheForUser(curUser.getId());

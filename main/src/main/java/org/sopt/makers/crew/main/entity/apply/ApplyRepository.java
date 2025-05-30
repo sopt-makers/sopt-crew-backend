@@ -61,7 +61,7 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 	@Query("SELECT COALESCE(COUNT(a.id), 0) " +
 		"FROM Apply a JOIN a.meeting m " +
 		"JOIN a.user u " +
-		"WHERE m.category = :category AND a.status = :status AND u.orgId = :orgId")
+		"WHERE m.category = :category AND a.status = :status AND u.id = :orgId")
 	Long findApprovedStudyCountByOrgId(
 		@Param("category") MeetingCategory category,
 		@Param("status") EnApplyStatus status,

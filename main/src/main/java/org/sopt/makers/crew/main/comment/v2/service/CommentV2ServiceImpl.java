@@ -109,7 +109,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 	private void sendPushNotification(CommentV2CreateCommentBodyDto requestBody, Post post,
 		User user) {
 		User PostWriter = post.getUser();
-		String[] userIds = {String.valueOf(PostWriter.getOrgId())};
+		String[] userIds = {String.valueOf(PostWriter.getId())};
 		String secretStringRemovedContent = MentionSecretStringRemover.removeSecretString(
 			requestBody.getContents());
 		String pushNotificationContent = String.format("[%s의 댓글] : \"%s\"",
@@ -169,10 +169,10 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		List<Comment> comments = commentRepository.findAllByPostIdOrderByCreatedDate(postId);
 
 		User user = userRepository.findByIdOrThrow(userId);
-		Long orgId = user.getOrgId().longValue();
+		Long orgId = user.getId().longValue();
 
 		List<Long> userOrgIds = comments.stream()
-			.map(comment -> comment.getUser().getOrgId().longValue())
+			.map(comment -> comment.getUser().getId().longValue())
 			.toList();
 
 		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgId, userOrgIds);
@@ -186,7 +186,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 				comment -> {
 					boolean isBlockedComment = false;
 					if (comment.getUserId() != null) {
-						isBlockedComment = blockedUsers.getOrDefault(comment.getUser().getOrgId().longValue(),
+						isBlockedComment = blockedUsers.getOrDefault(comment.getUser().getId().longValue(),
 							false);
 					}
 
@@ -200,7 +200,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 			.map(comment -> {
 				boolean isBlockedComment = false;
 				if (comment.getUserId() != null) {
-					isBlockedComment = blockedUsers.getOrDefault(comment.getUser().getOrgId().longValue(),
+					isBlockedComment = blockedUsers.getOrDefault(comment.getUser().getId().longValue(),
 						false);
 				}
 
@@ -269,7 +269,7 @@ public class CommentV2ServiceImpl implements CommentV2Service {
 		}
 
 		comment.deleteParentComment();
-		childComments.deleteMention(user.getName(), user.getOrgId().toString());
+		childComments.deleteMention(user.getName(), user.getId().toString());
 	}
 
 	@Override
