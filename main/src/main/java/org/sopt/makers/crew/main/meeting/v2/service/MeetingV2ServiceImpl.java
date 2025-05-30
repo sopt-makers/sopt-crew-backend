@@ -155,7 +155,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		int page = queryDto.getPage();
 		int take = queryDto.getTake();
 
-		Optional<User> user = userRepository.findByOrgId(queryDto.getOrgUserId());
+		Optional<User> user = userRepository.findById(queryDto.getOrgUserId());
 		List<MeetingV2GetAllMeetingByOrgUserMeetingDto> userJoinedList = new ArrayList<>();
 
 		if (user.isPresent()) {

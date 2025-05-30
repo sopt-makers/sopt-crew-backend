@@ -22,10 +22,10 @@ public record UserV2GetUserOwnProfileResponseDto(
 	@NotNull
 	Boolean hasActivities
 ) {
-	public static UserV2GetUserOwnProfileResponseDto of(User user){
+	public static UserV2GetUserOwnProfileResponseDto of(User user) {
 		boolean hasActivities = !user.getActivities().isEmpty();
 
-		return new UserV2GetUserOwnProfileResponseDto(user.getId(), user.getOrgId(), user.getName(),
+		return new UserV2GetUserOwnProfileResponseDto(user.getId(), user.getId(), user.getName(),
 			user.getProfileImage(), hasActivities);
 	}
 }

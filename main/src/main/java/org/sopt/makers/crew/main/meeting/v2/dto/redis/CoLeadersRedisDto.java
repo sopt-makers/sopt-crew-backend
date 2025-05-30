@@ -25,7 +25,7 @@ public class CoLeadersRedisDto {
 		coLeaders
 			.forEach(coLeader -> {
 				CoLeaderRedisDto coLeaderRedisDto = new CoLeaderRedisDto(coLeader.getUser().getId(),
-					coLeader.getUser().getOrgId(),
+					coLeader.getUser().getId(),
 					coLeader.getUser().getName(), coLeader.getUser().getProfileImage(), coLeader.getMeeting().getId());
 				List<CoLeaderRedisDto> coLeaderRedisDtos = coLeadersMap.getOrDefault(coLeader.getMeeting().getId(),
 					new ArrayList<>());
