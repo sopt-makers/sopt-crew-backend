@@ -114,9 +114,9 @@ public class User extends BaseTimeEntity {
 			isUpdated = true;
 		}
 
-		// if (validateAndUpdateOrgId(authUser.getOrgId())) {
-		// 	isUpdated = true;
-		// }
+		if (validateAndUpdateOrgId(authUser.getId())) {
+			isUpdated = true;
+		}
 
 		if (validateAndUpdateActivities(authUser.getActivities())) {
 			isUpdated = true;
@@ -148,7 +148,6 @@ public class User extends BaseTimeEntity {
 		}
 		return false;
 	}
-
 
 	private boolean validateAndUpdateActivities(List<UserActivityVO> newActivities) {
 		if (!Objects.equals(this.activities, newActivities)) {

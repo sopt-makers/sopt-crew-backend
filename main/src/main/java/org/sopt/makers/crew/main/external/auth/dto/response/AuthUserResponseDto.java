@@ -22,7 +22,7 @@ public record AuthUserResponseDto(
 			.toList();
 
 		return User.builder()
-			// 여기서 id를 직접 넣어줘야 함(autoincrement 해제 후)
+			.orgId(userId)
 			.name(name)
 			.profileImage(profileImage)
 			.phone(phone)

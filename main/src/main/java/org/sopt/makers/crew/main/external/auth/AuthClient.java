@@ -25,10 +25,13 @@ public class AuthClient {
 	private final AuthClientProperties authProperties;
 
 	public AuthUserResponseDto getUserInfo(String userId) {
+
+		log.info("userId was this: {}", userId);
+		log.info("authProperties.getUsers()", authProperties.getUsers());
 		AuthApiResponseDto response = executeRequest(
 			() -> authWebClient.get()
 				.uri(uriBuilder -> uriBuilder
-					.path(authProperties.getEndpoints().getUsers())
+					.path(authProperties.getUsers())
 					.queryParam("userIds", userId)
 					.build())
 				.retrieve()
@@ -42,7 +45,7 @@ public class AuthClient {
 	public String getJwk() {
 		return executeRequest(
 			() -> authWebClient.get()
-				.uri(authProperties.getEndpoints().getJwk())
+				.uri(authProperties.getJwk())
 				.retrieve()
 				.bodyToMono(String.class)
 		);

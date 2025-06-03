@@ -1,23 +1,20 @@
 package org.sopt.makers.crew.main.external.auth.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
-@ConfigurationProperties(prefix = "external.client")
+@ConfigurationProperties(prefix = "external.auth")
 @Getter
-@RequiredArgsConstructor
+@Setter
+@Component
 public class AuthClientProperties {
-	private final String url;
-	private final String apiKey;
-	private final String serviceName;
-	private final Endpoints endpoints;
+	private String url;
+	private String apiKey;
+	private String serviceName;
+	private String jwk;
+	private String users;
 
-	@Getter
-	@RequiredArgsConstructor
-	public static class Endpoints {
-		private final String jwk;
-		private final String users;
-	}
 }
