@@ -25,9 +25,6 @@ public class AuthClient {
 	private final AuthClientProperties authProperties;
 
 	public AuthUserResponseDto getUserInfo(String userId) {
-
-		log.info("userId was this: {}", userId);
-		log.info("authProperties.getUsers()", authProperties.getUsers());
 		AuthApiResponseDto response = executeRequest(
 			() -> authWebClient.get()
 				.uri(uriBuilder -> uriBuilder
