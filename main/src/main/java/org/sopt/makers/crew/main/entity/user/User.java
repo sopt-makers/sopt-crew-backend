@@ -116,26 +116,26 @@ public class User extends BaseTimeEntity {
 		this.interestedKeywords = keywords;
 	}
 
-	public boolean updateIfChanged(User playgroundUser) {
+	public boolean updateIfChanged(User authUser) {
 		boolean isUpdated = false;
 
-		if (validateAndUpdateName(playgroundUser.getName())) {
+		if (validateAndUpdateName(authUser.getName())) {
 			isUpdated = true;
 		}
 
-		if (validateAndUpdateOrgId(playgroundUser.getOrgId())) {
+		// if (validateAndUpdateOrgId(authUser.getOrgId())) {
+		// 	isUpdated = true;
+		// }
+
+		if (validateAndUpdateActivities(authUser.getActivities())) {
 			isUpdated = true;
 		}
 
-		if (validateAndUpdateActivities(playgroundUser.getActivities())) {
+		if (validateAndUpdateProfileImage(authUser.getProfileImage())) {
 			isUpdated = true;
 		}
 
-		if (validateAndUpdateProfileImage(playgroundUser.getProfileImage())) {
-			isUpdated = true;
-		}
-
-		if (validateAndUpdatePhone(playgroundUser.getPhone())) {
+		if (validateAndUpdatePhone(authUser.getPhone())) {
 			isUpdated = true;
 		}
 
@@ -150,13 +150,13 @@ public class User extends BaseTimeEntity {
 		return false;
 	}
 
-	private boolean validateAndUpdateOrgId(Integer newOrgId) {
-		if (!Objects.equals(this.orgId, newOrgId)) {
-			this.orgId = newOrgId;
-			return true;
-		}
-		return false;
-	}
+	// private boolean validateAndUpdateOrgId(Integer newOrgId) {
+	// 	if (!Objects.equals(this.orgId, newOrgId)) {
+	// 		this.orgId = newOrgId;
+	// 		return true;
+	// 	}
+	// 	return false;
+	// }
 
 	private boolean validateAndUpdateActivities(List<UserActivityVO> newActivities) {
 		if (!Objects.equals(this.activities, newActivities)) {
