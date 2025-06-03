@@ -9,6 +9,9 @@ public record AuthClientProperties(
 	String serviceName,
 	Endpoints endpoints
 ) {
-	public record Endpoints(String jwk) {
+	public record Endpoints(
+		String jwk,
+		String users
+	) {
 	}
 }
