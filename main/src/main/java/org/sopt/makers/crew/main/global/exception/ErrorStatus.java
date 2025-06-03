@@ -58,6 +58,7 @@ public enum ErrorStatus {
 	UNAUTHORIZED_TOKEN("유효하지 않은 토큰입니다."),
 	UNAUTHORIZED_USER("존재하지 않거나 유효하지 않은 유저입니다."),
 	UNAUTHORIZED_INVALID_KID("해당 kid에 대한 공개키를 찾을 수 없어 인증이 실패했습니다."),
+	UNAUTHORIZED_INVALID_AUTH("유효하지 않은 인증 정보입니다."),
 	JWT_MISSING_AUTH_HEADER("인증 헤더가 존재하지 않습니다."),
 	JWT_PARSE_FAILED("잘못된 형식의 JWT입니다."),
 	JWT_INVALID_CLAIMS("JWT의 클레임이 유효하지 않습니다."),
