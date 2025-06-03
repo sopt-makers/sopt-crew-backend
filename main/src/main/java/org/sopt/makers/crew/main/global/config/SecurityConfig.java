@@ -1,6 +1,5 @@
 package org.sopt.makers.crew.main.global.config;
 
-import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.sopt.makers.crew.main.global.security.filter.JwtAuthenticationExceptionFilter;
@@ -8,7 +7,6 @@ import org.sopt.makers.crew.main.global.security.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -16,9 +14,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
 
@@ -63,43 +58,21 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf(AbstractHttpConfigurer::disable)
-			.cors(Customizer.withDefaults())
+			.cors(AbstractHttpConfigurer::disable)
 			.sessionManagement(
-				(sessionManagement) -> sessionManagement.sessionCreationPolicy(
-					SessionCreationPolicy.STATELESS))
+				sessionManagement -> sessionManagement
+					.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(
 				authorize -> authorize
-					.requestMatchers(Stream
-						.of(SWAGGER_URL)
+					.requestMatchers(Stream.of(SWAGGER_URL)
 						.map(AntPathRequestMatcher::antMatcher)
 						.toArray(AntPathRequestMatcher[]::new)).permitAll()
-					.requestMatchers(Stream
-						.of(getAuthWhitelist())
+					.requestMatchers(Stream.of(getAuthWhitelist())
 						.map(AntPathRequestMatcher::antMatcher)
 						.toArray(AntPathRequestMatcher[]::new)).permitAll()
 					.anyRequest().authenticated())
 			.addFilterBefore(jwtAuthenticationExceptionFilter, UsernamePasswordAuthenticationFilter.class)
 			.addFilterBefore(jwtAuthenticationFilter, JwtAuthenticationExceptionFilter.class);
 		return http.build();
-	}
-
-	@Bean
-	CorsConfigurationSource corsConfigurationSource() {
-		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(
-			Arrays.asList(
-				"https://playground.sopt.org/",
-				"http://localhost:3000/",
-				"https://sopt-internal-dev.pages.dev/",
-				"https://crew.api.dev.sopt.org",
-				"https://crew.api.prod.sopt.org"
-			));
-		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"));
-		configuration.addAllowedHeader("*");
-		configuration.setAllowCredentials(false);
-
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", configuration);
-		return source;
 	}
 }
