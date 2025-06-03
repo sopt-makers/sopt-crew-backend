@@ -48,7 +48,7 @@ public class JwtAuthenticator {
 	public MakersAuthentication authenticate(String token) {
 		try {
 			SignedJWT jwt = SignedJWT.parse(token);
-			String kid = jwt.getHeader().getKeyID();
+			String kid = extractKeyId(jwt);
 			PublicKey key = jwkProvider.getPublicKey(kid);
 			JWTClaimsSet claims = verifyWithRetry(jwt, kid, key);
 
@@ -77,7 +77,7 @@ public class JwtAuthenticator {
 	/**
 	 * JWT 검증을 수행하며, 서명 검증 실패 시 1회 재시도를 수행합니다.
 	 *
-	 * @param jwt 검증할 JWT 객체
+	 // * @param jwt 검증할 JWT 객체
 	 * @param kid JWT Header의 Key ID
 	 * @param publicKey 현재 캐시된 공개키
 	 * @return 검증된 JWTClaimsSet
@@ -142,5 +142,9 @@ public class JwtAuthenticator {
 			throw new UnAuthorizedException(JWT_INVALID_CLAIMS.getErrorCode());
 		}
 		return claims;
+	}
+
+	private String extractKeyId(SignedJWT jwt) {
+		return jwt.getHeader().getKeyID();
 	}
 }
