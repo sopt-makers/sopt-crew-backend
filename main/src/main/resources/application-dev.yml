@@ -80,9 +80,8 @@ external:
     url: https://auth.api.dev.sopt.org
     api-key: ${AUTH_API_KEY}
     service-name: ${OUR_SERVICE_NAME}
-    endpoints:
-      jwk: ${MAKERS_AUTH_JWK_ENDPOINT}
-      users: ${MAKERS_AUTH_USERS_ENDPOINT}
+    jwk: ${MAKERS_AUTH_JWK_ENDPOINT}
+    users: ${MAKERS_AUTH_USERS_ENDPOINT}
 
 management:
   server:
