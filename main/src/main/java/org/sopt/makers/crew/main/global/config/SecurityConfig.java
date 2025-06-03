@@ -71,8 +71,8 @@ public class SecurityConfig {
 						.map(AntPathRequestMatcher::antMatcher)
 						.toArray(AntPathRequestMatcher[]::new)).permitAll()
 					.anyRequest().authenticated())
-			.addFilterBefore(jwtAuthenticationExceptionFilter, UsernamePasswordAuthenticationFilter.class)
-			.addFilterBefore(jwtAuthenticationFilter, JwtAuthenticationExceptionFilter.class);
+			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(jwtAuthenticationExceptionFilter, JwtAuthenticationFilter.class);
 		return http.build();
 	}
 }
