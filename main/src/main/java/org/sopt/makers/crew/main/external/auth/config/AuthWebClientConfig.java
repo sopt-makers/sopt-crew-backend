@@ -24,10 +24,10 @@ public class AuthWebClientConfig {
 	@Bean
 	public WebClient authWebClient(AuthClientProperties properties) {
 		return WebClient.builder()
-			.baseUrl(properties.url())
+			.baseUrl(properties.getUrl())
 			.clientConnector(new ReactorClientHttpConnector(createDefaultHttpClient()))
-			.defaultHeader(HEADER_API_KEY, properties.apiKey())
-			.defaultHeader(HEADER_SERVICE_NAME, properties.serviceName())
+			.defaultHeader(HEADER_API_KEY, properties.getApiKey())
+			.defaultHeader(HEADER_SERVICE_NAME, properties.getServiceName())
 			.defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
 			.build();
 	}

@@ -28,7 +28,7 @@ public class AuthClient {
 		AuthApiResponseDto response = executeRequest(
 			() -> authWebClient.get()
 				.uri(uriBuilder -> uriBuilder
-					.path(authProperties.endpoints().users())
+					.path(authProperties.getEndpoints().getUsers())
 					.queryParam("userIds", userId)
 					.build())
 				.retrieve()
@@ -42,7 +42,7 @@ public class AuthClient {
 	public String getJwk() {
 		return executeRequest(
 			() -> authWebClient.get()
-				.uri(authProperties.endpoints().jwk())
+				.uri(authProperties.getEndpoints().getJwk())
 				.retrieve()
 				.bodyToMono(String.class)
 		);
