@@ -1,7 +1,7 @@
 package org.sopt.makers.crew.main.external.auth.dto.response;
 
-public record PlaygroundUserActivityResponseDto(
-	Long id,
+public record AuthUserActivityResponseDto(
+	Long activityId,
 	int generation,
 	String part,
 	String team

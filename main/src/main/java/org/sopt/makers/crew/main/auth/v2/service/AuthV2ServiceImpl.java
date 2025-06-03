@@ -1,15 +1,13 @@
 package org.sopt.makers.crew.main.auth.v2.service;
 
-import org.sopt.makers.crew.main.auth.v2.dto.request.AuthV2RequestDto;
 import org.sopt.makers.crew.main.auth.v2.dto.response.AuthV2ResponseDto;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
-import org.sopt.makers.crew.main.external.playground.PlaygroundService;
-import org.sopt.makers.crew.main.external.playground.dto.request.PlaygroundUserRequestDto;
-import org.sopt.makers.crew.main.external.playground.dto.response.PlaygroundUserResponseDto;
+import org.sopt.makers.crew.main.external.auth.AuthService;
+import org.sopt.makers.crew.main.external.auth.dto.request.AuthUserRequestDto;
+import org.sopt.makers.crew.main.external.auth.dto.response.AuthUserResponseDto;
 import org.sopt.makers.crew.main.global.dto.OrgIdListDto;
-import org.sopt.makers.crew.main.global.jwt.JwtTokenProvider;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Caching;
@@ -28,39 +26,35 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 	private final UserRepository userRepository;
 	private final CoLeaderRepository coLeaderRepository;
 
-	private final PlaygroundService playgroundService;
-	private final JwtTokenProvider jwtTokenProvider;
+	private final AuthService authService;
 
 	@Override
 	@Transactional
-	public AuthV2ResponseDto loginUser(AuthV2RequestDto requestDto) {
-		String token = requestDto.authToken();
-		boolean hasToken = token != null && !token.isEmpty();
-		log.info("로그인 시도: 토큰 존재 여부={}", hasToken);
+	public AuthV2ResponseDto loginUser(Integer userId) {
+		AuthUserResponseDto responseDto = fetchAuthUser(userId);
+		log.info("{} - Auth Server API 호출 성공: 토큰 유효함", userId);
 
-		PlaygroundUserResponseDto responseDto = fetchPlaygroundUser(requestDto);
-		log.info("Playground API 호출 성공: 토큰 유효함");
-
-		User curUser = userRepository.findByOrgId(responseDto.getId())
+		User curUser = userRepository.findById(responseDto.userId())
 			.orElseGet(() -> signUpNewUser(responseDto));
+
 		if (updateUserIfChanged(curUser, responseDto)) {
 			clearCacheForUser(curUser.getId());
 		}
-		String accessToken = jwtTokenProvider.generateAccessToken(curUser.getId(), curUser.getName());
+
 		log.info("로그인 완료: userId={}", curUser.getId());
-		return AuthV2ResponseDto.of(accessToken);
+		return AuthV2ResponseDto.from(curUser.getId());
 	}
 
-	private PlaygroundUserResponseDto fetchPlaygroundUser(AuthV2RequestDto requestDto) {
+	private AuthUserResponseDto fetchAuthUser(Integer userId) {
 		try {
-			return playgroundService.getUser(PlaygroundUserRequestDto.of(requestDto.authToken()));
+			return authService.getAuthUser(AuthUserRequestDto.from(userId));
 		} catch (feign.FeignException.Unauthorized e) {
 			log.info("Playground API 호출 실패: 토큰 만료 또는 유효하지 않음");
 			throw e;
 		}
 	}
 
-	private User signUpNewUser(PlaygroundUserResponseDto responseDto) {
+	private User signUpNewUser(AuthUserResponseDto responseDto) {
 		User newUser = responseDto.toEntity();
 		User savedUser = userRepository.save(newUser);
 		log.info("New user signup: {} {}", savedUser.getId(), savedUser.getName());
@@ -70,9 +64,9 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 		return savedUser;
 	}
 
-	private boolean updateUserIfChanged(User curUser, PlaygroundUserResponseDto responseDto) {
-		User playgroundUser = responseDto.toEntity();
-		boolean isUpdated = curUser.updateIfChanged(playgroundUser);
+	private boolean updateUserIfChanged(User curUser, AuthUserResponseDto responseDto) {
+		User authUser = responseDto.toEntity();
+		boolean isUpdated = curUser.updateIfChanged(authUser);
 
 		if (isUpdated) {
 			log.info("User updated: {}", curUser.getId());
