@@ -1,10 +1,12 @@
 package org.sopt.makers.crew.main.user.v2;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.groups.Tuple.*;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart.*;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -12,7 +14,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.entity.user.UserFixture;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
@@ -34,6 +38,35 @@ public class UserServiceTest {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Nested
+	class 관심있는_키워드_관련_테스트 {
+		@Test
+		void 관심있는_키워드_등록_정상() {
+
+			User user = UserFixture.createStaticUser();
+			User save = userRepository.save(user);
+
+			userV2Service.updateInterestedKeywords(save.getId(), List.of("운동"));
+
+			List<MeetingKeywordType> interestedKeywords = user.getInterestedKeywords();
+			Assertions.assertThat(interestedKeywords)
+				.hasSize(1)
+				.contains(MeetingKeywordType.EXERCISE);
+		}
+
+		@Test
+		void 관심있는_키워드_없는경우도_정상처리() {
+			User user = UserFixture.createStaticUser();
+			User save = userRepository.save(user);
+
+			userV2Service.updateInterestedKeywords(save.getId(), Collections.emptyList());
+
+			List<MeetingKeywordType> interestedKeywords = user.getInterestedKeywords();
+			Assertions.assertThat(interestedKeywords)
+				.hasSize(0);
+		}
+	}
 
 	@Nested
 	class 전체_사용자_조회 {
