@@ -4,6 +4,6 @@ import java.util.List;
 
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 
-public interface UserKeywrodsProjection {
+public interface UserKeywordsProjection {
 	List<MeetingKeywordType> getInterestedKeywords();
 }

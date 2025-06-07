@@ -5,7 +5,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import java.util.List;
 import java.util.Optional;
 
-import org.sopt.makers.crew.main.entity.user.projection.UserKeywrodsProjection;
+import org.sopt.makers.crew.main.entity.user.projection.UserKeywordsProjection;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,5 +40,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 	List<Integer> findAllOrgIds();
 
 	@Query("select u from User u where u.id = :userId")
-	Optional<UserKeywrodsProjection> findInterestedKeywordsByUserId(@Param("userId") Integer userId);
+	Optional<UserKeywordsProjection> findInterestedKeywordsByUserId(@Param("userId") Integer userId);
 }

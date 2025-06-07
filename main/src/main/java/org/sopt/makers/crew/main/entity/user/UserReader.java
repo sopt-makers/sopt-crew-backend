@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
-import org.sopt.makers.crew.main.entity.user.projection.UserKeywrodsProjection;
+import org.sopt.makers.crew.main.entity.user.projection.UserKeywordsProjection;
 import org.sopt.makers.crew.main.external.notification.vo.KeywordMatchedUserDto;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.OrgIdListDto;
@@ -44,7 +44,7 @@ public class UserReader {
 
 	public List<MeetingKeywordType> findInterestedKeywordsByUserId(Integer userId) {
 		return userRepository.findInterestedKeywordsByUserId(userId)
-			.map(UserKeywrodsProjection::getInterestedKeywords)
+			.map(UserKeywordsProjection::getInterestedKeywords)
 			.orElse(Collections.emptyList());
 	}
 }
