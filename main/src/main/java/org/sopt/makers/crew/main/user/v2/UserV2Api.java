@@ -74,7 +74,7 @@ public interface UserV2Api {
 		Principal principal, UpdateUserInterestKeywordRequestDto dto
 	);
 
-	@Operation(summary = "유저 관심 키워드 설정")
+	@Operation(summary = "유저 관심 키워드 조회")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "성공")
