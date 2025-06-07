@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
+import org.sopt.makers.crew.main.entity.user.projection.UserKeywrodsProjection;
 import org.sopt.makers.crew.main.external.notification.vo.KeywordMatchedUserDto;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.global.dto.OrgIdListDto;
@@ -35,10 +36,15 @@ public class UserReader {
 		List<MeetingKeywordType> meetingKeywords = meetingKeywordTypes.stream()
 			.map(MeetingKeywordType::ofValue)
 			.toList();
-		
+
 		return allUsers.stream()
 			.filter(u -> !Collections.disjoint(u.getInterestedKeywords(), meetingKeywords)
 			).map(KeywordMatchedUserDto::from).toList();
 	}
 
+	public List<MeetingKeywordType> findInterestedKeywordsByUserId(Integer userId) {
+		return userRepository.findInterestedKeywordsByUserId(userId)
+			.map(UserKeywrodsProjection::getInterestedKeywords)
+			.orElse(Collections.emptyList());
+	}
 }

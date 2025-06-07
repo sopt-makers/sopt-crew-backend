@@ -10,6 +10,7 @@ import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAppliedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetCreatedMeetingByUserResponseDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetInterestedKeywordsResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
 import org.springframework.http.HttpStatus;
@@ -87,4 +88,13 @@ public class UserV2Controller implements UserV2Api {
 		userV2Service.updateInterestedKeywords(userId, dto.keywords());
 		return ResponseEntity.status(HttpStatus.OK).build();
 	}
+
+	@Override
+	@GetMapping("/interestedKeywords")
+	public ResponseEntity<UserV2GetInterestedKeywordsResponseDto> getUserInterestedKeyword(Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(userV2Service.getInterestedKeywords(userId));
+	}
+
 }
