@@ -9,6 +9,7 @@ import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAppliedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetCreatedMeetingByUserResponseDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetInterestedKeywordsResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +72,15 @@ public interface UserV2Api {
 	})
 	ResponseEntity<Void> updateUserInterestedKeyword(
 		Principal principal, UpdateUserInterestKeywordRequestDto dto
+	);
+
+	@Operation(summary = "유저 관심 키워드 조회")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "성공")
+	})
+	ResponseEntity<UserV2GetInterestedKeywordsResponseDto> getUserInterestedKeyword(
+		Principal principal
 	);
 
 }
