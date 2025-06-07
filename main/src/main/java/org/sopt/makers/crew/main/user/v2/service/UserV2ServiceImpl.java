@@ -1,8 +1,10 @@
 package org.sopt.makers.crew.main.user.v2.service;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -173,8 +175,13 @@ public class UserV2ServiceImpl implements UserV2Service {
 	@Transactional
 	public void updateInterestedKeywords(Integer userId, List<String> keywords) {
 		User user = userRepository.findByIdOrThrow(userId);
+
+		if (Objects.isNull(keywords)) {
+			user.updateKeywords(Collections.emptyList());
+			return;
+		}
 		List<MeetingKeywordType> updateKeywords = keywords.stream()
-			.map(MeetingKeywordType::valueOf)
+			.map(MeetingKeywordType::ofValue)
 			.toList();
 		user.updateKeywords(updateKeywords);
 	}

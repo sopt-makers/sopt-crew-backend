@@ -16,11 +16,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -82,7 +82,7 @@ public class UserV2Controller implements UserV2Api {
 	@Override
 	@PostMapping("/interestedKeywords")
 	public ResponseEntity<Void> updateUserInterestedKeyword(Principal principal,
-		@Valid UpdateUserInterestKeywordRequestDto dto) {
+		@RequestBody UpdateUserInterestKeywordRequestDto dto) {
 		Integer userId = UserUtil.getUserId(principal);
 		userV2Service.updateInterestedKeywords(userId, dto.keywords());
 		return ResponseEntity.status(HttpStatus.OK).build();
