@@ -5,11 +5,11 @@ import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "인증 관련 response dto")
 public record AuthV2ResponseDto(
-	@Schema(example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoi7Iah66-86recIiwiaWQiOjI4MywiaWF0IjoxNzI0MjYxMDg3LCJleHAiOjE3NjAyNjEwODd9.r2ScFqhSdt6pyl7gUvx0qFXHIknhtrXQVGjJavbAVRY", required = true, description = "크루 토큰")
+	@Schema(example = "1", required = true, description = "")
 	@NotNull
-	String accessToken
+	Integer userId
 ) {
-	public static AuthV2ResponseDto of(String accessToken){
-		return new AuthV2ResponseDto(accessToken);
+	public static AuthV2ResponseDto from(Integer id) {
+		return new AuthV2ResponseDto(id);
 	}
 }

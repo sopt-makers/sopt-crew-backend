@@ -32,11 +32,11 @@ spring:
     caffeine:
       spec: maximumSize=500,expireAfterWrite=24h
 
-jwt:
-  header: Authorization
-  secret: ${DEV_JWT_SECRET}
-  access-token:
-    expire-length: ${DEV_ACCESS_TOKEN_EXPIRED_TIME} # 10분
+#jwt:
+#  header: Authorization
+#  secret: ${DEV_JWT_SECRET}
+#  access-token:
+#    expire-length: ${DEV_ACCESS_TOKEN_EXPIRED_TIME} # 10분
 
 aws-property:
   aws-region: ${AWS_REGION}
@@ -71,10 +71,17 @@ push-notification:
 notice:
   secret-key: ${NOTICE_SECRET_KEY}
 
-playground:
-  server:
-    url: ${DEV_PLAYGROUND_URL}
-    endpoint: ${PLAYGROUND_ENDPOINT}
+jwt:
+  jwk:
+    issuer: ${MAKERS_AUTH_JWK_ISSUER}
+
+external:
+  auth:
+    url: https://auth.api.dev.sopt.org
+    api-key: ${AUTH_API_KEY}
+    service-name: ${OUR_SERVICE_NAME}
+    jwk: ${MAKERS_AUTH_JWK_ENDPOINT}
+    users: ${MAKERS_AUTH_USERS_ENDPOINT}
 
 management:
   server:

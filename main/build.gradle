@@ -100,9 +100,8 @@ dependencies {
     // Slack Webhook
     implementation 'com.github.maricn:logback-slack-appender:1.4.0'
 
-    //caffeine
+    // caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
-
 
     // redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -119,6 +118,8 @@ dependencies {
     // thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
+    // Library for parsing JWT/JWK tokens and verifying their signatures
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
 
 }
 

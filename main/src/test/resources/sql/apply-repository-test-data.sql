@@ -1,14 +1,14 @@
-INSERT INTO "user" (id, name, "orgId", activities, "profileImage", phone)
-VALUES (1, '김삼순', 1001,
+INSERT INTO "user" (id, name, activities, "profileImage", phone)
+VALUES (1, '김삼순',
         '[{"part": "서버", "generation": 33}, {"part": "iOS", "generation": 32}]',
         'profile1.jpg', '010-1234-5678'),
-       (2, '홍길동', 1002,
+       (2, '홍길동',
         '[{"part": "기획", "generation": 32}, {"part": "기획", "generation": 29}, {"part": "기획", "generation": 33}, {"part": "기획", "generation": 30}]',
         'profile2.jpg', '010-1111-2222'),
-       (3, '김철수', 1003,
+       (3, '김철수',
         '[{"part": "웹", "generation": 34}]',
         'profile3.jpg', '010-3333-4444'),
-       (4, '이영지', 1004,
+       (4, '이영지',
         '[{"part": "iOS", "generation": 32}, {"part": "안드로이드", "generation": 29}]',
         'profile4.jpg', '010-5555-5555');
 

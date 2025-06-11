@@ -21,7 +21,7 @@ public record MeetingV2CoLeaderResponseDto(
 	String userprofileImage
 ) {
 	public static MeetingV2CoLeaderResponseDto of(User user) {
-		return new MeetingV2CoLeaderResponseDto(user.getId(), user.getOrgId(), user.getName(),
+		return new MeetingV2CoLeaderResponseDto(user.getId(), user.getId(), user.getName(),
 			user.getProfileImage());
 	}
 }

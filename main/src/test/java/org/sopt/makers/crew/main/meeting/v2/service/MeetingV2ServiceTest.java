@@ -297,10 +297,10 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(foundMeeting).isNotNull();
 			Assertions.assertThat(coLeaders)
 				.hasSize(2)
-				.extracting("user.orgId", "user.name", "meeting.id")
+				.extracting("user.name", "meeting.id")
 				.containsExactly(
-					tuple(2, "공동모임장1", foundMeeting.getId()),
-					tuple(3, "공동모임장2", foundMeeting.getId())
+					tuple("공동모임장1", foundMeeting.getId()),
+					tuple("공동모임장2", foundMeeting.getId())
 				);
 		}
 
@@ -649,18 +649,18 @@ public class MeetingV2ServiceTest {
 				);
 
 			Assertions.assertThat(meetingCreatorDtos)
-				.extracting("name", "orgId", "profileImage", "activities", "phone")
+				.extracting("name", "profileImage", "activities", "phone")
 				.containsExactly(
-					tuple("모임개설자", 1001, "profile1.jpg",
+					tuple("모임개설자", "profile1.jpg",
 						List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
 						"010-1234-5678"),
-					tuple("모임개설자2", 1005, "profile5.jpg",
+					tuple("모임개설자2", "profile5.jpg",
 						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
 						"010-6666-6666"),
-					tuple("모임개설자2", 1005, "profile5.jpg",
+					tuple("모임개설자2", "profile5.jpg",
 						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
 						"010-6666-6666"),
-					tuple("모임개설자2", 1005, "profile5.jpg",
+					tuple("모임개설자2", "profile5.jpg",
 						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
 						"010-6666-6666")
 				);
@@ -700,9 +700,9 @@ public class MeetingV2ServiceTest {
 				);
 
 			Assertions.assertThat(meetingCreatorDtos)
-				.extracting("name", "orgId", "profileImage", "activities", "phone")
+				.extracting("name", "profileImage", "activities", "phone")
 				.containsExactly(
-					tuple("모임개설자", 1001, "profile1.jpg",
+					tuple("모임개설자", "profile1.jpg",
 						List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
 						"010-1234-5678")
 
@@ -757,15 +757,15 @@ public class MeetingV2ServiceTest {
 				);
 
 			Assertions.assertThat(meetingCreatorDtos)
-				.extracting("name", "orgId", "profileImage", "activities", "phone")
+				.extracting("name", "profileImage", "activities", "phone")
 				.containsExactly(
-					tuple("모임개설자2", 1005, "profile5.jpg",
+					tuple("모임개설자2", "profile5.jpg",
 						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
 						"010-6666-6666"),
-					tuple("모임개설자2", 1005, "profile5.jpg",
+					tuple("모임개설자2", "profile5.jpg",
 						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
 						"010-6666-6666"),
-					tuple("모임개설자2", 1005, "profile5.jpg",
+					tuple("모임개설자2", "profile5.jpg",
 						List.of(new UserActivityVO("iOS", 35), new UserActivityVO("안드로이드", 34)),
 						"010-6666-6666")
 
@@ -925,7 +925,7 @@ public class MeetingV2ServiceTest {
 					"joinableParts",
 					"status", "approvedApplyCount",
 					"host", "apply", "approved",
-					"user.id", "user.name", "user.orgId", "user.profileImage", "user.activities", "user.phone"
+					"user.id", "user.name", "user.profileImage", "user.activities", "user.phone"
 				)
 				.containsExactly(
 					1, 1, "스터디 구합니다1", "행사",
@@ -939,7 +939,7 @@ public class MeetingV2ServiceTest {
 					new MeetingJoinablePart[] {MeetingJoinablePart.PM, MeetingJoinablePart.SERVER},
 					1, 2L,
 					true, false, false,
-					1, "모임개설자", 1001, "profile1.jpg",
+					1, "모임개설자", "profile1.jpg",
 					List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
 					"010-1234-5678"
 				);
@@ -947,12 +947,12 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.getAppliedInfo())
 				.extracting(
 					"id", "meetingId", "userId", "appliedDate", "status",
-					"user.id", "user.name", "user.orgId", "user.activities", "user.phone")
+					"user.id", "user.name", "user.activities", "user.phone")
 				.containsExactly(
 					tuple(1, 1, 2,
 						LocalDateTime.of(2024, 5, 19, 00, 00, 00, 913489000),
 						1,
-						2, "승인신청자", 1002,
+						2, "승인신청자",
 						List.of(new UserActivityVO("기획", 32), new UserActivityVO("기획", 29),
 							new UserActivityVO("기획", 33), new UserActivityVO("기획", 30)),
 						"010-1111-2222"
@@ -960,14 +960,14 @@ public class MeetingV2ServiceTest {
 					tuple(2, 1, 3,
 						LocalDateTime.of(2024, 5, 19, 00, 00, 2, 413489000),
 						1,
-						3, "승인신청자", 1003,
+						3, "승인신청자",
 						List.of(new UserActivityVO("웹", 34)),
 						"010-3333-4444"
 					),
 					tuple(3, 1, 4,
 						LocalDateTime.of(2024, 5, 19, 00, 00, 3, 413489000),
 						0,
-						4, "대기신청자", 1004,
+						4, "대기신청자",
 						List.of(new UserActivityVO("iOS", 32), new UserActivityVO("안드로이드", 29)),
 						"010-5555-5555"
 					)
@@ -998,7 +998,7 @@ public class MeetingV2ServiceTest {
 					"joinableParts",
 					"status", "approvedApplyCount",
 					"host", "apply", "approved",
-					"user.id", "user.name", "user.orgId", "user.profileImage", "user.activities", "user.phone"
+					"user.id", "user.name", "user.profileImage", "user.activities", "user.phone"
 				)
 				.containsExactly(
 					1, 1, "스터디 구합니다1", "행사",
@@ -1012,7 +1012,7 @@ public class MeetingV2ServiceTest {
 					new MeetingJoinablePart[] {MeetingJoinablePart.PM, MeetingJoinablePart.SERVER},
 					1, 2L,
 					false, false, false,
-					1, "모임개설자", 1001, "profile1.jpg",
+					1, "모임개설자", "profile1.jpg",
 					List.of(new UserActivityVO("서버", 33), new UserActivityVO("iOS", 32)),
 					"010-1234-5678"
 				);
@@ -1020,12 +1020,12 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.getAppliedInfo())
 				.extracting(
 					"id", "meetingId", "userId", "appliedDate", "status",
-					"user.id", "user.name", "user.orgId", "user.activities", "user.phone")
+					"user.id", "user.name", "user.activities", "user.phone")
 				.containsExactly(
 					tuple(1, 1, 2,
 						LocalDateTime.of(2024, 5, 19, 00, 00, 00, 913489000),
 						1,
-						2, "승인신청자", 1002,
+						2, "승인신청자",
 						List.of(new UserActivityVO("기획", 32), new UserActivityVO("기획", 29),
 							new UserActivityVO("기획", 33), new UserActivityVO("기획", 30)),
 						"010-1111-2222"
@@ -1033,14 +1033,14 @@ public class MeetingV2ServiceTest {
 					tuple(2, 1, 3,
 						LocalDateTime.of(2024, 5, 19, 00, 00, 2, 413489000),
 						1,
-						3, "승인신청자", 1003,
+						3, "승인신청자",
 						List.of(new UserActivityVO("웹", 34)),
 						"010-3333-4444"
 					),
 					tuple(3, 1, 4,
 						LocalDateTime.of(2024, 5, 19, 00, 00, 3, 413489000),
 						0,
-						4, "대기신청자", 1004,
+						4, "대기신청자",
 						List.of(new UserActivityVO("iOS", 32), new UserActivityVO("안드로이드", 29)),
 						"010-5555-5555"
 					)
@@ -2094,11 +2094,8 @@ public class MeetingV2ServiceTest {
 			List<CoLeader> coLeaders = coLeaderRepository.findAllByMeetingId(meetingId);
 			Assertions.assertThat(coLeaders).hasSize(2);
 			Assertions.assertThat(coLeaders)
-				.extracting("user.name", "user.orgId")
-				.containsExactly(
-					tuple("승인신청자", 1003),
-					tuple("대기신청자", 1004)
-				);
+				.extracting("user.name")
+				.containsExactly("승인신청자", "대기신청자");
 		}
 	}
 
