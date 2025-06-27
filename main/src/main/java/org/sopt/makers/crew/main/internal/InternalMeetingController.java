@@ -1,7 +1,8 @@
 package org.sopt.makers.crew.main.internal;
 
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllMeetingDto;
-import org.sopt.makers.crew.main.internal.dto.UserOrgIdRequestDto;
+import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllWritingPostResponseDto;
 import org.sopt.makers.crew.main.internal.service.InternalMeetingService;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.springframework.http.ResponseEntity;
@@ -27,5 +28,12 @@ public class InternalMeetingController implements InternalMeetingApi {
 		@RequestParam @Valid Integer orgId) {
 
 		return ResponseEntity.ok().body(internalMeetingService.getMeetings(queryCommand, orgId));
+	}
+
+	@Override
+	@GetMapping("/post")
+	public ResponseEntity<InternalMeetingGetAllWritingPostResponseDto> getMeetingsForWritingPost(
+		@ModelAttribute @Valid PageOptionsDto pageOptionsDto) {
+		return ResponseEntity.ok().body(internalMeetingService.getMeetingsForWritingPost(pageOptionsDto));
 	}
 }
