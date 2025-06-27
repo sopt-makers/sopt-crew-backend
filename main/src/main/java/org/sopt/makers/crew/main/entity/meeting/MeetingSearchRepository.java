@@ -12,4 +12,6 @@ public interface MeetingSearchRepository {
 		Integer activeGeneration);
 
 	List<Meeting> findRecommendMeetings(List<Integer> meetingIds, Time time);
+
+	Page<Meeting> findAllByQuery(Pageable pageable);
 }

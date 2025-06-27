@@ -42,7 +42,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	/**
 	 * @note: canJoinOnlyActiveGeneration 처리 유의
 	 * @note: status 처리 유의
-	 * */
+	 */
 	@Override
 	public Page<Meeting> findAllByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time,
 		Integer activeGeneration) {
@@ -77,9 +77,9 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 
 	/**
 	 * @param meetingIds : 조회하려는 모임 id 리스트
-	 * @param time: RealTime 객체
+	 * @param time:      RealTime 객체
 	 * @implSpec : meetingIds 가 null 인 경우, '지금 모집중인 모임' 반환
-	 * */
+	 */
 	@Override
 	public List<Meeting> findRecommendMeetings(List<Integer> meetingIds, Time time) {
 		LocalDateTime now = time.now();
@@ -96,13 +96,27 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		return query.fetch();
 	}
 
+	@Override
+	public Page<Meeting> findAllByQuery(Pageable pageable) {
+
+		List<Meeting> meetings = queryFactory
+			.selectFrom(meeting)
+			.orderBy(meeting.createdTimestamp.desc())
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize())
+			.fetch();
+
+		return PageableExecutionUtils.getPage(meetings,
+			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), getCount()::fetchFirst);
+	}
+
 	/**
 	 * 특정 조건을 기반으로 모집된 모임(Meeting) 리스트를 조회하는 메서드.
 	 * 모집 상태(모집중 → 모집전 → 모집마감)별 우선순위 정렬 후 최신순으로 정렬하여 페이징 처리한다.
 	 *
 	 * @param queryCommand 사용자가 입력한 검색 조건을 포함하는 DTO
 	 * @param pageable     페이징 처리 정보 (페이지 번호, 페이지 크기 등)
-	 * @param now         현재 시간을 제공하는 LocalDateTime now 객체
+	 * @param now          현재 시간을 제공하는 LocalDateTime now 객체
 	 * @return 정렬 및 필터링된 모임 리스트
 	 */
 	private List<Meeting> getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable,
@@ -163,6 +177,12 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())
 			.fetch();
+	}
+
+	private JPAQuery<Long> getCount() {
+		return queryFactory
+			.select(meeting.count())
+			.from(meeting);
 	}
 
 	private JPAQuery<Long> getCount(MeetingV2GetAllMeetingQueryDto queryCommand, LocalDateTime now,
