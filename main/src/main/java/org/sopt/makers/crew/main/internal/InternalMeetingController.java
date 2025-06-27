@@ -33,7 +33,7 @@ public class InternalMeetingController implements InternalMeetingApi {
 	@Override
 	@GetMapping("/post")
 	public ResponseEntity<InternalMeetingGetAllWritingPostResponseDto> getMeetingsForWritingPost(
-		PageOptionsDto pageOptionsDto) {
+		@ModelAttribute @Valid PageOptionsDto pageOptionsDto) {
 		return ResponseEntity.ok().body(internalMeetingService.getMeetingsForWritingPost(pageOptionsDto));
 	}
 }
