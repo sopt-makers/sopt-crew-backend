@@ -2,12 +2,15 @@ package org.sopt.makers.crew.main.internal.service;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
+import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.internal.dto.InternalPostGetAllResponseDto;
@@ -39,11 +42,19 @@ public class InternalPostService {
 
 		List<InternalPostResponseDto> list = postList.getContent()
 			.stream()
-			.map(InternalPostResponseDto::from)
+			.map(this::madeInternalResponseDto)
 			.toList();
 
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)postList.getTotalElements());
 
-		return InternalPostGetAllResponseDto.from(list, pageMetaDto);
+		return InternalPostGetAllResponseDto.of(list, pageMetaDto);
+	}
+
+	private InternalPostResponseDto madeInternalResponseDto(PostDetailWithPartBaseDto dto) {
+		UserActivityVO recentActivity = dto.getUser().getPartInfo().stream()
+			.filter(userActivityVO -> userActivityVO.getPart() != null)
+			.max(Comparator.comparingInt(UserActivityVO::getGeneration))
+			.orElseThrow(() -> new ServerException(INTERNAL_SERVER_ERROR.getErrorCode()));
+		return InternalPostResponseDto.of(dto, recentActivity);
 	}
 }

@@ -1,10 +1,6 @@
 package org.sopt.makers.crew.main.internal.dto;
 
-import java.util.Comparator;
-
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
-import org.sopt.makers.crew.main.global.exception.ErrorStatus;
-import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostWriterWithPartInfoDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,21 +17,14 @@ public record InternalPostWriterDetailInfoDto(
 	@Schema(description = "작성자 현재 기수, 파트 ", example = "36기 서버파트")
 	UserActivityVO partInfo
 ) {
-	public static InternalPostWriterDetailInfoDto from(PostWriterWithPartInfoDto postWriterWithPartInfoDto) {
+	public static InternalPostWriterDetailInfoDto of(PostWriterWithPartInfoDto postWriterWithPartInfoDto,
+		UserActivityVO recentActivity) {
 		return new InternalPostWriterDetailInfoDto(
 			postWriterWithPartInfoDto.getId(),
 			postWriterWithPartInfoDto.getOrgId(),
 			postWriterWithPartInfoDto.getName(),
 			postWriterWithPartInfoDto.getProfileImage(),
-			getRecentActivity(postWriterWithPartInfoDto)
+			recentActivity
 		);
 	}
-
-	private static UserActivityVO getRecentActivity(PostWriterWithPartInfoDto postWriterWithPartInfoDto) {
-		return postWriterWithPartInfoDto.getPartInfo().stream()
-			.filter(userActivityVO -> userActivityVO.getPart() != null)
-			.max(Comparator.comparingInt(UserActivityVO::getGeneration))
-			.orElseThrow(() -> new ServerException(ErrorStatus.INTERNAL_SERVER_ERROR.getErrorCode()));
-	}
-
 }

@@ -2,11 +2,14 @@ package org.sopt.makers.crew.main.internal.dto;
 
 import java.time.LocalDateTime;
 
+import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailWithPartBaseDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 
+@Tag(name = "플그 모임탭에 뜨기 위한 피드 정보에 대한 dto")
 public record InternalPostResponseDto(
 	@Schema(description = "피드 id", example = "1")
 	@NotNull
@@ -49,14 +52,15 @@ public record InternalPostResponseDto(
 	int commentCount
 ) {
 
-	public static InternalPostResponseDto from(PostDetailWithPartBaseDto postDetailWithPartBaseDto) {
+	public static InternalPostResponseDto of(PostDetailWithPartBaseDto postDetailWithPartBaseDto,
+		UserActivityVO recentActivity) {
 		return new InternalPostResponseDto(
 			postDetailWithPartBaseDto.getId(),
 			postDetailWithPartBaseDto.getTitle(),
 			postDetailWithPartBaseDto.getContents(),
 			postDetailWithPartBaseDto.getCreatedDate(),
 			postDetailWithPartBaseDto.getImages(),
-			InternalPostWriterDetailInfoDto.from(postDetailWithPartBaseDto.getUser()),
+			InternalPostWriterDetailInfoDto.of(postDetailWithPartBaseDto.getUser(), recentActivity),
 			postDetailWithPartBaseDto.getLikeCount(),
 			postDetailWithPartBaseDto.getIsLiked(),
 			postDetailWithPartBaseDto.getViewCount(),
