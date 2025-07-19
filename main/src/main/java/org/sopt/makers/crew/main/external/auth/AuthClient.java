@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.external.auth;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.sopt.makers.crew.main.external.auth.config.AuthClientProperties;
@@ -25,6 +26,23 @@ public class AuthClient {
 	private final AuthClientProperties authProperties;
 
 	public AuthUserResponseDto getUserInfo(String userId) {
+		return getAuthApiResponseDto(userId).getFirstUser();
+	}
+
+	public List<AuthUserResponseDto> getUsers(String userIds) {
+		return getAuthApiResponseDto(userIds).data();
+	}
+
+	public String getJwk() {
+		return executeRequest(
+			() -> authWebClient.get()
+				.uri(authProperties.getJwk())
+				.retrieve()
+				.bodyToMono(String.class)
+		);
+	}
+
+	private AuthApiResponseDto getAuthApiResponseDto(String userId) {
 		AuthApiResponseDto response = executeRequest(
 			() -> authWebClient.get()
 				.uri(uriBuilder -> uriBuilder
@@ -36,16 +54,7 @@ public class AuthClient {
 		);
 
 		validateResponse(response);
-		return response.getFirstUser();
-	}
-
-	public String getJwk() {
-		return executeRequest(
-			() -> authWebClient.get()
-				.uri(authProperties.getJwk())
-				.retrieve()
-				.bodyToMono(String.class)
-		);
+		return response;
 	}
 
 	private <T> T executeRequest(Supplier<Mono<T>> requestSupplier) {
