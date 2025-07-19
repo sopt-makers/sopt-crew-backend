@@ -34,7 +34,7 @@ public class InternalPostService {
 
 		Pageable pageRequest = PageRequest.of(pageOptionsDto.getPage() - 1, pageOptionsDto.getTake());
 
-		User user = userRepository.findByOrgId(orgId)
+		User user = userRepository.findById(orgId)
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_USER.getErrorCode()));
 
 		Page<PostDetailWithPartBaseDto> postList =

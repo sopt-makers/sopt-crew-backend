@@ -79,7 +79,7 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 	private List<PostDetailWithPartBaseDto> getContentList(Pageable pageable, Integer userId) {
 		return queryFactory.select(
 				new QPostDetailWithPartBaseDto(post.id, post.title, post.contents, post.createdDate, post.images,
-					new QPostWriterWithPartInfoDto(post.user.id, post.user.orgId, post.user.name,
+					new QPostWriterWithPartInfoDto(post.user.id, post.user.id, post.user.name,
 						post.user.profileImage,
 						post.user.activities
 					),

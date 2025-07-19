@@ -80,7 +80,7 @@ public class InternalMeetingStatsService {
 		Integer postId = requestDto.postId();
 		Integer orgId = requestDto.orgId();
 
-		User user = userRepository.findByOrgId(orgId)
+		User user = userRepository.findById(orgId)
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_USER.getErrorCode()));
 		Post post = postRepository.findByIdOrThrow(postId);
 		Integer userId = user.getId();
