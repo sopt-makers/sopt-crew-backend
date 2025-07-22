@@ -20,4 +20,5 @@ public class AuthService {
 	public List<AuthUserResponseDto> getAuthUsers(AuthUserRequestDto requestDto) {
 		return authClient.getUsers(requestDto.userId());
 	}
+
 }

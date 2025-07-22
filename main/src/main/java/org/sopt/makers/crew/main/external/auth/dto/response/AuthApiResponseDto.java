@@ -26,4 +26,5 @@ public record AuthApiResponseDto(
 
 		return data;
 	}
+
 }

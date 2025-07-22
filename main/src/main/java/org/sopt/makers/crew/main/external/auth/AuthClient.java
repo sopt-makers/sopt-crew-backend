@@ -3,6 +3,7 @@ package org.sopt.makers.crew.main.external.auth;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.List;
+
 import java.util.function.Supplier;
 
 import org.sopt.makers.crew.main.external.auth.config.AuthClientProperties;
@@ -55,6 +56,7 @@ public class AuthClient {
 
 		validateResponse(response);
 		return response;
+
 	}
 
 	private <T> T executeRequest(Supplier<Mono<T>> requestSupplier) {

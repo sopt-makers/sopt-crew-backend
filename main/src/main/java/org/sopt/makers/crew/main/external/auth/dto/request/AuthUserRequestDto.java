@@ -10,6 +10,7 @@ public record AuthUserRequestDto(
 		return new AuthUserRequestDto(userId.toString());
 	}
 
+
 	public static AuthUserRequestDto from(List<Integer> userIds) {
 		String userIdsToString = userIds.stream()
 			.map(Object::toString)
