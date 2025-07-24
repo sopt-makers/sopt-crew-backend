@@ -1,9 +1,13 @@
 package org.sopt.makers.crew.main.internal;
 
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.internal.dto.InternalPostCreateRequestDto;
+import org.sopt.makers.crew.main.internal.dto.InternalPostCreateResponseDto;
 import org.sopt.makers.crew.main.internal.dto.InternalPostGetAllResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,4 +32,10 @@ public interface InternalPostApi {
 		@ModelAttribute @Valid @Parameter(hidden = true) PageOptionsDto pageOptionsDto
 	);
 
+	@Operation(summary = "[Internal] 피드 생성", description = "플그 모임 탭에서 피드를 생성하기 위한 api")
+	@ApiResponses(value = {@ApiResponse(responseCode = "201", description = "피드 생성 성공")})
+	ResponseEntity<InternalPostCreateResponseDto> createPost(
+		@PathVariable Integer orgId,
+		@RequestBody @Valid InternalPostCreateRequestDto requestDto
+	);
 }
