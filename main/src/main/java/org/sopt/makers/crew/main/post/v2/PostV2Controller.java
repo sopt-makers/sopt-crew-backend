@@ -46,7 +46,8 @@ public class PostV2Controller implements PostV2Api {
 	public ResponseEntity<PostV2CreatePostResponseDto> createPost(
 		@Valid @RequestBody PostV2CreatePostBodyDto requestBody, Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
-		return ResponseEntity.ok(postV2Service.createPost(requestBody, userId));
+		return ResponseEntity.ok(postV2Service.
+			createPost(requestBody, userId));
 	}
 
 	@Override

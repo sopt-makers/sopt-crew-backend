@@ -1,5 +1,8 @@
 package org.sopt.makers.crew.main.internal.dto;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -17,7 +20,6 @@ public record InternalPostCreateRequestDto(
 
 	@Schema(
 		example = "[\"https://makers-web-img.s3.ap-northeast-2.amazonaws.com/meeting/2023/04/12/7bd87736-b557-4b26-a0d5-9b09f1f1d7df\"]",
-		required = true,
 		description = "게시글 이미지 리스트"
 	)
 	String[] images,
@@ -26,4 +28,32 @@ public record InternalPostCreateRequestDto(
 	@NotEmpty
 	String contents
 ) {
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null || getClass() != obj.getClass())
+			return false;
+		InternalPostCreateRequestDto that = (InternalPostCreateRequestDto)obj;
+		return Objects.equals(meetingId, that.meetingId) &&
+			Objects.equals(title, that.title) &&
+			Arrays.equals(images, that.images) &&
+			Objects.equals(contents, that.contents);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(meetingId, title, Arrays.hashCode(images), contents);
+	}
+
+	@Override
+	public String toString() {
+		return "InternalPostCreateRequestDto{" +
+			"meetingId=" + meetingId +
+			", title='" + title + '\'' +
+			", images=" + Arrays.toString(images) +
+			", contents='" + contents + '\'' +
+			'}';
+	}
 }
