@@ -87,7 +87,7 @@ public class InternalPostService {
 			.anyMatch(
 				apply -> apply.getUserId().equals(user.getId()) && apply.getStatus().equals(EnApplyStatus.APPROVE));
 		boolean isMeetingCreator = meeting.getUserId().equals(user.getId());
-		boolean isCoLeader = coLeaderRepository.existsByMeetingIdAndUserId(meeting.getId(), orgId);
+		boolean isCoLeader = coLeaderRepository.existsByMeetingIdAndUserId(meeting.getId(), user.getId());
 
 		if (!isInMeeting && !isMeetingCreator && !isCoLeader) {
 			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());

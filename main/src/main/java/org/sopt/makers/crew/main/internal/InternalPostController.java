@@ -35,7 +35,7 @@ public class InternalPostController implements InternalPostApi {
 	}
 
 	@Override
-	@PostMapping
+	@PostMapping("{orgId}")
 	public ResponseEntity<InternalPostCreateResponseDto> createPost(
 		@PathVariable Integer orgId,
 		@RequestBody @Valid InternalPostCreateRequestDto requestDto
