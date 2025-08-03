@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		if (header == null || !header.startsWith(ACCESS_TOKEN_PREFIX)) {
 			return null;
-			//throw new UnAuthorizedException(JWT_MISSING_AUTH_HEADER.getErrorCode());
+
 		}
 		return header.substring(ACCESS_TOKEN_PREFIX.length()).trim();
 	}
