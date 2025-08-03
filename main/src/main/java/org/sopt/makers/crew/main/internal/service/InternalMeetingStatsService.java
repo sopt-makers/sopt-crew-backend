@@ -40,21 +40,21 @@ public class InternalMeetingStatsService {
 	private final LikeRepository likeRepository;
 
 	public ApprovedStudyCountResponseDto getApprovedStudyCountByOrgId(Integer orgId) {
-		User user = userRepository.findByOrgId(orgId).orElse(null);
+		User user = userRepository.findById(orgId).orElse(null);
 
 		if (user == null) {
 			return ApprovedStudyCountResponseDto.of(orgId, 0L);
 		}
 
 		Long approvedStudyCount = applyRepository.findApprovedStudyCountByOrgId(MeetingCategory.STUDY,
-			EnApplyStatus.APPROVE, user.getOrgId());
+			EnApplyStatus.APPROVE, user.getId());
 
-		return ApprovedStudyCountResponseDto.of(user.getOrgId(), approvedStudyCount);
+		return ApprovedStudyCountResponseDto.of(user.getId(), approvedStudyCount);
 	}
 
 	public TopFastestAppliedMeetingsResponseDto getTopFastestAppliedMeetings(Integer orgId, Integer queryCount,
 		Integer queryYear) {
-		Optional<User> user = userRepository.findByOrgId(orgId);
+		Optional<User> user = userRepository.findById(orgId);
 
 		if (user.isEmpty()) {
 			return TopFastestAppliedMeetingsResponseDto.from(Collections.emptyList());
@@ -79,8 +79,7 @@ public class InternalMeetingStatsService {
 	public InternalPostLikeResponseDto switchPostLike(InternalPostLikeRequestDto requestDto) {
 		Integer postId = requestDto.postId();
 		Integer orgId = requestDto.orgId();
-
-		User user = userRepository.findByOrgId(orgId)
+		User user = userRepository.findById(orgId)
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_USER.getErrorCode()));
 		Post post = postRepository.findByIdOrThrow(postId);
 		Integer userId = user.getId();

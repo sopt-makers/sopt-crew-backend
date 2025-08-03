@@ -75,7 +75,7 @@ public class CommentDto {
 	public static CommentDto of(Comment comment, boolean isLiked, boolean isWriter, List<ReplyDto> replies,
 		boolean isBlockedComment) {
 		Integer userId = comment.getUser() == null ? null : comment.getUser().getId();
-		Integer orgId = comment.getUser() == null ? null : comment.getUser().getOrgId();
+		Integer orgId = comment.getUser() == null ? null : comment.getUser().getId();
 		String userName = comment.getUser() == null ? null : comment.getUser().getName();
 		String profileImage = comment.getUser() == null ? null : comment.getUser().getProfileImage();
 

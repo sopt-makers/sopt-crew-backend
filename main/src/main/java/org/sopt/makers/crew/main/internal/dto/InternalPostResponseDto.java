@@ -54,7 +54,6 @@ public record InternalPostResponseDto(
 	@Schema(description = "해당 피드와 연결된 모임 Id", example = "5")
 	@NotNull
 	int meetingId
-
 ) {
 
 	public static InternalPostResponseDto of(PostDetailWithPartBaseDto postDetailWithPartBaseDto,

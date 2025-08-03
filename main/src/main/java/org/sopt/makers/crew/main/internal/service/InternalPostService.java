@@ -1,10 +1,7 @@
 package org.sopt.makers.crew.main.internal.service;
 
-import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.NEW_POST_PUSH_NOTIFICATION_TITLE;
-import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.INTERNAL_SERVER_ERROR;
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_USER;
+import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.Comparator;
 import java.util.List;
@@ -58,7 +55,7 @@ public class InternalPostService {
 
 		Pageable pageRequest = PageRequest.of(pageOptionsDto.getPage() - 1, pageOptionsDto.getTake());
 
-		User user = userRepository.findByOrgId(orgId)
+		User user = userRepository.findById(orgId)
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_USER.getErrorCode()));
 
 		Page<PostDetailWithPartBaseDto> postList =
@@ -78,7 +75,7 @@ public class InternalPostService {
 	public InternalPostCreateResponseDto createPost(InternalPostCreateRequestDto requestBody, Integer orgId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.meetingId());
 
-		User user = userRepository.findByOrgId(orgId)
+		User user = userRepository.findById(orgId)
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_USER.getErrorCode()));
 
 		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
@@ -105,7 +102,7 @@ public class InternalPostService {
 
 		List<String> userIdList = applyRepository.findAllByMeetingIdAndStatus(meeting.getId(), EnApplyStatus.APPROVE)
 			.stream()
-			.map(apply -> String.valueOf(apply.getUser().getOrgId()))
+			.map(apply -> String.valueOf(apply.getUser().getId()))
 			.toList();
 
 		String[] userIds = userIdList.toArray(new String[0]);

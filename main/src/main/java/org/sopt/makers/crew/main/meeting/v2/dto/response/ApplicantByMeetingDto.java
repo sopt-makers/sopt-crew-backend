@@ -37,8 +37,8 @@ public class ApplicantByMeetingDto {
 	@Schema(description = "신청자 핸드폰 번호", example = "010-1234-5678")
 	private final String phone;
 
-	public static ApplicantByMeetingDto of(User user){
-		return new ApplicantByMeetingDto(user.getId(), user.getName(), user.getOrgId(), user.getActivities(),
+	public static ApplicantByMeetingDto of(User user) {
+		return new ApplicantByMeetingDto(user.getId(), user.getName(), user.getId(), user.getActivities(),
 			user.getProfileImage(), user.getPhone());
 	}
 }

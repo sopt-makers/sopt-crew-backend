@@ -30,7 +30,7 @@ public record UserV2GetAllUserDto(
 	String profileImageUrl
 ) {
 	public static UserV2GetAllUserDto of(User user) {
-		return new UserV2GetAllUserDto(user.getId(), user.getOrgId(), user.getName(),
+		return new UserV2GetAllUserDto(user.getId(), user.getId(), user.getName(),
 			user.getRecentActivityVO().getPart(), user.getRecentActivityVO().getGeneration(), user.getProfileImage());
 	}
 }

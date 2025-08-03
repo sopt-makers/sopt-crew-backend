@@ -31,10 +31,19 @@ spring:
       spec: maximumSize=500,expireAfterWrite=24h
 
 jwt:
-  header: Authorization
-  secret: ${TEST_JWT_SECRET}
-  access-token:
-    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
+  jwk:
+    issuer: ${MAKERS_AUTH_JWK_ISSUER}
+
+
+external:
+  auth:
+    url: https://auth.api.dev.sopt.org
+    api-key: ${AUTH_API_KEY}
+    service-name: ${OUR_SERVICE_NAME}
+    endpoints:
+      jwk: ${MAKERS_AUTH_JWK_ENDPOINT}
+      users: ${MAKERS_AUTH_USERS_ENDPOINT}
+
 
 aws-property:
   aws-region: ${AWS_REGION}
@@ -120,3 +129,7 @@ img:
 thread-pool:
   core-size: ${DEV_THREAD_CORE_SIZE}
   thread-name-prefix: ${DEV_THREAD_NAME_PREFIX}
+
+
+
+

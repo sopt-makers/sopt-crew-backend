@@ -1,6 +1,8 @@
 package org.sopt.makers.crew.main.internal;
 
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.internal.dto.InternalPostGetAllResponseDto;
+import org.sopt.makers.crew.main.internal.service.InternalPostService;
 import org.sopt.makers.crew.main.internal.dto.InternalPostCreateRequestDto;
 import org.sopt.makers.crew.main.internal.dto.InternalPostCreateResponseDto;
 import org.sopt.makers.crew.main.internal.dto.InternalPostGetAllResponseDto;
