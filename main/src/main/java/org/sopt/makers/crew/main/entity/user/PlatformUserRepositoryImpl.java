@@ -22,12 +22,6 @@ public class PlatformUserRepositoryImpl implements PlatformUserRepository {
 	}
 
 	@Override
-	public List<User> findAllByIdIn(List<Integer> userIds) {
-		List<AuthUserResponseDto> authUsers = authService.getAuthUsers(AuthUserRequestDto.from(userIds));
-		return authUsers.stream().map(AuthUserResponseDto::toEntity).toList();
-	}
-
-	@Override
 	public List<User> findAllByIdInOrThrow(List<Integer> userIds) {
 		List<AuthUserResponseDto> authUsers = authService.getAuthUsers(AuthUserRequestDto.from(userIds));
 		return authUsers.stream().map(AuthUserResponseDto::toEntity).toList();

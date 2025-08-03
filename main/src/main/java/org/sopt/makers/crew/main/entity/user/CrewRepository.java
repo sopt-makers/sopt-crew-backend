@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.entity.user;
 
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_USER;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.UNAUTHORIZED_USER;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +24,7 @@ public interface CrewRepository extends JpaRepository<User, Integer> {
 		return findById(userId)
 			.orElseThrow(() -> new UnAuthorizedException(UNAUTHORIZED_USER.getErrorCode()));
 	}
-	
+
 	default List<User> findAllByIdInOrThrow(List<Integer> userIds) {
 		List<User> users = findAllByIdIn(userIds);
 		List<Integer> foundUserIds = users.stream()
@@ -38,5 +39,4 @@ public interface CrewRepository extends JpaRepository<User, Integer> {
 	}
 
 	List<User> findAllByIdIn(List<Integer> userIds);
-
 }

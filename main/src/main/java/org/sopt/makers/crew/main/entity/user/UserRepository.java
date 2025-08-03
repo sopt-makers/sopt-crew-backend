@@ -13,8 +13,6 @@ public interface UserRepository {
 
 	User findByIdOrThrow(Integer userId);
 
-	List<User> findAllByIdIn(List<Integer> userIds);
-
 	List<User> findAll();
 
 	List<User> findAllById(List<Integer> userId);

@@ -36,15 +36,6 @@ public class UserRepositoryImpl implements UserRepository {
 	}
 
 	@Override
-	public List<User> findAllByIdIn(List<Integer> userIds) {
-		try {
-			return platformUserRepository.findAllByIdIn(userIds);
-		} catch (ServerException e) {
-			return crewRepository.findAllByIdIn(userIds);
-		}
-	}
-
-	@Override
 	public List<User> findAll() {
 		return crewRepository.findAll();
 	}
