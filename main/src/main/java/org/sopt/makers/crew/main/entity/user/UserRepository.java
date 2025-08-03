@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.entity.user;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.sopt.makers.crew.main.entity.user.projection.UserKeywordsProjection;
 
