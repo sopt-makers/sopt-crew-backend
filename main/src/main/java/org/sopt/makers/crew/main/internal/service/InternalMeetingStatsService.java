@@ -79,7 +79,6 @@ public class InternalMeetingStatsService {
 	public InternalPostLikeResponseDto switchPostLike(InternalPostLikeRequestDto requestDto) {
 		Integer postId = requestDto.postId();
 		Integer orgId = requestDto.orgId();
-
 		User user = userRepository.findById(orgId)
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_USER.getErrorCode()));
 		Post post = postRepository.findByIdOrThrow(postId);

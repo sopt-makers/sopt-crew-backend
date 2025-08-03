@@ -7,6 +7,7 @@ import org.sopt.makers.crew.main.entity.user.projection.UserKeywordsProjection;
 
 public interface UserRepository {
 
+
 	Optional<User> findById(Integer userId);
 
 	User save(User user);
