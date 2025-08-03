@@ -7,7 +7,6 @@ import org.sopt.makers.crew.main.entity.user.projection.UserKeywordsProjection;
 
 public interface UserRepository {
 
-
 	Optional<User> findById(Integer userId);
 
 	User save(User user);
@@ -26,4 +25,6 @@ public interface UserRepository {
 
 	Optional<UserKeywordsProjection> findInterestedKeywordsByUserId(Integer userId);
 
+	// 해당 메서드 사용하지 않음 -> test를 위해서만 사용되는 친구
+	void saveAll(List<User> users);
 }

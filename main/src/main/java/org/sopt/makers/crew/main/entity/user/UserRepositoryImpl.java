@@ -73,4 +73,9 @@ public class UserRepositoryImpl implements UserRepository {
 		return crewRepository.findInterestedKeywordsByUserId(userId);
 	}
 
+	@Override
+	public void saveAll(List<User> users) {
+		crewRepository.saveAll(users);
+	}
+
 }
