@@ -5,6 +5,8 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.UNAUTHORIZE
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.entity.user.projection.UserKeywordsProjection;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
@@ -27,9 +29,9 @@ public interface CrewRepository extends JpaRepository<User, Integer> {
 
 	default List<User> findAllByIdInOrThrow(List<Integer> userIds) {
 		List<User> users = findAllByIdIn(userIds);
-		List<Integer> foundUserIds = users.stream()
+		Set<Integer> foundUserIds = users.stream()
 			.map(User::getId)
-			.toList();
+			.collect(Collectors.toSet());
 
 		if (!foundUserIds.containsAll(userIds)) {
 			throw new NotFoundException(NOT_FOUND_USER.getErrorCode());
