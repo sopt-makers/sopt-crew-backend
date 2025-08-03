@@ -14,16 +14,19 @@ import lombok.RequiredArgsConstructor;
 public class PlatformUserRepositoryImpl implements PlatformUserRepository {
 
 	private final AuthService authService;
+	private final CrewRepository crewRepository;
 
 	@Override
 	public User findByIdOrThrow(Integer userId) {
 		AuthUserResponseDto userInfo = authService.getAuthUser(AuthUserRequestDto.from(userId));
-		return userInfo.toEntity();
+		return crewRepository.findByIdOrThrow(userInfo.userId());
 	}
 
 	@Override
 	public List<User> findAllByIdInOrThrow(List<Integer> userIds) {
 		List<AuthUserResponseDto> authUsers = authService.getAuthUsers(AuthUserRequestDto.from(userIds));
-		return authUsers.stream().map(AuthUserResponseDto::toEntity).toList();
+		return authUsers.stream().map(AuthUserResponseDto::userId)
+			.map(crewRepository::findByIdOrThrow)
+			.toList();
 	}
 }
