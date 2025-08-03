@@ -50,7 +50,7 @@ public class UserServiceTest {
 
 			userV2Service.updateInterestedKeywords(save.getId(), List.of("운동"));
 
-			List<MeetingKeywordType> interestedKeywords = user.getInterestedKeywords();
+			List<MeetingKeywordType> interestedKeywords = save.getInterestedKeywords();
 			Assertions.assertThat(interestedKeywords)
 				.hasSize(1)
 				.contains(MeetingKeywordType.EXERCISE);
