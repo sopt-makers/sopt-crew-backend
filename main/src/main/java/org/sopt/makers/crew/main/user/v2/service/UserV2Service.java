@@ -8,6 +8,7 @@ import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAppliedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetCreatedMeetingByUserResponseDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetInterestedKeywordsResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
 
 public interface UserV2Service {
@@ -27,4 +28,6 @@ public interface UserV2Service {
 	User getUserByUserId(Integer userId);
 
 	void updateInterestedKeywords(Integer userId, List<String> keywords);
+
+	UserV2GetInterestedKeywordsResponseDto getInterestedKeywords(Integer userId);
 }

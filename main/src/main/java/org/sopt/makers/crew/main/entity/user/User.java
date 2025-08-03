@@ -18,7 +18,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -67,7 +66,6 @@ public class User extends BaseTimeEntity {
 	 */
 	@Column(name = "interestedKeywords", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
-	@Size(min = 1, max = 2)
 	private List<MeetingKeywordType> interestedKeywords;
 
 	@Column(name = "isAlarmed")

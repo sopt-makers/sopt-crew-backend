@@ -11,10 +11,13 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.CustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
+import org.sopt.makers.crew.main.internal.dto.InternalMeetingForWritingPostDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllMeetingDto;
+import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllWritingPostResponseDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,5 +67,25 @@ public class InternalMeetingService {
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)meetings.getTotalElements());
 
 		return new InternalMeetingGetAllMeetingDto(meetingResponseDtos, pageMetaDto);
+	}
+
+	/**
+	 * [for. PG BE] 모임 리스트 페이지네이션 조회 (10개)
+	 *
+	 * @param pageDto 페이지네이션 정보
+	 * @return 게시글 정보(게시글 객체 + 댓글 단 사람의 썸네일 + 차단된 유저의 게시물 여부)와 페이지 메타 정보를 포함한 응답 DTO
+	 */
+	public InternalMeetingGetAllWritingPostResponseDto getMeetingsForWritingPost(PageOptionsDto pageDto) {
+
+		Page<Meeting> pagedMeetings = meetingRepository.findAllByQuery(
+			PageRequest.of(pageDto.getPage() - 1, pageDto.getTake()));
+
+		List<InternalMeetingForWritingPostDto> meetings = pagedMeetings.getContent().stream()
+			.map(InternalMeetingForWritingPostDto::from)
+			.toList();
+
+		PageMetaDto pageMetaDto = new PageMetaDto(pageDto, (int)pagedMeetings.getTotalElements());
+
+		return InternalMeetingGetAllWritingPostResponseDto.from(meetings, pageMetaDto);
 	}
 }

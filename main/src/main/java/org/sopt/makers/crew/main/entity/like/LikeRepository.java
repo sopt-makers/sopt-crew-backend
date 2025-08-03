@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.entity.like;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -31,6 +32,8 @@ public interface LikeRepository extends JpaRepository<Like, Integer> {
 	void deleteByUserIdAndCommentId(Integer userId, Integer commentId);
 
 	int deleteByUserIdAndPostId(Integer userId, Integer postId);
+
+	Optional<Like> findByUserIdAndPostId(Integer userId, Integer postId);
 
 	List<Like> findAllByPostIdIsIn(List<Integer> postIds);
 

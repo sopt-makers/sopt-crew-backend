@@ -13,14 +13,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.response.CommenterThumbnails;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailWithPartBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.QPostDetailBaseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.QPostDetailWithPartBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.QPostMeetingDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.QPostWriterInfoDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.QPostWriterWithPartInfoDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PostSearchRepositoryImpl implements PostSearchRepository {
 	private final JPAQueryFactory queryFactory;
+	private final UserRepository userRepository;
 
 	@Override
 	public Page<PostDetailResponseDto> findPostList(PostGetPostsCommand queryCommand, Pageable pageable,
@@ -51,6 +56,43 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 
 		return PageableExecutionUtils.getPage(content, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()),
 			countQuery::fetchFirst);
+	}
+
+	/**
+	 * 플그 모임탭에서 보여주기 위한 피드들을 조회합니다.
+	 * <p>
+	 * 모임 id별로 호출하지 않고 최신순 피드들을 조회하는 역할입니다.
+	 *
+	 * @param pageable 페이지네이션용 파라미터
+	 * @return 조회되는 피드들 페이지당 take 갯수씩 제공
+	 */
+	@Override
+	public Page<PostDetailWithPartBaseDto> findPostList(Pageable pageable, Integer userId) {
+
+		JPAQuery<Long> count = getCount();
+
+		List<PostDetailWithPartBaseDto> contentList = getContentList(pageable, userId);
+
+		return PageableExecutionUtils.getPage(contentList, pageable, count::fetchFirst);
+	}
+
+	private List<PostDetailWithPartBaseDto> getContentList(Pageable pageable, Integer userId) {
+		return queryFactory.select(
+				new QPostDetailWithPartBaseDto(post.id, post.title, post.contents, post.createdDate, post.images,
+					new QPostWriterWithPartInfoDto(post.user.id, post.user.id, post.user.name,
+						post.user.profileImage,
+						post.user.activities
+					),
+					post.likeCount, ExpressionUtils.as(
+					JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists(),
+					"isLiked"), post.viewCount, post.commentCount,
+					new QPostMeetingDto(post.meeting.id, post.meeting.title, post.meeting.category, post.meeting.imageURL,
+						post.meeting.desc)))
+			.from(post)
+			.orderBy(post.createdDate.desc())
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize())
+			.fetch();
 	}
 
 	@Override
@@ -121,6 +163,15 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 
 	private JPAQuery<Long> getCount(Integer meetingId) {
 		return queryFactory.select(post.count()).from(post).where(meetingIdEq(meetingId));
+	}
+
+	/**
+	 * 모든 피드의 갯수 값을 가져온다.
+	 *
+	 * @return 모든 피드의 갯수 제공
+	 */
+	private JPAQuery<Long> getCount() {
+		return queryFactory.select(post.count()).from(post);
 	}
 
 	private BooleanExpression meetingIdEq(Integer meetingId) {

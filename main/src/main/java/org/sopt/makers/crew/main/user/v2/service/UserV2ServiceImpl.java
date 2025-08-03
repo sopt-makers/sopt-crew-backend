@@ -1,8 +1,10 @@
 package org.sopt.makers.crew.main.user.v2.service;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,6 +19,7 @@ import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.entity.user.UserReader;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.global.exception.BaseException;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
@@ -30,6 +33,7 @@ import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllMentionUserDto
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAllUserDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetAppliedMeetingByUserResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetCreatedMeetingByUserResponseDto;
+import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetInterestedKeywordsResponseDto;
 import org.sopt.makers.crew.main.user.v2.dto.response.UserV2GetUserOwnProfileResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -50,6 +54,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 
 	private final ActiveGenerationProvider activeGenerationProvider;
 	private final Time time;
+	private final UserReader userReader;
 
 	@Override
 	public List<UserV2GetAllMeetingByUserMeetingDto> getAllMeetingByUser(Integer userId) {
@@ -173,10 +178,24 @@ public class UserV2ServiceImpl implements UserV2Service {
 	@Transactional
 	public void updateInterestedKeywords(Integer userId, List<String> keywords) {
 		User user = userRepository.findByIdOrThrow(userId);
+
+		if (Objects.isNull(keywords)) {
+			user.updateKeywords(Collections.emptyList());
+			return;
+		}
 		List<MeetingKeywordType> updateKeywords = keywords.stream()
-			.map(MeetingKeywordType::valueOf)
+			.map(MeetingKeywordType::ofValue)
 			.toList();
 		user.updateKeywords(updateKeywords);
+	}
+
+	@Override
+	public UserV2GetInterestedKeywordsResponseDto getInterestedKeywords(Integer userId) {
+		return UserV2GetInterestedKeywordsResponseDto.from(
+			userReader.findInterestedKeywordsByUserId(userId)
+				.stream().map(MeetingKeywordType::getValue)
+				.toList()
+		);
 	}
 
 	private List<Integer> getCoLeaderMeetingIds(List<CoLeader> coLeaders) {

@@ -1,36 +1,27 @@
 package org.sopt.makers.crew.main.entity.user;
 
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
-
 import java.util.List;
 
-import org.sopt.makers.crew.main.global.exception.NotFoundException;
-import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.sopt.makers.crew.main.entity.user.projection.UserKeywordsProjection;
 
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface UserRepository {
 
-	default User findByIdOrThrow(Integer userId) {
-		return findById(userId)
-			.orElseThrow(() -> new UnAuthorizedException(UNAUTHORIZED_USER.getErrorCode()));
-	}
+	Optional<User> findById(Integer userId);
+
+	User save(User user);
+
+	User findByIdOrThrow(Integer userId);
 
 	List<User> findAllByIdIn(List<Integer> userIds);
 
-	default List<User> findAllByIdInOrThrow(List<Integer> userIds) {
-		List<User> users = findAllByIdIn(userIds);
-		List<Integer> foundUserIds = users.stream()
-			.map(User::getId)
-			.toList();
+	List<User> findAll();
 
-		if (!foundUserIds.containsAll(userIds)) {
-			throw new NotFoundException(NOT_FOUND_USER.getErrorCode());
-		}
+	List<User> findAllById(List<Integer> userId);
 
-		return users;
-	}
+	List<User> findAllByIdInOrThrow(List<Integer> userIds);
 
-	@Query("SELECT u.id FROM User u")
 	List<Integer> findAllOrgIds();
+
+	Optional<UserKeywordsProjection> findInterestedKeywordsByUserId(Integer userId);
+
 }
