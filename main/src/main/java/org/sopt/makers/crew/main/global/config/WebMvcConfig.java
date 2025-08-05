@@ -33,6 +33,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
 			)
 			.allowedMethods("GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS")
 			.allowedHeaders("*")
-			.allowCredentials(false);
+			.allowCredentials(true);
 	}
 }
