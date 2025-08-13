@@ -88,23 +88,27 @@ public interface MeetingV2Api {
 	@Operation(summary = "모임 지원자/참여자 조회", description = "모임 지원자/참여자 조회 (모임장이면 지원자, 아니면 참여자 조회)")
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 지원자/참여자 조회 성공"),
 		@ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
+	@Parameter(name = "queryCommand", hidden = true)
+	@Parameter(name = "page", description = "페이지, default = 1", example = "1", schema = @Schema(type = "integer", format = "int32"))
+	@Parameter(name = "take", description = "가져올 데이터 개수(10명씩, 30명씩, 50명씩 보기)", example = "10", schema = @Schema(type = "integer", format = "int32"))
+	@Parameter(name = "status", description = "지원 상태 (다중 선택 가능, 값을 전달하지 않으면 기본적으로 모든 상태가 선택)", example = "WAITING,APPROVE,REJECT", schema = @Schema(type = "array", implementation = String.class))
+	@Parameter(name = "date", description = "날짜 정렬 (desc: 내림차순, asc: 오름차순)", example = "desc", schema = @Schema(type = "string", allowableValues = {
+		"desc", "asc"}))
 	ResponseEntity<MeetingGetApplyListResponseDto> findApplyList(@PathVariable Integer meetingId,
-		@ModelAttribute MeetingGetAppliesQueryDto queryCommand,
-		Principal principal);
+		@ModelAttribute MeetingGetAppliesQueryDto queryCommand, Principal principal);
 
 	@Operation(summary = "모임 전체 조회/검색/필터링", description = "모임 전체 조회/검색/필터링\n")
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 지원자/참여자 조회 성공")})
-	@Parameters({
-		@Parameter(name = "page", description = "페이지, default = 1", example = "1", schema = @Schema(type = "integer", format = "int32")),
-		@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50", schema = @Schema(type = "integer", format = "int32")),
-		@Parameter(name = "category", description = "카테고리", example = "스터디,번쩍", schema = @Schema(type = "string", format = "string")),
-		@Parameter(name = "keyword", description = "키워드", example = "먹방,자기계발,기타", schema = @Schema(type = "string", format = "string")),
-		@Parameter(name = "status", description = "모임 모집 상태", example = "0,1", schema = @Schema(type = "string", format = "string")),
-		@Parameter(name = "isOnlyActiveGeneration", description = "활동기수만 참여여부", example = "true", schema = @Schema(type = "boolean", format = "boolean")),
-		@Parameter(name = "joinableParts", description = "검색할 활동 파트 다중 선택. OR 조건으로 검색됨 </br> Available values : PM, DESIGN, IOS, ANDROID, SERVER, WEB", example = "PM,DESIGN,IOS,ANDROID,SERVER,WEB", schema = @Schema(type = "array[string]", format = "array[string]")),
-		@Parameter(name = "query", description = "검색 내용", example = "고수스터디 검색", schema = @Schema(type = "string", format = "string")),
-		@Parameter(name = "paginationType", description = "페이지네이션 타입", example = "ADVERTISEMENT", schema = @Schema(type = "string", format = "string"))
-	})
+	@Parameter(name = "queryCommand", hidden = true)
+	@Parameter(name = "page", description = "페이지, default = 1", example = "1", schema = @Schema(type = "integer", format = "int32"))
+	@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "50", schema = @Schema(type = "integer", format = "int32"))
+	@Parameter(name = "category", description = "카테고리", example = "스터디,번쩍", schema = @Schema(type = "string", format = "string"))
+	@Parameter(name = "keyword", description = "키워드", example = "먹방,자기계발,기타", schema = @Schema(type = "string", format = "string"))
+	@Parameter(name = "status", description = "모임 모집 상태", example = "0,1", schema = @Schema(type = "string", format = "string"))
+	@Parameter(name = "isOnlyActiveGeneration", description = "활동기수만 참여여부", example = "true", schema = @Schema(type = "boolean", format = "boolean"))
+	@Parameter(name = "joinableParts", description = "검색할 활동 파트 다중 선택. OR 조건으로 검색됨 </br> Available values : PM, DESIGN, IOS, ANDROID, SERVER, WEB", example = "PM,DESIGN,IOS,ANDROID,SERVER,WEB", schema = @Schema(type = "array[string]", format = "array[string]"))
+	@Parameter(name = "query", description = "검색 내용", example = "고수스터디 검색", schema = @Schema(type = "string", format = "string"))
+	@Parameter(name = "paginationType", description = "페이지네이션 타입", example = "ADVERTISEMENT", schema = @Schema(type = "string", format = "string"))
 	ResponseEntity<MeetingV2GetAllMeetingDto> getMeetings(@ModelAttribute MeetingV2GetAllMeetingQueryDto queryCommand,
 		Principal principal);
 
@@ -128,8 +132,7 @@ public interface MeetingV2Api {
 		@Parameter(name = "status", description = "0: 대기, 1: 승인된 신청자, 2: 거절된 신청자", example = "0,1", required = true, schema = @Schema(type = "string")),
 		@Parameter(name = "type", description = "0: 지원, 1: 초대", example = "0,1", required = true, schema = @Schema(type = "string")),
 		@Parameter(name = "order", description = "정렬순", example = "desc", schema = @Schema(type = "string", format = "string"))})
-	ResponseEntity<AppliesCsvFileUrlResponseDto> getAppliesCsvFileUrl(
-		@PathVariable Integer meetingId,
+	ResponseEntity<AppliesCsvFileUrlResponseDto> getAppliesCsvFileUrl(@PathVariable Integer meetingId,
 		@ModelAttribute @Valid @Parameter(hidden = true) MeetingGetAppliesCsvQueryDto queryCommand,
 		Principal principal);
 
@@ -141,8 +144,7 @@ public interface MeetingV2Api {
 
 	@Operation(summary = "추천 모임 목록 조회", description = "추천 모임 목록 조회, 쿼리파라미터가 없는 경우 '지금 모집중인 모임' 반환")
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "추천 모임 목록 조회 성공"),
-		@ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content)
-	})
+		@ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content)})
 	ResponseEntity<MeetingV2GetRecommendDto> getRecommendMeetingsByIds(
 		@RequestParam(name = "meetingIds", required = false) @Parameter(description = "추천할 모임들의 ID 리스트", example = "[101, 102, 103]") List<Integer> meetingIds,
 		Principal principal);
