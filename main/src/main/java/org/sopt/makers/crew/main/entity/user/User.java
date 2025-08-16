@@ -80,6 +80,7 @@ public class User extends BaseTimeEntity {
 		this.activities = activities;
 		this.profileImage = profileImage;
 		this.phone = phone;
+		this.isAlarmed = false;
 	}
 
 	public void setUserIdForTest(Integer userId) {
