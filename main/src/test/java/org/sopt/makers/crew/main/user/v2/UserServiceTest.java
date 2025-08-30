@@ -50,7 +50,7 @@ public class UserServiceTest {
 
 			userV2Service.updateInterestedKeywords(save.getId(), List.of("운동"));
 
-			List<MeetingKeywordType> interestedKeywords = user.getInterestedKeywords();
+			List<MeetingKeywordType> interestedKeywords = save.getInterestedKeywords();
 			Assertions.assertThat(interestedKeywords)
 				.hasSize(1)
 				.contains(MeetingKeywordType.EXERCISE);
@@ -235,23 +235,23 @@ public class UserServiceTest {
 				.extracting("title", "targetActiveGeneration", "joinableParts", "category",
 					"canJoinOnlyActiveGeneration", "status", "isCoLeader", "isMentorNeeded",
 					"startDate", "endDate", "mStartDate", "mEndDate",
-					"capacity", "approvedCount", "user.orgId", "welcomeMessageTypes", "meetingKeywordTypes")
+					"capacity", "approvedCount", "welcomeMessageTypes", "meetingKeywordTypes")
 				.containsExactly(
 					tuple("세미나 구합니다 - 신청후", null, new MeetingJoinablePart[] {WEB, IOS}, "세미나",
 						false, 2, false, false,
 						LocalDateTime.of(2024, 4, 22, 0, 0, 0), LocalDateTime.of(2024, 4, 22, 23, 59, 59),
 						LocalDateTime.of(2024, 5, 29, 0, 0, 0), LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						13, 1, 1004, List.of("숙련자 환영", "OB 환영"), List.of("기타")),
+						13, 1, List.of("숙련자 환영", "OB 환영"), List.of("기타")),
 					tuple("스터디 구합니다 - 신청후", null, new MeetingJoinablePart[] {PM, SERVER}, "스터디",
 						false, 2, false, false,
 						LocalDateTime.of(2024, 4, 22, 0, 0, 0), LocalDateTime.of(2024, 4, 22, 23, 59, 59),
 						LocalDateTime.of(2024, 5, 29, 0, 0, 0), LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, 0, 1004, List.of("입문자 환영", "OB 환영"), List.of("기타")),
+						10, 0, List.of("입문자 환영", "OB 환영"), List.of("기타")),
 					tuple("스터디 구합니다 - 신청전", null, new MeetingJoinablePart[] {PM, SERVER}, "스터디",
 						false, 0, false, false,
 						LocalDateTime.of(2024, 4, 25, 0, 0, 0), LocalDateTime.of(2024, 5, 24, 23, 59, 59),
 						LocalDateTime.of(2024, 5, 29, 0, 0, 0), LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, 0, 1004, List.of("초면 환영", "OB 환영"), List.of("기타"))
+						10, 0, List.of("초면 환영", "OB 환영"), List.of("기타"))
 				);
 		}
 
@@ -273,13 +273,13 @@ public class UserServiceTest {
 				.extracting("title", "targetActiveGeneration", "joinableParts", "category",
 					"canJoinOnlyActiveGeneration", "status", "isCoLeader", "isMentorNeeded",
 					"startDate", "endDate", "mStartDate", "mEndDate",
-					"capacity", "approvedCount", "user.orgId", "welcomeMessageTypes", "meetingKeywordTypes")
+					"capacity", "approvedCount", "welcomeMessageTypes", "meetingKeywordTypes")
 				.containsExactly(
 					tuple("세미나 구합니다 - 신청후", null, new MeetingJoinablePart[] {WEB, IOS}, "세미나",
 						false, 2, true, false,
 						LocalDateTime.of(2024, 4, 22, 0, 0, 0), LocalDateTime.of(2024, 4, 22, 23, 59, 59),
 						LocalDateTime.of(2024, 5, 29, 0, 0, 0), LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						13, 1, 1004, List.of("숙련자 환영", "OB 환영"), List.of("기타"))
+						13, 1, List.of("숙련자 환영", "OB 환영"), List.of("기타"))
 				);
 		}
 	}

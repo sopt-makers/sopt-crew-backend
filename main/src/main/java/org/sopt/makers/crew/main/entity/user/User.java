@@ -16,8 +16,6 @@ import org.sopt.makers.crew.main.global.exception.ServerException;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -36,7 +34,6 @@ public class User extends BaseTimeEntity {
 	 */
 	@Id
 	@Column(name = "id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
 	/**
@@ -44,12 +41,6 @@ public class User extends BaseTimeEntity {
 	 */
 	@Column(name = "name", nullable = false)
 	private String name;
-
-	/**
-	 * sopt org unique id
-	 */
-	@Column(name = "orgId", nullable = false)
-	private Integer orgId;
 
 	/**
 	 * 활동 목록
@@ -84,11 +75,12 @@ public class User extends BaseTimeEntity {
 	@Builder
 	public User(String name, Integer orgId, List<UserActivityVO> activities, String profileImage,
 		String phone) {
+		this.id = orgId;
 		this.name = name;
-		this.orgId = orgId;
 		this.activities = activities;
 		this.profileImage = profileImage;
 		this.phone = phone;
+		this.isAlarmed = false;
 	}
 
 	public void setUserIdForTest(Integer userId) {
@@ -114,26 +106,26 @@ public class User extends BaseTimeEntity {
 		this.interestedKeywords = keywords;
 	}
 
-	public boolean updateIfChanged(User playgroundUser) {
+	public boolean updateIfChanged(User authUser) {
 		boolean isUpdated = false;
 
-		if (validateAndUpdateName(playgroundUser.getName())) {
+		if (validateAndUpdateName(authUser.getName())) {
 			isUpdated = true;
 		}
 
-		if (validateAndUpdateOrgId(playgroundUser.getOrgId())) {
+		if (validateAndUpdateOrgId(authUser.getId())) {
 			isUpdated = true;
 		}
 
-		if (validateAndUpdateActivities(playgroundUser.getActivities())) {
+		if (validateAndUpdateActivities(authUser.getActivities())) {
 			isUpdated = true;
 		}
 
-		if (validateAndUpdateProfileImage(playgroundUser.getProfileImage())) {
+		if (validateAndUpdateProfileImage(authUser.getProfileImage())) {
 			isUpdated = true;
 		}
 
-		if (validateAndUpdatePhone(playgroundUser.getPhone())) {
+		if (validateAndUpdatePhone(authUser.getPhone())) {
 			isUpdated = true;
 		}
 
@@ -149,8 +141,8 @@ public class User extends BaseTimeEntity {
 	}
 
 	private boolean validateAndUpdateOrgId(Integer newOrgId) {
-		if (!Objects.equals(this.orgId, newOrgId)) {
-			this.orgId = newOrgId;
+		if (!Objects.equals(this.id, newOrgId)) {
+			this.id = newOrgId;
 			return true;
 		}
 		return false;

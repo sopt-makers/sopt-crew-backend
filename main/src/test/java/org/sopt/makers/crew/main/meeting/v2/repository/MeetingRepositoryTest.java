@@ -7,7 +7,6 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
@@ -15,6 +14,7 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @IntegratedTest
@@ -28,7 +28,7 @@ public class MeetingRepositoryTest {
 
 	@Test
 	@DisplayName("정상적인 경우, 모임 저장시 성공한다.")
-	void normal_save_success(){
+	void normal_save_success() {
 		// given
 		User user = User.builder()
 			.name("홍길동")
@@ -38,15 +38,16 @@ public class MeetingRepositoryTest {
 			.phone("010-1234-5678")
 			.build();
 		User savedUser = userRepository.save(user);
+		// 어 이거 왜 동등성 보장이 안되는거야?
 
 		List<ImageUrlVO> imageUrlList = Arrays.asList(
-			new ImageUrlVO(1,"https://example.com/image1.jpg"),
-			new ImageUrlVO(2,"https://example.com/image2.jpg")
+			new ImageUrlVO(1, "https://example.com/image1.jpg"),
+			new ImageUrlVO(2, "https://example.com/image2.jpg")
 		);
 
 		// Meeting 객체 생성
 		Meeting meeting = Meeting.builder()
-			.user(user)
+			.user(savedUser)
 			.userId(1)  // userId 예시
 			.title("Backend 개발 스터디")
 			.category(MeetingCategory.STUDY)
@@ -64,7 +65,7 @@ public class MeetingRepositoryTest {
 			.canJoinOnlyActiveGeneration(true)
 			.createdGeneration(2024)
 			.targetActiveGeneration(2024)
-			.joinableParts(new MeetingJoinablePart[]{MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS})
+			.joinableParts(new MeetingJoinablePart[] {MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS})
 			.build();
 
 		// when
@@ -97,7 +98,7 @@ public class MeetingRepositoryTest {
 				true,  // canJoinOnlyActiveGeneration 필드
 				2024,  // createdGeneration 필드
 				2024,  // targetActiveGeneration 필드
-				new MeetingJoinablePart[]{MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS}  // joinableParts 필드
+				new MeetingJoinablePart[] {MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS}  // joinableParts 필드
 			);
 
 		// 추가적으로 imageURL 리스트도 개별적으로 검증

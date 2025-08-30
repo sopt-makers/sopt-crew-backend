@@ -29,7 +29,7 @@ public class KeywordMatchedUserNotificationEventListener {
 			pushNotificationProperties.getPushWebUrl() + "/detail?id=" + event.meetingId();
 
 		String[] orgIds = event.dtos().stream()
-			.map(m -> String.valueOf(m.user().getOrgId()))
+			.map(m -> String.valueOf(m.user().getId()))
 			.toArray(String[]::new);
 
 		pushNotificationService.sendPushNotification(PushNotificationRequestDto.of(

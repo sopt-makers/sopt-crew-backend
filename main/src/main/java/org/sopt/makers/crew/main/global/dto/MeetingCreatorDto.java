@@ -38,11 +38,6 @@ public class MeetingCreatorDto {
 	@NotNull
 	private final String phone;
 
-	public static MeetingCreatorDto from(User user) {
-		return new MeetingCreatorDto(user.getId(), user.getName(), user.getOrgId(), user.getProfileImage(),
-			user.getActivities(), user.getPhone());
-	}
-
 	@JsonCreator // JSON 역직렬화를 위한 생성자
 	public MeetingCreatorDto(
 		@JsonProperty("id") Integer id,
@@ -58,5 +53,10 @@ public class MeetingCreatorDto {
 		this.profileImage = profileImage;
 		this.activities = activities;
 		this.phone = phone;
+	}
+
+	public static MeetingCreatorDto from(User user) {
+		return new MeetingCreatorDto(user.getId(), user.getName(), user.getId(), user.getProfileImage(),
+			user.getActivities(), user.getPhone());
 	}
 }

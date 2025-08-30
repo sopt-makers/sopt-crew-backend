@@ -110,7 +110,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 
 		List<String> userIdList = applyRepository.findAllByMeetingIdAndStatus(meeting.getId(), EnApplyStatus.APPROVE)
 			.stream()
-			.map(apply -> String.valueOf(apply.getUser().getOrgId()))
+			.map(apply -> String.valueOf(apply.getUser().getId()))
 			.toList();
 
 		String[] userIds = userIdList.toArray(new String[0]);
@@ -130,7 +130,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	 * 모일 게시글 리스트 페이지네이션 조회 (12개)
 	 *
 	 * @param queryCommand 게시글 조회를 위한 쿼리 명령 객체
-	 * @param userId 게시글을 조회하는 사용자 id
+	 * @param userId       게시글을 조회하는 사용자 id
 	 * @return 게시글 정보(게시글 객체 + 댓글 단 사람의 썸네일 + 차단된 유저의 게시물 여부)와 페이지 메타 정보를 포함한 응답 DTO
 	 * @apiNote 사용자가 차단한 유저의 게시물은 해당 게시물에 대한 차단 여부를 함께 반환
 	 */
@@ -151,7 +151,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 			.collect(Collectors.toList());
 
 		User user = userV2Service.getUserByUserId(userId);
-		Long orgId = user.getOrgId().longValue();
+		Long orgId = user.getId().longValue();
 
 		Map<Long, Boolean> blockedPostMap = memberBlockService.getBlockedUsers(orgId, userOrgIds);
 
