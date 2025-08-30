@@ -8,7 +8,7 @@ spring:
     import: application-secret.properties
   datasource:
     driver-class-name: org.postgresql.Driver
-    jdbc-url: jdbc:postgresql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_DB_NAME}?currentSchema=${DEV_AUTH_SCHEMA}
+    jdbc-url: jdbc:postgresql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_DB_NAME}?currentSchema=${DEV_DB_V2_SCHEMA}
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
   playground-datasource:
@@ -32,11 +32,6 @@ spring:
     caffeine:
       spec: maximumSize=500,expireAfterWrite=24h
 
-#jwt:
-#  header: Authorization
-#  secret: ${DEV_JWT_SECRET}
-#  access-token:
-#    expire-length: ${DEV_ACCESS_TOKEN_EXPIRED_TIME} # 10분
 
 aws-property:
   aws-region: ${AWS_REGION}
