@@ -31,11 +31,6 @@ spring:
     caffeine:
       spec: maximumSize=500,expireAfterWrite=24h
 
-  #jwt:
-  #  header: Authorization
-  #  secret: ${PROD_JWT_SECRET}
-  #  access-token:
-  #    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
 
 jwt:
   jwk:
