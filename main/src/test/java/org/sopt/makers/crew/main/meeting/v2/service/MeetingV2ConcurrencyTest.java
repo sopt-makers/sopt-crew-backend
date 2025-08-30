@@ -139,7 +139,7 @@ class MeetingV2ConcurrencyTest {
 
 			readyLatch.await();
 
-			Thread.sleep(1000);
+			Thread.sleep(5000);
 
 			startLatch.countDown();
 			boolean completedInTime = finishLatch.await(10, TimeUnit.SECONDS);
