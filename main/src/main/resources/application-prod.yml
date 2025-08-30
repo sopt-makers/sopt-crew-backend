@@ -8,7 +8,7 @@ spring:
     import: application-secret.properties
   datasource:
     driver-class-name: org.postgresql.Driver
-    jdbc-url: jdbc:postgresql://${PROD_DB_HOST}:${PROD_DB_PORT}/${PROD_DB_NAME}?currentSchema=${PROD_DB_SCHEMA}
+    jdbc-url: jdbc:postgresql://${PROD_DB_HOST}:${PROD_DB_PORT}/${PROD_DB_NAME}?currentSchema=${PROD_DB_V2_SCHEMA}
     username: ${PROD_DB_USERNAME}
     password: ${PROD_DB_PASSWORD}
   playground-datasource:
@@ -31,11 +31,24 @@ spring:
     caffeine:
       spec: maximumSize=500,expireAfterWrite=24h
 
+  #jwt:
+  #  header: Authorization
+  #  secret: ${PROD_JWT_SECRET}
+  #  access-token:
+  #    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
+
 jwt:
-  header: Authorization
-  secret: ${PROD_JWT_SECRET}
-  access-token:
-    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME} # 10분
+  jwk:
+    issuer: ${MAKERS_AUTH_JWK_ISSUER}
+
+external:
+  auth:
+    url: https://auth.api.dev.sopt.org
+    api-key: ${AUTH_API_KEY}
+    service-name: ${OUR_SERVICE_NAME}
+    jwk: ${MAKERS_AUTH_JWK_ENDPOINT}
+    users: ${MAKERS_AUTH_USERS_ENDPOINT}
+
 
 aws-property:
   aws-region: ${AWS_REGION}
