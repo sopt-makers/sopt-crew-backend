@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.post.v2.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import org.sopt.makers.crew.main.global.util.MemberMentionConvertUtils;
 
@@ -48,7 +49,7 @@ public class PostDetailWithPartBaseDto {
 	private final PostMeetingDto meeting;
 	@Schema(description = "게시글 내용", example = "게시글 내용입니다.")
 	@NotNull
-	private String contents;
+	private final String contents;
 
 	@QueryProjection
 	public PostDetailWithPartBaseDto(Integer id, String title, String contents, LocalDateTime createdDate,
@@ -57,7 +58,7 @@ public class PostDetailWithPartBaseDto {
 		PostMeetingDto meeting) {
 		this.id = id;
 		this.title = title;
-		this.contents = contents;
+		this.contents = Objects.nonNull(contents) ? MemberMentionConvertUtils.convertMentionFormatToPg(contents) : null;
 		this.createdDate = createdDate;
 		this.images = images;
 		this.user = user;
@@ -66,12 +67,5 @@ public class PostDetailWithPartBaseDto {
 		this.viewCount = viewCount;
 		this.commentCount = commentCount;
 		this.meeting = meeting;
-	}
-
-	public void convertMentionFormatForExtractPgFeed() {
-		if (this.contents == null) {
-			return;
-		}
-		this.contents = MemberMentionConvertUtils.convertMentionFormatToPg(this.contents);
 	}
 }

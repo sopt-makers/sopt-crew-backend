@@ -126,7 +126,6 @@ public class InternalPostService {
 			.max(Comparator.comparingInt(UserActivityVO::getGeneration))
 			.orElseThrow(() -> new ServerException(INTERNAL_SERVER_ERROR.getErrorCode()));
 
-		dto.convertMentionFormatForExtractPgFeed();
 		return InternalPostResponseDto.of(dto, recentActivity);
 	}
 
