@@ -11,7 +11,7 @@ public class MentionConvertTest {
 		String orginalCrewMention = "-~!@#@김효준[9999999]%^&*+";
 		String changeMention = "@김효준[9999999]";
 
-		Assertions.assertThat(MemberMentionConvertUtils.convertMentionFormat(orginalCrewMention))
+		Assertions.assertThat(MemberMentionConvertUtils.convertMentionFormatToPg(orginalCrewMention))
 			.isEqualTo(changeMention);
 
 	}
@@ -21,7 +21,7 @@ public class MentionConvertTest {
 		String orginalCrewMention = "안녕하세요-~!@#@김효준[9999999]%^&*+안녕하세요";
 		String changeMention = "안녕하세요@김효준[9999999]안녕하세요";
 
-		Assertions.assertThat(MemberMentionConvertUtils.convertMentionFormat(orginalCrewMention))
+		Assertions.assertThat(MemberMentionConvertUtils.convertMentionFormatToPg(orginalCrewMention))
 			.isEqualTo(changeMention);
 
 	}
@@ -40,7 +40,7 @@ public class MentionConvertTest {
 		String orginalCrewMention = "안녕하세요-~!@#@김효준[9999999]%^&*+-~!@#@이동훈[1234123412]%^&*+안녕하세요";
 		String changeMention = "안녕하세요@김효준[9999999]@이동훈[1234123412]안녕하세요";
 
-		Assertions.assertThat(MemberMentionConvertUtils.convertMentionFormat(orginalCrewMention))
+		Assertions.assertThat(MemberMentionConvertUtils.convertMentionFormatToPg(orginalCrewMention))
 			.isEqualTo(changeMention);
 
 	}

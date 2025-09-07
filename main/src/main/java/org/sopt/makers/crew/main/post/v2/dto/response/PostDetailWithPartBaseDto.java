@@ -72,6 +72,6 @@ public class PostDetailWithPartBaseDto {
 		if (this.contents == null) {
 			return;
 		}
-		this.contents = MemberMentionConvertUtils.convertMentionFormat(this.contents);
+		this.contents = MemberMentionConvertUtils.convertMentionFormatToPg(this.contents);
 	}
 }
