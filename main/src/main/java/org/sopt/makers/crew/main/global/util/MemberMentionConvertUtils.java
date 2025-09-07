@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.global.util;
 
-public class MemberMentionConvertUtils {
+public final class MemberMentionConvertUtils {
 
 	public static String convertMentionFormatToPg(String contents) {
 		if (contents == null) {
