@@ -25,6 +25,7 @@ import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.util.MemberMentionConvertUtils;
 import org.sopt.makers.crew.main.internal.dto.InternalPostCreateRequestDto;
 import org.sopt.makers.crew.main.internal.dto.InternalPostCreateResponseDto;
 import org.sopt.makers.crew.main.internal.dto.InternalPostGetAllResponseDto;
@@ -93,7 +94,7 @@ public class InternalPostService {
 		Post post = Post.builder()
 			.title(requestBody.title())
 			.user(user)
-			.contents(requestBody.contents())
+			.contents(MemberMentionConvertUtils.convertMentionFormatToCrew(requestBody.contents()))
 			.images(requestBody.images())
 			.meeting(meeting)
 			.build();
@@ -119,10 +120,14 @@ public class InternalPostService {
 	}
 
 	private InternalPostResponseDto madeInternalResponseDto(PostDetailWithPartBaseDto dto) {
+
 		UserActivityVO recentActivity = dto.getUser().getPartInfo().stream()
 			.filter(userActivityVO -> userActivityVO.getPart() != null)
 			.max(Comparator.comparingInt(UserActivityVO::getGeneration))
 			.orElseThrow(() -> new ServerException(INTERNAL_SERVER_ERROR.getErrorCode()));
+
+		dto.convertMentionFormatForExtractPgFeed();
 		return InternalPostResponseDto.of(dto, recentActivity);
 	}
+
 }
