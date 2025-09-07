@@ -1,5 +1,9 @@
 package org.sopt.makers.crew.main.global.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class MemberMentionConvertUtils {
 
 	public static String convertMentionFormatToPg(String contents) {
