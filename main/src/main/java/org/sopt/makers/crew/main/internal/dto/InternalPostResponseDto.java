@@ -53,7 +53,10 @@ public record InternalPostResponseDto(
 
 	@Schema(description = "해당 피드와 연결된 모임 Id", example = "5")
 	@NotNull
-	int meetingId
+	int meetingId,
+
+	@Schema(description = "해당 피드와 연결된 모임 category", example = "스터디")
+	String category
 ) {
 
 	public static InternalPostResponseDto of(PostDetailWithPartBaseDto postDetailWithPartBaseDto,
@@ -69,7 +72,8 @@ public record InternalPostResponseDto(
 			postDetailWithPartBaseDto.getIsLiked(),
 			postDetailWithPartBaseDto.getViewCount(),
 			postDetailWithPartBaseDto.getCommentCount(),
-			postDetailWithPartBaseDto.getMeeting().getId()
+			postDetailWithPartBaseDto.getMeeting().getId(),
+			postDetailWithPartBaseDto.getMeeting().getCategory()
 		);
 	}
 }
