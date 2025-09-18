@@ -1,0 +1,52 @@
+name: CI - Pull Request
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-springboot:
+    name: Build and Test (SpringBoot)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-home-cache-cleanup: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./main/gradlew
+
+      - name: Create application-secret.properties from secret
+        run: |
+          echo "${{ secrets.APPLICATION_SECRET_SPRING }}" > ./main/src/main/resources/application-secret.properties
+        shell: bash
+
+      - name: Build and Test with Gradle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd main
+          ./gradlew check --no-daemon --stacktrace
