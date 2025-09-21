@@ -75,8 +75,7 @@ jobs:
           key: ${{ secrets.PROD_SERVER_KEY }}
           script: |
             sudo aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-            export IMAGE_TAG="$(echo "${{ steps.meta.outputs.tags }}" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$')"
-            export VERSION_TAG="${{ steps.meta.outputs.version }}"
+            export IMAGE_TAG="${{ steps.meta.outputs.version }}"
             export RELEASE_VERSION="${{ github.event.release.tag_name }}"
             export IMAGE_NAME="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
             cd ~
