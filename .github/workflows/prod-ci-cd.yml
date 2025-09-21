@@ -52,6 +52,8 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=production-latest
+          flavor: |
+            latest=false
 
       - name: Build and push Docker image
         id: build-and-push
