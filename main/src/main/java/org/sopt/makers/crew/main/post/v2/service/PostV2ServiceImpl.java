@@ -45,6 +45,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostViewCountResponseDto;
 import org.sopt.makers.crew.main.user.v2.service.UserV2Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -174,8 +175,15 @@ public class PostV2ServiceImpl implements PostV2Service {
 	public PostDetailBaseDto getPost(Integer userId, Integer postId) {
 		PostDetailBaseDto responseDto = postRepository.findPost(userId, postId);
 		Post post = postRepository.findByIdOrThrow(postId);
-		post.increaseViewCount();
 		return responseDto;
+	}
+
+	@Override
+	@Transactional
+	public PostViewCountResponseDto addViewCount(Integer postId) {
+		Post post = postRepository.findByIdOrThrow(postId);
+		post.increaseViewCount();
+		return new PostViewCountResponseDto(post.getViewCount());
 	}
 
 	@Override

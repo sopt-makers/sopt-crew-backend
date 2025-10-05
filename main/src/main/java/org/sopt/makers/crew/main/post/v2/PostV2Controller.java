@@ -14,6 +14,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostViewCountResponseDto;
 import org.sopt.makers.crew.main.post.v2.service.PostV2Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,6 +76,13 @@ public class PostV2Controller implements PostV2Api {
 	public ResponseEntity<PostDetailBaseDto> getPost(@PathVariable Integer postId, Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.ok(postV2Service.getPost(userId, postId));
+	}
+
+	@Override
+	@PostMapping("/{postId}/views")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<PostViewCountResponseDto> addViewCount(@PathVariable Integer postId, Principal principal) {
+		return ResponseEntity.ok(postV2Service.addViewCount(postId));
 	}
 
 	@Override
