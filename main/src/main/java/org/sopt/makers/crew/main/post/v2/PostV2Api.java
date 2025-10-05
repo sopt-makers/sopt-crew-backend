@@ -13,6 +13,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostViewCountResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -85,4 +86,8 @@ public interface PostV2Api {
 	@Operation(summary = "모임 게시글 좋아요 토글")
 	@ApiResponse(responseCode = "201", description = "성공")
 	ResponseEntity<PostV2SwitchPostLikeResponseDto> switchPostLike(@PathVariable Integer postId, Principal principal);
+
+	@Operation(summary = "모임 게시글 조회수 증가")
+	@ApiResponse(responseCode = "200", description = "성공, 응답 : 조회수")
+	ResponseEntity<PostViewCountResponseDto> addViewCount(@PathVariable Integer postId, Principal principal);
 }
