@@ -23,13 +23,17 @@ public class SlackEventListener {
 	public void init() {
 		log.info("Starting Slack event listener");
 		slackApp.event(ReactionAddedEvent.class, ((payload, ctx) -> {
-			ReactionAddedEvent event = payload.getEvent();
-			String emoji = event.getReaction();
+			try {
+				ReactionAddedEvent event = payload.getEvent();
+				String emoji = event.getReaction();
 
-			log.info("Reaction added - Emoji: {}, User: {}, Channel: {}",
-				emoji, event.getUser(), event.getItem().getChannel());
+				log.info("Reaction added - Emoji: {}, User: {}, Channel: {}",
+					emoji, event.getUser(), event.getItem().getChannel());
 
-			slackMessageService.sendMention(ctx.client(), event);
+				slackMessageService.sendMention(ctx.client(), event);
+			} catch (Exception e) {
+				log.error("Failed to process reaction event", e);
+			}
 
 			return ctx.ack();
 		}));
