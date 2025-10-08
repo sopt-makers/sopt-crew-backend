@@ -9,5 +9,9 @@ import org.springframework.data.repository.query.Param;
 public interface MakersUserSlackRepository extends JpaRepository<MakersUserSlack, Long> {
 
 	@Query("select m from makers_user_slack m where m.callEmoji = :emoji")
-	Optional<MakersUserSlack> findByUserName(@Param("emoji") String emoji);
+	Optional<MakersUserSlack> findByCallEmoji(@Param("emoji") String emoji);
+
+	void deleteByCallEmoji(String callEmoji);
+
+	boolean existsByCallEmoji(String callEmoji);
 }
