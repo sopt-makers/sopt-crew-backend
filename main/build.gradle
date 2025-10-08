@@ -34,7 +34,13 @@ dependencies {
     //slack
     implementation 'com.slack.api:bolt:1.39.3'
     implementation 'com.slack.api:bolt-servlet:1.39.3'
+    implementation 'com.slack.api:bolt-socket-mode:1.39.3'
     implementation 'com.slack.api:bolt-jetty:1.39.3'
+
+    // WebSocket
+    implementation 'javax.websocket:javax.websocket-api:1.1'
+    implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:1.19'
+
 
     // Lombok Dependencies (Compile-time code generation library)
     compileOnly 'org.projectlombok:lombok'
