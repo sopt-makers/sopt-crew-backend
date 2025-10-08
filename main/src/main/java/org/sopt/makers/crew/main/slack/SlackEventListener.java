@@ -21,6 +21,7 @@ public class SlackEventListener {
 
 	@PostConstruct
 	public void init() {
+		log.info("Starting Slack event listener");
 		slackApp.event(ReactionAddedEvent.class, ((payload, ctx) -> {
 			ReactionAddedEvent event = payload.getEvent();
 			String emoji = event.getReaction();
