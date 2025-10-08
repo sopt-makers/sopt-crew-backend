@@ -7,7 +7,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity
+@Entity(name = "slack_message_template")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class SlackMessageTemplate {
