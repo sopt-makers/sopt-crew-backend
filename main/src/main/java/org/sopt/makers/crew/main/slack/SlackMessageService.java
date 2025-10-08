@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
-public class SlackMesasgeService {
+public class SlackMessageService {
 
 	private final MakersUserSlackRepository makersUserSlackRepository;
 	private final SlackMessageTemplateRepository slackMessageTemplateRepository;
@@ -53,23 +53,13 @@ public class SlackMesasgeService {
 	}
 
 	public void sendMention(MethodsClient client, ReactionAddedEvent event) {
+		String channel = event.getItem().getChannel();
+		String user = event.getUser();
+		MakersUserSlack slackUser = resolveSlackUser(event);
+
+		String sendMessage = messageBuild(slackUser, user);
+
 		try {
-			String channel = event.getItem().getChannel();
-			String user = event.getUser();
-			String reaction = event.getReaction();
-
-			MakersUserSlack slackUser = makersUserSlackRepository.findByCallEmoji(reaction)
-				.orElseThrow(() -> new IllegalArgumentException("slack 전송 오류"));
-
-			String slackTemplateCd = slackUser.getSlackTemplateCd();
-			SlackMessageTemplate slackMessageTemplate = slackMessageTemplateRepository.findByTemplateCd(slackTemplateCd)
-				.orElseThrow(() -> new IllegalArgumentException("해당 슬랙 메시지 템플릿이 존재하지 않습니다."));
-
-			SlackMessageBuilder slackMessageBuilder = selector.selectSlackMessageBuilder(slackTemplateCd);
-
-			String sendMessage = slackMessageBuilder.buildSlackMessage(slackMessageTemplate.getTemplateContent(),
-				MessageContext.create(user, slackUser.getUserSlackId()));
-
 			ChatPostMessageResponse responses = client.chatPostMessage(r -> r
 				.channel(channel)
 				.text(sendMessage)
@@ -78,12 +68,30 @@ public class SlackMesasgeService {
 			if (responses.isOk())
 				log.info("message send success");
 			else {
-				throw new RuntimeException("ERROR OCCURED");
+				throw new IllegalArgumentException("ERROR OCCURED");
 			}
 		} catch (Exception e) {
 			log.error("now error : {}", e);
 			log.error("message send failed");
 		}
+	}
+
+	private MakersUserSlack resolveSlackUser(ReactionAddedEvent event) {
+		String reaction = event.getReaction();
+
+		MakersUserSlack slackUser = makersUserSlackRepository.findByCallEmoji(reaction)
+			.orElseThrow(() -> new IllegalArgumentException("slack 전송 오류"));
+		return slackUser;
+	}
+
+	private String messageBuild(MakersUserSlack slackUser, String user) {
+		String slackTemplateCd = slackUser.getSlackTemplateCd();
+		SlackMessageTemplate slackMessageTemplate = slackMessageTemplateRepository.findByTemplateCd(slackTemplateCd)
+			.orElseThrow(() -> new IllegalArgumentException("해당 슬랙 메시지 템플릿이 존재하지 않습니다."));
+		SlackMessageBuilder slackMessageBuilder = selector.selectSlackMessageBuilder(slackTemplateCd);
+		String sendMessage = slackMessageBuilder.buildSlackMessage(slackMessageTemplate.getTemplateContent(),
+			MessageContext.create(user, slackUser.getUserSlackId()));
+		return sendMessage;
 	}
 
 }

@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SlackEventListener {
 
 	private final App slackApp;
-	private final SlackMesasgeService slackMessageService;
+	private final SlackMessageService slackMessageService;
 
 	@PostConstruct
 	public void init() {

@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SlackController {
 
-	private final SlackMesasgeService slackMesasgeService;
+	private final SlackMessageService slackMessageService;
 	@Value("${slack.api-auth-token}")
 	private String slackAuthToken;
 
@@ -32,15 +32,13 @@ public class SlackController {
 	@PostMapping("/emoji")
 	public ResponseEntity<String> addEmoji(@RequestBody SlackEmojiEventRequestDto requestDto) {
 		try {
-			if (!requestDto.getIdentifiedPwd().equals(slackAuthToken))
-				return ResponseEntity.badRequest()
-					.body("Slack API TOKEN does not match. Please find token in  Makers Notion");
+			handleTokenValidation(requestDto.getIdentifiedPwd());
 
-			slackMesasgeService.insertEvent(requestDto.toDto());
+			slackMessageService.insertEvent(requestDto.toDto());
 
 			return ResponseEntity.ok("Successfully added emoji");
 		} catch (Exception e) {
-			return ResponseEntity.internalServerError().body(e.getMessage());
+			return handleError(e);
 		}
 
 	}
@@ -49,13 +47,11 @@ public class SlackController {
 	@PatchMapping("/emoji")
 	public ResponseEntity<String> updateEmoji(@RequestBody SlackUpdateEmojiEventRequestDto requestDto) {
 		try {
-			if (!requestDto.getIdentifiedPwd().equals(slackAuthToken))
-				return ResponseEntity.badRequest()
-					.body("Slack API TOKEN does not match. Please find token in  Makers Notion");
-			slackMesasgeService.updateEvent(requestDto.toDto());
+			handleTokenValidation(requestDto.getIdentifiedPwd());
+			slackMessageService.updateEvent(requestDto.toDto());
 			return ResponseEntity.ok("Successfully update emoji");
 		} catch (Exception e) {
-			return ResponseEntity.internalServerError().body(e.getMessage());
+			return handleError(e);
 		}
 
 	}
@@ -65,14 +61,30 @@ public class SlackController {
 	public ResponseEntity<String> deleteEmoji(
 		@RequestBody SlackEmojiEventDeleteRequestDto requestDto) {
 		try {
-			if (!requestDto.getIdentifiedPwd().equals(slackAuthToken))
-				return ResponseEntity.badRequest()
-					.body("Slack API TOKEN does not match. Please find token in  Makers Notion");
-			slackMesasgeService.deleteEvent(requestDto.toDto());
+			handleTokenValidation(requestDto.getIdentifiedPwd());
+			slackMessageService.deleteEvent(requestDto.toDto());
 			return ResponseEntity.ok("Successfully deleted emoji");
 		} catch (Exception e) {
-			return ResponseEntity.internalServerError().body(e.getMessage());
+			return handleError(e);
 		}
 
+	}
+
+	private boolean isValidToken(String providedToken) {
+		return providedToken != null && providedToken.equals(slackAuthToken);
+	}
+
+	private ResponseEntity<String> handleTokenValidation(String token) {
+		if (!isValidToken(token)) {
+			return ResponseEntity.badRequest()
+				.body("Slack API TOKEN does not match. Please find token in Makers Notion");
+		}
+		return null; // valid
+	}
+
+	private ResponseEntity<String> handleError(Exception e) {
+		log.error("Failed to emoji event", e);
+		return ResponseEntity.internalServerError()
+			.body(e.getMessage());
 	}
 }
