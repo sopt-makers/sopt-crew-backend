@@ -32,28 +32,28 @@ public class SlackController {
 	@PostMapping("/emoji")
 	public ResponseEntity<String> addEmoji(@RequestBody SlackEmojiEventRequestDto requestDto) {
 		try {
-			handleTokenValidation(requestDto.getIdentifiedPwd());
-
+			validateToken(requestDto.getIdentifiedPwd());
 			slackMessageService.insertEvent(requestDto.toDto());
-
 			return ResponseEntity.ok("Successfully added emoji");
+		} catch (InvalidSlackTokenException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
 		} catch (Exception e) {
 			return handleError(e);
 		}
-
 	}
 
 	@Operation(summary = "이모지 이벤트 업데이트")
 	@PatchMapping("/emoji")
 	public ResponseEntity<String> updateEmoji(@RequestBody SlackUpdateEmojiEventRequestDto requestDto) {
 		try {
-			handleTokenValidation(requestDto.getIdentifiedPwd());
+			validateToken(requestDto.getIdentifiedPwd());
 			slackMessageService.updateEvent(requestDto.toDto());
 			return ResponseEntity.ok("Successfully update emoji");
+		} catch (InvalidSlackTokenException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
 		} catch (Exception e) {
 			return handleError(e);
 		}
-
 	}
 
 	@Operation(summary = "이모지 이벤트 삭제")
@@ -61,30 +61,35 @@ public class SlackController {
 	public ResponseEntity<String> deleteEmoji(
 		@RequestBody SlackEmojiEventDeleteRequestDto requestDto) {
 		try {
-			handleTokenValidation(requestDto.getIdentifiedPwd());
+			validateToken(requestDto.getIdentifiedPwd());
 			slackMessageService.deleteEvent(requestDto.toDto());
 			return ResponseEntity.ok("Successfully deleted emoji");
+		} catch (InvalidSlackTokenException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
 		} catch (Exception e) {
 			return handleError(e);
 		}
+	}
 
+	private void validateToken(String token) {
+		if (!isValidToken(token)) {
+			throw new InvalidSlackTokenException("Slack API Token is invalid");
+		}
 	}
 
 	private boolean isValidToken(String providedToken) {
 		return providedToken != null && providedToken.equals(slackAuthToken);
 	}
 
-	private ResponseEntity<String> handleTokenValidation(String token) {
-		if (!isValidToken(token)) {
-			return ResponseEntity.badRequest()
-				.body("Slack API TOKEN does not match. Please find token in Makers Notion");
-		}
-		return null; // valid
-	}
-
 	private ResponseEntity<String> handleError(Exception e) {
 		log.error("Failed to emoji event", e);
 		return ResponseEntity.internalServerError()
 			.body(e.getMessage());
+	}
+
+	private static class InvalidSlackTokenException extends RuntimeException {
+		public InvalidSlackTokenException(String message) {
+			super(message);
+		}
 	}
 }
