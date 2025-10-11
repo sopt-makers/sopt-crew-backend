@@ -10,14 +10,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CallMessageBuilder implements SlackMessageBuilder {
 
-	private static final String DELIMETER = " ";
+	private static final String DELIMITER = " ";
 	private static final String TEMPLATE_CODE = "call_message";
 
 	@Override
 	public String buildSlackMessage(String text, MessageContext messageContext) {
 		return text
 			.replace("{callUser}", SlackUtils.mentionFormattingUser(messageContext.getCallUser()))
-			.replace("{user}", SlackUtils.mentionFormattingUsers(messageContext.getCalledUser(), " "));
+			.replace("{user}", SlackUtils.mentionFormattingUsers(messageContext.getCalledUser(), DELIMITER));
 	}
 
 	@Override
