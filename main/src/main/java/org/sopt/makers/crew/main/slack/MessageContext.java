@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.slack;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,9 +11,9 @@ import lombok.Getter;
 @Builder
 public class MessageContext {
 	private String callUser;
-	private String calledUser;
+	private List<String> calledUser;
 
-	public static MessageContext create(String user, String userSlackId) {
+	public static MessageContext create(String user, List<String> userSlackId) {
 		return MessageContext
 			.builder()
 			.callUser(user)

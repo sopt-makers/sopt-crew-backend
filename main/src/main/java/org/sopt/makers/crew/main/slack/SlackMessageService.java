@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.slack;
 
+import java.util.List;
+
 import org.sopt.makers.crew.main.entity.slack.MakersUserSlack;
 import org.sopt.makers.crew.main.entity.slack.MakersUserSlackRepository;
 import org.sopt.makers.crew.main.entity.slack.SlackMessageTemplate;
@@ -31,7 +33,7 @@ public class SlackMessageService {
 
 	@Transactional
 	public void insertEvent(SlackEmojiEventDto dto) {
-		if (makersUserSlackRepository.existsByCallEmoji((dto.getCallEmoji())))
+		if (makersUserSlackRepository.existsByCallEmojiAndUserSlackId(dto.getCallEmoji(), dto.getUserSlackId()))
 			throw new IllegalArgumentException("Call Emoji already exists");
 
 		makersUserSlackRepository.save(dto.toEntity());
@@ -39,23 +41,26 @@ public class SlackMessageService {
 
 	@Transactional
 	public void updateEvent(SlackUpdateEmojiEventDto dto) {
-		MakersUserSlack makersUserSlack = makersUserSlackRepository.findByCallEmoji(dto.getCallEmoji())
-			.orElseThrow(() -> new IllegalArgumentException("Invalid call emoji: " + dto.getCallEmoji()));
+		MakersUserSlack makersUserSlack = makersUserSlackRepository.findByCallEmojiAndUserSlackId(dto.getCallEmoji(),
+				dto.getUserSlackId())
+			.orElseThrow(() -> new IllegalArgumentException(
+				"Invalid call emoji or user slack Id : " + dto.getCallEmoji() + " " + dto.getUserSlackId()));
 
 		makersUserSlack.updateEmoji(dto.getUpdateCallEmoji());
 	}
 
 	@Transactional
 	public void deleteEvent(SlackDeleteEmojiEventDto dto) {
-		if (!makersUserSlackRepository.existsByCallEmoji((dto.getCallEmoji())))
+		if (!makersUserSlackRepository.existsByCallEmojiAndUserSlackId(dto.getCallEmoji(), dto.getUserSlackId()))
 			throw new IllegalArgumentException("Call Emoji not exists");
-		makersUserSlackRepository.deleteByCallEmoji(dto.getCallEmoji());
+
+		makersUserSlackRepository.deleteByCallEmojiAndUserSlackId(dto.getCallEmoji(), dto.getUserSlackId());
 	}
 
 	public void sendMention(MethodsClient client, ReactionAddedEvent event) {
 		String channel = event.getItem().getChannel();
 		String user = event.getUser();
-		MakersUserSlack slackUser = resolveSlackUser(event);
+		List<MakersUserSlack> slackUser = resolveSlackUser(event);
 
 		String sendMessage = messageBuild(slackUser, user);
 
@@ -76,22 +81,40 @@ public class SlackMessageService {
 		}
 	}
 
-	private MakersUserSlack resolveSlackUser(ReactionAddedEvent event) {
+	private List<MakersUserSlack> resolveSlackUser(ReactionAddedEvent event) {
 		String reaction = event.getReaction();
 
-		MakersUserSlack slackUser = makersUserSlackRepository.findByCallEmoji(reaction)
-			.orElseThrow(() -> new IllegalArgumentException("slack 전송 오류"));
+		List<MakersUserSlack> slackUser = makersUserSlackRepository.findByCallEmoji(reaction);
+
+		if (slackUser.isEmpty())
+			throw new IllegalArgumentException("Invalid reaction emoji : " + reaction);
+
 		return slackUser;
 	}
 
-	private String messageBuild(MakersUserSlack slackUser, String user) {
-		String slackTemplateCd = slackUser.getSlackTemplateCd();
+	private String messageBuild(List<MakersUserSlack> slackUsers, String user) {
+
+		String slackTemplateCd = extractTemplateCd(slackUsers);
 		SlackMessageTemplate slackMessageTemplate = slackMessageTemplateRepository.findByTemplateCd(slackTemplateCd)
 			.orElseThrow(() -> new IllegalArgumentException("해당 슬랙 메시지 템플릿이 존재하지 않습니다."));
 		SlackMessageBuilder slackMessageBuilder = selector.selectSlackMessageBuilder(slackTemplateCd);
 		String sendMessage = slackMessageBuilder.buildSlackMessage(slackMessageTemplate.getTemplateContent(),
-			MessageContext.create(user, slackUser.getUserSlackId()));
+			MessageContext.create(user, userIdList(slackUsers)));
 		return sendMessage;
+	}
+
+	private List<String> userIdList(List<MakersUserSlack> slackUsers) {
+		return slackUsers.stream().map(MakersUserSlack::getUserSlackId).toList();
+	}
+
+	private String extractTemplateCd(List<MakersUserSlack> slackUser) {
+		if (slackUser.size() > 1) {
+			return slackUser.stream()
+				.map(MakersUserSlack::getSlackTemplateCd)
+				.findFirst().orElseThrow(() -> new IllegalArgumentException("templateCd not found"));
+		}
+
+		return slackUser.get(0).getSlackTemplateCd();
 	}
 
 }
