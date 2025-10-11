@@ -29,6 +29,7 @@ public class SlackEmojiEventDto {
 	@AllArgsConstructor
 	public static class SlackUpdateEmojiEventDto {
 		private String callEmoji;
+		private String userSlackId;
 		private String updateCallEmoji;
 	}
 
@@ -36,6 +37,7 @@ public class SlackEmojiEventDto {
 	@Builder
 	@AllArgsConstructor
 	public static class SlackDeleteEmojiEventDto {
+		private String userSlackId;
 		private String callEmoji;
 	}
 
