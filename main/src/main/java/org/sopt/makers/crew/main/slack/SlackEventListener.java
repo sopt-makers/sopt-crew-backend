@@ -32,7 +32,7 @@ public class SlackEventListener {
 
 				slackMessageService.sendMention(ctx.client(), event);
 			} catch (Exception e) {
-				log.error("Failed to process reaction event", e);
+				log.warn("Failed to process reaction event", e);
 			}
 
 			return ctx.ack();

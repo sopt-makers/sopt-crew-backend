@@ -34,7 +34,7 @@ public class SlackSocketModeStarter {
 			socketModeApp.startAsync();
 			log.info("slack socket mode start");
 		} catch (Exception e) {
-			log.error("slack socket mode error");
+			log.warn("slack socket mode error");
 		}
 	}
 
@@ -49,7 +49,7 @@ public class SlackSocketModeStarter {
 			socketModeApp.stop();
 			log.info("slack socket mode stop");
 		} catch (Exception e) {
-			log.error("Failed to stop socket mode", e);
+			log.warn("Failed to stop socket mode", e);
 		}
 	}
 }
