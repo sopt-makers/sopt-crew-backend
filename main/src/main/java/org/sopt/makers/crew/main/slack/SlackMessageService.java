@@ -116,6 +116,7 @@ public class SlackMessageService {
 			return slackUser.stream()
 				.map(MakersUserSlack::getSlackTemplateCd)
 				.findFirst().orElseThrow(() -> new CustomSlackException("templateCd not found"));
+
 		}
 
 		return slackUser.get(0).getSlackTemplateCd();
