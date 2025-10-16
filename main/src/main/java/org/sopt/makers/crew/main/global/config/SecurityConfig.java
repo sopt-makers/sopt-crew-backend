@@ -26,12 +26,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @EnableWebSecurity
 public class SecurityConfig {
-	private final JwtAuthenticationFilter jwtAuthenticationFilter;
-	private final JwtAuthenticationExceptionFilter jwtAuthenticationExceptionFilter;
-
-	@Value("${management.endpoints.web.base-path}")
-	private String actuatorEndPoint;
-
 	private static final String[] SWAGGER_URL = {
 		"/swagger-resources/**",
 		"/favicon.ico",
@@ -42,6 +36,10 @@ public class SecurityConfig {
 		"/docs/swagger-ui/index.html",
 		"/swagger-ui/swagger-ui.css",
 	};
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+	private final JwtAuthenticationExceptionFilter jwtAuthenticationExceptionFilter;
+	@Value("${management.endpoints.web.base-path}")
+	private String actuatorEndPoint;
 
 	private String[] getAuthWhitelist() {
 		return new String[] {
@@ -54,7 +52,8 @@ public class SecurityConfig {
 			actuatorEndPoint + "/caches/**",
 			actuatorEndPoint + "/cachecontents/**",
 			actuatorEndPoint + "/metrics/**",
-			"/internal/**"
+			"/internal/**",
+			"/slack/**"
 		};
 	}
 
@@ -87,7 +86,7 @@ public class SecurityConfig {
 		configuration.setAllowedOrigins(List.of(
 			"https://playground.sopt.org",
 			"http://localhost:3000",
-			"https://sopt-internal-dev.pages.dev",
+			"https://sopt-internal-dev.sopt.org",
 			"https://crew.api.dev.sopt.org",
 			"https://crew.api.prod.sopt.org"
 		));

@@ -11,6 +11,7 @@ import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostsResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.PostViewCountResponseDto;
 
 public interface PostV2Service {
 
@@ -19,6 +20,8 @@ public interface PostV2Service {
 	PostV2GetPostsResponseDto getPosts(PostGetPostsCommand queryCommand, Integer userId);
 
 	PostDetailBaseDto getPost(Integer userId, Integer postId);
+
+	PostViewCountResponseDto addViewCount(Integer postId);
 
 	void mentionUserInPost(PostV2MentionUserInPostRequestDto requestBody, Integer userId);
 
