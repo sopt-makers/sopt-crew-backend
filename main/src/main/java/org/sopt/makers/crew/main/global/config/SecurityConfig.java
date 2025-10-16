@@ -86,7 +86,7 @@ public class SecurityConfig {
 		configuration.setAllowedOrigins(List.of(
 			"https://playground.sopt.org",
 			"http://localhost:3000",
-			"https://sopt-internal-dev.pages.dev",
+			"https://sopt-internal-dev.sopt.org",
 			"https://crew.api.dev.sopt.org",
 			"https://crew.api.prod.sopt.org"
 		));
