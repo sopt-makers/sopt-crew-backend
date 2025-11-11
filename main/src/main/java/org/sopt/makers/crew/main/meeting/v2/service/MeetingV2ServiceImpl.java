@@ -1,8 +1,19 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
-import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
-import static org.sopt.makers.crew.main.global.constant.CrewConst.*;
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.APPROVE;
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.REJECT;
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.WAITING;
+import static org.sopt.makers.crew.main.global.constant.CrewConst.ORDER_ASC;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.ALREADY_APPLIED_MEETING;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.CSV_ERROR;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.MISSING_GENERATION_PART;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_ACTIVE_GENERATION;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_APPLY;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_FLASH;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_MEETING;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_IN_APPLY_PERIOD;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_TARGET_PART;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.VALIDATION_EXCEPTION;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -344,7 +355,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 
 			validateMeetingCapacity(meeting, applies);
-			validateUserAlreadyApplied(userId, applies);
+			validateUserAlreadyAppliedStressVersion(userId, applies);
 			validateApplyPeriod(meeting);
 			validateUserActivities(user);
 			validateUserJoinableParts(user, meeting);
@@ -823,6 +834,12 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (hasApplied) {
 			throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
 		}
+	}
+
+	private void validateUserAlreadyAppliedStressVersion(Integer userId, List<Apply> applies) {
+		boolean hasApplied = applies.stream()
+			.anyMatch(appliedInfo -> appliedInfo.getUser().getId().equals(userId));
+
 	}
 
 	private void validateApplyPeriod(Meeting meeting) {
