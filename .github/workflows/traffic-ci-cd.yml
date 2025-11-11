@@ -59,12 +59,17 @@ jobs:
 
       - name: Deploy to Traffic Server
         uses: appleboy/ssh-action@v1.2.2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
         with:
           host: ${{ secrets.TRAFFIC_SERVER_IP }}
           username: ${{ secrets.TRAFFIC_SERVER_USER }}
           key: ${{ secrets.TRAFFIC_SERVER_KEY }}
+          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION
           script: |
-            sudo aws ecr get-login-password --region ${{ env.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            sudo -E aws ecr get-login-password --region ${{ env.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
             export IMAGE_NAME="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
             cd ~
             chmod +x ./deploy.sh
