@@ -32,12 +32,6 @@ spring:
     caffeine:
       spec: maximumSize=500,expireAfterWrite=24h
 
-jwt:
-  header: Authorization
-  secret: ${DEV_JWT_SECRET}
-  access-token:
-    expire-length: ${ACCESS_TOKEN_EXPIRED_TIME}
-
 aws-property:
   aws-region: ${AWS_REGION}
   s3-bucket-name: ${AWS_S3_BUCKET_NAME}
@@ -71,10 +65,17 @@ push-notification:
 notice:
   secret-key: ${NOTICE_SECRET_KEY}
 
-playground:
-  server:
-    url: ${DEV_PLAYGROUND_URL}
-    endpoint: ${PLAYGROUND_ENDPOINT}
+jwt:
+  jwk:
+    issuer: ${MAKERS_AUTH_JWK_ISSUER}
+
+external:
+  auth:
+    url: https://auth.api.dev.sopt.org
+    api-key: ${AUTH_API_KEY}
+    service-name: ${OUR_SERVICE_NAME}
+    jwk: ${MAKERS_AUTH_JWK_ENDPOINT}
+    users: ${MAKERS_AUTH_USERS_ENDPOINT}
 
 management:
   server:
@@ -115,10 +116,14 @@ sentry:
   environment: ${TRAFFIC_SENTRY_ENVIRONMENT}
   servername: ${TRAFFIC_SENTRY_SERVERNAME}
 
-
 img:
   flash: ${FLASH_IMAGE}
 
 thread-pool:
   core-size: ${PROD_THREAD_CORE_SIZE}
   thread-name-prefix: ${PROD_THREAD_NAME_PREFIX}
+
+slack:
+  bot-token: ${SLACK_BOT_TOKEN}
+  app-token: ${SLACK_APP_TOKEN}
+  api-auth-token: ${SLACK_API_AUTH_TOKEN}
