@@ -72,7 +72,7 @@ jwt:
 
 external:
   auth:
-    url: https://auth.api.dev.sopt.org
+    url: https://auth.api.sopt.org
     api-key: ${AUTH_API_KEY}
     service-name: ${OUR_SERVICE_NAME}
     jwk: ${MAKERS_AUTH_JWK_ENDPOINT}
