@@ -911,6 +911,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private boolean isTrafficProfile() {
-		return environment.acceptsProfiles(org.springframework.core.env.Profiles.of("traffic"));
+		// Traffic 브랜치에서는 항상 Lock 없이 동작 (부하 테스트용)
+		return true;
 	}
 }
