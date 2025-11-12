@@ -44,6 +44,9 @@ public class AuthClient {
 	}
 
 	private AuthApiResponseDto getAuthApiResponseDto(String userId) {
+		String fullUrl = authProperties.getUsers() + "?userIds=" + userId;
+		log.info("🔍 [DEBUG] Requesting auth server - URL: {}, userId: {}", fullUrl, userId);
+
 		AuthApiResponseDto response = executeRequest(
 			() -> authWebClient.get()
 				.uri(uriBuilder -> uriBuilder
@@ -54,6 +57,11 @@ public class AuthClient {
 				.bodyToMono(AuthApiResponseDto.class)
 		);
 
+		log.info("🔍 [DEBUG] Auth server response - success: {}, message: {}, data size: {}",
+			response != null ? response.success() : "null",
+			response != null ? response.message() : "null",
+			response != null && response.data() != null ? response.data().size() : "null");
+
 		validateResponse(response);
 		return response;
 
@@ -63,14 +71,14 @@ public class AuthClient {
 		try {
 			return requestSupplier.get()
 				.onErrorMap(WebClientResponseException.class, ex -> {
-					log.error("Failed to receive response from auth server: {}",
-						ex.getResponseBodyAsString(), ex);
+					log.error("🚨 [ERROR] Failed to receive response from auth server - Status: {}, Body: {}, Headers: {}",
+						ex.getStatusCode(), ex.getResponseBodyAsString(), ex.getHeaders(), ex);
 					return new ServerException(EXTERNAL_SERVER_RESPONSE_ERROR.getErrorCode());
 				})
 				.block();
 		} catch (RuntimeException e) {
-			log.error("Unexpected exception occurred during auth server communication: {}",
-				e.getMessage(), e);
+			log.error("🚨 [ERROR] Unexpected exception during auth server communication - Type: {}, Message: {}",
+				e.getClass().getSimpleName(), e.getMessage(), e);
 			throw new ServerException(EXTERNAL_SERVER_COMMUNICATION_ERROR.getErrorCode());
 		}
 	}

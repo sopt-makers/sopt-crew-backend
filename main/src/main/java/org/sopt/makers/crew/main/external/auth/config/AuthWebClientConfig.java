@@ -12,9 +12,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import lombok.extern.slf4j.Slf4j;
 import reactor.netty.http.client.HttpClient;
 
 @Configuration
+@Slf4j
 public class AuthWebClientConfig {
 	public static final String HEADER_API_KEY = "X-Api-Key";
 	public static final String HEADER_SERVICE_NAME = "X-Service-Name";
@@ -23,6 +25,13 @@ public class AuthWebClientConfig {
 
 	@Bean
 	public WebClient authWebClient(AuthClientProperties properties) {
+		log.info("🔍 [DEBUG] AuthWebClient Config - URL: {}, Service: {}, API Key: {}",
+			properties.getUrl(),
+			properties.getServiceName(),
+			(properties.getApiKey() != null
+				? "***" + properties.getApiKey().substring(Math.max(0, properties.getApiKey().length() - 4))
+				: "null"));
+
 		return WebClient.builder()
 			.baseUrl(properties.getUrl())
 			.clientConnector(new ReactorClientHttpConnector(createDefaultHttpClient()))
