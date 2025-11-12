@@ -1,6 +1,8 @@
 package org.sopt.makers.crew.main.global.jwt.authenticator;
 
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.JWT_INVALID_CLAIMS;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.JWT_PARSE_FAILED;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.JWT_VERIFICATION_FAILED;
 
 import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
@@ -140,10 +142,12 @@ public class JwtAuthenticator {
 		boolean notExpired = skipExpirationCheck || claims.getExpirationTime().after(new Date());
 
 		if (!(signatureValid && issuerValid && notExpired)) {
-			log.warn("Invalid JWT claims detected. signatureValid={}, issuerValid={}, notExpired={}",
-				signatureValid, issuerValid, notExpired);
+			log.warn(
+				"Invalid JWT claims detected. signatureValid={}, issuerValid={}, notExpired={}, skipExpirationCheck={}",
+				signatureValid, issuerValid, notExpired, skipExpirationCheck);
 			throw new UnAuthorizedException(JWT_INVALID_CLAIMS.getErrorCode());
 		}
+
 		return claims;
 	}
 
