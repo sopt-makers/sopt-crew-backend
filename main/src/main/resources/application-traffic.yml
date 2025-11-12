@@ -107,6 +107,7 @@ management:
     cachecontents:
       enabled: true
 
+
 custom:
   paths:
     eventApply: ${PROD_EVENT_APPLY_PATH}
