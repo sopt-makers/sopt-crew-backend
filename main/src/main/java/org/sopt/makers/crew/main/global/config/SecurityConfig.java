@@ -40,6 +40,8 @@ public class SecurityConfig {
 	private final JwtAuthenticationExceptionFilter jwtAuthenticationExceptionFilter;
 	@Value("${management.endpoints.web.base-path}")
 	private String actuatorEndPoint;
+	@Value("${cors.allowed-origins.traffic}")
+	private String trafficOrigin;
 
 	private String[] getAuthWhitelist() {
 		return new String[] {
@@ -88,7 +90,8 @@ public class SecurityConfig {
 			"http://localhost:3000",
 			"https://sopt-internal-dev.sopt.org",
 			"https://crew.api.dev.sopt.org",
-			"https://crew.api.prod.sopt.org"
+			"https://crew.api.prod.sopt.org",
+			trafficOrigin
 		));
 
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
