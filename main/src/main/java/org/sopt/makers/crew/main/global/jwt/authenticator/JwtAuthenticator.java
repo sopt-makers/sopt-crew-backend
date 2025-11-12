@@ -33,6 +33,9 @@ public class JwtAuthenticator {
 	@Value("${jwt.jwk.issuer}")
 	private String issuer;
 
+	@Value("${jwt.jwk.skip-expiration-check:false}")
+	private boolean skipExpirationCheck;
+
 	/**
 	 * JWT 토큰을 검증하고, 사용자 인증 정보를 반환합니다.
 	 * 내부 동작 순서:
@@ -134,7 +137,7 @@ public class JwtAuthenticator {
 		JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey)publicKey);
 		boolean signatureValid = jwt.verify(verifier);
 		boolean issuerValid = issuer.equals(claims.getIssuer());
-		boolean notExpired = claims.getExpirationTime().after(new Date());
+		boolean notExpired = skipExpirationCheck || claims.getExpirationTime().after(new Date());
 
 		if (!(signatureValid && issuerValid && notExpired)) {
 			log.warn("Invalid JWT claims detected. signatureValid={}, issuerValid={}, notExpired={}",

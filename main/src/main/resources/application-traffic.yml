@@ -68,6 +68,7 @@ notice:
 jwt:
   jwk:
     issuer: ${MAKERS_AUTH_JWK_ISSUER}
+    skip-expiration-check: true
 
 external:
   auth:
