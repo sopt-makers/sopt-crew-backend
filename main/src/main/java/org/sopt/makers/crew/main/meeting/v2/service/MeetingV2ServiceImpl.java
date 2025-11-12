@@ -115,6 +115,7 @@ import org.sopt.makers.crew.main.user.v2.service.lock.UserLockManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -132,6 +133,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private static final int ZERO = 0;
 
+	private final Environment environment;
 	private final UserRepository userRepository;
 	private final ApplyRepository applyRepository;
 	private final MeetingRepository meetingRepository;
@@ -350,6 +352,23 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		User user = userRepository.findByIdOrThrow(userId);
 		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
+
+		// Traffic 환경에서는 Lock을 사용하지 않음 (부하 테스트용)
+		if (isTrafficProfile()) {
+			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
+
+			validateMeetingCapacity(meeting, applies);
+			validateUserAlreadyAppliedStressVersion(userId, applies);
+			validateApplyPeriod(meeting);
+			validateUserActivities(user);
+			validateUserJoinableParts(user, meeting);
+			coLeaders.validateCoLeader(meeting.getId(), user.getId());
+			meeting.validateIsNotMeetingLeader(userId);
+
+			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
+			Apply savedApply = applyRepository.save(apply);
+			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+		}
 
 		return userLockManager.executeWithLock(userId, () -> {
 			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
@@ -889,5 +908,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.user(coLeader)
 				.build())
 			.toList();
+	}
+
+	private boolean isTrafficProfile() {
+		return environment.acceptsProfiles(org.springframework.core.env.Profiles.of("traffic"));
 	}
 }
