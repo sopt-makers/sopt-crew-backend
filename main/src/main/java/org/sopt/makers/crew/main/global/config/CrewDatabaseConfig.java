@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
+
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -41,7 +43,9 @@ public class CrewDatabaseConfig {
 	@Bean
 	@ConfigurationProperties("spring.datasource")
 	public DataSource physicalDatasource() {
-		return DataSourceBuilder.create().build();
+		return DataSourceBuilder.create()
+				.type(HikariDataSource.class)
+				.build();
 	}
 
 	@Bean

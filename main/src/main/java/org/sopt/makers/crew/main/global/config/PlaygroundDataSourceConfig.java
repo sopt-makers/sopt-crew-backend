@@ -10,6 +10,8 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
+
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -32,7 +34,9 @@ public class PlaygroundDataSourceConfig {
 	@Bean
 	@ConfigurationProperties("spring.playground-datasource")
 	public DataSource secondDatasourceProperties() {
-		return DataSourceBuilder.create().build();
+		return DataSourceBuilder.create()
+				.type(HikariDataSource.class)
+				.build();
 	}
 
 	@Bean(name = "secondEntityManagerFactory")
