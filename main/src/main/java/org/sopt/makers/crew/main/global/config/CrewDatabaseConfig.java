@@ -20,7 +20,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -41,18 +40,12 @@ import jakarta.persistence.EntityManagerFactory;
 public class CrewDatabaseConfig {
 
 	@Bean
-	@ConfigurationProperties("spring.datasource")
-	public DataSource physicalDatasource() {
+	@Primary
+	@ConfigurationProperties("spring.datasource.hikari")
+	public DataSource primaryDatasourceProperties() {
 		return DataSourceBuilder.create()
 				.type(HikariDataSource.class)
 				.build();
-	}
-
-	@Bean
-	@Primary
-	public DataSource primaryDatasourceProperties() {
-		// LazyConnectionDataSourceProxy 적용
-		return new LazyConnectionDataSourceProxy(physicalDatasource());
 	}
 
 	@Bean(name = "primaryEntityManagerFactory")
