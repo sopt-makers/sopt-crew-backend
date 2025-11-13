@@ -15,7 +15,7 @@ spring:
       jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_DB_NAME}?currentSchema=${TRAFFIC_DB_SCHEMA}
       username: ${TRAFFIC_DB_USERNAME}
       password: ${TRAFFIC_DB_PASSWORD}
-      maximum-pool-size: 20
+      maximum-pool-size: 50
   playground-datasource:
     hikari:
       driver-class-name: org.postgresql.Driver
