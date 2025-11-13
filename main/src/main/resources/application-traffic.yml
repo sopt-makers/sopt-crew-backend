@@ -15,7 +15,7 @@ spring:
     username: ${TRAFFIC_DB_USERNAME}
     password: ${TRAFFIC_DB_PASSWORD}
     hikari:
-      maximum-pool-size: 20
+      maximum-pool-size: 40
   playground-datasource:
     jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_PLAYGROUND_DB_NAME}?currentSchema=${TRAFFIC_PLAYGROUND_DB_SCHEMA}
     username: ${TRAFFIC_PLAYGROUND_DB_USERNAME}
