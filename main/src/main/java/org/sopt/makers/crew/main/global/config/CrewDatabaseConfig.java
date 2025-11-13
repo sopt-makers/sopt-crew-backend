@@ -41,7 +41,7 @@ public class CrewDatabaseConfig {
 
 	@Bean
 	@Primary
-	@ConfigurationProperties("spring.datasource.hikari")
+	@ConfigurationProperties("spring.datasource")
 	public DataSource primaryDatasourceProperties() {
 		return DataSourceBuilder.create()
 				.type(HikariDataSource.class)
