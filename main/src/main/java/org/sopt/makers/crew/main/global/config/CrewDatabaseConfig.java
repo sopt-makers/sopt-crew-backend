@@ -10,7 +10,6 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
@@ -41,17 +40,15 @@ public class CrewDatabaseConfig {
 
 	@Bean
 	@Primary
-	@ConfigurationProperties("spring.datasource")
-	public DataSource primaryDatasourceProperties() {
-		return DataSourceBuilder.create()
-				.type(HikariDataSource.class)
-				.build();
+	@ConfigurationProperties("spring.datasource.hikari")
+	public HikariDataSource primaryDatasource() {
+		return new HikariDataSource();
 	}
 
 	@Bean(name = "primaryEntityManagerFactory")
 	@Primary
 	public LocalContainerEntityManagerFactoryBean primaryEntityManagerFactory() {
-		DataSource dataSource = primaryDatasourceProperties();
+		DataSource dataSource = primaryDatasource();
 
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
 		em.setDataSource(dataSource);
@@ -107,7 +104,7 @@ public class CrewDatabaseConfig {
 		ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
 		databasePopulator.addScript(resource);
 		try {
-			databasePopulator.populate(primaryDatasourceProperties().getConnection());
+			databasePopulator.populate(primaryDatasource().getConnection());
 		} catch (Exception e) {
 			throw e;
 		}

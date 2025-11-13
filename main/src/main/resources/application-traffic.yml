@@ -10,16 +10,18 @@ spring:
       on-profile: traffic
     import: application-secret.properties
   datasource:
-    driver-class-name: org.postgresql.Driver
-    jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_DB_NAME}?currentSchema=${TRAFFIC_DB_SCHEMA}
-    username: ${TRAFFIC_DB_USERNAME}
-    password: ${TRAFFIC_DB_PASSWORD}
     hikari:
-      maximum-pool-size: 100
+      driver-class-name: org.postgresql.Driver
+      jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_DB_NAME}?currentSchema=${TRAFFIC_DB_SCHEMA}
+      username: ${TRAFFIC_DB_USERNAME}
+      password: ${TRAFFIC_DB_PASSWORD}
+      maximum-pool-size: 20
   playground-datasource:
-    jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_PLAYGROUND_DB_NAME}?currentSchema=${TRAFFIC_PLAYGROUND_DB_SCHEMA}
-    username: ${TRAFFIC_PLAYGROUND_DB_USERNAME}
-    password: ${TRAFFIC_PLAYGROUND_DB_PASSWORD}
+    hikari:
+      driver-class-name: org.postgresql.Driver
+      jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_PLAYGROUND_DB_NAME}?currentSchema=${TRAFFIC_PLAYGROUND_DB_SCHEMA}
+      username: ${TRAFFIC_PLAYGROUND_DB_USERNAME}
+      password: ${TRAFFIC_PLAYGROUND_DB_PASSWORD}
   jpa:
     open-in-view: false
     hibernate:

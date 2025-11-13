@@ -9,7 +9,6 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
@@ -32,16 +31,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Profile({"local", "dev", "prod", "test", "traffic"})
 public class PlaygroundDataSourceConfig {
 	@Bean
-	@ConfigurationProperties("spring.playground-datasource")
-	public DataSource secondDatasourceProperties() {
-		return DataSourceBuilder.create()
-				.type(HikariDataSource.class)
-				.build();
+	@ConfigurationProperties("spring.playground-datasource.hikari")
+	public HikariDataSource secondDatasource() {
+		return new HikariDataSource();
 	}
 
 	@Bean(name = "secondEntityManagerFactory")
 	public LocalContainerEntityManagerFactoryBean secondEntityManagerFactory() {
-		DataSource dataSource = secondDatasourceProperties();
+		DataSource dataSource = secondDatasource();
 
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
 		em.setDataSource(dataSource);
