@@ -1,8 +1,8 @@
 server:
   port: 4000
-#  tomcat:
-#    threads:
-#      max: 100
+  tomcat:
+    threads:
+      max: 100
 
 spring:
   config:
@@ -14,8 +14,8 @@ spring:
     jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_DB_NAME}?currentSchema=${TRAFFIC_DB_SCHEMA}
     username: ${TRAFFIC_DB_USERNAME}
     password: ${TRAFFIC_DB_PASSWORD}
-  #    hikari:
-  #      maximum-pool-size: 20
+    hikari:
+      maximum-pool-size: 20
   playground-datasource:
     jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_PLAYGROUND_DB_NAME}?currentSchema=${TRAFFIC_PLAYGROUND_DB_SCHEMA}
     username: ${TRAFFIC_PLAYGROUND_DB_USERNAME}
