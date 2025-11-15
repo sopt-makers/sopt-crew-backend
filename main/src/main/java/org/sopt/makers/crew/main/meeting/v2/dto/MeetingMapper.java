@@ -19,15 +19,6 @@ import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdate
 @Mapper(componentModel = "spring")
 public interface MeetingMapper {
 
-	@Mapping(source = "requestBody.files", target = "imageURL", qualifiedByName = "getImageURL")
-	@Mapping(source = "requestBody.category", target = "category", qualifiedByName = "getCategory")
-	@Mapping(source = "requestBody.startDate", target = "startDate", qualifiedByName = "getStartDate")
-	@Mapping(source = "requestBody.endDate", target = "endDate", qualifiedByName = "getEndDate")
-	@Mapping(source = "requestBody.mStartDate", target = "mStartDate", qualifiedByName = "getStartDate")
-	@Mapping(source = "requestBody.mEndDate", target = "mEndDate", qualifiedByName = "getEndDate")
-	Meeting toMeetingEntity(MeetingV2CreateAndUpdateMeetingBodyDto requestBody, Integer targetActiveGeneration,
-		Integer createdGeneration, User user, Integer userId);
-
 	@Named("getImageURL")
 	static List<ImageUrlVO> getImageURL(List<String> files) {
 		AtomicInteger index = new AtomicInteger(0);
@@ -44,12 +35,25 @@ public interface MeetingMapper {
 
 	@Named("getStartDate")
 	static LocalDateTime getStartDate(String date) {
+		if (date == null || date.isEmpty())
+			return null;
 		return LocalDateTime.parse(date + DAY_START_TIME, DateTimeFormatter.ofPattern(DAY_TIME_FORMAT));
 	}
 
 	@Named("getEndDate")
 	static LocalDateTime getEndDate(String date) {
+		if (date == null || date.isEmpty())
+			return null;
 		return LocalDateTime.parse(date + DAY_END_TIME, DateTimeFormatter.ofPattern(DAY_TIME_FORMAT));
 
 	}
+
+	@Mapping(source = "requestBody.files", target = "imageURL", qualifiedByName = "getImageURL")
+	@Mapping(source = "requestBody.category", target = "category", qualifiedByName = "getCategory")
+	@Mapping(source = "requestBody.startDate", target = "startDate", qualifiedByName = "getStartDate")
+	@Mapping(source = "requestBody.endDate", target = "endDate", qualifiedByName = "getEndDate")
+	@Mapping(source = "requestBody.mStartDate", target = "mStartDate", qualifiedByName = "getStartDate")
+	@Mapping(source = "requestBody.mEndDate", target = "mEndDate", qualifiedByName = "getEndDate")
+	Meeting toMeetingEntity(MeetingV2CreateAndUpdateMeetingBodyDto requestBody, Integer targetActiveGeneration,
+		Integer createdGeneration, User user, Integer userId);
 }

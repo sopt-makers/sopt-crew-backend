@@ -107,20 +107,20 @@ public class Meeting extends BaseTimeEntity {
 	/**
 	 * 진행방식 소개
 	 */
-	@Column(name = "processDesc", nullable = false)
+	@Column(name = "processDesc")
 	private String processDesc;
 
 	/**
 	 * 모임 시작 기간
 	 */
-	@Column(name = "mStartDate", nullable = false, columnDefinition = "TIMESTAMP")
+	@Column(name = "mStartDate", columnDefinition = "TIMESTAMP")
 	@Getter(AccessLevel.NONE)
 	private LocalDateTime mStartDate;
 
 	/**
 	 * 모임 마감 기간
 	 */
-	@Column(name = "mEndDate", nullable = false, columnDefinition = "TIMESTAMP")
+	@Column(name = "mEndDate", columnDefinition = "TIMESTAMP")
 	@Getter(AccessLevel.NONE)
 	private LocalDateTime mEndDate;
 
