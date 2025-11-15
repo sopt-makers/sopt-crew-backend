@@ -49,16 +49,13 @@ public class MeetingV2CreateAndUpdateMeetingBodyDto {
 	private String desc;
 
 	@Schema(example = "소요 시간 : 1시간 예상", description = "진행 방식 소개")
-	@NotNull
 	private String processDesc;
 
 	@Schema(example = "2022.10.29", description = "모임 활동 시작 날짜", name = "mStartDate")
-	@NotNull
 	@Getter(AccessLevel.NONE)
 	private String mStartDate;
 
 	@Schema(example = "2022.10.30", description = "모임 활동 종료 날짜", name = "mEndDate")
-	@NotNull
 	@Getter(AccessLevel.NONE)
 	private String mEndDate;
 
