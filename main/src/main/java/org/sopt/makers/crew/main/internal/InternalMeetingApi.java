@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.internal;
 
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.internal.dto.InternalAppliedMeetingResponseDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllMeetingDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllWritingPostResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
@@ -41,6 +42,17 @@ public interface InternalMeetingApi {
 	})
 	ResponseEntity<InternalMeetingGetAllWritingPostResponseDto> getMeetingsForWritingPost(
 		@ModelAttribute @Valid @Parameter(hidden = true) PageOptionsDto pageOptionsDto
+	);
+
+	@Operation(summary = "[Internal] 모임 정보 조회", description = "플그 요청에 따른 맴버에 따라 크루 모임 조회를 위한 api")
+	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 목록 조회 성공")})
+	@Parameters(value = {
+		@Parameter(name = "page", description = "페이지", example = "1", required = true, schema = @Schema(type = "integer", format = "int32")),
+		@Parameter(name = "take", description = "가져올 데이터 개수", example = "10", required = true, schema = @Schema(type = "integer", format = "int32")),
+	})
+	ResponseEntity<InternalAppliedMeetingResponseDto> getAppliedMeetingInfo(
+		@ModelAttribute @Valid @Parameter(hidden = true) PageOptionsDto pageOptionsDto,
+		@RequestParam @Valid Integer userId
 	);
 
 }
