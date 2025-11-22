@@ -43,6 +43,6 @@ public class InternalMeetingController implements InternalMeetingApi {
 	public ResponseEntity<InternalUserAppliedMeetingResponseDto> getAppliedMeetingInfo(
 		@RequestParam @Valid Integer userId) {
 		return ResponseEntity.ok().body(
-			InternalUserAppliedMeetingResponseDto.from(internalMeetingService.getAppliedMeetingInfo(userId)));
+			InternalUserAppliedMeetingResponseDto.from(internalMeetingService.retrieveAppliedMeetingInfo(userId)));
 	}
 }
