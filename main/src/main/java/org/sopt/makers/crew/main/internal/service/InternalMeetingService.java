@@ -98,7 +98,7 @@ public class InternalMeetingService {
 		return InternalMeetingGetAllWritingPostResponseDto.from(meetings, pageMetaDto);
 	}
 
-	public List<UserAppliedMeetingDto> getAppliedMeetingInfo(Integer userId) {
+	public List<UserAppliedMeetingDto> retrieveAppliedMeetingInfo(Integer userId) {
 
 		List<Meeting> myMeetings = meetingRepository.findAllByUserId(userId);
 		List<Apply> allByUserIdAndStatus = applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE);
