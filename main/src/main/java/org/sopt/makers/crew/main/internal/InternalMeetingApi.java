@@ -7,6 +7,7 @@ import org.sopt.makers.crew.main.internal.dto.InternalUserAppliedMeetingResponse
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,7 +51,7 @@ public interface InternalMeetingApi {
 		@Parameter(name = "userId", description = "찾고자 하는 userId", example = "10", required = true, schema = @Schema(type = "integer", format = "int32")),
 	})
 	ResponseEntity<InternalUserAppliedMeetingResponseDto> getAppliedMeetingInfo(
-		@RequestParam @Valid Integer userId
+		@PathVariable @Valid Integer userId
 	);
 
 }
