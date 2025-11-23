@@ -115,7 +115,7 @@ public class InternalMeetingService {
 					coLeaderRepository.existsByMeetingIdAndUserId(meeting.getId(), userId) || meeting.getUserId()
 						.equals(userId);
 				String category = meeting.getCategory().getValue();
-				return UserAppliedMeetingDto.of(category, title, meetingStartTIme, meetingEndTIme,
+				return UserAppliedMeetingDto.of(meeting.getId(), category, title, meetingStartTIme, meetingEndTIme,
 					isUserCoLeader, imgUrl);
 			}).toList();
 	}
