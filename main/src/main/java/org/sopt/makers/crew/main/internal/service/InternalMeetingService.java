@@ -111,7 +111,9 @@ public class InternalMeetingService {
 					meeting.getImageURL().get(0).getUrl();
 				LocalDateTime meetingStartTIme = meeting.getmStartDate();
 				LocalDateTime meetingEndTIme = meeting.getmEndDate();
-				boolean isUserCoLeader = coLeaderRepository.existsByMeetingIdAndUserId(meeting.getId(), userId);
+				boolean isUserCoLeader =
+					coLeaderRepository.existsByMeetingIdAndUserId(meeting.getId(), userId) || meeting.getUserId()
+						.equals(userId);
 				String category = meeting.getCategory().getValue();
 				return UserAppliedMeetingDto.of(category, title, meetingStartTIme, meetingEndTIme,
 					isUserCoLeader, imgUrl);
