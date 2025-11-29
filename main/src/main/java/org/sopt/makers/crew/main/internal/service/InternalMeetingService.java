@@ -1,8 +1,14 @@
 package org.sopt.makers.crew.main.internal.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
+import org.sopt.makers.crew.main.entity.apply.Apply;
+import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
@@ -15,6 +21,7 @@ import org.sopt.makers.crew.main.internal.dto.InternalMeetingForWritingPostDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllMeetingDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllWritingPostResponseDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingResponseDto;
+import org.sopt.makers.crew.main.internal.dto.UserAppliedMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +40,8 @@ public class InternalMeetingService {
 
 	private final ActiveGenerationProvider activeGenerationProvider;
 	private final Time time;
+	private final CoLeaderRepository coLeaderRepository;
+	private final ApplyRepository applyRepository;
 
 	/**
 	 * [for. APP BE] 모일 리스트 페이지네이션 조회 (10개)
@@ -87,5 +96,27 @@ public class InternalMeetingService {
 		PageMetaDto pageMetaDto = new PageMetaDto(pageDto, (int)pagedMeetings.getTotalElements());
 
 		return InternalMeetingGetAllWritingPostResponseDto.from(meetings, pageMetaDto);
+	}
+
+	public List<UserAppliedMeetingDto> retrieveAppliedMeetingInfo(Integer userId) {
+
+		List<Meeting> myMeetings = meetingRepository.findAllByUserId(userId);
+		List<Apply> allByUserIdAndStatus = applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE);
+
+		return Stream.concat(myMeetings.stream(),
+				allByUserIdAndStatus.stream().map(Apply::getMeeting))
+			.map(meeting -> {
+				String title = meeting.getTitle();
+				String imgUrl = meeting.getImageURL() == null || meeting.getImageURL().isEmpty() ? null :
+					meeting.getImageURL().get(0).getUrl();
+				LocalDateTime meetingStartTIme = meeting.getmStartDate();
+				LocalDateTime meetingEndTIme = meeting.getmEndDate();
+				boolean isUserCoLeader =
+					coLeaderRepository.existsByMeetingIdAndUserId(meeting.getId(), userId) || meeting.getUserId()
+						.equals(userId);
+				String category = meeting.getCategory().getValue();
+				return UserAppliedMeetingDto.of(meeting.getId(), category, title, meetingStartTIme, meetingEndTIme,
+					isUserCoLeader, imgUrl);
+			}).toList();
 	}
 }

@@ -61,22 +61,18 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	private final String desc;
 
 	@Schema(description = "진행방식 소개", example = "진행방식 설명입니다.")
-	@NotNull
 	private final String processDesc;
 
 	@Schema(description = "모임 활동 시작 시간", example = "2024-08-13T15:30:00", name = "mStartDate")
-	@NotNull
 	private final LocalDateTime mStartDate;
 
 	@Schema(description = "모임 활동 종료 시간", example = "2024-10-13T23:59:59", name = "mEndDate")
-	@NotNull
 	private final LocalDateTime mEndDate;
 
 	@Schema(description = "개설자 소개", example = "개설자 소개 입니다.")
 	private final String leaderDesc;
 
 	@Schema(description = "유의사항", example = "유의사항입니다.")
-	@NotNull
 	private final String note;
 
 	@Schema(description = "멘토 필요 여부", example = "true")

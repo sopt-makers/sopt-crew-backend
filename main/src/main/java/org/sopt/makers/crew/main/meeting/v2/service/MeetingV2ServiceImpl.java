@@ -771,6 +771,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		LocalDateTime now = time.now();
 		LocalDateTime mStartDate = meeting.getmStartDate();
 		LocalDateTime mEndDate = meeting.getmEndDate();
+
+		if (mStartDate == null || mEndDate == null) {
+			return true;
+		}
+
 		return now.isEqual(mStartDate) || (now.isAfter(mStartDate) && now.isBefore(mEndDate));
 	}
 

@@ -76,12 +76,10 @@ public class MeetingResponseDto {
 	private final LocalDateTime endDate;
 
 	@Schema(description = "모임 활동 시작일", example = "2024-07-31T15:30:00", name = "mStartDate")
-	@NotNull
 	@Getter(AccessLevel.NONE)
 	private final LocalDateTime mStartDate;
 
 	@Schema(description = "모임 활동 종료일", example = "2024-08-25T15:30:00", name = "mEndDate")
-	@NotNull
 	@Getter(AccessLevel.NONE)
 	private final LocalDateTime mEndDate;
 
@@ -104,14 +102,6 @@ public class MeetingResponseDto {
 	@Schema(description = "모임 키워드 타입 목록")
 	@NotNull
 	private final List<String> meetingKeywordTypes;
-
-	public LocalDateTime getmStartDate() {
-		return mStartDate;
-	}
-
-	public LocalDateTime getmEndDate() {
-		return mEndDate;
-	}
 
 	public static MeetingResponseDto of(Meeting meeting, User meetingCreator, int approvedCount, LocalDateTime now,
 		Integer activeGeneration, Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto) {
@@ -164,5 +154,13 @@ public class MeetingResponseDto {
 		return tagInfo.meetingKeywordTypes().stream()
 			.map(MeetingKeywordType::getValue)
 			.toList();
+	}
+
+	public LocalDateTime getmStartDate() {
+		return mStartDate;
+	}
+
+	public LocalDateTime getmEndDate() {
+		return mEndDate;
 	}
 }
