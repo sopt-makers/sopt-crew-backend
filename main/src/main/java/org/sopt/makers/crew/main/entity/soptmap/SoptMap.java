@@ -1,10 +1,11 @@
-package org.sopt.makers.crew.main.entity.map;
+package org.sopt.makers.crew.main.entity.soptmap;
 
 import java.util.List;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.soptmap.dto.CreateSoptMapDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,8 +41,9 @@ public class SoptMap extends BaseTimeEntity {
 	private String description; // 한줄 소개
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "map_tag")
-	private MapTag mapTag; // 지도 태그
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "map_tags", columnDefinition = "jsonb")
+	private List<MapTag> mapTags; // 지도 태그
 
 	@Column(name = "naver_link")
 	private String naverLink; // naverLink
@@ -51,5 +53,17 @@ public class SoptMap extends BaseTimeEntity {
 
 	@Column(name = "creator_id")
 	private Long creatorId; // 작성자id
+
+	public static SoptMap create(Integer creatorId, CreateSoptMapDto dto, List<Long> nearbyStationIds) {
+		return SoptMap.builder()
+			.placeName(dto.getPlaceName())
+			.creatorId(Long.valueOf(creatorId))
+			.description(dto.getDescription())
+			.mapTags(dto.getTags())
+			.naverLink(dto.getNaverLink())
+			.kakaoLink(dto.getKakaoLink())
+			.nearbyStationIds(nearbyStationIds)
+			.build();
+	}
 
 }

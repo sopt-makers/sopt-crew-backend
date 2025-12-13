@@ -1,9 +1,5 @@
-package org.sopt.makers.crew.main.entity.map;
+package org.sopt.makers.crew.main.entity.soptmap;
 
-import java.util.List;
-
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 
 import jakarta.persistence.Column;
@@ -16,22 +12,23 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity(name = "subway_station")
+@Entity(name = "map_recommended")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Builder
-public class SubwayStation extends BaseTimeEntity {
+public class MapRecommend extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "name")
-	private String name;
+	@Column(name = "user_id")
+	private Long userId;
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(columnDefinition = "jsonb", name = "lines")
-	private List<String> lines; // 호선들
+	@Column(name = "sopt_map_id")
+	private Long soptMapId;
 
+	@Column(name = "active")
+	private Boolean active;
 }
