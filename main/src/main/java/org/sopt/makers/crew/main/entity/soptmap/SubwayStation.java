@@ -30,10 +30,10 @@ public class SubwayStation extends BaseTimeEntity {
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = "jsonb", name = "lines")
-	private List<String> lines; // 호선들
+	private List<SubwayLine> lines;
 
 	@Builder
-	private SubwayStation(String name, List<String> lines) {
+	private SubwayStation(String name, List<SubwayLine> lines) {
 		this.name = name;
 		this.lines = lines;
 	}
