@@ -6,6 +6,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 import org.sopt.makers.crew.main.soptmap.service.dto.CreateSoptMapDto;
+import org.sopt.makers.crew.main.soptmap.service.dto.UpdateSoptMapDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -76,4 +77,12 @@ public class SoptMap extends BaseTimeEntity {
 			.build();
 	}
 
+	public void update(UpdateSoptMapDto dto, List<Long> nearbyStationIds) {
+		this.placeName = dto.getPlaceName();
+		this.description = dto.getDescription();
+		this.mapTags = dto.getTags();
+		this.naverLink = dto.getNaverLink();
+		this.kakaoLink = dto.getKakaoLink();
+		this.nearbyStationIds = nearbyStationIds;
+	}
 }
