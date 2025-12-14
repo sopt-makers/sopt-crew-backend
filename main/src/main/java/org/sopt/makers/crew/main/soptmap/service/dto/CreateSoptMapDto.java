@@ -1,15 +1,15 @@
-package org.sopt.makers.crew.main.soptmap.dto;
+package org.sopt.makers.crew.main.soptmap.service.dto;
 
 import java.util.List;
 
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Builder
 public class CreateSoptMapDto {
 

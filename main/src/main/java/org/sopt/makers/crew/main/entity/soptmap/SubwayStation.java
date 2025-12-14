@@ -11,16 +11,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity(name = "subway_station")
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Builder
 public class SubwayStation extends BaseTimeEntity {
 
 	@Id
@@ -34,4 +32,9 @@ public class SubwayStation extends BaseTimeEntity {
 	@Column(columnDefinition = "jsonb", name = "lines")
 	private List<String> lines; // 호선들
 
+	@Builder
+	private SubwayStation(String name, List<String> lines) {
+		this.name = name;
+		this.lines = lines;
+	}
 }

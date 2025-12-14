@@ -4,16 +4,14 @@ import java.util.List;
 
 import org.sopt.makers.crew.main.entity.soptmap.SoptMap;
 import org.sopt.makers.crew.main.entity.soptmap.repository.SoptMapRepository;
-import org.sopt.makers.crew.main.soptmap.dto.CreateSoptMapDto;
+import org.sopt.makers.crew.main.soptmap.service.dto.CreateSoptMapDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CreateSoptMapService {
 
 	private final SoptMapRepository soptMapRepository;

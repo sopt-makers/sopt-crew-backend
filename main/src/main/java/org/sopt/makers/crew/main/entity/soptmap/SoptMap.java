@@ -5,7 +5,7 @@ import java.util.List;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
-import org.sopt.makers.crew.main.soptmap.dto.CreateSoptMapDto;
+import org.sopt.makers.crew.main.soptmap.service.dto.CreateSoptMapDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,15 +14,13 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity(name = "sopt_map")
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class SoptMap extends BaseTimeEntity {
 
@@ -53,6 +51,18 @@ public class SoptMap extends BaseTimeEntity {
 
 	@Column(name = "creator_id")
 	private Long creatorId; // 작성자id
+
+	@Builder
+	private SoptMap(String placeName, Long creatorId, String description, List<MapTag> mapTags, String naverLink,
+		String kakaoLink, List<Long> nearbyStationIds) {
+		this.placeName = placeName;
+		this.creatorId = creatorId;
+		this.description = description;
+		this.mapTags = mapTags;
+		this.naverLink = naverLink;
+		this.kakaoLink = kakaoLink;
+		this.nearbyStationIds = nearbyStationIds;
+	}
 
 	public static SoptMap create(Integer creatorId, CreateSoptMapDto dto, List<Long> nearbyStationIds) {
 		return SoptMap.builder()

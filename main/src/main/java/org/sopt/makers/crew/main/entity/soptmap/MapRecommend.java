@@ -7,16 +7,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity(name = "map_recommended")
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Builder
 public class MapRecommend extends BaseTimeEntity {
 
 	@Id
@@ -31,4 +29,11 @@ public class MapRecommend extends BaseTimeEntity {
 
 	@Column(name = "active")
 	private Boolean active;
+
+	@Builder
+	private MapRecommend(Long userId, Long soptMapId, Boolean active) {
+		this.userId = userId;
+		this.soptMapId = soptMapId;
+		this.active = active;
+	}
 }

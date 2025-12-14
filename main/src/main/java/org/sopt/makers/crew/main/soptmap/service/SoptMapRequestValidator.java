@@ -1,6 +1,6 @@
 package org.sopt.makers.crew.main.soptmap.service;
 
-import org.sopt.makers.crew.main.soptmap.request.SoptMapRequest.CreateSoptMapRequest;
+import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CreateSoptMapRequest;
 import org.springframework.stereotype.Component;
 
 @Component

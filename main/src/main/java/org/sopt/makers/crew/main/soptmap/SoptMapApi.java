@@ -2,8 +2,8 @@ package org.sopt.makers.crew.main.soptmap;
 
 import java.security.Principal;
 
-import org.sopt.makers.crew.main.soptmap.request.SoptMapRequest.CreateSoptMapRequest;
-import org.sopt.makers.crew.main.soptmap.response.SoptMapResponse.CreateSoptMapResponse;
+import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CreateSoptMapRequest;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
 import org.springframework.http.ResponseEntity;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +18,7 @@ public interface SoptMapApi {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "성공")
 	})
-	ResponseEntity<CreateSoptMapResponse> createSoptMap(Principal principal, CreateSoptMapRequest request);
+	ResponseEntity<CreateSoptMapResponse> createSoptMap(Principal principal,
+		CreateSoptMapRequest request);
 
 }

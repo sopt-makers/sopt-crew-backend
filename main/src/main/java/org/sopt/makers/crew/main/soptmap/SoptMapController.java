@@ -1,11 +1,14 @@
 package org.sopt.makers.crew.main.soptmap;
 
-import static org.sopt.makers.crew.main.soptmap.request.SoptMapRequest.*;
+import static org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CreateSoptMapRequest;
 
+import java.net.URI;
 import java.security.Principal;
 
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 import org.sopt.makers.crew.main.global.util.UserUtil;
-import org.sopt.makers.crew.main.soptmap.response.SoptMapResponse.CreateSoptMapResponse;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.service.CreateSoptMapService;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapRequestValidator;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @RestController
-@RequestMapping("/api/v1/map")
 @RequiredArgsConstructor
+@RequestMapping("/api/v2/map")
 public class SoptMapController implements SoptMapApi {
 
 	private final SoptMapRequestValidator soptMapRequestValidator;
@@ -31,9 +32,12 @@ public class SoptMapController implements SoptMapApi {
 	public ResponseEntity<CreateSoptMapResponse> createSoptMap(Principal principal,
 		@RequestBody CreateSoptMapRequest request) {
 		soptMapRequestValidator.validate(request);
-		return ResponseEntity.ok(
-			CreateSoptMapResponse.createSoptMapResponse(
-				createSoptMapService.createSoptMap(UserUtil.getUserId(principal), request.toDto()))
-		);
+
+		Long soptMapId = createSoptMapService.createSoptMap(UserUtil.getUserId(principal), request.toDto());
+		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+			.path("/{id}")
+			.buildAndExpand(soptMapId)
+			.toUri();
+		return ResponseEntity.created(location).body(CreateSoptMapResponse.from(soptMapId));
 	}
 }
