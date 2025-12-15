@@ -5,7 +5,8 @@ import java.util.List;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
-import org.sopt.makers.crew.main.soptmap.dto.CreateSoptMapDto;
+import org.sopt.makers.crew.main.soptmap.service.dto.CreateSoptMapDto;
+import org.sopt.makers.crew.main.soptmap.service.dto.UpdateSoptMapDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,16 +15,16 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity(name = "sopt_map")
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Entity
+@Table(name = "sopt_map")
 public class SoptMap extends BaseTimeEntity {
 
 	@Id
@@ -54,6 +55,18 @@ public class SoptMap extends BaseTimeEntity {
 	@Column(name = "creator_id")
 	private Long creatorId; // 작성자id
 
+	@Builder
+	private SoptMap(String placeName, Long creatorId, String description, List<MapTag> mapTags, String naverLink,
+		String kakaoLink, List<Long> nearbyStationIds) {
+		this.placeName = placeName;
+		this.creatorId = creatorId;
+		this.description = description;
+		this.mapTags = mapTags;
+		this.naverLink = naverLink;
+		this.kakaoLink = kakaoLink;
+		this.nearbyStationIds = nearbyStationIds;
+	}
+
 	public static SoptMap create(Integer creatorId, CreateSoptMapDto dto, List<Long> nearbyStationIds) {
 		return SoptMap.builder()
 			.placeName(dto.getPlaceName())
@@ -66,4 +79,26 @@ public class SoptMap extends BaseTimeEntity {
 			.build();
 	}
 
+	public void update(UpdateSoptMapDto dto, List<Long> nearbyStationIds) {
+		this.placeName = dto.getPlaceName();
+		this.description = dto.getDescription();
+		this.mapTags = dto.getTags();
+		this.naverLink = dto.getNaverLink();
+		this.kakaoLink = dto.getKakaoLink();
+		this.nearbyStationIds = nearbyStationIds;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof SoptMap soptMap))
+			return false;
+		return this.getId() != null && this.getId().equals(soptMap.getId());
+	}
+
+	@Override
+	public int hashCode() {
+		return java.util.Objects.hash(this.getId());
+	}
 }
