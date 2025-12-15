@@ -23,7 +23,7 @@ public interface SubwayStationRepository extends JpaRepository<SubwayStation, Lo
 				WHEN name ILIKE CONCAT(:keyword, '%') THEN 1
 				ELSE 2
 			END,
-			similarity(name, :keyword) DESC
+			public.similarity(name, :keyword) DESC
 		LIMIT 5
 		""", nativeQuery = true)
 	List<SubwayStation> searchByKeyword(@Param("keyword") String keyword);
