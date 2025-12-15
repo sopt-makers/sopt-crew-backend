@@ -74,7 +74,7 @@ public enum SubwayLine {
 		}
 
 		return Arrays.stream(values())
-			.filter(line -> line.value.equals(input) || line.aliases.contains(input))
+			.filter(line -> line.value.equals(input) || line.aliases.contains(input) || line.name().equals(input))
 			.findFirst()
 			.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 지하철 노선입니다: " + input));
 	}
