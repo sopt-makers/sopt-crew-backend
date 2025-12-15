@@ -15,14 +15,16 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity(name = "sopt_map")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Entity
+@Table(name = "sopt_map")
 public class SoptMap extends BaseTimeEntity {
 
 	@Id

@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 public enum MapTag {
 	/**
 	 * FOOD : 맛집
-	 * CAFE : 카폐
+	 * CAFE : 카페
 	 * ETC : 기타
 	 */
 	FOOD, CAFE, ETC;
