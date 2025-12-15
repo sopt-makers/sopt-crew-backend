@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.entity.soptmap;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -55,12 +56,8 @@ public enum SubwayLine {
 		this.aliases = Arrays.asList(aliases);
 	}
 
-	/**
-	 * JSON 직렬화 시 사용할 값 (대표 명칭 반환)
-	 */
-	@JsonValue
-	public String getValue() {
-		return value;
+	public static List<String> fromValues(List<SubwayLine> lines) {
+		return lines.stream().map(SubwayLine::getValue).collect(Collectors.toList());
 	}
 
 	/**
@@ -77,5 +74,13 @@ public enum SubwayLine {
 			.filter(line -> line.value.equals(input) || line.aliases.contains(input) || line.name().equals(input))
 			.findFirst()
 			.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 지하철 노선입니다: " + input));
+	}
+
+	/**
+	 * JSON 직렬화 시 사용할 값 (대표 명칭 반환)
+	 */
+	@JsonValue
+	public String getValue() {
+		return value;
 	}
 }

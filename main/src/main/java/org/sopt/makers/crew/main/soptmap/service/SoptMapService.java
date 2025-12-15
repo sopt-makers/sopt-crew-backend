@@ -9,6 +9,7 @@ import org.sopt.makers.crew.main.global.exception.ErrorStatus;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.soptmap.service.dto.CreateSoptMapDto;
+import org.sopt.makers.crew.main.soptmap.service.dto.SubwayStationDto;
 import org.sopt.makers.crew.main.soptmap.service.dto.UpdateSoptMapDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,4 +61,7 @@ public class SoptMapService {
 		}
 	}
 
+	public List<SubwayStationDto> findSubwayStations(String keyword) {
+		return subwayStationManager.findByKeywords(keyword);
+	}
 }

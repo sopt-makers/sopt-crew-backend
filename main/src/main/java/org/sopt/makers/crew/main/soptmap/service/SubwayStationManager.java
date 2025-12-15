@@ -6,6 +6,7 @@ import org.sopt.makers.crew.main.entity.soptmap.SubwayStation;
 import org.sopt.makers.crew.main.entity.soptmap.repository.SubwayStationRepository;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ErrorStatus;
+import org.sopt.makers.crew.main.soptmap.service.dto.SubwayStationDto;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -55,4 +56,8 @@ public class SubwayStationManager {
 			.toList();
 	}
 
+	public List<SubwayStationDto> findByKeywords(String keyword) {
+		return subwayStationRepository.searchByKeyword(keyword)
+			.stream().map(SubwayStation::toDto).toList();
+	}
 }

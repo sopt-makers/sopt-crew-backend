@@ -1,5 +1,9 @@
 package org.sopt.makers.crew.main.soptmap.dto.response;
 
+import java.util.List;
+
+import org.sopt.makers.crew.main.soptmap.service.dto.SubwayStationDto;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +19,16 @@ public class SoptMapResponse {
 
 		public static CreateSoptMapResponse from(Long id) {
 			return new CreateSoptMapResponse(id);
+		}
+	}
+
+	@Getter
+	@RequiredArgsConstructor
+	public static class SearchSubwayStationResponse {
+		private final List<SubwayStationDto> subwayStationDtos;
+
+		public static SearchSubwayStationResponse from(List<SubwayStationDto> subwayStationDtos) {
+			return new SearchSubwayStationResponse(subwayStationDtos);
 		}
 	}
 }
