@@ -25,7 +25,7 @@ public class SoptMapResponse {
 	@Getter
 	@RequiredArgsConstructor
 	public static class SearchSubwayStationResponse {
-		private final List<SubwayStationDto> subwayStationDtos;
+		private final List<SubwayStationDto> stations;
 
 		public static SearchSubwayStationResponse from(List<SubwayStationDto> subwayStationDtos) {
 			return new SearchSubwayStationResponse(subwayStationDtos);
