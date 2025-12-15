@@ -39,4 +39,18 @@ public class SubwayStation extends BaseTimeEntity {
 		this.name = name;
 		this.lines = lines;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof SubwayStation subwayStation))
+			return false;
+		return this.getId() != null && this.getId().equals(subwayStation.getId());
+	}
+
+	@Override
+	public int hashCode() {
+		return java.util.Objects.hash(this.getId());
+	}
 }

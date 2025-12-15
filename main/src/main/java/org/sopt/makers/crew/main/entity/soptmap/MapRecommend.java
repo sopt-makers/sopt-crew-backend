@@ -38,4 +38,18 @@ public class MapRecommend extends BaseTimeEntity {
 		this.soptMapId = soptMapId;
 		this.active = active;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof MapRecommend mapRecommend))
+			return false;
+		return this.getId() != null && this.getId().equals(mapRecommend.getId());
+	}
+
+	@Override
+	public int hashCode() {
+		return java.util.Objects.hash(this.getId());
+	}
 }
