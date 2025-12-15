@@ -19,7 +19,7 @@ public class SubwayStationManager {
 		List<Long> subwayStationsIds = subwayStationRepository.findIdsByStationNames(subwayStationNames);
 
 		if (subwayStationsIds.size() != subwayStationNames.size()) {
-			throw new BadRequestException(ErrorStatus.NOT_FOUND_SUBWAY_STATION.getErrorCode());
+			throw new BadRequestException(ErrorStatus.INVALID_SUBWAY_STATION_COUNT.getErrorCode());
 		}
 
 		return subwayStationsIds;

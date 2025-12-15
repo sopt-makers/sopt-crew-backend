@@ -28,13 +28,13 @@ public class SoptMapRequest {
 		@Schema(description = "장소 이름", example = "온더플랜")
 		@NotNull
 		private final String placeName;
-		@Schema(description = "주변 역 이름들", example = "['강남역', '건대역']")
+		@Schema(description = "주변 역 이름들", example = "[\"강남역\", \"건대역\"]")
 		@NotNull
 		private final List<String> stationNames;
 		@Schema(description = "한줄 소개", example = "장소 너무 좋아요")
 		@NotNull
 		private final String description;
-		@Schema(description = "장소 태그", example = "['FOOD', 'CAFE', 'ETC']")
+		@Schema(description = "장소 태그", example = "[\"FOOD\", \"CAFE\", \"ETC\"]")
 		@NotNull
 		private final List<MapTag> tags;
 		@Schema(description = "네이버 지도 링크", example = "https://map~~~~")

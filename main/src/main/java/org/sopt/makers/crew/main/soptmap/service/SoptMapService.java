@@ -55,7 +55,7 @@ public class SoptMapService {
 	}
 
 	private void validateOwnership(SoptMap soptMap, Integer currentUserId) {
-		if (!soptMap.getCreatorId().equals(Long.valueOf(currentUserId))) {
+		if (soptMap.getCreatorId() != currentUserId.longValue()) {
 			throw new ForbiddenException(ErrorStatus.FORBIDDEN_SOPT_MAP_UPDATE.getErrorCode());
 		}
 	}
