@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface SubwayStationRepository extends CrudRepository<SubwayStation, Long> {
 
-	@Query("select st.id from subway_station st where st.name in :stationNames")
+	@Query("select st.id from SubwayStation st where st.name in :stationNames")
 	List<Long> findIdsByStationNames(@Param("stationNames") List<String> stationNames);
 }
 
