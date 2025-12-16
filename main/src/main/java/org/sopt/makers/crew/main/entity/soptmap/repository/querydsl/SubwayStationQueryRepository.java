@@ -18,7 +18,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SubwayStationQueryRepository {
 
-	private static final Double SIMILARITY_THRESHOLD = 0.5;
+	private static final double SIMILARITY_THRESHOLD = 0.5;
+	private static final int LIMIT_SIZE = 5;
 	private final JPAQueryFactory queryFactory;
 
 	public List<SubwayStation> searchByKeyword(String keyword) {
@@ -29,14 +30,15 @@ public class SubwayStationQueryRepository {
 		return queryFactory.selectFrom(subwayStation)
 			.where(condition(keyword, similarity))
 			.orderBy(keyword != null ? similarity.desc() : subwayStation.id.desc())
-			.limit(5)
+			.limit(LIMIT_SIZE)
 			.fetch();
 	}
 
 	private BooleanBuilder condition(String keyword, NumberTemplate<Double> similarity) {
 		BooleanBuilder builder = new BooleanBuilder();
 		if (keyword != null) {
-			builder.and(subwayStation.name.likeIgnoreCase("%" + keyword + "%")
+			String trimKeyword = keyword.trim();
+			builder.and(subwayStation.name.containsIgnoreCase(trimKeyword)
 				.or(similarity.gt(SIMILARITY_THRESHOLD)));
 		}
 		return builder;
