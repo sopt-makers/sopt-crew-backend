@@ -37,7 +37,7 @@ public class SubwayStationQueryRepository {
 		BooleanBuilder builder = new BooleanBuilder();
 		if (keyword != null) {
 			builder.and(subwayStation.name.likeIgnoreCase("%" + keyword + "%")
-				.or(similarity.gt(0.6)));
+				.or(similarity.gt(SIMILARITY_THRESHOLD)));
 		}
 		return builder;
 	}
