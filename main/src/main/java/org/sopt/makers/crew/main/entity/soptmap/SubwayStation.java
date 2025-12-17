@@ -5,6 +5,7 @@ import java.util.List;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.soptmap.service.dto.SubwayStationDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -52,5 +53,9 @@ public class SubwayStation extends BaseTimeEntity {
 	@Override
 	public int hashCode() {
 		return java.util.Objects.hash(this.getId());
+	}
+
+	public SubwayStationDto toDto() {
+		return new SubwayStationDto(id, name, SubwayLine.fromValues(lines));
 	}
 }
