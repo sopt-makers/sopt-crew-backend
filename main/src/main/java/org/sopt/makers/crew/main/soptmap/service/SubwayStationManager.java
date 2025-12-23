@@ -1,6 +1,8 @@
 package org.sopt.makers.crew.main.soptmap.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.entity.soptmap.SubwayStation;
 import org.sopt.makers.crew.main.entity.soptmap.repository.SubwayStationRepository;
@@ -61,5 +63,12 @@ public class SubwayStationManager {
 	public List<SubwayStationDto> findByKeywords(String keyword) {
 		return subwayStationQueryRepository.searchByKeyword(keyword)
 			.stream().map(SubwayStation::toDto).toList();
+	}
+
+	public Map<Long, String> findByIds(List<Long> stationIds) {
+		return subwayStationRepository.findAllByIdIn(stationIds).stream()
+			.collect(Collectors.toMap(
+				SubwayStation::getId,
+				SubwayStation::getName));
 	}
 }
