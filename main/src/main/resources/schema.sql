@@ -10,6 +10,9 @@ drop table if exists "notice" cascade;
 drop table if exists "report" cascade;
 drop table if exists "user" cascade;
 drop table if exists "co_leader" cascade;
+drop table if exists "map_recommended" cascade;
+drop table if exists "sopt_map" cascade;
+drop table if exists "subway_station" cascade;
 
 DROP TYPE IF EXISTS meeting_joinableparts_enum;
 
@@ -274,3 +277,40 @@ create table if not exists advertisement
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
     );
+
+-- SoptMap Tables
+create table if not exists subway_station
+(
+    id                 bigserial
+    primary key,
+    name               varchar(255) not null,
+    lines              jsonb        not null,
+    "createdTimestamp" timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP
+);
+
+create table if not exists sopt_map
+(
+    id                     bigserial
+    primary key,
+    place_name             varchar(255) not null,
+    description            text,
+    map_tags               jsonb,
+    nearby_station_ids     jsonb,
+    naver_link             varchar(500),
+    kakao_link             varchar(500),
+    creator_id             bigint       not null,
+    "createdTimestamp"     timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
+);
+
+create table if not exists map_recommended
+(
+    id                 bigserial
+    primary key,
+    sopt_map_id        bigint  not null,
+    user_id            bigint  not null,
+    active             boolean not null default true,
+    "createdTimestamp" timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP
+);

@@ -5,7 +5,11 @@ import static org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.*;
 import java.net.URI;
 import java.security.Principal;
 
+import org.sopt.makers.crew.main.entity.soptmap.MapTag;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.UserUtil;
+import org.sopt.makers.crew.main.soptmap.dto.SortType;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapRequestValidator;
@@ -55,8 +59,7 @@ public class SoptMapController implements SoptMapApi {
 		Long updatedId = soptMapService.updateSoptMap(
 			UserUtil.getUserId(principal),
 			soptMapId,
-			request.toDto()
-		);
+			request.toDto());
 		return ResponseEntity.ok(CreateSoptMapResponse.from(updatedId));
 	}
 
@@ -65,5 +68,23 @@ public class SoptMapController implements SoptMapApi {
 	public ResponseEntity<SearchSubwayStationResponse> findSubwayStations(Principal principal,
 		@RequestParam(required = false) String keyword) {
 		return ResponseEntity.ok(SearchSubwayStationResponse.from(soptMapService.findSubwayStations(keyword)));
+	}
+
+	@Override
+	@GetMapping
+	public ResponseEntity<SoptMapGetAllDto> getSoptMapList(
+		Principal principal,
+		@RequestParam(required = false) MapTag category,
+		@RequestParam(defaultValue = "LATEST") SortType sortType,
+		@RequestParam(defaultValue = "1") Integer page,
+		@RequestParam(defaultValue = "10") Integer take) {
+		Integer userId = UserUtil.getUserId(principal);
+		PageOptionsDto pageOptionsDto = new PageOptionsDto(page, take);
+		SoptMapGetAllDto result = soptMapService.getSoptMapList(
+			userId,
+			category,
+			sortType,
+			pageOptionsDto);
+		return ResponseEntity.ok(result);
 	}
 }
