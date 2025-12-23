@@ -460,13 +460,13 @@ class SoptMapRepositoryTest {
 		void filterByMultipleStationIds_success() {
 			// given
 			PageRequest pageable = PageRequest.of(0, 25);
-			List<Long> stationIds = List.of(1L, 2L); // 강남역, 역삼역
+			List<Long> stationIds = List.of(1L, 2L); // 강남역(1), 역삼역(2)
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
 				1L, null, SortType.LATEST, stationIds, pageable);
 
-			// then - 강남역(11개) + 역삼역 only(6개) = 17개 (중복 제거)
+			// then - 강남역(10개) + 역삼역 only(7개) = 17개 (중복 제거)
 			assertThat(result.getTotalElements()).isEqualTo(17);
 		}
 
