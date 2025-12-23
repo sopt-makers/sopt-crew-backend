@@ -76,6 +76,7 @@ public class SoptMapController implements SoptMapApi {
 		Principal principal,
 		@RequestParam(required = false) MapTag category,
 		@RequestParam(defaultValue = "LATEST") SortType sortType,
+		@RequestParam(required = false) String stationKeyword,
 		@RequestParam(defaultValue = "1") Integer page,
 		@RequestParam(defaultValue = "10") Integer take) {
 		Integer userId = UserUtil.getUserId(principal);
@@ -84,6 +85,7 @@ public class SoptMapController implements SoptMapApi {
 			userId,
 			category,
 			sortType,
+			stationKeyword,
 			pageOptionsDto);
 		return ResponseEntity.ok(result);
 	}

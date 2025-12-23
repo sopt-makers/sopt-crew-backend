@@ -44,7 +44,7 @@ public interface SoptMapApi {
 	})
 	ResponseEntity<SearchSubwayStationResponse> findSubwayStations(Principal principal, String keyword);
 
-	@Operation(summary = "솝맵 목록 조회 api")
+	@Operation(summary = "솝맵 목록 조회/검색/필터링 api")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "성공")
 	})
@@ -52,6 +52,7 @@ public interface SoptMapApi {
 		@Parameter(hidden = true) Principal principal,
 		@Parameter(description = "필터링할 카테고리 (null: 전체)", example = "FOOD") MapTag category,
 		@Parameter(description = "정렬 타입", example = "LATEST") SortType sortType,
+		@Parameter(description = "지하철역 검색어 (유사도 기반)", example = "강남") String stationKeyword,
 		@Parameter(description = "페이지 번호 (1부터 시작)", example = "1") Integer page,
 		@Parameter(description = "가져올 데이터 개수", example = "10") Integer take);
 }
