@@ -14,14 +14,17 @@ import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ErrorStatus;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
+import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapListResponseDto;
 import org.sopt.makers.crew.main.soptmap.service.dto.CreateSoptMapDto;
 import org.sopt.makers.crew.main.soptmap.service.dto.SoptMapWithRecommendInfo;
 import org.sopt.makers.crew.main.soptmap.service.dto.SubwayStationDto;
 import org.sopt.makers.crew.main.soptmap.service.dto.UpdateSoptMapDto;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,29 +63,35 @@ public class SoptMapService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<SoptMapListResponseDto> getSoptMapList(
+	public SoptMapGetAllDto getSoptMapList(
 		Integer userId,
 		MapTag category,
 		SortType sortType,
-		Pageable pageable) {
-		// 1. Repository에서 SoptMap + 추천 정보 조회
+		PageOptionsDto pageOptionsDto) {
+		// 1. PageOptionsDto -> Pageable 변환
+		Pageable pageable = PageRequest.of(pageOptionsDto.getPage() - 1, pageOptionsDto.getTake());
+
+		// 2. Repository에서 SoptMap + 추천 정보 조회
 		Page<SoptMapWithRecommendInfo> soptMapPage = soptMapRepository.searchSoptMap(
 			convertToLongOrNull(userId),
 			category,
 			sortType,
 			pageable);
 
+		// 3. 페이지 메타 정보 생성
+		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)soptMapPage.getTotalElements());
+
 		if (soptMapPage.isEmpty()) {
-			return Page.empty(pageable);
+			return SoptMapGetAllDto.of(List.of(), pageMetaDto);
 		}
 
-		// 2. 지하철역 정보 일괄 조회 (N+1 방지)
+		// 4. 지하철역 정보 일괄 조회 (N+1 방지)
 		Map<Long, String> stationIdToNameMap = fetchStationNameMap(soptMapPage.getContent());
 
-		// 3. DTO 변환
+		// 5. DTO 변환
 		List<SoptMapListResponseDto> content = convertToListDtos(soptMapPage.getContent(), stationIdToNameMap);
 
-		return new PageImpl<>(content, pageable, soptMapPage.getTotalElements());
+		return SoptMapGetAllDto.of(content, pageMetaDto);
 	}
 
 	@Transactional(readOnly = true)
