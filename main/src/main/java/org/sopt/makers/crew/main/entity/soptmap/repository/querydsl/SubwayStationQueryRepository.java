@@ -1,47 +1,16 @@
 package org.sopt.makers.crew.main.entity.soptmap.repository.querydsl;
 
-import static org.sopt.makers.crew.main.entity.soptmap.QSubwayStation.*;
-
 import java.util.List;
 
 import org.sopt.makers.crew.main.entity.soptmap.SubwayStation;
-import org.springframework.stereotype.Repository;
 
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberTemplate;
-import com.querydsl.jpa.impl.JPAQueryFactory;
+public interface SubwayStationQueryRepository {
 
-import lombok.RequiredArgsConstructor;
-
-@Repository
-@RequiredArgsConstructor
-public class SubwayStationQueryRepository {
-
-	private static final double SIMILARITY_THRESHOLD = 0.5;
-	private static final int LIMIT_SIZE = 5;
-	private final JPAQueryFactory queryFactory;
-
-	public List<SubwayStation> searchByKeyword(String keyword) {
-
-		NumberTemplate<Double> similarity = Expressions.numberTemplate(Double.class, "public.similarity({0}, {1})",
-			subwayStation.name, keyword);
-
-		return queryFactory.selectFrom(subwayStation)
-			.where(condition(keyword, similarity))
-			.orderBy(keyword != null ? similarity.desc() : subwayStation.id.desc())
-			.limit(LIMIT_SIZE)
-			.fetch();
-	}
-
-	private BooleanBuilder condition(String keyword, NumberTemplate<Double> similarity) {
-		BooleanBuilder builder = new BooleanBuilder();
-		if (keyword != null) {
-			String trimKeyword = keyword.trim();
-			builder.and(subwayStation.name.containsIgnoreCase(trimKeyword)
-				.or(similarity.gt(SIMILARITY_THRESHOLD)));
-		}
-		return builder;
-	}
-
+	/**
+	 * 키워드 기반 지하철역 유사도 검색
+	 *
+	 * @param keyword 검색 키워드 (nullable)
+	 * @return 유사도 높은 순으로 정렬된 지하철역 목록 (최대 5개)
+	 */
+	List<SubwayStation> searchByKeyword(String keyword);
 }
