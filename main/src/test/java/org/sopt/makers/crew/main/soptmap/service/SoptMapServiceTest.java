@@ -36,7 +36,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageOptions);
+				1, null, SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.meta().getItemCount()).isEqualTo(25);
@@ -58,7 +58,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, MapTag.FOOD, SortType.LATEST, pageOptions);
+				1, MapTag.FOOD, SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.meta().getItemCount()).isEqualTo(10);
@@ -80,7 +80,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, MapTag.CAFE, SortType.LATEST, pageOptions);
+				1, MapTag.CAFE, SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.meta().getItemCount()).isEqualTo(12);
@@ -99,7 +99,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, MapTag.ETC, SortType.LATEST, pageOptions);
+				1, MapTag.ETC, SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.meta().getItemCount()).isEqualTo(5);
@@ -118,7 +118,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, MapTag.FOOD, SortType.POPULAR, pageOptions);
+				1, MapTag.FOOD, SortType.POPULAR, null, pageOptions);
 
 			// then
 			assertThat(result.soptMaps())
@@ -139,9 +139,9 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto firstPage = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, page1);
+				1, null, SortType.LATEST, null, page1);
 			SoptMapGetAllDto secondPage = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, page2);
+				1, null, SortType.LATEST, null, page2);
 
 			// then
 			assertThat(firstPage.soptMaps()).hasSize(10);
@@ -163,11 +163,11 @@ public class SoptMapServiceTest {
 		@DisplayName("시나리오 7: 카테고리 null이면 전체 조회")
 		void scenario7_nullCategory_allResults() {
 			// given
-			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 25);
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageOptions);
+				1, null, SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.meta().getItemCount()).isEqualTo(25);
@@ -181,6 +181,7 @@ public class SoptMapServiceTest {
 
 			assertThat(hasFood).isTrue();
 			assertThat(hasCafe).isTrue();
+			assertThat(hasEtc).isTrue();
 		}
 	}
 
@@ -197,7 +198,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageOptions);
+				1, null, SortType.LATEST, null, pageOptions);
 
 			// then
 			SoptMapListResponseDto onThePlan = result.soptMaps().stream()
@@ -218,7 +219,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageOptions);
+				1, null, SortType.LATEST, null, pageOptions);
 
 			// then
 			SoptMapListResponseDto sushiya = result.soptMaps().stream()
@@ -246,7 +247,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageOptions);
+				1, null, SortType.LATEST, null, pageOptions);
 
 			// then
 			SoptMapListResponseDto hongdae = result.soptMaps().stream()
@@ -273,7 +274,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageOptions);
+				1, null, SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.soptMaps()).hasSize(10);
@@ -294,7 +295,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageOptions);
+				1, null, SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.soptMaps()).hasSize(25);
@@ -320,7 +321,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageOptions);
+				1, null, SortType.LATEST, null, pageOptions);
 
 			// then
 			SoptMapListResponseDto sushiya = result.soptMaps().stream()
@@ -340,7 +341,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageOptions);
+				1, null, SortType.LATEST, null, pageOptions);
 
 			// then
 			SoptMapListResponseDto pasta = result.soptMaps().stream()
@@ -360,7 +361,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.POPULAR, pageOptions);
+				1, null, SortType.POPULAR, null, pageOptions);
 
 			// then
 			SoptMapListResponseDto top = result.soptMaps().get(0);
@@ -394,7 +395,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageOptions);
+				1, null, SortType.LATEST, null, pageOptions);
 
 			// then - 빈 페이지가 정상적으로 반환됨
 			assertThat(result.soptMaps()).isEmpty();
@@ -408,10 +409,11 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				null, null, SortType.LATEST, pageOptions);
+				null, null, SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.soptMaps())
+				.isNotEmpty()
 				.allMatch(dto -> dto.getIsRecommended() == false);
 		}
 
@@ -423,13 +425,69 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageOptions);
+				1, null, SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.soptMaps()).hasSize(5);
 			assertThat(result.soptMaps()).isNotEmpty();
 			assertThat(result.soptMaps())
 				.allMatch(dto -> dto.getSubwayStationNames() != null);
+		}
+	}
+
+	@Nested
+	@Sql(value = "/sql/soptmap-repository-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+	@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+	class 역_검색_기능 {
+
+		@Test
+		@DisplayName("역 검색어가 있으면 해당 역 근처 솝맵만 반환된다")
+		void filterByStationKeyword_success() {
+			// given
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
+
+			// when
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, "강남", pageOptions);
+
+			// then
+			assertThat(result.soptMaps()).isNotEmpty();
+			assertThat(result.soptMaps())
+				.allMatch(dto -> dto.getSubwayStationNames().stream()
+					.anyMatch(name -> name.contains("강남")));
+		}
+
+		@Test
+		@DisplayName("존재하지 않는 역 검색 시 빈 결과 반환")
+		void stationNotFound_emptyResult() {
+			// given
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
+
+			// when
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, "존재하지않는역", pageOptions);
+
+			// then
+			assertThat(result.soptMaps()).isEmpty();
+			assertThat(result.meta().getItemCount()).isZero();
+		}
+
+		@Test
+		@DisplayName("역 검색과 카테고리 필터를 함께 사용할 수 있다")
+		void stationAndCategoryFilter_success() {
+			// given
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
+
+			// when
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, MapTag.FOOD, SortType.LATEST, "강남", pageOptions);
+
+			// then
+			assertThat(result.soptMaps()).isNotEmpty();
+			assertThat(result.soptMaps())
+				.allMatch(dto -> dto.getMapTags().contains(MapTag.FOOD))
+				.allMatch(dto -> dto.getSubwayStationNames().stream()
+					.anyMatch(name -> name.contains("강남")));
 		}
 	}
 }
