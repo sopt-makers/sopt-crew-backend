@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.entity.soptmap.repository.querydsl;
 
+import java.util.List;
+
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
 import org.sopt.makers.crew.main.soptmap.service.dto.SoptMapWithRecommendInfo;
@@ -11,15 +13,17 @@ public interface SoptMapQueryRepository {
 	/**
 	 * SoptMap 목록 조회 (페이지네이션, 필터링, 정렬 지원)
 	 *
-	 * @param userId   현재 로그인한 유저 ID (추천 여부 확인용)
-	 * @param category 필터링할 MapTag (nullable)
-	 * @param sortType 정렬 타입 (LATEST, POPULAR)
-	 * @param pageable 페이지네이션 정보
+	 * @param userId     현재 로그인한 유저 ID (추천 여부 확인용)
+	 * @param category   필터링할 MapTag (nullable)
+	 * @param sortType   정렬 타입 (LATEST, POPULAR)
+	 * @param stationIds 필터링할 지하철역 ID 리스트 (nullable)
+	 * @param pageable   페이지네이션 정보
 	 * @return Page<SoptMapWithRecommendInfo>
 	 */
 	Page<SoptMapWithRecommendInfo> searchSoptMap(
 		Long userId,
 		MapTag category,
 		SortType sortType,
+		List<Long> stationIds,
 		Pageable pageable);
 }

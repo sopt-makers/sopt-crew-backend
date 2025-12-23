@@ -18,7 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 
 @IntegratedTest
-class SoptMapQueryRepositoryTest {
+class SoptMapRepositoryTest {
 
 	@Autowired
 	private SoptMapRepository soptMapRepository;
@@ -36,7 +36,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.LATEST, pageable);
+				1L, null, SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getTotalElements()).isEqualTo(25);
@@ -65,7 +65,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.LATEST, pageable);
+				1L, null, SortType.LATEST, null, pageable);
 
 			// then
 			SoptMapWithRecommendInfo restaurant = result.getContent().stream()
@@ -90,7 +90,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, MapTag.FOOD, SortType.LATEST, pageable);
+				1L, MapTag.FOOD, SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getTotalElements()).isEqualTo(10); // FOOD(8) + 복합(2)
@@ -113,7 +113,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, MapTag.CAFE, SortType.LATEST, pageable);
+				1L, MapTag.CAFE, SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getTotalElements()).isEqualTo(12); // CAFE(10) + 복합(2)
@@ -129,7 +129,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, MapTag.ETC, SortType.LATEST, pageable);
+				1L, MapTag.ETC, SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getTotalElements()).isEqualTo(5); // ETC만
@@ -153,7 +153,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.POPULAR, pageable);
+				1L, null, SortType.POPULAR, null, pageable);
 
 			// then
 			assertThat(result.getContent())
@@ -179,7 +179,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.POPULAR, pageable);
+				1L, null, SortType.POPULAR, null, pageable);
 
 			// then
 			List<SoptMapWithRecommendInfo> zeroRecommends = result.getContent().stream()
@@ -206,7 +206,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, MapTag.FOOD, SortType.POPULAR, pageable);
+				1L, MapTag.FOOD, SortType.POPULAR, null, pageable);
 
 			// then
 			assertThat(result.getTotalElements()).isEqualTo(10);
@@ -233,7 +233,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.LATEST, pageable);
+				1L, null, SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getContent())
@@ -261,7 +261,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.LATEST, pageable);
+				1L, null, SortType.LATEST, null, pageable);
 
 			// then
 			SoptMapWithRecommendInfo sushiya = result.getContent().stream()
@@ -281,7 +281,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.LATEST, pageable);
+				1L, null, SortType.LATEST, null, pageable);
 
 			// then
 			SoptMapWithRecommendInfo pasta = result.getContent().stream()
@@ -301,15 +301,15 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.LATEST, pageable);
+				1L, null, SortType.LATEST, null, pageable);
 
 			// then
 			List<SoptMapWithRecommendInfo> noRecommends = result.getContent().stream()
 				.filter(info -> info.getRecommendCount() == 0L)
 				.toList();
 
-			assertThat(noRecommends).isNotEmpty();
 			assertThat(noRecommends)
+				.isNotEmpty()
 				.allMatch(info -> info.getIsRecommended() == false);
 		}
 
@@ -321,7 +321,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.LATEST, pageable);
+				1L, null, SortType.LATEST, null, pageable);
 
 			// then
 			SoptMapWithRecommendInfo restaurant = result.getContent().stream()
@@ -348,7 +348,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.LATEST, pageable);
+				1L, null, SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getPageable().getPageNumber()).isZero();
@@ -365,7 +365,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.LATEST, pageable);
+				1L, null, SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getPageable().getPageNumber()).isEqualTo(1);
@@ -383,7 +383,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.LATEST, pageable);
+				1L, null, SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getPageable().getPageNumber()).isEqualTo(2);
@@ -399,7 +399,7 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, null, SortType.LATEST, pageable);
+				1L, null, SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getContent()).hasSize(20);
@@ -420,12 +420,124 @@ class SoptMapQueryRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				99999L, null, SortType.LATEST, pageable);
+				99999L, null, SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getContent()).hasSize(10);
 			assertThat(result.getContent())
 				.allMatch(info -> info.getIsRecommended() == false); // 모든 추천이 false
+		}
+	}
+
+	@Nested
+	@Sql(value = "/sql/soptmap-repository-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+	@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+	class 역_필터링 {
+
+		@Test
+		@DisplayName("강남역 ID로 필터링 시, 강남역 근처 솝맵만 반환된다")
+		void filterByGangnamStation_success() {
+			// given
+			PageRequest pageable = PageRequest.of(0, 20);
+			List<Long> gangnamStationIds = List.of(1L); // 강남역
+
+			// when
+			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
+				1L, null, SortType.LATEST, gangnamStationIds, pageable);
+
+			// then
+			assertThat(result.getTotalElements()).isEqualTo(10); // 강남역 근처 10개
+			assertThat(result.getContent())
+				.extracting("placeName")
+				.contains(
+					"카페 온더플랜", "스시야 강남점", "파스타집", "일식당",
+					"투썸플레이스", "엔제리너스", "컴포즈커피", "헬스장",
+					"스터디카페", "베이커리카페");
+		}
+
+		@Test
+		@DisplayName("여러 역 ID로 필터링 시, 해당 역들 근처 솝맵이 OR 조건으로 반환된다")
+		void filterByMultipleStationIds_success() {
+			// given
+			PageRequest pageable = PageRequest.of(0, 25);
+			List<Long> stationIds = List.of(1L, 2L); // 강남역(1), 역삼역(2)
+
+			// when
+			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
+				1L, null, SortType.LATEST, stationIds, pageable);
+
+			// then - 강남역(10개) + 역삼역 only(7개) = 17개 (중복 제거)
+			assertThat(result.getTotalElements()).isEqualTo(17);
+		}
+
+		@Test
+		@DisplayName("역 필터 + 카테고리 필터가 AND 조건으로 함께 동작한다")
+		void filterByStationAndCategory_success() {
+			// given
+			PageRequest pageable = PageRequest.of(0, 10);
+			List<Long> gangnamStationIds = List.of(1L); // 강남역
+
+			// when
+			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
+				1L, MapTag.FOOD, SortType.LATEST, gangnamStationIds, pageable);
+
+			// then
+			assertThat(result.getContent())
+				.allMatch(info -> info.getMapTags().contains(MapTag.FOOD))
+				.extracting("placeName")
+				.contains("스시야 강남점", "파스타집", "일식당", "베이커리카페");
+		}
+
+		@Test
+		@DisplayName("역 필터 + 추천순 정렬이 함께 동작한다")
+		void filterByStationAndSortByPopular_success() {
+			// given
+			PageRequest pageable = PageRequest.of(0, 10);
+			List<Long> gangnamStationIds = List.of(1L); // 강남역
+
+			// when
+			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
+				1L, null, SortType.POPULAR, gangnamStationIds, pageable);
+
+			// then
+			assertThat(result.getContent())
+				.extracting("placeName", "recommendCount")
+				.startsWith(
+					tuple("스시야 강남점", 12L),
+					tuple("카페 온더플랜", 10L),
+					tuple("파스타집", 8L));
+		}
+
+		@Test
+		@DisplayName("존재하지 않는 역 ID로 필터링하면 빈 결과가 반환된다")
+		void filterByNonExistentStationId_returnsEmpty() {
+			// given
+			PageRequest pageable = PageRequest.of(0, 10);
+			List<Long> nonExistentStationIds = List.of(99999L);
+
+			// when
+			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
+				1L, null, SortType.LATEST, nonExistentStationIds, pageable);
+
+			// then
+			assertThat(result.getContent()).isEmpty();
+			assertThat(result.getTotalElements()).isZero();
+		}
+
+		@Test
+		@DisplayName("빈 역 ID 리스트는 null과 동일하게 처리되어 전체 결과를 반환한다")
+		void filterByEmptyStationIds_returnsAll() {
+			// given
+			PageRequest pageable = PageRequest.of(0, 10);
+			List<Long> emptyStationIds = List.of();
+
+			// when
+			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
+				1L, null, SortType.LATEST, emptyStationIds, pageable);
+
+			// then
+			assertThat(result.getContent()).hasSize(10);
+			assertThat(result.getTotalElements()).isEqualTo(25); // 전체 결과
 		}
 	}
 }

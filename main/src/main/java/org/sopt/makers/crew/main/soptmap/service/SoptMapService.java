@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.entity.soptmap.SoptMap;
+import org.sopt.makers.crew.main.entity.soptmap.SubwayStation;
 import org.sopt.makers.crew.main.entity.soptmap.repository.SoptMapRepository;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ErrorStatus;
@@ -67,36 +68,90 @@ public class SoptMapService {
 		Integer userId,
 		MapTag category,
 		SortType sortType,
+		String stationKeyword,
 		PageOptionsDto pageOptionsDto) {
-		// 1. PageOptionsDto -> Pageable 변환
-		Pageable pageable = PageRequest.of(pageOptionsDto.getPage() - 1, pageOptionsDto.getTake());
 
-		// 2. Repository에서 SoptMap + 추천 정보 조회
-		Page<SoptMapWithRecommendInfo> soptMapPage = soptMapRepository.searchSoptMap(
-			convertToLongOrNull(userId),
-			category,
-			sortType,
-			pageable);
+		Pageable pageable = createPageable(pageOptionsDto);
+		List<Long> stationIds = resolveStationIds(stationKeyword);
 
-		// 3. 페이지 메타 정보 생성
-		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)soptMapPage.getTotalElements());
-
-		if (soptMapPage.isEmpty()) {
-			return SoptMapGetAllDto.of(List.of(), pageMetaDto);
+		if (isEmptySearchResult(stationKeyword, stationIds)) {
+			return createEmptyResult(pageOptionsDto);
 		}
 
-		// 4. 지하철역 정보 일괄 조회 (N+1 방지)
-		Map<Long, String> stationIdToNameMap = fetchStationNameMap(soptMapPage.getContent());
+		Page<SoptMapWithRecommendInfo> soptMapPage = fetchSoptMaps(userId, category, sortType, stationIds, pageable);
 
-		// 5. DTO 변환
-		List<SoptMapListResponseDto> content = convertToListDtos(soptMapPage.getContent(), stationIdToNameMap);
+		if (soptMapPage.isEmpty()) {
+			return createEmptyResult(pageOptionsDto, (int)soptMapPage.getTotalElements());
+		}
 
-		return SoptMapGetAllDto.of(content, pageMetaDto);
+		return buildResultDto(soptMapPage, pageOptionsDto);
 	}
 
 	@Transactional(readOnly = true)
 	public List<SubwayStationDto> findSubwayStations(String keyword) {
 		return subwayStationManager.findByKeywords(keyword);
+	}
+
+	private Pageable createPageable(PageOptionsDto pageOptionsDto) {
+		return PageRequest.of(pageOptionsDto.getPage() - 1, pageOptionsDto.getTake());
+	}
+
+	private List<Long> resolveStationIds(String stationKeyword) {
+		if (stationKeyword == null || stationKeyword.isBlank()) {
+			return List.of();
+		}
+
+		List<SubwayStation> stations = subwayStationManager.searchByKeyword(stationKeyword);
+
+		if (stations.isEmpty()) {
+			return List.of();
+		}
+
+		return stations.stream()
+			.map(SubwayStation::getId)
+			.toList();
+	}
+
+	private boolean isEmptySearchResult(String stationKeyword, List<Long> stationIds) {
+		// 키워드가 있는데 검색 결과가 없는 경우만 true
+		return stationKeyword != null && !stationKeyword.isBlank() && stationIds.isEmpty();
+	}
+
+	private Page<SoptMapWithRecommendInfo> fetchSoptMaps(
+		Integer userId,
+		MapTag category,
+		SortType sortType,
+		List<Long> stationIds,
+		Pageable pageable) {
+
+		List<Long> filterIds = stationIds;
+		if (stationIds != null && stationIds.isEmpty()) {
+			filterIds = null;
+		}
+
+		return soptMapRepository.searchSoptMap(
+			convertToLongOrNull(userId),
+			category,
+			sortType,
+			filterIds,
+			pageable);
+	}
+
+	private SoptMapGetAllDto buildResultDto(Page<SoptMapWithRecommendInfo> soptMapPage, PageOptionsDto pageOptionsDto) {
+		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)soptMapPage.getTotalElements());
+		Map<Long, String> stationIdToNameMap = fetchStationNameMap(soptMapPage.getContent());
+		List<SoptMapListResponseDto> content = convertToListDtos(soptMapPage.getContent(), stationIdToNameMap);
+
+		return SoptMapGetAllDto.of(content, pageMetaDto);
+	}
+
+	private SoptMapGetAllDto createEmptyResult(PageOptionsDto pageOptionsDto) {
+		return createEmptyResult(pageOptionsDto, 0);
+	}
+
+	private SoptMapGetAllDto createEmptyResult(PageOptionsDto pageOptionsDto, int totalCount) {
+		PageMetaDto emptyMeta = new PageMetaDto(pageOptionsDto, totalCount);
+		return SoptMapGetAllDto.of(List.of(), emptyMeta);
 	}
 
 	private SoptMap findSoptMapById(Long soptMapId) {

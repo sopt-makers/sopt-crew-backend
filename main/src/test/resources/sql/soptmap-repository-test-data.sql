@@ -1,6 +1,9 @@
 -- SoptMap Repository Test Data
 -- 테스트 시나리오: 페이지네이션, 필터링, 정렬, 추천 기능
 
+-- PostgreSQL pg_trgm extension (유사도 검색을 위해 필요)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- User 데이터
 INSERT INTO "user" (id, name, activities, "profileImage", phone)
 VALUES (1, '테스터1', '[{"part":"서버","generation":34}]', 'profile1.jpg', '010-1111-1111'),
