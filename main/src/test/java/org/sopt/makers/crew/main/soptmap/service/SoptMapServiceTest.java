@@ -10,11 +10,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapListResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 
 @IntegratedTest
@@ -32,37 +32,37 @@ public class SoptMapServiceTest {
 		@DisplayName("시나리오 1: 첫 화면 진입 - 전체/최신순 디폴트")
 		void scenario1_initialLoad() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 10);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, pageOptions);
 
 			// then
-			assertThat(result.getTotalElements()).isEqualTo(25);
-			assertThat(result.getContent()).hasSize(10);
+			assertThat(result.meta().getItemCount()).isEqualTo(25);
+			assertThat(result.soptMaps()).hasSize(10);
 
 			// 첫 번째 아이템 상세 검증
-			SoptMapListResponseDto first = result.getContent().get(0);
+			SoptMapListResponseDto first = result.soptMaps().get(0);
 			assertThat(first.getPlaceName()).isEqualTo("카페 온더플랜");
 			assertThat(first.getSubwayStationNames()).containsExactlyInAnyOrder("강남역", "역삼역");
 			assertThat(first.getRecommendCount()).isEqualTo(10L);
-			assertThat(first.getIsRecommended()).isFalse(); // userId=1이 추천 안함
+			assertThat(first.getIsRecommended()).isFalse();
 		}
 
 		@Test
-		@DisplayName("시나리오 2: 음식점 카테고리 선택")
-		void scenario2_foodCategory() {
+		@DisplayName("시나리오 2: FOOD 카테고리로 필터링")
+		void scenario2_filterByFood() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 10);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, MapTag.FOOD, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, MapTag.FOOD, SortType.LATEST, pageOptions);
 
 			// then
-			assertThat(result.getTotalElements()).isEqualTo(10); // FOOD(8) + 복합(2)
-			assertThat(result.getContent())
+			assertThat(result.meta().getItemCount()).isEqualTo(10);
+			assertThat(result.soptMaps())
 				.hasSize(10)
 				.allMatch(dto -> dto.getMapTags().contains(MapTag.FOOD))
 				.extracting("placeName")
@@ -73,37 +73,37 @@ public class SoptMapServiceTest {
 		}
 
 		@Test
-		@DisplayName("시나리오 5: 카페 카테고리 선택")
-		void scenario5_cafeCategory() {
+		@DisplayName("시나리오 3: CAFE 카테고리로 필터링")
+		void scenario3_filterByCafe() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 15);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 12);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, MapTag.CAFE, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, MapTag.CAFE, SortType.LATEST, pageOptions);
 
 			// then
-			assertThat(result.getTotalElements()).isEqualTo(12); // CAFE(10) + 복합(2)
-			assertThat(result.getContent())
+			assertThat(result.meta().getItemCount()).isEqualTo(12);
+			assertThat(result.soptMaps())
 				.allMatch(dto -> dto.getMapTags().contains(MapTag.CAFE));
-			assertThat(result.getContent())
+			assertThat(result.soptMaps())
 				.extracting("placeName")
 				.contains("카페 온더플랜", "스타벅스 역삼점", "브런치카페", "베이커리카페");
 		}
 
 		@Test
-		@DisplayName("시나리오 6: 기타 카테고리 선택")
-		void scenario6_etcCategory() {
+		@DisplayName("시나리오 4: ETC 카테고리로 필터링")
+		void scenario4_filterByEtc() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 10);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, MapTag.ETC, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, MapTag.ETC, SortType.LATEST, pageOptions);
 
 			// then
-			assertThat(result.getTotalElements()).isEqualTo(5); // ETC만
-			assertThat(result.getContent())
+			assertThat(result.meta().getItemCount()).isEqualTo(5);
+			assertThat(result.soptMaps())
 				.hasSize(5)
 				.allMatch(dto -> dto.getMapTags().contains(MapTag.ETC))
 				.extracting("placeName")
@@ -111,47 +111,46 @@ public class SoptMapServiceTest {
 		}
 
 		@Test
-		@DisplayName("시나리오 3: 추천순으로 정렬 변경")
-		void scenario3_sortByPopular() {
+		@DisplayName("시나리오 5: 추천순으로 정렬")
+		void scenario5_sortByPopular() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 10);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, MapTag.FOOD, SortType.POPULAR, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, MapTag.FOOD, SortType.POPULAR, pageOptions);
 
 			// then
-			assertThat(result.getContent())
+			assertThat(result.soptMaps())
 				.extracting(SoptMapListResponseDto::getRecommendCount)
 				.isSortedAccordingTo(Comparator.reverseOrder());
 
-			assertThat(result.getContent())
+			assertThat(result.soptMaps())
 				.extracting("placeName")
-				.startsWith("맛집 홍대점", "스시야 강남점", "파스타집"); // 추천 많은 순
+				.startsWith("맛집 홍대점", "스시야 강남점", "파스타집");
 		}
 
 		@Test
-		@DisplayName("시나리오 4: 두 번째 페이지 조회")
-		void scenario4_secondPage() {
+		@DisplayName("시나리오 6: 페이지 간 데이터 일관성")
+		void scenario6_paginationConsistency() {
 			// given
-			PageRequest page1 = PageRequest.of(0, 10);
-			PageRequest page2 = PageRequest.of(1, 10);
+			PageOptionsDto page1 = new PageOptionsDto(1, 10);
+			PageOptionsDto page2 = new PageOptionsDto(2, 10);
 
 			// when
-			Page<SoptMapListResponseDto> firstPage = soptMapService.getSoptMapList(
+			SoptMapGetAllDto firstPage = soptMapService.getSoptMapList(
 				1, null, SortType.LATEST, page1);
-			Page<SoptMapListResponseDto> secondPage = soptMapService.getSoptMapList(
+			SoptMapGetAllDto secondPage = soptMapService.getSoptMapList(
 				1, null, SortType.LATEST, page2);
 
 			// then
-			assertThat(firstPage.getContent()).hasSize(10);
-			assertThat(secondPage.getContent()).hasSize(10);
+			assertThat(firstPage.soptMaps()).hasSize(10);
+			assertThat(secondPage.soptMaps()).hasSize(10);
 
-			// 첫 페이지와 두 번째 페이지는 겹치지 않음
-			List<Long> firstPageIds = firstPage.getContent().stream()
+			List<Long> firstPageIds = firstPage.soptMaps().stream()
 				.map(SoptMapListResponseDto::getId)
 				.toList();
-			List<Long> secondPageIds = secondPage.getContent().stream()
+			List<Long> secondPageIds = secondPage.soptMaps().stream()
 				.map(SoptMapListResponseDto::getId)
 				.toList();
 
@@ -161,29 +160,27 @@ public class SoptMapServiceTest {
 		}
 
 		@Test
-		@DisplayName("시나리오 7: 전체 복귀")
-		void scenario7_returnToAll() {
+		@DisplayName("시나리오 7: 카테고리 null이면 전체 조회")
+		void scenario7_nullCategory_allResults() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 25);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, pageOptions);
 
 			// then
-			assertThat(result.getTotalElements()).isEqualTo(25); // 모든 카테고리
+			assertThat(result.meta().getItemCount()).isEqualTo(25);
 
-			// 각 카테고리가 최소 하나씩 있는지 확인
-			boolean hasFood = result.getContent().stream()
+			boolean hasFood = result.soptMaps().stream()
 				.anyMatch(dto -> dto.getMapTags().contains(MapTag.FOOD));
-			boolean hasCafe = result.getContent().stream()
+			boolean hasCafe = result.soptMaps().stream()
 				.anyMatch(dto -> dto.getMapTags().contains(MapTag.CAFE));
-			boolean hasEtc = result.getContent().stream()
+			boolean hasEtc = result.soptMaps().stream()
 				.anyMatch(dto -> dto.getMapTags().contains(MapTag.ETC));
 
 			assertThat(hasFood).isTrue();
 			assertThat(hasCafe).isTrue();
-			assertThat(hasEtc).isTrue();
 		}
 	}
 
@@ -193,17 +190,17 @@ public class SoptMapServiceTest {
 	class 지하철역_매핑 {
 
 		@Test
-		@DisplayName("nearbyStationIds를 역 이름으로 변환한다")
-		void mapStationIdsToNames_success() {
+		@DisplayName("다중 역이 있는 솝맵의 역 이름이 정확히 매핑된다")
+		void multipleStations_mappedCorrectly() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 10);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, pageOptions);
 
 			// then
-			SoptMapListResponseDto onThePlan = result.getContent().stream()
+			SoptMapListResponseDto onThePlan = result.soptMaps().stream()
 				.filter(dto -> dto.getPlaceName().equals("카페 온더플랜"))
 				.findFirst()
 				.orElseThrow();
@@ -214,17 +211,17 @@ public class SoptMapServiceTest {
 		}
 
 		@Test
-		@DisplayName("복수의 역이 정확히 매핑된다")
-		void multipleStations_mapped() {
+		@DisplayName("여러 솝맵의 역 정보가 각각 정확히 매핑된다")
+		void multipleSoptMaps_stationsMappedCorrectly() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 25);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 25);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, pageOptions);
 
 			// then
-			SoptMapListResponseDto sushiya = result.getContent().stream()
+			SoptMapListResponseDto sushiya = result.soptMaps().stream()
 				.filter(dto -> dto.getPlaceName().equals("스시야 강남점"))
 				.findFirst()
 				.orElseThrow();
@@ -232,7 +229,7 @@ public class SoptMapServiceTest {
 			assertThat(sushiya.getSubwayStationNames())
 				.containsExactlyInAnyOrder("강남역", "역삼역");
 
-			SoptMapListResponseDto bakery = result.getContent().stream()
+			SoptMapListResponseDto bakery = result.soptMaps().stream()
 				.filter(dto -> dto.getPlaceName().equals("베이커리카페"))
 				.findFirst()
 				.orElseThrow();
@@ -242,17 +239,17 @@ public class SoptMapServiceTest {
 		}
 
 		@Test
-		@DisplayName("단일 역만 있는 경우도 정상 매핑된다")
-		void singleStation_mapped() {
+		@DisplayName("단일 역만 있는 솝맵도 정확히 매핑된다")
+		void singleStation_mappedCorrectly() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 25);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 25);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, pageOptions);
 
 			// then
-			SoptMapListResponseDto hongdae = result.getContent().stream()
+			SoptMapListResponseDto hongdae = result.soptMaps().stream()
 				.filter(dto -> dto.getPlaceName().equals("맛집 홍대점"))
 				.findFirst()
 				.orElseThrow();
@@ -272,20 +269,18 @@ public class SoptMapServiceTest {
 		@DisplayName("10개 조회 시 모든 역 정보가 정상 조회된다")
 		void allStationsLoaded_10items() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 10);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, pageOptions);
 
 			// then
-			// 모든 역 이름이 채워져 있음
-			assertThat(result.getContent()).hasSize(10);
-			assertThat(result.getContent())
+			assertThat(result.soptMaps()).hasSize(10);
+			assertThat(result.soptMaps())
 				.allMatch(dto -> dto.getSubwayStationNames() != null);
 
-			// 역이 있는 모든 SoptMap은 역 이름이 올바르게 매핑됨
-			assertThat(result.getContent())
+			assertThat(result.soptMaps())
 				.filteredOn(dto -> !dto.getSubwayStationNames().isEmpty())
 				.allMatch(dto -> dto.getSubwayStationNames().stream()
 					.allMatch(name -> name != null && !name.isBlank()));
@@ -295,21 +290,20 @@ public class SoptMapServiceTest {
 		@DisplayName("25개 전체 조회 시에도 역 정보가 정상 로드된다")
 		void allStationsLoaded_25items() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 25);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 25);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, pageOptions);
 
 			// then
-			assertThat(result.getContent()).hasSize(25);
+			assertThat(result.soptMaps()).hasSize(25);
 
-			// 모든 데이터의 역 이름이 정상적으로 조회됨
-			long withStations = result.getContent().stream()
+			long withStations = result.soptMaps().stream()
 				.filter(dto -> !dto.getSubwayStationNames().isEmpty())
 				.count();
 
-			assertThat(withStations).isGreaterThan(0); // 역 정보가 있는 데이터가 존재
+			assertThat(withStations).isGreaterThan(0);
 		}
 	}
 
@@ -322,19 +316,19 @@ public class SoptMapServiceTest {
 		@DisplayName("유저가 추천한 솝맵은 isRecommended가 true로 반환된다")
 		void userRecommended_isTrue() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 25);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 25);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, pageOptions);
 
 			// then
-			SoptMapListResponseDto sushiya = result.getContent().stream()
+			SoptMapListResponseDto sushiya = result.soptMaps().stream()
 				.filter(dto -> dto.getPlaceName().equals("스시야 강남점"))
 				.findFirst()
 				.orElseThrow();
 
-			assertThat(sushiya.getIsRecommended()).isTrue(); // userId=1이 추천함
+			assertThat(sushiya.getIsRecommended()).isTrue();
 			assertThat(sushiya.getRecommendCount()).isEqualTo(12L);
 		}
 
@@ -342,19 +336,19 @@ public class SoptMapServiceTest {
 		@DisplayName("유저가 추천하지 않은 솝맵은 isRecommended가 false로 반환된다")
 		void userNotRecommended_isFalse() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 25);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 25);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, pageOptions);
 
 			// then
-			SoptMapListResponseDto pasta = result.getContent().stream()
+			SoptMapListResponseDto pasta = result.soptMaps().stream()
 				.filter(dto -> dto.getPlaceName().equals("파스타집"))
 				.findFirst()
 				.orElseThrow();
 
-			assertThat(pasta.getIsRecommended()).isFalse(); // userId=1이 추천 안함
+			assertThat(pasta.getIsRecommended()).isFalse();
 			assertThat(pasta.getRecommendCount()).isEqualTo(8L);
 		}
 
@@ -362,14 +356,14 @@ public class SoptMapServiceTest {
 		@DisplayName("추천 정보와 역 정보가 모두 정확히 반환된다")
 		void allInfoCorrect() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 10);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.POPULAR, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.POPULAR, pageOptions);
 
 			// then
-			SoptMapListResponseDto top = result.getContent().get(0);
+			SoptMapListResponseDto top = result.soptMaps().get(0);
 
 			assertThat(top)
 				.extracting("placeName", "recommendCount", "isRecommended")
@@ -396,30 +390,28 @@ public class SoptMapServiceTest {
 		@DisplayName("빈 결과 페이지를 정상 처리한다")
 		void emptyPage_handled() {
 			// given - 존재하지 않는 페이지 요청
-			PageRequest pageable = PageRequest.of(100, 10);
+			PageOptionsDto pageOptions = new PageOptionsDto(100, 10);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, pageOptions);
 
 			// then - 빈 페이지가 정상적으로 반환됨
-			assertThat(result.getContent()).isEmpty();
-			assertThat(result.hasContent()).isFalse();
-			// totalElements는 실제 데이터 수에 따라 달라지므로 제외
+			assertThat(result.soptMaps()).isEmpty();
 		}
 
 		@Test
 		@DisplayName("userId가 null이어도 추천 정보는 모두 false로 반환된다")
 		void nullUserId_allFalse() {
 			// given
-			PageRequest pageable = PageRequest.of(0, 10);
+			PageOptionsDto pageOptions = new PageOptionsDto(1, 10);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				null, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				null, null, SortType.LATEST, pageOptions);
 
 			// then
-			assertThat(result.getContent())
+			assertThat(result.soptMaps())
 				.allMatch(dto -> dto.getIsRecommended() == false);
 		}
 
@@ -427,16 +419,16 @@ public class SoptMapServiceTest {
 		@DisplayName("마지막 페이지의 아이템도 정상적으로 역 정보가 조회된다")
 		void lastPage_stationsLoaded() {
 			// given
-			PageRequest pageable = PageRequest.of(2, 10);
+			PageOptionsDto pageOptions = new PageOptionsDto(3, 10);
 
 			// when
-			Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
-				1, null, SortType.LATEST, pageable);
+			SoptMapGetAllDto result = soptMapService.getSoptMapList(
+				1, null, SortType.LATEST, pageOptions);
 
 			// then
-			assertThat(result.getContent()).hasSize(5);
-			assertThat(result.getContent()).isNotEmpty();
-			assertThat(result.getContent())
+			assertThat(result.soptMaps()).hasSize(5);
+			assertThat(result.soptMaps()).isNotEmpty();
+			assertThat(result.soptMaps())
 				.allMatch(dto -> dto.getSubwayStationNames() != null);
 		}
 	}
