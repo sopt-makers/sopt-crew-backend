@@ -2,11 +2,11 @@ package org.sopt.makers.crew.main.entity.soptmap;
 
 import java.util.List;
 
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 import org.sopt.makers.crew.main.soptmap.service.dto.SubwayStationDto;
 
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,7 +31,7 @@ public class SubwayStation extends BaseTimeEntity {
 	@Column(name = "name")
 	private String name;
 
-	@JdbcTypeCode(SqlTypes.JSON)
+	@Type(JsonBinaryType.class)
 	@Column(columnDefinition = "jsonb", name = "lines")
 	private List<SubwayLine> lines;
 
