@@ -2,13 +2,19 @@ package org.sopt.makers.crew.main.soptmap;
 
 import java.security.Principal;
 
+import org.sopt.makers.crew.main.entity.soptmap.MapTag;
+import org.sopt.makers.crew.main.soptmap.dto.SortType;
 import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CreateSoptMapRequest;
 import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.SoptMapUpdateRequest;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapListResponseDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,4 +46,13 @@ public interface SoptMapApi {
 	})
 	ResponseEntity<SearchSubwayStationResponse> findSubwayStations(Principal principal, String keyword);
 
+	@Operation(summary = "솝맵 목록 조회 api (페이지네이션)")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "성공")
+	})
+	ResponseEntity<Page<SoptMapListResponseDto>> getSoptMapList(
+		Principal principal,
+		@Parameter(description = "필터링할 카테고리", example = "FOOD") MapTag category,
+		@Parameter(description = "정렬 타입 (LATEST, POPULAR)", example = "LATEST") SortType sortType,
+		Pageable pageable);
 }
