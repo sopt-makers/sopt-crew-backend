@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.entity.soptmap.SoptMap;
 import org.sopt.makers.crew.main.entity.soptmap.SubwayStation;
+import org.sopt.makers.crew.main.entity.soptmap.repository.MapRecommendRepository;
 import org.sopt.makers.crew.main.entity.soptmap.repository.SoptMapRepository;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ErrorStatus;
@@ -37,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 public class SoptMapService {
 
 	private final SoptMapRepository soptMapRepository;
+	private final MapRecommendRepository mapRecommendRepository;
 	private final SubwayStationManager subwayStationManager;
 
 	@Transactional
@@ -61,6 +63,15 @@ public class SoptMapService {
 		List<Long> subwayStationIds = subwayStationManager.retrieveSubwayStationids(dto.getStationNames());
 		soptMap.update(dto, subwayStationIds);
 		return soptMap.getId();
+	}
+
+	@Transactional
+	public void deleteSoptMap(Integer userId, Long soptMapId) {
+		SoptMap soptMap = findSoptMapById(soptMapId);
+		validateOwnership(soptMap, userId);
+
+		mapRecommendRepository.deleteAllBySoptMapId(soptMapId);
+		soptMapRepository.delete(soptMap);
 	}
 
 	@Transactional(readOnly = true)

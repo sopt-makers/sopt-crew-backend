@@ -15,6 +15,7 @@ import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubw
 import org.sopt.makers.crew.main.soptmap.service.SoptMapRequestValidator;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -38,7 +40,7 @@ public class SoptMapController implements SoptMapApi {
 	@Override
 	@PostMapping
 	public ResponseEntity<CreateSoptMapResponse> createSoptMap(Principal principal,
-		@RequestBody CreateSoptMapRequest request) {
+		@RequestBody @Valid CreateSoptMapRequest request) {
 		soptMapRequestValidator.validate(request);
 
 		Long soptMapId = soptMapService.createSoptMap(UserUtil.getUserId(principal), request.toDto());
@@ -53,7 +55,7 @@ public class SoptMapController implements SoptMapApi {
 	@PutMapping("/{soptMapId}")
 	public ResponseEntity<CreateSoptMapResponse> updateSoptMap(Principal principal,
 		@PathVariable Long soptMapId,
-		@RequestBody SoptMapUpdateRequest request) {
+		@RequestBody @Valid SoptMapUpdateRequest request) {
 		soptMapRequestValidator.validate(request);
 
 		Long updatedId = soptMapService.updateSoptMap(
@@ -61,6 +63,13 @@ public class SoptMapController implements SoptMapApi {
 			soptMapId,
 			request.toDto());
 		return ResponseEntity.ok(CreateSoptMapResponse.from(updatedId));
+	}
+
+	@Override
+	@DeleteMapping("/{soptMapId}")
+	public ResponseEntity<Void> deleteSoptMap(Principal principal, @PathVariable Long soptMapId) {
+		soptMapService.deleteSoptMap(UserUtil.getUserId(principal), soptMapId);
+		return ResponseEntity.noContent().build();
 	}
 
 	@Override
