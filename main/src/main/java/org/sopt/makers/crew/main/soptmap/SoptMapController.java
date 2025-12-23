@@ -6,17 +6,14 @@ import java.net.URI;
 import java.security.Principal;
 
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
-import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapListResponseDto;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapRequestValidator;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -75,17 +72,19 @@ public class SoptMapController implements SoptMapApi {
 
 	@Override
 	@GetMapping
-	public ResponseEntity<Page<SoptMapListResponseDto>> getSoptMapList(
+	public ResponseEntity<SoptMapGetAllDto> getSoptMapList(
 		Principal principal,
 		@RequestParam(required = false) MapTag category,
 		@RequestParam(defaultValue = "LATEST") SortType sortType,
-		@PageableDefault(size = 10, sort = "createdTimestamp", direction = Sort.Direction.DESC) Pageable pageable) {
+		@RequestParam(defaultValue = "1") Integer page,
+		@RequestParam(defaultValue = "10") Integer take) {
 		Integer userId = UserUtil.getUserId(principal);
-		Page<SoptMapListResponseDto> result = soptMapService.getSoptMapList(
+		PageOptionsDto pageOptionsDto = new PageOptionsDto(page, take);
+		SoptMapGetAllDto result = soptMapService.getSoptMapList(
 			userId,
 			category,
 			sortType,
-			pageable);
+			pageOptionsDto);
 		return ResponseEntity.ok(result);
 	}
 }
