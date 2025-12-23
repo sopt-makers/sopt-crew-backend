@@ -183,7 +183,7 @@ public class SoptMapQueryRepositoryImpl implements SoptMapQueryRepository {
 
 		// [1, ... (배열 시작 + 쉼표)
 		conditions.or(Expressions.stringTemplate(textTemplate, soptMap.nearbyStationIds)
-			.like(LIKE_PATTERN_PREFIX + "[" + stationId + ",%"));
+			.like(LIKE_PATTERN_PREFIX + "[" + stationId + ", %"));
 
 		// [1] (단일 요소)
 		conditions.or(Expressions.stringTemplate(textTemplate, soptMap.nearbyStationIds)
