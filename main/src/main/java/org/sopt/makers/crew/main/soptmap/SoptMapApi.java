@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @Tag(name = "솝맵")
 public interface SoptMapApi {
@@ -25,7 +26,7 @@ public interface SoptMapApi {
 		@ApiResponse(responseCode = "200", description = "성공")
 	})
 	ResponseEntity<CreateSoptMapResponse> createSoptMap(Principal principal,
-		CreateSoptMapRequest request);
+		@Valid CreateSoptMapRequest request);
 
 	@Operation(summary = "솝맵 수정 api")
 	@ApiResponses(value = {
@@ -34,7 +35,15 @@ public interface SoptMapApi {
 		@ApiResponse(responseCode = "404", description = "솝맵을 찾을 수 없음")
 	})
 	ResponseEntity<CreateSoptMapResponse> updateSoptMap(Principal principal, Long soptMapId,
-		SoptMapUpdateRequest request);
+		@Valid SoptMapUpdateRequest request);
+
+	@Operation(summary = "솝맵 삭제 api")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "204", description = "성공"),
+		@ApiResponse(responseCode = "403", description = "권한 없음"),
+		@ApiResponse(responseCode = "404", description = "솝맵을 찾을 수 없음")
+	})
+	ResponseEntity<Void> deleteSoptMap(Principal principal, Long soptMapId);
 
 	@Operation(summary = "지하철역 검색 api")
 	@ApiResponses(value = {

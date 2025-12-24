@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class SoptMapService {
 
 	private final SoptMapRepository soptMapRepository;
+	private final MapRecommendManager mapRecommendManager;
 	private final SubwayStationManager subwayStationManager;
 
 	@Transactional
@@ -61,6 +62,15 @@ public class SoptMapService {
 		List<Long> subwayStationIds = subwayStationManager.retrieveSubwayStationids(dto.getStationNames());
 		soptMap.update(dto, subwayStationIds);
 		return soptMap.getId();
+	}
+
+	@Transactional
+	public void deleteSoptMap(Integer userId, Long soptMapId) {
+		SoptMap soptMap = findSoptMapById(soptMapId);
+		validateOwnership(soptMap, userId);
+
+		mapRecommendManager.deleteAllBySoptMapId(soptMapId);
+		soptMapRepository.delete(soptMap);
 	}
 
 	@Transactional(readOnly = true)
