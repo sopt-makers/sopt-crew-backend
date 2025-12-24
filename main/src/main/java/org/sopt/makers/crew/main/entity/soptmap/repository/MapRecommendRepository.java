@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface MapRecommendRepository extends JpaRepository<MapRecommend, Long> {
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("delete from MapRecommend m where m.soptMapId = :soptMapId")
     void deleteAllBySoptMapId(@Param("soptMapId") Long soptMapId);
 }
