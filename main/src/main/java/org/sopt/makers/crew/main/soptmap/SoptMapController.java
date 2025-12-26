@@ -9,7 +9,6 @@ import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
-import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.SoptMapUpdateRequest.ToggleSoptMapRequest;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
@@ -102,12 +101,12 @@ public class SoptMapController implements SoptMapApi {
 	}
 
 	@Override
-	@PutMapping("/toggle/recommend")
+	@PutMapping("/toggle/recommend/{soptMapId}")
 	public ResponseEntity<ToggleSoptMapResponse> recommendSoptMap(Principal principal,
-		@RequestBody ToggleSoptMapRequest request) {
+		@PathVariable Long soptMapId) {
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.ok(
-			ToggleSoptMapResponse.from(soptMapService.toggleRecommendMap(userId, request.getSoptMapId())));
+			ToggleSoptMapResponse.from(soptMapService.toggleRecommendMap(userId, soptMapId)));
 	}
 
 }

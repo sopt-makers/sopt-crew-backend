@@ -86,11 +86,5 @@ public class SoptMapRequest {
 				.build();
 		}
 
-		@Getter
-		@RequiredArgsConstructor
-		public static class ToggleSoptMapRequest {
-			private final Long soptMapId;
-		}
-
 	}
 }

@@ -6,7 +6,6 @@ import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
 import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CreateSoptMapRequest;
 import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.SoptMapUpdateRequest;
-import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.SoptMapUpdateRequest.ToggleSoptMapRequest;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
@@ -72,6 +71,6 @@ public interface SoptMapApi {
 		@ApiResponse(responseCode = "200", description = "성공")
 	})
 	ResponseEntity<ToggleSoptMapResponse> recommendSoptMap(Principal principal,
-		ToggleSoptMapRequest request);
+		Long soptMapId);
 
 }
