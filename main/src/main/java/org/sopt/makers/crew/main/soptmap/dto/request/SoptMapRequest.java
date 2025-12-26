@@ -85,5 +85,12 @@ public class SoptMapRequest {
 				.kakaoLink(kakaoLink)
 				.build();
 		}
+
+		@Getter
+		@RequiredArgsConstructor
+		public static class ToggleSoptMapRequest {
+			private final Long soptMapId;
+		}
+
 	}
 }

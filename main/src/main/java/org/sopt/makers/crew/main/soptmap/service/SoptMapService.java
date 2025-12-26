@@ -18,6 +18,7 @@ import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
+import org.sopt.makers.crew.main.soptmap.dto.ToggleSoptMapRecommendDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapListResponseDto;
 import org.sopt.makers.crew.main.soptmap.service.dto.CreateSoptMapDto;
@@ -246,5 +247,14 @@ public class SoptMapService {
 			.map(stationIdToNameMap::get)
 			.filter(Objects::nonNull) // 존재하지 않는 역 ID 제외
 			.toList();
+	}
+
+	public ToggleSoptMapRecommendDto toggleRecommendMap(Integer userId, Long soptMapId) {
+		if (!soptMapRepository.existsById(soptMapId)) {
+			System.out.println("now in here");
+			throw new BadRequestException("잘못된 솝맵 지도 Id 입니다.");
+		}
+
+		return mapRecommendManager.toggleRecommend(Long.valueOf(userId), soptMapId);
 	}
 }
