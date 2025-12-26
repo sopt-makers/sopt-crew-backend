@@ -251,7 +251,6 @@ public class SoptMapService {
 
 	public ToggleSoptMapRecommendDto toggleRecommendMap(Integer userId, Long soptMapId) {
 		if (!soptMapRepository.existsById(soptMapId)) {
-			System.out.println("now in here");
 			throw new BadRequestException("잘못된 솝맵 지도 Id 입니다.");
 		}
 
