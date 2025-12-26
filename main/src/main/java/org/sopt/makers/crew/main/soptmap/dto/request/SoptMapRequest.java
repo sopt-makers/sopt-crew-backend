@@ -85,5 +85,6 @@ public class SoptMapRequest {
 				.kakaoLink(kakaoLink)
 				.build();
 		}
+
 	}
 }

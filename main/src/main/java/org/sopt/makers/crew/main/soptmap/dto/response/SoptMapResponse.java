@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.soptmap.dto.response;
 
 import java.util.List;
 
+import org.sopt.makers.crew.main.soptmap.dto.ToggleSoptMapRecommendDto;
 import org.sopt.makers.crew.main.soptmap.service.dto.SubwayStationDto;
 
 import lombok.AccessLevel;
@@ -29,6 +30,18 @@ public class SoptMapResponse {
 
 		public static SearchSubwayStationResponse from(List<SubwayStationDto> subwayStationDtos) {
 			return new SearchSubwayStationResponse(subwayStationDtos);
+		}
+	}
+
+	@Getter
+	@RequiredArgsConstructor
+	public static class ToggleSoptMapResponse {
+		private final Long soptMapId;
+		private final Boolean toggleStatus;
+
+		public static ToggleSoptMapResponse from(ToggleSoptMapRecommendDto toggleSoptMapRecommendDto) {
+			return new ToggleSoptMapResponse(toggleSoptMapRecommendDto.soptMapId(),
+				toggleSoptMapRecommendDto.isRecommended());
 		}
 	}
 }

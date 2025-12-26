@@ -12,6 +12,7 @@ import org.sopt.makers.crew.main.soptmap.dto.SortType;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.ToggleSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapRequestValidator;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapService;
 import org.springframework.http.ResponseEntity;
@@ -98,4 +99,14 @@ public class SoptMapController implements SoptMapApi {
 			pageOptionsDto);
 		return ResponseEntity.ok(result);
 	}
+
+	@Override
+	@PutMapping("/toggle/recommend/{soptMapId}")
+	public ResponseEntity<ToggleSoptMapResponse> recommendSoptMap(Principal principal,
+		@PathVariable Long soptMapId) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(
+			ToggleSoptMapResponse.from(soptMapService.toggleRecommendMap(userId, soptMapId)));
+	}
+
 }

@@ -39,6 +39,14 @@ public class MapRecommend extends BaseTimeEntity {
 		this.active = active;
 	}
 
+	public static MapRecommend create(Long userId, Long soptMapId) {
+		return MapRecommend.builder()
+			.userId(userId)
+			.soptMapId(soptMapId)
+			.active(true)
+			.build();
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -51,5 +59,13 @@ public class MapRecommend extends BaseTimeEntity {
 	@Override
 	public int hashCode() {
 		return java.util.Objects.hash(this.getId());
+	}
+
+	public void deleteRecommend() {
+		this.active = false;
+	}
+
+	public void toggleStatus() {
+		this.active = !this.active;
 	}
 }

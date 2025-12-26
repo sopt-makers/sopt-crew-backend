@@ -5,13 +5,16 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Comparator;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
+import org.sopt.makers.crew.main.soptmap.dto.ToggleSoptMapRecommendDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapListResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -490,4 +493,50 @@ public class SoptMapServiceTest {
 					.anyMatch(name -> name.contains("강남")));
 		}
 	}
+
+	@Nested
+	@Sql(value = "/sql/soptmap-repository-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+	@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+	@DisplayName("추천 api 구성")
+	class 솝맵_추천 {
+
+		@Test
+		@DisplayName("솝맵이 없었다면 예외를 뱉는다.")
+		void empty_sopt_map_throw_exception() {
+			//given
+			Integer userId = 1;
+			Long soptMapId = 123456666L;
+
+			//when & then
+			Assertions.assertThatThrownBy(() -> soptMapService.toggleRecommendMap(userId, soptMapId))
+				.isExactlyInstanceOf(BadRequestException.class);
+		}
+
+		@Test
+		@DisplayName("솝맵이 있다면 상태를 변경한다. - active")
+		void toggle_sopt_map_recommend() {
+
+			//given
+			Integer userId = 1;
+			Long soptMapId = 9L;  // 카온플
+
+			//when
+			ToggleSoptMapRecommendDto toggleSoptMapRecommendDto = soptMapService.toggleRecommendMap(userId, soptMapId);
+
+			//then
+			Assertions.assertThat(toggleSoptMapRecommendDto).isNotNull();
+			Assertions.assertThat(toggleSoptMapRecommendDto.isRecommended()).isTrue();
+			Assertions.assertThat(toggleSoptMapRecommendDto.soptMapId()).isEqualTo(soptMapId);
+
+			ToggleSoptMapRecommendDto toggleSoptMapRecommendDtoTwice = soptMapService.toggleRecommendMap(userId,
+				soptMapId);
+
+			//then
+			Assertions.assertThat(toggleSoptMapRecommendDtoTwice).isNotNull();
+			Assertions.assertThat(toggleSoptMapRecommendDtoTwice.isRecommended()).isFalse();
+			Assertions.assertThat(toggleSoptMapRecommendDto.soptMapId()).isEqualTo(soptMapId);
+		}
+
+	}
+
 }
