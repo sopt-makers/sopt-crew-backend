@@ -34,4 +34,10 @@ public class SoptMapListResponseDto {
 
 	@Schema(description = "현재 유저의 추천 여부", example = "true")
 	private final Boolean isRecommended;
+
+	@Schema(description = "kakao 맵 링크", example = "https://~~~")
+	private final String kakaoLink;
+
+	@Schema(description = "naver 맵 링크", example = "https://~~~")
+	private final String naverLink;
 }

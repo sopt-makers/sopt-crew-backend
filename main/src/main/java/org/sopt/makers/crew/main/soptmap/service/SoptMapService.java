@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.soptmap.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -7,6 +8,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.sopt.makers.crew.main.admin.v2.service.AdminService;
+import org.sopt.makers.crew.main.entity.property.Property;
+import org.sopt.makers.crew.main.entity.property.PropertyKeys;
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.entity.soptmap.SoptMap;
 import org.sopt.makers.crew.main.entity.soptmap.SubwayStation;
@@ -15,12 +19,17 @@ import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ErrorStatus;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
+import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
+import org.sopt.makers.crew.main.global.util.DataConverter;
+import org.sopt.makers.crew.main.global.util.DateUtils;
+import org.sopt.makers.crew.main.soptmap.dto.CreateSoptMapResponseDto;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
 import org.sopt.makers.crew.main.soptmap.dto.ToggleSoptMapRecommendDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapListResponseDto;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SoptMapEventResponse;
 import org.sopt.makers.crew.main.soptmap.service.dto.CreateSoptMapDto;
 import org.sopt.makers.crew.main.soptmap.service.dto.SoptMapWithRecommendInfo;
 import org.sopt.makers.crew.main.soptmap.service.dto.SubwayStationDto;
@@ -31,24 +40,32 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class SoptMapService {
 
+	private static final String EVENT_DATE_KEY = "eventDate";
 	private final SoptMapRepository soptMapRepository;
 	private final MapRecommendManager mapRecommendManager;
 	private final SubwayStationManager subwayStationManager;
+	private final AdminService adminService;
+	private final DataConverter dataConverter;
 
 	@Transactional
-	public Long createSoptMap(Integer userId, CreateSoptMapDto dto) {
+	public CreateSoptMapResponseDto createSoptMap(Integer userId, CreateSoptMapDto dto) {
 		validatePlaceNameNotDuplicated(dto.getPlaceName());
 
+		boolean isFirstRegistration = !soptMapRepository.existsByCreatorId(Long.valueOf(userId));
 		List<Long> subwayStationIds = subwayStationManager.retrieveSubwayStationids(dto.getStationNames());
 
 		SoptMap soptMap = SoptMap.create(userId, dto, subwayStationIds);
-		return soptMapRepository.save(soptMap).getId();
+		Long soptMapId = soptMapRepository.save(soptMap).getId();
+
+		return CreateSoptMapResponseDto.of(soptMapId, isFirstRegistration);
 	}
 
 	@Transactional
@@ -235,6 +252,8 @@ public class SoptMapService {
 			.subwayStationNames(subwayStationNames)
 			.recommendCount(info.getRecommendCount())
 			.isRecommended(info.getIsRecommended())
+			.kakaoLink(info.getKakaoLink())
+			.naverLink(info.getNaverLink())
 			.build();
 	}
 
@@ -255,5 +274,41 @@ public class SoptMapService {
 		}
 
 		return mapRecommendManager.toggleRecommend(Long.valueOf(userId), soptMapId);
+	}
+
+	public SoptMapEventResponse checkEventWinning(Long soptMapId) {
+
+		Property eventDateProperty = adminService.findPropertyByKey(PropertyKeys.SOPT_MAP_EVENT.getKey());
+
+		Map<String, Object> properties = eventDateProperty.getProperties();
+
+		String from = String.valueOf(properties.get(PropertyKeys.START_DATE.getKey()));
+		String to = String.valueOf(properties.get(PropertyKeys.END_DATE.getKey()));
+		if (from == null || to == null) {
+			throw new ServerException("이벤트 날짜 범위가 지정되어있지 않습니다 -> 어드민에서 설정해 주세요");
+		}
+
+		LocalDate startDate = DateUtils.toLocalDate(from);
+		LocalDate endDate = DateUtils.toLocalDate(to);
+
+		List<SoptMap> firstEventSoptMaps = soptMapRepository.findFirstEventSoptMaps(startDate.atStartOfDay(),
+			endDate.atStartOfDay());
+
+		List<Integer> eventNumbers = dataConverter.convertValue(properties.get(PropertyKeys.EVENT_NUM.getKey()),
+			new TypeReference<>() {
+			}
+		);
+
+		List<Integer> eventIdx = eventNumbers.stream()
+			.map(m -> m - 1)
+			.toList();
+
+		int findSoptMapSize = firstEventSoptMaps.size();
+
+		boolean anyMatch = eventIdx.stream()
+			.filter(idx -> idx < findSoptMapSize)
+			.anyMatch(idx -> firstEventSoptMaps.get(idx).getId().equals(soptMapId));
+
+		return SoptMapEventResponse.from(anyMatch);
 	}
 }

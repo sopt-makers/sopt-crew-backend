@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.soptmap.dto.response;
 
 import java.util.List;
 
+import org.sopt.makers.crew.main.soptmap.dto.CreateSoptMapResponseDto;
 import org.sopt.makers.crew.main.soptmap.dto.ToggleSoptMapRecommendDto;
 import org.sopt.makers.crew.main.soptmap.service.dto.SubwayStationDto;
 
@@ -17,9 +18,14 @@ public class SoptMapResponse {
 	@RequiredArgsConstructor
 	public static class CreateSoptMapResponse {
 		private final Long id;
+		private final Boolean firstRegistered;
 
 		public static CreateSoptMapResponse from(Long id) {
-			return new CreateSoptMapResponse(id);
+			return new CreateSoptMapResponse(id, false);
+		}
+
+		public static CreateSoptMapResponse from(CreateSoptMapResponseDto dto) {
+			return new CreateSoptMapResponse(dto.soptMapId(), dto.firstRegistered());
 		}
 	}
 
@@ -44,4 +50,15 @@ public class SoptMapResponse {
 				toggleSoptMapRecommendDto.isRecommended());
 		}
 	}
+
+	@Getter
+	@RequiredArgsConstructor
+	public static class SoptMapEventResponse {
+		private final Boolean isWinLottery;
+
+		public static SoptMapEventResponse from(Boolean isWinLottery) {
+			return new SoptMapEventResponse(isWinLottery);
+		}
+	}
+
 }

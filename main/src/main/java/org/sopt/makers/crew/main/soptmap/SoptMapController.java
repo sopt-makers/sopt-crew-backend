@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.soptmap;
 
 import static org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.*;
+import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.*;
 
 import java.net.URI;
 import java.security.Principal;
@@ -8,11 +9,9 @@ import java.security.Principal;
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.UserUtil;
+import org.sopt.makers.crew.main.soptmap.dto.CreateSoptMapResponseDto;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
-import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
-import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
-import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.ToggleSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapRequestValidator;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapService;
 import org.springframework.http.ResponseEntity;
@@ -44,12 +43,12 @@ public class SoptMapController implements SoptMapApi {
 		@RequestBody @Valid CreateSoptMapRequest request) {
 		soptMapRequestValidator.validate(request);
 
-		Long soptMapId = soptMapService.createSoptMap(UserUtil.getUserId(principal), request.toDto());
+		CreateSoptMapResponseDto dto = soptMapService.createSoptMap(UserUtil.getUserId(principal), request.toDto());
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 			.path("/{id}")
-			.buildAndExpand(soptMapId)
+			.buildAndExpand(dto.soptMapId())
 			.toUri();
-		return ResponseEntity.created(location).body(CreateSoptMapResponse.from(soptMapId));
+		return ResponseEntity.created(location).body(CreateSoptMapResponse.from(dto));
 	}
 
 	@Override
@@ -107,6 +106,14 @@ public class SoptMapController implements SoptMapApi {
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.ok(
 			ToggleSoptMapResponse.from(soptMapService.toggleRecommendMap(userId, soptMapId)));
+	}
+
+	@Override
+	@PostMapping("/event")
+	public ResponseEntity<SoptMapEventResponse> eventSoptMap(
+		@RequestBody CheckEventWinningRequest request
+	) {
+		return ResponseEntity.ok(soptMapService.checkEventWinning(request.getSoptMapId()));
 	}
 
 }

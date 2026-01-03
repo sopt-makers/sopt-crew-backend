@@ -9,9 +9,11 @@ import org.sopt.makers.crew.main.soptmap.service.dto.UpdateSoptMapDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SoptMapRequest {
@@ -87,4 +89,15 @@ public class SoptMapRequest {
 		}
 
 	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class CheckEventWinningRequest {
+		@Schema(description = "이벤트 대상 솝맵 id", example = "1")
+		@NotNull
+		private Long soptMapId;
+	}
+
 }

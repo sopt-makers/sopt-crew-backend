@@ -4,11 +4,13 @@ import java.security.Principal;
 
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
+import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CheckEventWinningRequest;
 import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CreateSoptMapRequest;
 import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.SoptMapUpdateRequest;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SoptMapEventResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.ToggleSoptMapResponse;
 import org.springframework.http.ResponseEntity;
 
@@ -72,5 +74,11 @@ public interface SoptMapApi {
 	})
 	ResponseEntity<ToggleSoptMapResponse> recommendSoptMap(Principal principal,
 		Long soptMapId);
+
+	@Operation(summary = "이벤트 당첨 여부 확인")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "성공")
+	})
+	ResponseEntity<SoptMapEventResponse> eventSoptMap(CheckEventWinningRequest request);
 
 }
