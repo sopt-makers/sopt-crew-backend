@@ -18,6 +18,8 @@ public class SoptMapWithRecommendInfo {
 	private final List<Long> nearbyStationIds;
 	private final Long recommendCount; // active=true인 추천 수
 	private final Boolean isRecommended; // 현재 유저의 추천 여부
+	private final String kakaoLink;
+	private final String naverLink;
 
 	@QueryProjection
 	public SoptMapWithRecommendInfo(
@@ -31,6 +33,8 @@ public class SoptMapWithRecommendInfo {
 		this.nearbyStationIds = soptMap.getNearbyStationIds();
 		this.recommendCount = getRecommendCountOrDefault(recommendCount);
 		this.isRecommended = getIsRecommendedOrDefault(isRecommended);
+		this.kakaoLink = soptMap.getKakaoLink();
+		this.naverLink = soptMap.getNaverLink();
 	}
 
 	private Long getRecommendCountOrDefault(Long recommendCount) {
