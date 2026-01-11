@@ -61,7 +61,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, MapTag.FOOD, SortType.LATEST, null, pageOptions);
+				1, List.of(MapTag.FOOD), SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.meta().getItemCount()).isEqualTo(10);
@@ -83,7 +83,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, MapTag.CAFE, SortType.LATEST, null, pageOptions);
+				1, List.of(MapTag.CAFE), SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.meta().getItemCount()).isEqualTo(12);
@@ -102,7 +102,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, MapTag.ETC, SortType.LATEST, null, pageOptions);
+				1, List.of(MapTag.ETC), SortType.LATEST, null, pageOptions);
 
 			// then
 			assertThat(result.meta().getItemCount()).isEqualTo(5);
@@ -121,7 +121,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, MapTag.FOOD, SortType.POPULAR, null, pageOptions);
+				1, List.of(MapTag.FOOD), SortType.POPULAR, null, pageOptions);
 
 			// then
 			assertThat(result.soptMaps())
@@ -483,7 +483,7 @@ public class SoptMapServiceTest {
 
 			// when
 			SoptMapGetAllDto result = soptMapService.getSoptMapList(
-				1, MapTag.FOOD, SortType.LATEST, "강남", pageOptions);
+				1, List.of(MapTag.FOOD), SortType.LATEST, "강남", pageOptions);
 
 			// then
 			assertThat(result.soptMaps()).isNotEmpty();

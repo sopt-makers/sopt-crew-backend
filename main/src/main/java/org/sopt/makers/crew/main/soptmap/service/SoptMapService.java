@@ -15,6 +15,7 @@ import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.entity.soptmap.SoptMap;
 import org.sopt.makers.crew.main.entity.soptmap.SubwayStation;
 import org.sopt.makers.crew.main.entity.soptmap.repository.SoptMapRepository;
+import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ErrorStatus;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
@@ -23,6 +24,7 @@ import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.DataConverter;
+import org.sopt.makers.crew.main.global.util.DataUtils;
 import org.sopt.makers.crew.main.global.util.DateUtils;
 import org.sopt.makers.crew.main.soptmap.dto.CreateSoptMapResponseDto;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
@@ -94,7 +96,7 @@ public class SoptMapService {
 	@Transactional(readOnly = true)
 	public SoptMapGetAllDto getSoptMapList(
 		Integer userId,
-		MapTag category,
+		List<MapTag> categories,
 		SortType sortType,
 		String stationKeyword,
 		PageOptionsDto pageOptionsDto) {
@@ -106,13 +108,13 @@ public class SoptMapService {
 			return createEmptyResult(pageOptionsDto);
 		}
 
-		Page<SoptMapWithRecommendInfo> soptMapPage = fetchSoptMaps(userId, category, sortType, stationIds, pageable);
+		Page<SoptMapWithRecommendInfo> soptMapPage = fetchSoptMaps(userId, categories, sortType, stationIds, pageable);
 
 		if (soptMapPage.isEmpty()) {
 			return createEmptyResult(pageOptionsDto, (int)soptMapPage.getTotalElements());
 		}
 
-		return buildResultDto(soptMapPage, pageOptionsDto);
+		return buildResultDto(soptMapPage, pageOptionsDto, userId);
 	}
 
 	@Transactional(readOnly = true)
@@ -147,7 +149,7 @@ public class SoptMapService {
 
 	private Page<SoptMapWithRecommendInfo> fetchSoptMaps(
 		Integer userId,
-		MapTag category,
+		List<MapTag> categories,
 		SortType sortType,
 		List<Long> stationIds,
 		Pageable pageable) {
@@ -159,16 +161,18 @@ public class SoptMapService {
 
 		return soptMapRepository.searchSoptMap(
 			convertToLongOrNull(userId),
-			category,
+			categories,
 			sortType,
 			filterIds,
 			pageable);
 	}
 
-	private SoptMapGetAllDto buildResultDto(Page<SoptMapWithRecommendInfo> soptMapPage, PageOptionsDto pageOptionsDto) {
+	private SoptMapGetAllDto buildResultDto(Page<SoptMapWithRecommendInfo> soptMapPage, PageOptionsDto pageOptionsDto,
+		Integer userId) {
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)soptMapPage.getTotalElements());
 		Map<Long, String> stationIdToNameMap = fetchStationNameMap(soptMapPage.getContent());
-		List<SoptMapListResponseDto> content = convertToListDtos(soptMapPage.getContent(), stationIdToNameMap);
+		List<SoptMapListResponseDto> content = convertToListDtos(soptMapPage.getContent(), stationIdToNameMap,
+			userId);
 
 		return SoptMapGetAllDto.of(content, pageMetaDto);
 	}
@@ -233,16 +237,24 @@ public class SoptMapService {
 
 	private List<SoptMapListResponseDto> convertToListDtos(
 		List<SoptMapWithRecommendInfo> soptMaps,
-		Map<Long, String> stationIdToNameMap) {
+		Map<Long, String> stationIdToNameMap, Integer userId) {
 		return soptMaps.stream()
-			.map(info -> convertToListDto(info, stationIdToNameMap))
+			.map(info -> convertToListDto(info, stationIdToNameMap, userId))
 			.toList();
 	}
 
 	private SoptMapListResponseDto convertToListDto(
 		SoptMapWithRecommendInfo info,
-		Map<Long, String> stationIdToNameMap) {
+		Map<Long, String> stationIdToNameMap, Integer userId) {
 		List<String> subwayStationNames = mapStationIdsToNames(info.getNearbyStationIds(), stationIdToNameMap);
+
+		User retrievedUser = info.getUser();
+		String registeredName = DataUtils.safeData(retrievedUser, User::getName);
+		Integer creatorId = DataUtils.safeData(retrievedUser, User::getId);
+
+		boolean registeredByMe = creatorId != null &&
+			userId != null &&
+			creatorId.longValue() == userId;
 
 		return SoptMapListResponseDto.builder()
 			.id(info.getId())
@@ -254,6 +266,8 @@ public class SoptMapService {
 			.isRecommended(info.getIsRecommended())
 			.kakaoLink(info.getKakaoLink())
 			.naverLink(info.getNaverLink())
+			.creatorName(registeredName)
+			.isCreator(registeredByMe)
 			.build();
 	}
 

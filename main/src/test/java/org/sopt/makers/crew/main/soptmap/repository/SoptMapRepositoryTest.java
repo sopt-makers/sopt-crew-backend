@@ -90,7 +90,7 @@ class SoptMapRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, MapTag.FOOD, SortType.LATEST, null, pageable);
+				1L, List.of(MapTag.FOOD), SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getTotalElements()).isEqualTo(10); // FOOD(8) + 복합(2)
@@ -113,7 +113,7 @@ class SoptMapRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, MapTag.CAFE, SortType.LATEST, null, pageable);
+				1L, List.of(MapTag.CAFE), SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getTotalElements()).isEqualTo(12); // CAFE(10) + 복합(2)
@@ -129,7 +129,7 @@ class SoptMapRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, MapTag.ETC, SortType.LATEST, null, pageable);
+				1L, List.of(MapTag.ETC), SortType.LATEST, null, pageable);
 
 			// then
 			assertThat(result.getTotalElements()).isEqualTo(5); // ETC만
@@ -206,7 +206,7 @@ class SoptMapRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, MapTag.FOOD, SortType.POPULAR, null, pageable);
+				1L, List.of(MapTag.FOOD), SortType.POPULAR, null, pageable);
 
 			// then
 			assertThat(result.getTotalElements()).isEqualTo(10);
@@ -479,7 +479,7 @@ class SoptMapRepositoryTest {
 
 			// when
 			Page<SoptMapWithRecommendInfo> result = soptMapRepository.searchSoptMap(
-				1L, MapTag.FOOD, SortType.LATEST, gangnamStationIds, pageable);
+				1L, List.of(MapTag.FOOD), SortType.LATEST, gangnamStationIds, pageable);
 
 			// then
 			assertThat(result.getContent())

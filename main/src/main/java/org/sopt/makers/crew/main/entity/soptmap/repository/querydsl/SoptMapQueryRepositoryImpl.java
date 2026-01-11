@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.entity.soptmap.repository.querydsl;
 
 import static org.sopt.makers.crew.main.entity.soptmap.QMapRecommend.*;
 import static org.sopt.makers.crew.main.entity.soptmap.QSoptMap.*;
+import static org.sopt.makers.crew.main.entity.user.QUser.*;
 
 import java.util.List;
 
@@ -41,30 +42,30 @@ public class SoptMapQueryRepositoryImpl implements SoptMapQueryRepository {
 	@Override
 	public Page<SoptMapWithRecommendInfo> searchSoptMap(
 		Long userId,
-		MapTag category,
+		List<MapTag> categories,
 		SortType sortType,
 		List<Long> stationIds,
 		Pageable pageable) {
-		List<SoptMapWithRecommendInfo> content = fetchSoptMapList(userId, category, sortType, stationIds, pageable);
-		Long total = countSoptMap(category, stationIds);
+		List<SoptMapWithRecommendInfo> content = fetchSoptMapList(userId, categories, sortType, stationIds, pageable);
+		Long total = countSoptMap(categories, stationIds);
 
 		return new PageImpl<>(content, pageable, total);
 	}
 
 	private List<SoptMapWithRecommendInfo> fetchSoptMapList(
 		Long userId,
-		MapTag category,
+		List<MapTag> categories,
 		SortType sortType,
 		List<Long> stationIds,
 		Pageable pageable) {
-		return createBaseQuery(userId, category, sortType, stationIds)
+		return createBaseQuery(userId, categories, sortType, stationIds)
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())
 			.fetch();
 	}
 
-	private Long countSoptMap(MapTag category, List<Long> stationIds) {
-		Long total = createCountQuery(category, stationIds).fetchOne();
+	private Long countSoptMap(List<MapTag> categories, List<Long> stationIds) {
+		Long total = createCountQuery(categories, stationIds).fetchOne();
 
 		if (total == null) {
 			return DEFAULT_TOTAL_COUNT;
@@ -75,7 +76,7 @@ public class SoptMapQueryRepositoryImpl implements SoptMapQueryRepository {
 
 	private JPAQuery<SoptMapWithRecommendInfo> createBaseQuery(
 		Long userId,
-		MapTag category,
+		List<MapTag> categories,
 		SortType sortType,
 		List<Long> stationIds) {
 		return queryFactory
@@ -83,10 +84,12 @@ public class SoptMapQueryRepositoryImpl implements SoptMapQueryRepository {
 			.from(soptMap)
 			.leftJoin(mapRecommend)
 			.on(buildJoinCondition())
+			.leftJoin(user)
+			.on(soptMap.creatorId.intValue().eq(user.id))
 			.where(
-				categoryFilter(category),
+				categoryFilter(categories),
 				stationIdsFilter(stationIds))
-			.groupBy(soptMap.id)
+			.groupBy(soptMap.id, user.id)
 			.orderBy(getOrderSpecifier(sortType));
 	}
 
@@ -94,7 +97,10 @@ public class SoptMapQueryRepositoryImpl implements SoptMapQueryRepository {
 		return new QSoptMapWithRecommendInfo(
 			soptMap,
 			mapRecommend.id.count(),
-			buildIsRecommendedExpression(userId));
+			buildIsRecommendedExpression(userId),
+			user
+		);
+
 	}
 
 	private BooleanExpression buildJoinCondition() {
@@ -117,26 +123,30 @@ public class SoptMapQueryRepositoryImpl implements SoptMapQueryRepository {
 			.eq(RECOMMENDED_TRUE);
 	}
 
-	private JPAQuery<Long> createCountQuery(MapTag category, List<Long> stationIds) {
+	private JPAQuery<Long> createCountQuery(List<MapTag> categories, List<Long> stationIds) {
 		return queryFactory
 			.select(soptMap.count())
 			.from(soptMap)
 			.where(
-				categoryFilter(category),
+				categoryFilter(categories),
 				stationIdsFilter(stationIds));
 	}
 
-	private BooleanExpression categoryFilter(MapTag category) {
-		if (category == null) {
+	private Predicate categoryFilter(List<MapTag> categories) {
+		if (categories == null || categories.isEmpty()) {
 			return null;
 		}
 
-		// JSONB를 text로 변환 후 LIKE로 검색
-		// HQL이 @> 연산자를 지원하지 않으므로 text casting 사용
-		String searchPattern = buildJsonbStringPattern(category.name());
-		return Expressions.stringTemplate(
-			SQL_CAST_TO_TEXT_TEMPLATE,
-			soptMap.mapTags).like(searchPattern);
+		// 여러 카테고리를 OR 조건으로 연결
+		BooleanBuilder conditions = new BooleanBuilder();
+		for (MapTag category : categories) {
+			String searchPattern = buildJsonbStringPattern(category.name());
+			conditions.or(Expressions.stringTemplate(
+				SQL_CAST_TO_TEXT_TEMPLATE,
+				soptMap.mapTags).like(searchPattern));
+		}
+
+		return conditions.getValue();
 	}
 
 	private String buildJsonbStringPattern(String value) {

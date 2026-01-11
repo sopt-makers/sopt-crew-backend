@@ -5,6 +5,7 @@ import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.*;
 
 import java.net.URI;
 import java.security.Principal;
+import java.util.List;
 
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
@@ -83,7 +84,7 @@ public class SoptMapController implements SoptMapApi {
 	@GetMapping
 	public ResponseEntity<SoptMapGetAllDto> getSoptMapList(
 		Principal principal,
-		@RequestParam(required = false) MapTag category,
+		@RequestParam(required = false) List<MapTag> categories,
 		@RequestParam(defaultValue = "LATEST") SortType sortType,
 		@RequestParam(required = false) String stationKeyword,
 		@RequestParam(defaultValue = "1") Integer page,
@@ -92,7 +93,7 @@ public class SoptMapController implements SoptMapApi {
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(page, take);
 		SoptMapGetAllDto result = soptMapService.getSoptMapList(
 			userId,
-			category,
+			categories,
 			sortType,
 			stationKeyword,
 			pageOptionsDto);

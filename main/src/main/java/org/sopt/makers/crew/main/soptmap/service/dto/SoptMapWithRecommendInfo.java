@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.entity.soptmap.SoptMap;
+import org.sopt.makers.crew.main.entity.user.User;
 
 import com.querydsl.core.annotations.QueryProjection;
 
@@ -20,12 +21,14 @@ public class SoptMapWithRecommendInfo {
 	private final Boolean isRecommended; // 현재 유저의 추천 여부
 	private final String kakaoLink;
 	private final String naverLink;
+	private final User user;
 
 	@QueryProjection
 	public SoptMapWithRecommendInfo(
 		SoptMap soptMap,
 		Long recommendCount,
-		Boolean isRecommended) {
+		Boolean isRecommended,
+		User user) {
 		this.id = soptMap.getId();
 		this.placeName = soptMap.getPlaceName();
 		this.description = soptMap.getDescription();
@@ -35,6 +38,7 @@ public class SoptMapWithRecommendInfo {
 		this.isRecommended = getIsRecommendedOrDefault(isRecommended);
 		this.kakaoLink = soptMap.getKakaoLink();
 		this.naverLink = soptMap.getNaverLink();
+		this.user = user;
 	}
 
 	private Long getRecommendCountOrDefault(Long recommendCount) {
