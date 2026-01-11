@@ -40,4 +40,10 @@ public class SoptMapListResponseDto {
 
 	@Schema(description = "naver 맵 링크", example = "https://~~~")
 	private final String naverLink;
+
+	@Schema(description = "장소 등록한 사람의 이름", example = "김효준")
+	private final String creatorName;
+
+	@Schema(description = "내가 등록했는지", example = "false")
+	private final Boolean isCreator;
 }
