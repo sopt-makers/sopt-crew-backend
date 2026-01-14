@@ -28,11 +28,12 @@ public class UserRepositoryImpl implements UserRepository {
 
 	@Override
 	public User findByIdOrThrow(Integer userId) {
-		try {
-			return platformUserRepository.findByIdOrThrow(userId);
-		} catch (ServerException e) {
-			return crewRepository.findByIdOrThrow(userId);
-		}
+		// try {
+		// 	return platformUserRepository.findByIdOrThrow(userId);
+		// } catch (ServerException e) {
+		// 	return crewRepository.findByIdOrThrow(userId);
+		// }
+		return crewRepository.findByIdOrThrow(userId);
 	}
 
 	@Override
