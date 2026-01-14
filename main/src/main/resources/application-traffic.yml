@@ -2,7 +2,11 @@ server:
   port: 4000
   tomcat:
     threads:
-      max: 100
+      max: 200                    # 최대 스레드 수 (Default: 200)
+      min-spare: 10               # 최소 유휴 스레드 수 (Default: 10)
+    max-connections: 8192         # 최대 연결 수 (Default: 8192)
+    accept-count: 100             # OS 레벨 대기열 크기 (Default: 100)
+    connection-timeout: 60000   # 연결 타임아웃 (Default: 60초)
 
 spring:
   config:
@@ -15,7 +19,7 @@ spring:
       jdbc-url: jdbc:postgresql://${TRAFFIC_DB_HOST}:${TRAFFIC_DB_PORT}/${TRAFFIC_DB_NAME}?currentSchema=${TRAFFIC_DB_SCHEMA}
       username: ${TRAFFIC_DB_USERNAME}
       password: ${TRAFFIC_DB_PASSWORD}
-      maximum-pool-size: 80
+      maximum-pool-size: 10
   playground-datasource:
     hikari:
       driver-class-name: org.postgresql.Driver
