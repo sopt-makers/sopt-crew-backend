@@ -14,6 +14,7 @@ import org.sopt.makers.crew.main.entity.property.PropertyKeys;
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.entity.soptmap.SoptMap;
 import org.sopt.makers.crew.main.entity.soptmap.SubwayStation;
+import org.sopt.makers.crew.main.entity.soptmap.repository.EventGiftRepository;
 import org.sopt.makers.crew.main.entity.soptmap.repository.SoptMapRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
@@ -31,7 +32,6 @@ import org.sopt.makers.crew.main.soptmap.dto.SortType;
 import org.sopt.makers.crew.main.soptmap.dto.ToggleSoptMapRecommendDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapListResponseDto;
-import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SoptMapEventResponse;
 import org.sopt.makers.crew.main.soptmap.service.dto.CreateSoptMapDto;
 import org.sopt.makers.crew.main.soptmap.service.dto.SoptMapWithRecommendInfo;
 import org.sopt.makers.crew.main.soptmap.service.dto.SubwayStationDto;
@@ -45,9 +45,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SoptMapService {
 
 	private static final String EVENT_DATE_KEY = "eventDate";
@@ -56,6 +58,7 @@ public class SoptMapService {
 	private final SubwayStationManager subwayStationManager;
 	private final AdminService adminService;
 	private final DataConverter dataConverter;
+	private final EventGiftRepository eventGiftRepository;
 
 	@Transactional
 	public CreateSoptMapResponseDto createSoptMap(Integer userId, CreateSoptMapDto dto) {
@@ -290,7 +293,8 @@ public class SoptMapService {
 		return mapRecommendManager.toggleRecommend(Long.valueOf(userId), soptMapId);
 	}
 
-	public SoptMapEventResponse checkEventWinning(Long soptMapId) {
+	@Transactional
+	public boolean checkEventWinning(Integer userId, Long soptMapId) {
 
 		Property eventDateProperty = adminService.findPropertyByKey(PropertyKeys.SOPT_MAP_EVENT.getKey());
 
@@ -319,10 +323,32 @@ public class SoptMapService {
 
 		int findSoptMapSize = firstEventSoptMaps.size();
 
-		boolean anyMatch = eventIdx.stream()
+		boolean isWinnerAvailable = eventIdx.stream()
 			.filter(idx -> idx < findSoptMapSize)
-			.anyMatch(idx -> firstEventSoptMaps.get(idx).getId().equals(soptMapId));
+			.anyMatch(idx -> firstEventSoptMaps.get(idx).getId().equals(soptMapId) && firstEventSoptMaps.get(idx)
+				.getCreatorId()
+				.equals(Long.valueOf(userId)));
 
-		return SoptMapEventResponse.from(anyMatch);
+		if (isWinnerAvailable) {
+			return assignGift(userId, soptMapId);
+		}
+		return false;
+	}
+
+	private boolean assignGift(Integer userId, Long soptMapId) {
+
+		if (eventGiftRepository.existsByUserId(userId))
+			return false;
+
+		return eventGiftRepository.findFirstClaimableGiftWithLock()
+			.map(gift -> {
+				gift.claimGift(userId, soptMapId);
+				eventGiftRepository.save(gift);
+				return true;
+			})
+			.orElseGet(() -> {
+				log.warn("선물이 모두 소진되었습니다. userId: {}, soptMapId: {}", userId, soptMapId);
+				return false;
+			});
 	}
 }

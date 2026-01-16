@@ -61,4 +61,15 @@ public class SoptMapResponse {
 		}
 	}
 
+	@Getter
+	@RequiredArgsConstructor
+	public static class SoptMapGiftResponse {
+		private final Long giftId;
+		private final String giftUrl;
+
+		public static SoptMapGiftResponse from(Long giftId, String giftUrl) {
+			return new SoptMapGiftResponse(giftId, giftUrl);
+		}
+	}
+
 }
