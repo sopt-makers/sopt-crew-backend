@@ -11,6 +11,7 @@ import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SoptMapEventResponse;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SoptMapGiftResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.ToggleSoptMapResponse;
 import org.springframework.http.ResponseEntity;
 
@@ -79,6 +80,14 @@ public interface SoptMapApi {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "성공")
 	})
-	ResponseEntity<SoptMapEventResponse> eventSoptMap(Long soptMapId);
+	ResponseEntity<SoptMapEventResponse> eventSoptMap(
+		Principal principal, Long soptMapId);
+
+	@Operation(summary = "이벤트 선물 지급 여부 확인")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "성공")
+	})
+	ResponseEntity<SoptMapGiftResponse> giftedSoptMap(
+		Principal principal, Long soptMapId);
 
 }

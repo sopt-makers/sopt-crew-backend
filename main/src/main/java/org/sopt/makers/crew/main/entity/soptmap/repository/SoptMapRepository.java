@@ -15,10 +15,7 @@ public interface SoptMapRepository extends JpaRepository<SoptMap, Long>, SoptMap
 
 	@Query(value = """
 		select * from sopt_map
-		where creator_id in (
-		    select  creator_id from sopt_map
-		    group by creator_id  having count(*) = 1
-		) and "createdTimestamp" >= :startDate and "createdTimestamp" <= :endDate
+		where "createdTimestamp" >= :startDate and "createdTimestamp" <= :endDate
 		order by id asc
 		""", nativeQuery = true)
 	List<SoptMap> findFirstEventSoptMaps(LocalDateTime startDate, LocalDateTime endDate);

@@ -13,8 +13,10 @@ import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.soptmap.dto.CreateSoptMapResponseDto;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
+import org.sopt.makers.crew.main.soptmap.service.EventGiftService;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapRequestValidator;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapService;
+import org.sopt.makers.crew.main.soptmap.service.dto.EventGiftDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +39,7 @@ public class SoptMapController implements SoptMapApi {
 
 	private final SoptMapRequestValidator soptMapRequestValidator;
 	private final SoptMapService soptMapService;
+	private final EventGiftService eventGiftService;
 
 	@Override
 	@PostMapping
@@ -113,8 +116,22 @@ public class SoptMapController implements SoptMapApi {
 	@Override
 	@GetMapping("/event/{soptMapId}")
 	public ResponseEntity<SoptMapEventResponse> eventSoptMap(
+		Principal principal,
 		@PathVariable Long soptMapId
 	) {
-		return ResponseEntity.ok(soptMapService.checkEventWinning(soptMapId));
+		return ResponseEntity.ok(
+			SoptMapEventResponse.from(soptMapService.checkEventWinning(UserUtil.getUserId(principal), soptMapId)));
 	}
+
+	@Override
+	@GetMapping("/gift/{soptMapId}")
+	public ResponseEntity<SoptMapGiftResponse> giftedSoptMap(
+		Principal principal,
+		@PathVariable Long soptMapId
+	) {
+		EventGiftDto eventGiftDto = eventGiftService.retrieveEventGift(UserUtil.getUserId(principal), soptMapId);
+		return ResponseEntity.ok(
+			SoptMapGiftResponse.from(eventGiftDto.getId(), eventGiftDto.getGiftUrl()));
+	}
+
 }
