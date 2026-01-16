@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
-import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CheckEventWinningRequest;
 import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CreateSoptMapRequest;
 import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.SoptMapUpdateRequest;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
@@ -80,6 +79,6 @@ public interface SoptMapApi {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "성공")
 	})
-	ResponseEntity<SoptMapEventResponse> eventSoptMap(CheckEventWinningRequest request);
+	ResponseEntity<SoptMapEventResponse> eventSoptMap(Long soptMapId);
 
 }

@@ -109,12 +109,12 @@ public class SoptMapController implements SoptMapApi {
 			ToggleSoptMapResponse.from(soptMapService.toggleRecommendMap(userId, soptMapId)));
 	}
 
+	// 이거 보안 상으로 안전하게 보낼 방법이 있나?
 	@Override
-	@PostMapping("/event")
+	@GetMapping("/event/{soptMapId}")
 	public ResponseEntity<SoptMapEventResponse> eventSoptMap(
-		@RequestBody CheckEventWinningRequest request
+		@PathVariable Long soptMapId
 	) {
-		return ResponseEntity.ok(soptMapService.checkEventWinning(request.getSoptMapId()));
+		return ResponseEntity.ok(soptMapService.checkEventWinning(soptMapId));
 	}
-
 }
