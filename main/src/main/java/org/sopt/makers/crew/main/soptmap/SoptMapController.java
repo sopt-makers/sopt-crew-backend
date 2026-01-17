@@ -1,7 +1,12 @@
 package org.sopt.makers.crew.main.soptmap;
 
-import static org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.*;
-import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.*;
+import static org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CreateSoptMapRequest;
+import static org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.SoptMapUpdateRequest;
+import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
+import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
+import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SoptMapEventResponse;
+import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SoptMapGiftResponse;
+import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.ToggleSoptMapResponse;
 
 import java.net.URI;
 import java.security.Principal;
@@ -12,6 +17,7 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.soptmap.dto.CreateSoptMapResponseDto;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapDetailResponseDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.service.EventGiftService;
 import org.sopt.makers.crew.main.soptmap.service.SoptMapRequestValidator;
@@ -101,6 +107,15 @@ public class SoptMapController implements SoptMapApi {
 			stationKeyword,
 			pageOptionsDto);
 		return ResponseEntity.ok(result);
+	}
+
+	@Override
+	@GetMapping("/{soptMapId}")
+	public ResponseEntity<SoptMapDetailResponseDto> getSoptMapDetail(
+		Principal principal,
+		@PathVariable Long soptMapId) {
+		return ResponseEntity.ok(
+			soptMapService.getSoptMapDetail(UserUtil.getUserId(principal), soptMapId));
 	}
 
 	@Override

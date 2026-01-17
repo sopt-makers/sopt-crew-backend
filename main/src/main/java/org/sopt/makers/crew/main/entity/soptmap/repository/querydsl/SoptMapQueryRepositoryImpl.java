@@ -1,10 +1,11 @@
 package org.sopt.makers.crew.main.entity.soptmap.repository.querydsl;
 
-import static org.sopt.makers.crew.main.entity.soptmap.QMapRecommend.*;
-import static org.sopt.makers.crew.main.entity.soptmap.QSoptMap.*;
-import static org.sopt.makers.crew.main.entity.user.QUser.*;
+import static org.sopt.makers.crew.main.entity.soptmap.QMapRecommend.mapRecommend;
+import static org.sopt.makers.crew.main.entity.soptmap.QSoptMap.soptMap;
+import static org.sopt.makers.crew.main.entity.user.QUser.user;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
@@ -208,5 +209,21 @@ public class SoptMapQueryRepositoryImpl implements SoptMapQueryRepository {
 			.like(LIKE_PATTERN_PREFIX + ", " + stationId + "]"));
 
 		return conditions;
+	}
+
+	@Override
+	public Optional<SoptMapWithRecommendInfo> findSoptMapWithRecommendInfo(Long userId, Long soptMapId) {
+		SoptMapWithRecommendInfo result = queryFactory
+			.select(createProjection(userId))
+			.from(soptMap)
+			.leftJoin(mapRecommend)
+			.on(buildJoinCondition())
+			.leftJoin(user)
+			.on(soptMap.creatorId.intValue().eq(user.id))
+			.where(soptMap.id.eq(soptMapId))
+			.groupBy(soptMap.id, user.id)
+			.fetchOne();
+
+		return Optional.ofNullable(result);
 	}
 }
