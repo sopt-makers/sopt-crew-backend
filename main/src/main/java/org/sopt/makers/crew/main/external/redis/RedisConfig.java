@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.external.redis;
 
 import java.time.Duration;
 
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
  * Redis cache configuration for Lambda environment.
  *
  * Lambda는 분산 Stateless 환경이므로 Local Cache 대신 Redis를 사용합니다.
- * - Lambda (Dev): Redis 활성화
+ * - Lambda (Dev): Redis 활성화 (외부 Redis 서버 연결)
  * - EC2 (Prod): CaffeineConfig 사용
  */
 @Configuration
@@ -33,11 +33,17 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @Profile("lambda-dev")
 public class RedisConfig {
 
+	@Value("${spring.data.redis.host}")
+	private String host;
+
+	@Value("${spring.data.redis.port}")
+	private int port;
+
 	@Bean
-	public RedisConnectionFactory redisConnectionFactory(RedisProperties redisProperties) {
+	public RedisConnectionFactory redisConnectionFactory() {
 		RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-		config.setHostName(redisProperties.getHost());
-		config.setPort(redisProperties.getPort());
+		config.setHostName(host);
+		config.setPort(port);
 		return new LettuceConnectionFactory(config);
 	}
 
