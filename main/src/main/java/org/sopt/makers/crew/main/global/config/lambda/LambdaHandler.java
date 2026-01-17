@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import org.sopt.makers.crew.main.MainApplication;
 
 import com.amazonaws.serverless.exceptions.ContainerInitializationException;
+import com.amazonaws.serverless.proxy.internal.LambdaContainerHandler;
 import com.amazonaws.serverless.proxy.model.AwsProxyRequest;
 import com.amazonaws.serverless.proxy.model.AwsProxyResponse;
 import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
@@ -27,6 +28,13 @@ public class LambdaHandler implements RequestStreamHandler {
 			log.info("Lambda Handler 초기화 시작...");
 
 			handler = SpringBootLambdaContainerHandler.getAwsProxyHandler(MainApplication.class);
+
+			LambdaContainerHandler.getContainerConfig().addBinaryContentTypes(
+				"image/png",
+				"image/jpeg",
+				"image/gif",
+				"application/octet-stream");
+
 			long duration = System.currentTimeMillis() - startTime;
 
 			log.info("Lambda Handler 초기화 완료 (소요 시간: {}ms)", duration);
@@ -39,11 +47,6 @@ public class LambdaHandler implements RequestStreamHandler {
 	@Override
 	public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context)
 		throws IOException {
-
-		if (handler == null) {
-			throw new IllegalStateException("Handler가 초기화되지 않았습니다. static 블록을 확인하세요.");
-		}
-
 		handler.proxyStream(inputStream, outputStream, context);
 	}
 }

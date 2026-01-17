@@ -1,5 +1,10 @@
 server:
   port: 4000
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
 
 spring:
   config:
