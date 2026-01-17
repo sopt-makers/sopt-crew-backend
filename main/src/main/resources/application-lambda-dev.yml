@@ -49,6 +49,11 @@ spring:
     jdbc-url: jdbc:postgresql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_PLAYGROUND_DB_NAME}?currentSchema=${DEV_PLAYGROUND_DB_SCHEMA}
     username: ${DEV_PLAYGROUND_DB_USERNAME}
     password: ${DEV_PLAYGROUND_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 1
+      minimum-idle: 0
+      connection-timeout: 5000
+      validation-timeout: 2000
 
   jpa:
     open-in-view: false
@@ -60,9 +65,8 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
-        enable_lazy_load_no_trans: true  # Lazy Loading 허용
-      dialect: org.hibernate.dialect.PostgreSQLDialect
-      storage_engine: innodb
+        enable_lazy_load_no_trans: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 aws-property:
   aws-region: ${AWS_REGION}
@@ -110,8 +114,6 @@ external:
     users: ${MAKERS_AUTH_USERS_ENDPOINT}
 
 management:
-  server:
-    port: ${ACTUATOR_PORT}
   health:
     redis:
       enabled: true
@@ -124,7 +126,7 @@ management:
         exclude: "*"
     web:
       exposure:
-        include: health, info  # 최소한의 엔드포인트만 노출 (보안)
+        include: health, info
   endpoint:
     health:
       enabled: true
