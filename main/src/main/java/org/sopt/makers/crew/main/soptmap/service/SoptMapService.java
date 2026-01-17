@@ -339,6 +339,10 @@ public class SoptMapService {
 
 		Map<String, Object> properties = eventDateProperty.getProperties();
 
+		if (!soptMapRepository.existsSoptMapByCreatorIdAndId(userId.longValue(), soptMapId)) {
+			return false;
+		}
+
 		String from = String.valueOf(properties.get(PropertyKeys.START_DATE.getKey()));
 		String to = String.valueOf(properties.get(PropertyKeys.END_DATE.getKey()));
 		if (from == null || to == null) {
