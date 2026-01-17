@@ -73,6 +73,23 @@ jobs:
           fi
           echo "Lambda ZIP 파일 생성 확인 ($(du -h build/distributions/main-1.1.2-lambda.zip | cut -f1))"
 
+      # Step 3.5: Clean up failed stack if exists
+      - name: Clean up failed stack
+        run: |
+          STACK_STATUS=$(aws cloudformation describe-stacks --stack-name sopt-crew-dev --query 'Stacks[0].StackStatus' --output text --region ap-northeast-2 2>/dev/null || echo "NONE")
+          
+          if [ "$STACK_STATUS" = "ROLLBACK_COMPLETE" ]; then
+            echo "⚠️ 스택이 ROLLBACK_COMPLETE 상태입니다. 삭제 중..."
+            aws cloudformation delete-stack --stack-name sopt-crew-dev --region ap-northeast-2
+            echo "스택 삭제 대기 중..."
+            aws cloudformation wait stack-delete-complete --stack-name sopt-crew-dev --region ap-northeast-2
+            echo "✅ 스택 삭제 완료"
+          elif [ "$STACK_STATUS" = "NONE" ]; then
+            echo "새로운 스택을 생성합니다."
+          else
+            echo "현재 스택 상태: $STACK_STATUS"
+          fi
+
       # Step 4: Deploy with SAM
       - name: Deploy to AWS Lambda
         id: deploy
