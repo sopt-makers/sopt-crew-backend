@@ -59,8 +59,8 @@ jobs:
       # Step 3: Build Application
       - name: Build Lambda JAR
         run: |
-          chmod +x ./gradlew
-          ./gradlew clean :main:lambdaJar
+          chmod +x ./main/gradlew
+          ./main/gradlew clean :main:lambdaJar
           echo "Lambda JAR 빌드 완료"
 
       - name: Verify build artifact
