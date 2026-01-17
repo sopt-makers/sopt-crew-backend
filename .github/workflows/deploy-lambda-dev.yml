@@ -67,11 +67,13 @@ jobs:
       - name: Verify build artifact
         working-directory: main
         run: |
-          if [ ! -f build/distributions/main-1.1.2-lambda.zip ]; then
+          ZIP_FILE=$(find build/distributions -name "*-lambda.zip" | head -n 1)
+          if [ -z "$ZIP_FILE" ]; then
             echo "Lambda ZIP 파일이 생성되지 않았습니다"
+            ls -R build/distributions/
             exit 1
           fi
-          echo "Lambda ZIP 파일 생성 확인 ($(du -h build/distributions/main-1.1.2-lambda.zip | cut -f1))"
+          echo "Lambda ZIP 파일 생성 확인: $ZIP_FILE ($(du -h "$ZIP_FILE" | cut -f1))"
 
       # Step 3.5: Clean up failed stack if exists
       - name: Clean up failed stack
@@ -96,11 +98,12 @@ jobs:
         working-directory: lambda
         run: |
           sam deploy \
+            --template-file template-dev.yaml \
             --config-env dev \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
           echo "Lambda 배포 완료"
-      
+
       - name: Check Lambda logs on failure
         if: failure() && steps.deploy.outcome == 'failure'
         run: |
