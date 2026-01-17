@@ -1,2 +1,6 @@
 .vscode
 /.idea/
+
+# AWS SAM
+lambda/.aws-sam/
+lambda/samconfig.toml.bak
