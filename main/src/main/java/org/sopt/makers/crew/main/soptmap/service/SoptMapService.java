@@ -30,6 +30,7 @@ import org.sopt.makers.crew.main.global.util.DateUtils;
 import org.sopt.makers.crew.main.soptmap.dto.CreateSoptMapResponseDto;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
 import org.sopt.makers.crew.main.soptmap.dto.ToggleSoptMapRecommendDto;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapDetailResponseDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapListResponseDto;
 import org.sopt.makers.crew.main.soptmap.service.dto.CreateSoptMapDto;
@@ -98,11 +99,11 @@ public class SoptMapService {
 
 	@Transactional(readOnly = true)
 	public SoptMapGetAllDto getSoptMapList(
-		Integer userId,
-		List<MapTag> categories,
-		SortType sortType,
-		String stationKeyword,
-		PageOptionsDto pageOptionsDto) {
+			Integer userId,
+			List<MapTag> categories,
+			SortType sortType,
+			String stationKeyword,
+			PageOptionsDto pageOptionsDto) {
 
 		Pageable pageable = createPageable(pageOptionsDto);
 		List<Long> stationIds = resolveStationIds(stationKeyword);
@@ -114,10 +115,20 @@ public class SoptMapService {
 		Page<SoptMapWithRecommendInfo> soptMapPage = fetchSoptMaps(userId, categories, sortType, stationIds, pageable);
 
 		if (soptMapPage.isEmpty()) {
-			return createEmptyResult(pageOptionsDto, (int)soptMapPage.getTotalElements());
+			return createEmptyResult(pageOptionsDto, (int) soptMapPage.getTotalElements());
 		}
 
 		return buildResultDto(soptMapPage, pageOptionsDto, userId);
+	}
+
+	@Transactional(readOnly = true)
+	public SoptMapDetailResponseDto getSoptMapDetail(Integer userId, Long soptMapId) {
+		SoptMapWithRecommendInfo info = soptMapRepository
+				.findSoptMapWithRecommendInfo(convertToLongOrNull(userId), soptMapId)
+				.orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_SOPT_MAP.getErrorCode()));
+
+		Map<Long, String> stationIdToNameMap = fetchStationNameMap(List.of(info));
+		return convertToDetailDto(info, stationIdToNameMap, userId);
 	}
 
 	@Transactional(readOnly = true)
@@ -141,8 +152,8 @@ public class SoptMapService {
 		}
 
 		return stations.stream()
-			.map(SubwayStation::getId)
-			.toList();
+				.map(SubwayStation::getId)
+				.toList();
 	}
 
 	private boolean isEmptySearchResult(String stationKeyword, List<Long> stationIds) {
@@ -151,11 +162,11 @@ public class SoptMapService {
 	}
 
 	private Page<SoptMapWithRecommendInfo> fetchSoptMaps(
-		Integer userId,
-		List<MapTag> categories,
-		SortType sortType,
-		List<Long> stationIds,
-		Pageable pageable) {
+			Integer userId,
+			List<MapTag> categories,
+			SortType sortType,
+			List<Long> stationIds,
+			Pageable pageable) {
 
 		List<Long> filterIds = stationIds;
 		if (stationIds != null && stationIds.isEmpty()) {
@@ -163,19 +174,19 @@ public class SoptMapService {
 		}
 
 		return soptMapRepository.searchSoptMap(
-			convertToLongOrNull(userId),
-			categories,
-			sortType,
-			filterIds,
-			pageable);
+				convertToLongOrNull(userId),
+				categories,
+				sortType,
+				filterIds,
+				pageable);
 	}
 
 	private SoptMapGetAllDto buildResultDto(Page<SoptMapWithRecommendInfo> soptMapPage, PageOptionsDto pageOptionsDto,
-		Integer userId) {
-		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)soptMapPage.getTotalElements());
+			Integer userId) {
+		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int) soptMapPage.getTotalElements());
 		Map<Long, String> stationIdToNameMap = fetchStationNameMap(soptMapPage.getContent());
 		List<SoptMapListResponseDto> content = convertToListDtos(soptMapPage.getContent(), stationIdToNameMap,
-			userId);
+				userId);
 
 		return SoptMapGetAllDto.of(content, pageMetaDto);
 	}
@@ -191,7 +202,7 @@ public class SoptMapService {
 
 	private SoptMap findSoptMapById(Long soptMapId) {
 		return soptMapRepository.findById(soptMapId)
-			.orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_SOPT_MAP.getErrorCode()));
+				.orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_SOPT_MAP.getErrorCode()));
 	}
 
 	private void validatePlaceNameNotDuplicated(String placeName) {
@@ -219,13 +230,13 @@ public class SoptMapService {
 
 	private Set<Long> extractAllStationIds(List<SoptMapWithRecommendInfo> soptMaps) {
 		return soptMaps.stream()
-			.flatMap(info -> {
-				if (info.getNearbyStationIds() == null) {
-					return Stream.empty();
-				}
-				return info.getNearbyStationIds().stream();
-			})
-			.collect(Collectors.toSet());
+				.flatMap(info -> {
+					if (info.getNearbyStationIds() == null) {
+						return Stream.empty();
+					}
+					return info.getNearbyStationIds().stream();
+				})
+				.collect(Collectors.toSet());
 	}
 
 	private Map<Long, String> fetchStationNameMap(List<SoptMapWithRecommendInfo> soptMaps) {
@@ -239,16 +250,16 @@ public class SoptMapService {
 	}
 
 	private List<SoptMapListResponseDto> convertToListDtos(
-		List<SoptMapWithRecommendInfo> soptMaps,
-		Map<Long, String> stationIdToNameMap, Integer userId) {
+			List<SoptMapWithRecommendInfo> soptMaps,
+			Map<Long, String> stationIdToNameMap, Integer userId) {
 		return soptMaps.stream()
-			.map(info -> convertToListDto(info, stationIdToNameMap, userId))
-			.toList();
+				.map(info -> convertToListDto(info, stationIdToNameMap, userId))
+				.toList();
 	}
 
 	private SoptMapListResponseDto convertToListDto(
-		SoptMapWithRecommendInfo info,
-		Map<Long, String> stationIdToNameMap, Integer userId) {
+			SoptMapWithRecommendInfo info,
+			Map<Long, String> stationIdToNameMap, Integer userId) {
 		List<String> subwayStationNames = mapStationIdsToNames(info.getNearbyStationIds(), stationIdToNameMap);
 
 		User retrievedUser = info.getUser();
@@ -256,22 +267,50 @@ public class SoptMapService {
 		Integer creatorId = DataUtils.safeData(retrievedUser, User::getId);
 
 		boolean registeredByMe = creatorId != null &&
-			userId != null &&
-			creatorId.longValue() == userId;
+				userId != null &&
+				creatorId.longValue() == userId;
 
 		return SoptMapListResponseDto.builder()
-			.id(info.getId())
-			.placeName(info.getPlaceName())
-			.description(info.getDescription())
-			.mapTags(info.getMapTags())
-			.subwayStationNames(subwayStationNames)
-			.recommendCount(info.getRecommendCount())
-			.isRecommended(info.getIsRecommended())
-			.kakaoLink(info.getKakaoLink())
-			.naverLink(info.getNaverLink())
-			.creatorName(registeredName)
-			.isCreator(registeredByMe)
-			.build();
+				.id(info.getId())
+				.placeName(info.getPlaceName())
+				.description(info.getDescription())
+				.mapTags(info.getMapTags())
+				.subwayStationNames(subwayStationNames)
+				.recommendCount(info.getRecommendCount())
+				.isRecommended(info.getIsRecommended())
+				.kakaoLink(info.getKakaoLink())
+				.naverLink(info.getNaverLink())
+				.creatorName(registeredName)
+				.isCreator(registeredByMe)
+				.build();
+	}
+
+	private SoptMapDetailResponseDto convertToDetailDto(
+			SoptMapWithRecommendInfo info,
+			Map<Long, String> stationIdToNameMap, Integer userId) {
+		List<String> subwayStationNames = mapStationIdsToNames(info.getNearbyStationIds(), stationIdToNameMap);
+
+		User retrievedUser = info.getUser();
+		String registeredName = DataUtils.safeData(retrievedUser, User::getName);
+		Integer creatorId = DataUtils.safeData(retrievedUser, User::getId);
+
+		boolean registeredByMe = creatorId != null &&
+				userId != null &&
+				creatorId.longValue() == userId;
+
+		return SoptMapDetailResponseDto.builder()
+				.id(info.getId())
+				.placeName(info.getPlaceName())
+				.description(info.getDescription())
+				.mapTags(info.getMapTags())
+				.subwayStationNames(subwayStationNames)
+				.recommendCount(info.getRecommendCount())
+				.isRecommended(info.getIsRecommended())
+				.kakaoLink(info.getKakaoLink())
+				.naverLink(info.getNaverLink())
+				.creatorName(registeredName)
+				.isCreator(registeredByMe)
+				.build();
 	}
 
 	private List<String> mapStationIdsToNames(List<Long> stationIds, Map<Long, String> stationIdToNameMap) {
@@ -280,9 +319,9 @@ public class SoptMapService {
 		}
 
 		return stationIds.stream()
-			.map(stationIdToNameMap::get)
-			.filter(Objects::nonNull) // 존재하지 않는 역 ID 제외
-			.toList();
+				.map(stationIdToNameMap::get)
+				.filter(Objects::nonNull) // 존재하지 않는 역 ID 제외
+				.toList();
 	}
 
 	public ToggleSoptMapRecommendDto toggleRecommendMap(Integer userId, Long soptMapId) {
@@ -310,24 +349,23 @@ public class SoptMapService {
 		LocalDate endDate = DateUtils.toLocalDate(to);
 
 		List<SoptMap> firstEventSoptMaps = soptMapRepository.findFirstEventSoptMaps(startDate.atStartOfDay(),
-			endDate.atStartOfDay());
+				endDate.atStartOfDay());
 
 		List<Integer> eventNumbers = dataConverter.convertValue(properties.get(PropertyKeys.EVENT_NUM.getKey()),
-			new TypeReference<>() {
-			}
-		);
+				new TypeReference<>() {
+				});
 
 		List<Integer> eventIdx = eventNumbers.stream()
-			.map(m -> m - 1)
-			.toList();
+				.map(m -> m - 1)
+				.toList();
 
 		int findSoptMapSize = firstEventSoptMaps.size();
 
 		boolean isWinnerAvailable = eventIdx.stream()
-			.filter(idx -> idx < findSoptMapSize)
-			.anyMatch(idx -> firstEventSoptMaps.get(idx).getId().equals(soptMapId) && firstEventSoptMaps.get(idx)
-				.getCreatorId()
-				.equals(Long.valueOf(userId)));
+				.filter(idx -> idx < findSoptMapSize)
+				.anyMatch(idx -> firstEventSoptMaps.get(idx).getId().equals(soptMapId) && firstEventSoptMaps.get(idx)
+						.getCreatorId()
+						.equals(Long.valueOf(userId)));
 
 		if (isWinnerAvailable) {
 			return assignGift(userId, soptMapId);
@@ -341,14 +379,14 @@ public class SoptMapService {
 			return false;
 
 		return eventGiftRepository.findFirstClaimableGiftWithLock()
-			.map(gift -> {
-				gift.claimGift(userId, soptMapId);
-				eventGiftRepository.save(gift);
-				return true;
-			})
-			.orElseGet(() -> {
-				log.warn("선물이 모두 소진되었습니다. userId: {}, soptMapId: {}", userId, soptMapId);
-				return false;
-			});
+				.map(gift -> {
+					gift.claimGift(userId, soptMapId);
+					eventGiftRepository.save(gift);
+					return true;
+				})
+				.orElseGet(() -> {
+					log.warn("선물이 모두 소진되었습니다. userId: {}, soptMapId: {}", userId, soptMapId);
+					return false;
+				});
 	}
 }
