@@ -1,0 +1,82 @@
+name: Deploy Lambda (Dev)
+
+on:
+  workflow_dispatch:  # 수동 실행 가능
+  push:
+    branches:
+      - feature/github-actions-lambda  # 테스트용
+      - develop                        # 실제 배포용
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Lambda to Dev
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    env:
+      AWS_REGION: ap-northeast-2
+    
+    steps:
+      # Step 1: 환경 구성
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Setup SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Step 2: Secrets Injection (보안 파일 복원)
+      - name: Inject application-secret.properties from Secrets
+        run: |
+          echo "${{ secrets.APPLICATION_SECRET_SPRING }}" > ./main/src/main/resources/application-secret.properties
+        shell: bash
+
+      # Step 3: Build Application
+      - name: Build Lambda JAR
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean :main:lambdaJar
+          echo "Lambda JAR 빌드 완료"
+
+      - name: Verify build artifact
+        run: |
+          if [ ! -f main/build/libs/main-0.0.1-SNAPSHOT-lambda.zip ]; then
+            echo "Lambda ZIP 파일이 생성되지 않았습니다"
+            exit 1
+          fi
+          echo "Lambda ZIP 파일 생성 확인"
+
+      # Step 4: Deploy with SAM
+      - name: Deploy to AWS Lambda
+        working-directory: lambda
+        run: |
+          sam deploy \
+            --config-env dev \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset
+          echo "Lambda 배포 완료"
