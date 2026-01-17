@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.entity.soptmap.repository.querydsl;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
@@ -26,4 +27,13 @@ public interface SoptMapQueryRepository {
 		SortType sortType,
 		List<Long> stationIds,
 		Pageable pageable);
+
+	/**
+	 * SoptMap 단건 조회 (추천 정보 포함)
+	 *
+	 * @param userId    현재 로그인한 유저 ID (추천 여부 확인용)
+	 * @param soptMapId 조회할 SoptMap ID
+	 * @return Optional<SoptMapWithRecommendInfo>
+	 */
+	Optional<SoptMapWithRecommendInfo> findSoptMapWithRecommendInfo(Long userId, Long soptMapId);
 }

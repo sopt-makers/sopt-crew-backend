@@ -7,6 +7,7 @@ import org.sopt.makers.crew.main.entity.soptmap.MapTag;
 import org.sopt.makers.crew.main.soptmap.dto.SortType;
 import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CreateSoptMapRequest;
 import org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.SoptMapUpdateRequest;
+import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapDetailResponseDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapGetAllDto;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
 import org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
@@ -68,6 +69,15 @@ public interface SoptMapApi {
 		@Parameter(description = "지하철역 검색어 (유사도 기반)", example = "강남") String stationKeyword,
 		@Parameter(description = "페이지 번호 (1부터 시작)", example = "1") Integer page,
 		@Parameter(description = "가져올 데이터 개수", example = "10") Integer take);
+
+	@Operation(summary = "솝맵 상세 조회 api")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "성공"),
+		@ApiResponse(responseCode = "404", description = "솝맵을 찾을 수 없음")
+	})
+	ResponseEntity<SoptMapDetailResponseDto> getSoptMapDetail(
+		@Parameter(hidden = true) Principal principal,
+		@Parameter(description = "솝맵 ID", example = "1") Long soptMapId);
 
 	@Operation(summary = "솝맵 추천하기 api")
 	@ApiResponses(value = {
