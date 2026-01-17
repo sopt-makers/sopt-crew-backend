@@ -107,11 +107,19 @@ jobs:
       - name: Check Lambda logs on failure
         if: failure() && steps.deploy.outcome == 'failure'
         run: |
-          echo "=== Lambda 초기화 로그 확인 ==="
-          FUNCTION_NAME=$(aws lambda list-functions --query "Functions[?starts_with(FunctionName, 'sopt-crew-dev')].FunctionName" --output text --region ap-northeast-2 | head -1)
-          if [ -n "$FUNCTION_NAME" ]; then
-            echo "Function: $FUNCTION_NAME"
-            aws logs tail "/aws/lambda/$FUNCTION_NAME" --since 5m --region ap-northeast-2 || echo "로그를 가져올 수 없습니다"
+          echo "=== Lambda 초기화 로그 확인 (/aws/lambda/crew-dev-api) ==="
+          
+          # 함수가 존재하지 않아도 로그 그룹은 남아있을 수 있음
+          if aws logs describe-log-groups --log-group-name-prefix "/aws/lambda/crew-dev-api" --region ap-northeast-2 | grep -q "logGroupName"; then
+            echo "✅ 로그 그룹 발견! 최근 에러 로그를 출력합니다:"
+            aws logs tail "/aws/lambda/crew-dev-api" \
+              --since 10m \
+              --format short \
+              --filter-pattern "?Exception ?Error ?Fail" \
+              --region ap-northeast-2 || echo "로그 조회 실패"
+              
+            echo "--- 전체 로그 (마지막 30줄) ---"
+            aws logs tail "/aws/lambda/crew-dev-api" --since 10m --region ap-northeast-2 | tail -n 30
           else
-            echo "Lambda 함수를 찾을 수 없습니다"
+            echo "❌ 로그 그룹을 찾을 수 없습니다. (/aws/lambda/crew-dev-api)"
           fi
