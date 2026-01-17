@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sopt-crew-backend
+  Spring Boot 3 + AWS Lambda (SnapStart enabled)
+  Dev environment deployment template
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 2048
+    Runtime: java17
+    Architectures:
+      - x86_64
+
+Resources:
+  CrewApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../main/build/libs/main-0.0.1-SNAPSHOT-lambda.zip
+      Handler: org.sopt.makers.crew.main.global.config.lambda.LambdaHandler::handleRequest
+      AutoPublishAlias: live
+      SnapStart:
+        ApplyOn: PublishedVersions
+      Environment:
+        Variables:
+          SPRING_PROFILES_ACTIVE: lambda-dev
+          JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+      # VpcConfig:
+      #   SecurityGroupIds:
+      #     - sg-xxxxxxxx  # TODO: Redis 접근 가능한 Security Group ID로 변경
+      #   SubnetIds:
+      #     - subnet-xxxxxxxx  # TODO: Redis와 통신 가능한 Subnet ID로 변경
+      Events:
+        RootPath:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: any
+        ProxyPath:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: any
+
+Outputs:
+  CrewApiEndpoint:
+    Description: "API Gateway endpoint URL for Dev environment"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
+  CrewApiFunctionArn:
+    Description: "Lambda Function ARN"
+    Value: !GetAtt CrewApiFunction.Arn

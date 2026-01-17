@@ -1,0 +1,14 @@
+version = 0.1
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[dev.deploy.parameters]
+stack_name = "sopt-crew-dev"
+region = "ap-northeast-2"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = false
+template = "template-dev.yaml"
+resolve_s3 = true
+s3_prefix = "sopt-crew-dev"
