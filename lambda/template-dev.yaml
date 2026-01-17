@@ -17,7 +17,7 @@ Resources:
   CrewApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ../main/build/libs/main-0.0.1-SNAPSHOT-lambda.zip
+      CodeUri: ../main/build/distributions/main-1.1.2-lambda.zip
       Handler: org.sopt.makers.crew.main.global.config.lambda.LambdaHandler::handleRequest
       AutoPublishAlias: live
       SnapStart:

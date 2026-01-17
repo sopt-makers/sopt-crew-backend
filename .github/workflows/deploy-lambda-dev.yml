@@ -68,15 +68,20 @@ jobs:
         working-directory: main
         run: |
           echo "=== 빌드 결과물 확인 ==="
-          ls -la build/libs/ || echo "build/libs 디렉토리 없음"
+          echo "1. build/libs/ 디렉토리:"
+          ls -la build/libs/ 2>/dev/null || echo "  (없음)"
+          echo ""
+          echo "2. build/distributions/ 디렉토리:"
+          ls -la build/distributions/ 2>/dev/null || echo "  (없음)"
           echo ""
           
-          # Lambda ZIP 파일 찾기 (파일명 패턴 유연하게)
-          if ls build/libs/*-lambda.zip 1> /dev/null 2>&1; then
+          # Lambda ZIP 파일 찾기 (Zip 태스크의 기본 출력 경로)
+          if [ -f build/distributions/main-1.1.2-lambda.zip ]; then
             echo "✅ Lambda ZIP 파일 생성 확인:"
-            ls -lh build/libs/*-lambda.zip
+            ls -lh build/distributions/main-1.1.2-lambda.zip
           else
             echo "❌ Lambda ZIP 파일이 생성되지 않았습니다"
+            echo "Expected: build/distributions/main-1.1.2-lambda.zip"
             exit 1
           fi
 
