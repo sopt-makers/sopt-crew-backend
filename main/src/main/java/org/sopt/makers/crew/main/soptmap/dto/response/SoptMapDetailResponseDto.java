@@ -25,10 +25,10 @@ public class SoptMapDetailResponseDto {
     private final String description;
 
     @Schema(description = "장소 태그", example = "[\"FOOD\", \"CAFE\"]")
-    private final List<MapTag> mapTags;
+    private final List<MapTag> tags;
 
     @Schema(description = "주변 지하철역 이름", example = "[\"강남역\", \"건대입구역\"]")
-    private final List<String> subwayStationNames;
+    private final List<String> stationNames;
 
     @Schema(description = "추천 수", example = "5")
     private final Long recommendCount;
