@@ -65,8 +65,9 @@ jobs:
           echo "Lambda JAR 빌드 완료"
 
       - name: Verify build artifact
+        working-directory: main
         run: |
-          if [ ! -f main/build/libs/main-0.0.1-SNAPSHOT-lambda.zip ]; then
+          if [ ! -f build/libs/main-0.0.1-SNAPSHOT-lambda.zip ]; then
             echo "Lambda ZIP 파일이 생성되지 않았습니다"
             exit 1
           fi
