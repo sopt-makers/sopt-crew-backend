@@ -19,4 +19,6 @@ public interface SoptMapRepository extends JpaRepository<SoptMap, Long>, SoptMap
 		order by id asc
 		""", nativeQuery = true)
 	List<SoptMap> findFirstEventSoptMaps(LocalDateTime startDate, LocalDateTime endDate);
+
+	boolean existsSoptMapByCreatorIdAndId(Long userId, Long id);
 }
