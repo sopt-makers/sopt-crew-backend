@@ -67,11 +67,18 @@ jobs:
       - name: Verify build artifact
         working-directory: main
         run: |
-          if [ ! -f build/libs/main-0.0.1-SNAPSHOT-lambda.zip ]; then
-            echo "Lambda ZIP 파일이 생성되지 않았습니다"
+          echo "=== 빌드 결과물 확인 ==="
+          ls -la build/libs/ || echo "build/libs 디렉토리 없음"
+          echo ""
+          
+          # Lambda ZIP 파일 찾기 (파일명 패턴 유연하게)
+          if ls build/libs/*-lambda.zip 1> /dev/null 2>&1; then
+            echo "✅ Lambda ZIP 파일 생성 확인:"
+            ls -lh build/libs/*-lambda.zip
+          else
+            echo "❌ Lambda ZIP 파일이 생성되지 않았습니다"
             exit 1
           fi
-          echo "Lambda ZIP 파일 생성 확인"
 
       # Step 4: Deploy with SAM
       - name: Deploy to AWS Lambda
