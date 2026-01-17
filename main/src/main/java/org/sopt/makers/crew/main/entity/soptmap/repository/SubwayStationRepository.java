@@ -1,0 +1,14 @@
+package org.sopt.makers.crew.main.entity.soptmap.repository;
+
+import java.util.List;
+
+import org.sopt.makers.crew.main.entity.soptmap.SubwayStation;
+import org.sopt.makers.crew.main.entity.soptmap.repository.querydsl.SubwayStationQueryRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SubwayStationRepository extends JpaRepository<SubwayStation, Long>, SubwayStationQueryRepository {
+
+	List<SubwayStation> findAllByIdIn(List<Long> stationIds);
+
+	List<SubwayStation> findAllByNameIn(List<String> stationNames);
+}

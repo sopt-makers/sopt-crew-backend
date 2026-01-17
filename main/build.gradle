@@ -53,10 +53,10 @@ dependencies {
 
     // Test Dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.testcontainers:testcontainers:1.17.3'
-    testImplementation 'org.testcontainers:junit-jupiter:1.16.2'
-    testImplementation 'org.testcontainers:postgresql:1.17.3'
-    testImplementation 'org.testcontainers:jdbc'
+    testImplementation 'org.testcontainers:testcontainers:2.0.2'
+    testImplementation 'org.testcontainers:junit-jupiter:1.20.6'
+    testImplementation 'org.testcontainers:postgresql:1.20.6'
+    testImplementation 'org.testcontainers:jdbc:1.20.6'
 
     // Apache Commons Dependencies
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'

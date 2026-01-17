@@ -37,6 +37,8 @@ public enum ErrorStatus {
 	INVALID_WELCOME_MESSAGE_TYPE("유효하지 않은 환영 메시지 타입입니다."),
 	INVALID_MEETING_KEYWORD_TYPE("유효하지 않은 모임 키워드 타입입니다."),
 	INVALID_MEETING_KEYWORD_SIZE("모임 키워드는 최소 1개 이상, 최대 2개까지 선택해야 합니다."),
+	DUPLICATE_SOPT_MAP_PLACE("이미 등록된 장소입니다."),
+	INVALID_SUBWAY_STATION_COUNT("요청한 지하철역 개수와 조회된 지하철역 개수가 일치하지 않습니다."),
 
 	/**
 	 * 400 BAD_REQUEST - 유효성 검사 관련 에러
@@ -68,6 +70,7 @@ public enum ErrorStatus {
 	 * 403 FORBIDDEN
 	 */
 	FORBIDDEN_EXCEPTION("권한이 없습니다."),
+	FORBIDDEN_SOPT_MAP_UPDATE("솝맵을 수정할 권한이 없습니다."),
 
 	/**
 	 * 404 NOT_FOUND
@@ -80,6 +83,8 @@ public enum ErrorStatus {
 	NOT_FOUND_TAG("존재하지 않는 태그입니다."),
 	NOT_FOUND_PROPERTY_KEY("프로퍼티 키가 존재하지 않습니다 해당 키 :  "),
 	NOT_FOUND_PROPERTY_STRATEGY("적절한 프로퍼티 반환 전략을 찾을 수 없습니다"),
+	NOT_FOUND_SOPT_MAP("존재하지 않는 솝맵입니다."),
+	NOT_FOUND_SUBWAY_STATION("존재하지 않는 지하철역입니다."),
 
 	/**
 	 * 405 METHOD_NOT_ALLOWED
