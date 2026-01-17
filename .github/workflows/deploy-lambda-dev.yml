@@ -67,26 +67,15 @@ jobs:
       - name: Verify build artifact
         working-directory: main
         run: |
-          echo "=== 빌드 결과물 확인 ==="
-          echo "1. build/libs/ 디렉토리:"
-          ls -la build/libs/ 2>/dev/null || echo "  (없음)"
-          echo ""
-          echo "2. build/distributions/ 디렉토리:"
-          ls -la build/distributions/ 2>/dev/null || echo "  (없음)"
-          echo ""
-          
-          # Lambda ZIP 파일 찾기 (Zip 태스크의 기본 출력 경로)
-          if [ -f build/distributions/main-1.1.2-lambda.zip ]; then
-            echo "✅ Lambda ZIP 파일 생성 확인:"
-            ls -lh build/distributions/main-1.1.2-lambda.zip
-          else
-            echo "❌ Lambda ZIP 파일이 생성되지 않았습니다"
-            echo "Expected: build/distributions/main-1.1.2-lambda.zip"
+          if [ ! -f build/distributions/main-1.1.2-lambda.zip ]; then
+            echo "Lambda ZIP 파일이 생성되지 않았습니다"
             exit 1
           fi
+          echo "Lambda ZIP 파일 생성 확인 ($(du -h build/distributions/main-1.1.2-lambda.zip | cut -f1))"
 
       # Step 4: Deploy with SAM
       - name: Deploy to AWS Lambda
+        id: deploy
         working-directory: lambda
         run: |
           sam deploy \
@@ -94,3 +83,15 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
           echo "Lambda 배포 완료"
+      
+      - name: Check Lambda logs on failure
+        if: failure() && steps.deploy.outcome == 'failure'
+        run: |
+          echo "=== Lambda 초기화 로그 확인 ==="
+          FUNCTION_NAME=$(aws lambda list-functions --query "Functions[?starts_with(FunctionName, 'sopt-crew-dev')].FunctionName" --output text --region ap-northeast-2 | head -1)
+          if [ -n "$FUNCTION_NAME" ]; then
+            echo "Function: $FUNCTION_NAME"
+            aws logs tail "/aws/lambda/$FUNCTION_NAME" --since 5m --region ap-northeast-2 || echo "로그를 가져올 수 없습니다"
+          else
+            echo "Lambda 함수를 찾을 수 없습니다"
+          fi
