@@ -132,6 +132,11 @@ dependencies {
     // Library for parsing JWT/JWK tokens and verifying their signatures
     implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
 
+    // ===== AWS Lambda Dependencies (for Serverless deployment) =====
+    implementation 'com.amazonaws.serverless:aws-serverless-java-container-springboot3:2.1.5'
+    implementation 'com.amazonaws:aws-lambda-java-core:1.4.0'
+    implementation 'com.amazonaws:aws-lambda-java-events:3.16.1'
+
 }
 
 tasks.named('test') {
@@ -199,6 +204,45 @@ jacocoTestCoverageVerification {
                     '*.response'
                     // ...
             ]
+        }
+    }
+}
+
+// ===== JAR Configuration =====
+// EC2 배포용 bootJar와 Lambda 배포용 lambdaJar 모두 활성화
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = true
+}
+
+// ===== Lambda ZIP Build Task =====
+// Lambda 배포를 위한 ZIP 패키징 태스크
+// 실행: ./gradlew clean lambdaJar -x test
+task lambdaJar(type: Zip) {
+    dependsOn jar
+    archiveClassifier = 'lambda'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    zip64 = true  // 대용량 ZIP 파일 지원
+
+    into('lib') {
+        from(jar)
+        from(configurations.runtimeClasspath) {
+            // Lambda에서 불필요한 Tomcat 의존성 제외
+            exclude "**/tomcat-embed-*.jar"
+            exclude "org/apache/tomcat/**"
+
+            // 서명 파일 제외 (Lambda 배포 시 충돌 방지)
+            exclude "META-INF/*.SF"
+            exclude "META-INF/*.DSA"
+            exclude "META-INF/*.RSA"
+            exclude "META-INF/MANIFEST.MF"
+
+            // 모듈 정보 제외
+            exclude "**/module-info.class"
         }
     }
 }
