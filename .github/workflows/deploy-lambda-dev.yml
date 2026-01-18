@@ -69,11 +69,22 @@ jobs:
         run: |
           ZIP_FILE=$(find build/distributions -name "*-lambda.zip" | head -n 1)
           if [ -z "$ZIP_FILE" ]; then
-            echo "Lambda ZIP 파일이 생성되지 않았습니다"
+            echo "❌ Lambda ZIP 파일이 생성되지 않았습니다"
             ls -R build/distributions/
             exit 1
           fi
-          echo "Lambda ZIP 파일 생성 확인: $ZIP_FILE ($(du -h "$ZIP_FILE" | cut -f1))"
+          echo "✅ Lambda ZIP 파일 생성 확인: $ZIP_FILE ($(du -h "$ZIP_FILE" | cut -f1))"
+          
+          # application-secret.properties 포함 여부 확인
+          echo "=== ZIP 내용 확인 (application-secret.properties) ==="
+          if unzip -l "$ZIP_FILE" | grep -q "application-secret.properties"; then
+            echo "✅ application-secret.properties가 ZIP에 포함되어 있습니다"
+          else
+            echo "❌ application-secret.properties가 ZIP에 포함되지 않았습니다!"
+            echo "=== ZIP 내 리소스 파일 목록 ==="
+            unzip -l "$ZIP_FILE" | grep -E "\.properties|\.yml|\.yaml" || echo "properties/yml 파일 없음"
+            exit 1
+          fi
 
       # Step 3.5: Clean up failed stack if exists
       - name: Clean up failed stack
