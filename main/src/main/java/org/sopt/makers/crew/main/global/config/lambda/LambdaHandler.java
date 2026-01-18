@@ -7,8 +7,9 @@ import java.io.OutputStream;
 import org.sopt.makers.crew.main.MainApplication;
 
 import com.amazonaws.serverless.exceptions.ContainerInitializationException;
-import com.amazonaws.serverless.proxy.model.AwsProxyRequest;
+import com.amazonaws.serverless.proxy.internal.LambdaContainerHandler;
 import com.amazonaws.serverless.proxy.model.AwsProxyResponse;
+import com.amazonaws.serverless.proxy.model.HttpApiV2ProxyRequest;
 import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
@@ -18,7 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LambdaHandler implements RequestStreamHandler {
 
-	private static final SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
+	// HTTP API (v2) 형식 사용 - template의 Type: HttpApi와 일치
+	private static final SpringBootLambdaContainerHandler<HttpApiV2ProxyRequest, AwsProxyResponse> handler;
 
 	static {
 		long startTime = System.currentTimeMillis();
@@ -26,7 +28,14 @@ public class LambdaHandler implements RequestStreamHandler {
 		try {
 			log.info("Lambda Handler 초기화 시작...");
 
-			handler = SpringBootLambdaContainerHandler.getAwsProxyHandler(MainApplication.class);
+			handler = SpringBootLambdaContainerHandler.getHttpApiV2ProxyHandler(MainApplication.class);
+
+			LambdaContainerHandler.getContainerConfig().addBinaryContentTypes(
+				"image/png",
+				"image/jpeg",
+				"image/gif",
+				"application/octet-stream");
+
 			long duration = System.currentTimeMillis() - startTime;
 
 			log.info("Lambda Handler 초기화 완료 (소요 시간: {}ms)", duration);
@@ -39,11 +48,6 @@ public class LambdaHandler implements RequestStreamHandler {
 	@Override
 	public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context)
 		throws IOException {
-
-		if (handler == null) {
-			throw new IllegalStateException("Handler가 초기화되지 않았습니다. static 블록을 확인하세요.");
-		}
-
 		handler.proxyStream(inputStream, outputStream, context);
 	}
 }

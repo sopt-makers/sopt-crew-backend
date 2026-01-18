@@ -35,7 +35,7 @@ import jakarta.persistence.EntityManagerFactory;
 	entityManagerFactoryRef = "primaryEntityManagerFactory", // EntityManager의 이름
 	transactionManagerRef = "primaryTransactionManager" // 트랜잭션 매니저의 이름
 )
-@Profile({"local", "dev", "prod", "test", "traffic"})
+@Profile({"local", "dev", "prod", "test", "traffic", "lambda-dev"})
 public class CrewDatabaseConfig {
 
 	@Bean

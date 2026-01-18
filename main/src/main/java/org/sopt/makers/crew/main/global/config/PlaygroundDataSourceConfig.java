@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 	entityManagerFactoryRef = "secondEntityManagerFactory",
 	transactionManagerRef = "secondTransactionManager"
 )
-@Profile({"local", "dev", "prod", "test", "traffic"})
+@Profile({"local", "dev", "prod", "test", "traffic", "lambda-dev"})
 public class PlaygroundDataSourceConfig {
 	@Bean
 	@ConfigurationProperties("spring.playground-datasource")

@@ -1,0 +1,156 @@
+name: Deploy Lambda (Dev)
+
+on:
+  workflow_dispatch:  # 수동 실행 가능
+  push:
+    branches:
+      - feature/github-actions-lambda  # 테스트용
+      - develop                        # 실제 배포용
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Lambda to Dev
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    env:
+      AWS_REGION: ap-northeast-2
+    
+    steps:
+      # Step 1: 환경 구성
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Setup SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Step 2: Secrets Injection (보안 파일 복원)
+      - name: Inject application-secret.properties from Secrets
+        run: |
+          echo "${{ secrets.APPLICATION_SECRET_SPRING }}" > ./main/src/main/resources/application-secret.properties
+        shell: bash
+
+      # Step 3: Build Application
+      - name: Build Lambda JAR
+        working-directory: main
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean lambdaJar --no-daemon
+          echo "Lambda JAR 빌드 완료"
+
+      - name: Verify build artifact
+        working-directory: main
+        run: |
+          ZIP_FILE=$(find build/distributions -name "*-lambda.zip" | head -n 1)
+          if [ -z "$ZIP_FILE" ]; then
+            echo "❌ Lambda ZIP 파일이 생성되지 않았습니다"
+            ls -R build/distributions/
+            exit 1
+          fi
+          echo "✅ Lambda ZIP 파일 생성 확인: $ZIP_FILE ($(du -h "$ZIP_FILE" | cut -f1))"
+          
+          # ZIP 압축 해제 후 main.jar 내부 확인
+          echo "=== lib/main.jar 내부 리소스 확인 ==="
+          unzip -q "$ZIP_FILE" -d /tmp/lambda-check
+          
+          if [ -f "/tmp/lambda-check/lib/main.jar" ]; then
+            echo "✅ lib/main.jar 존재"
+            
+            if unzip -l /tmp/lambda-check/lib/main.jar | grep -q "application-secret.properties"; then
+              echo "✅ application-secret.properties가 main.jar에 포함되어 있습니다"
+              unzip -l /tmp/lambda-check/lib/main.jar | grep -E "\.properties|\.yml|\.yaml"
+            else
+              echo "❌ application-secret.properties가 main.jar에 포함되지 않았습니다!"
+              echo "=== main.jar 내 리소스 파일 목록 ==="
+              unzip -l /tmp/lambda-check/lib/main.jar | grep -E "\.properties|\.yml|\.yaml" || echo "properties/yml 파일 없음"
+              exit 1
+            fi
+          else
+            echo "❌ lib/main.jar를 찾을 수 없습니다"
+            ls -la /tmp/lambda-check/
+            exit 1
+          fi
+          
+          # 정리
+          rm -rf /tmp/lambda-check
+
+      # Step 3.5: Clean up failed stack if exists
+      - name: Clean up failed stack
+        run: |
+          STACK_STATUS=$(aws cloudformation describe-stacks --stack-name sopt-crew-dev --query 'Stacks[0].StackStatus' --output text --region ap-northeast-2 2>/dev/null || echo "NONE")
+          
+          if [ "$STACK_STATUS" = "ROLLBACK_COMPLETE" ]; then
+            echo "⚠️ 스택이 ROLLBACK_COMPLETE 상태입니다. 삭제 중..."
+            aws cloudformation delete-stack --stack-name sopt-crew-dev --region ap-northeast-2
+            echo "스택 삭제 대기 중..."
+            aws cloudformation wait stack-delete-complete --stack-name sopt-crew-dev --region ap-northeast-2
+            echo "✅ 스택 삭제 완료"
+          elif [ "$STACK_STATUS" = "NONE" ]; then
+            echo "새로운 스택을 생성합니다."
+          else
+            echo "현재 스택 상태: $STACK_STATUS"
+          fi
+
+      # Step 4: Deploy with SAM
+      - name: Deploy to AWS Lambda
+        id: deploy
+        working-directory: lambda
+        run: |
+          sam deploy \
+            --template-file template-dev.yaml \
+            --config-env dev \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset
+          echo "Lambda 배포 완료"
+
+      - name: Check Lambda logs on failure
+        if: failure() && steps.deploy.outcome == 'failure'
+        run: |
+          echo "=== Lambda 함수 이름 조회 중... ==="
+          
+          # 1. CloudFormation에서 실제 배포된 Lambda 함수의 물리적 ID(Physical ID)를 조회
+          FUNCTION_NAME=$(aws cloudformation describe-stack-resources \
+            --stack-name sopt-crew-dev \
+            --query "StackResources[?ResourceType=='AWS::Lambda::Function'].PhysicalResourceId" \
+            --output text \
+            --region ap-northeast-2)
+            
+          if [ -n "$FUNCTION_NAME" ] && [ "$FUNCTION_NAME" != "None" ]; then
+            LOG_GROUP="/aws/lambda/$FUNCTION_NAME"
+            echo "✅ 실제 로그 그룹: $LOG_GROUP"
+            
+            echo "=== 최근 에러 로그 확인 ==="
+            aws logs tail "$LOG_GROUP" \
+              --since 10m \
+              --format short \
+              --filter-pattern "?Exception ?Error ?Fail" \
+              --region ap-northeast-2 || echo "로그를 가져올 수 없습니다."
+          else
+            echo "❌ Lambda 함수를 찾을 수 없습니다 (배포 실패로 생성이 안 되었을 수 있음)"
+          fi

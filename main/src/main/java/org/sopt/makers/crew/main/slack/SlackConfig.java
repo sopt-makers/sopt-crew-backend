@@ -10,7 +10,7 @@ import com.slack.api.bolt.App;
 import com.slack.api.bolt.AppConfig;
 import com.slack.api.methods.MethodsClient;
 
-@Profile({"dev"})
+@Profile({"dev", "lambda-dev"})
 @Configuration
 public class SlackConfig {
 
