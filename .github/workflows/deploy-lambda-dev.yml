@@ -61,7 +61,7 @@ jobs:
         working-directory: main
         run: |
           chmod +x ./gradlew
-          ./gradlew clean lambdaJar
+          ./gradlew clean lambdaJar --no-daemon
           echo "Lambda JAR 빌드 완료"
 
       - name: Verify build artifact
@@ -132,19 +132,25 @@ jobs:
       - name: Check Lambda logs on failure
         if: failure() && steps.deploy.outcome == 'failure'
         run: |
-          echo "=== Lambda 초기화 로그 확인 (/aws/lambda/crew-dev-api) ==="
+          echo "=== Lambda 함수 이름 조회 중... ==="
           
-          # 함수가 존재하지 않아도 로그 그룹은 남아있을 수 있음
-          if aws logs describe-log-groups --log-group-name-prefix "/aws/lambda/crew-dev-api" --region ap-northeast-2 | grep -q "logGroupName"; then
-            echo "✅ 로그 그룹 발견! 최근 에러 로그를 출력합니다:"
-            aws logs tail "/aws/lambda/crew-dev-api" \
+          # 1. CloudFormation에서 실제 배포된 Lambda 함수의 물리적 ID(Physical ID)를 조회
+          FUNCTION_NAME=$(aws cloudformation describe-stack-resources \
+            --stack-name sopt-crew-dev \
+            --query "StackResources[?ResourceType=='AWS::Lambda::Function'].PhysicalResourceId" \
+            --output text \
+            --region ap-northeast-2)
+            
+          if [ -n "$FUNCTION_NAME" ] && [ "$FUNCTION_NAME" != "None" ]; then
+            LOG_GROUP="/aws/lambda/$FUNCTION_NAME"
+            echo "✅ 실제 로그 그룹: $LOG_GROUP"
+            
+            echo "=== 최근 에러 로그 확인 ==="
+            aws logs tail "$LOG_GROUP" \
               --since 10m \
               --format short \
               --filter-pattern "?Exception ?Error ?Fail" \
-              --region ap-northeast-2 || echo "로그 조회 실패"
-              
-            echo "--- 전체 로그 (마지막 30줄) ---"
-            aws logs tail "/aws/lambda/crew-dev-api" --since 10m --region ap-northeast-2 | tail -n 30
+              --region ap-northeast-2 || echo "로그를 가져올 수 없습니다."
           else
-            echo "❌ 로그 그룹을 찾을 수 없습니다. (/aws/lambda/crew-dev-api)"
+            echo "❌ Lambda 함수를 찾을 수 없습니다 (배포 실패로 생성이 안 되었을 수 있음)"
           fi
