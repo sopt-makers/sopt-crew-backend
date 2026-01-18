@@ -10,7 +10,6 @@ spring:
   config:
     activate:
       on-profile: lambda-dev
-    import: classpath:application-secret.properties
 
   main:
     lazy-initialization: true
