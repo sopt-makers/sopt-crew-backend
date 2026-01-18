@@ -8,8 +8,8 @@ import org.sopt.makers.crew.main.MainApplication;
 
 import com.amazonaws.serverless.exceptions.ContainerInitializationException;
 import com.amazonaws.serverless.proxy.internal.LambdaContainerHandler;
-import com.amazonaws.serverless.proxy.model.AwsProxyRequest;
 import com.amazonaws.serverless.proxy.model.AwsProxyResponse;
+import com.amazonaws.serverless.proxy.model.HttpApiV2ProxyRequest;
 import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
@@ -19,7 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LambdaHandler implements RequestStreamHandler {
 
-	private static final SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
+	// HTTP API (v2) 형식 사용 - template의 Type: HttpApi와 일치
+	private static final SpringBootLambdaContainerHandler<HttpApiV2ProxyRequest, AwsProxyResponse> handler;
 
 	static {
 		long startTime = System.currentTimeMillis();
@@ -27,7 +28,7 @@ public class LambdaHandler implements RequestStreamHandler {
 		try {
 			log.info("Lambda Handler 초기화 시작...");
 
-			handler = SpringBootLambdaContainerHandler.getAwsProxyHandler(MainApplication.class);
+			handler = SpringBootLambdaContainerHandler.getHttpApiV2ProxyHandler(MainApplication.class);
 
 			LambdaContainerHandler.getContainerConfig().addBinaryContentTypes(
 				"image/png",
