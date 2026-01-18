@@ -75,16 +75,30 @@ jobs:
           fi
           echo "✅ Lambda ZIP 파일 생성 확인: $ZIP_FILE ($(du -h "$ZIP_FILE" | cut -f1))"
           
-          # application-secret.properties 포함 여부 확인
-          echo "=== ZIP 내용 확인 (application-secret.properties) ==="
-          if unzip -l "$ZIP_FILE" | grep -q "application-secret.properties"; then
-            echo "✅ application-secret.properties가 ZIP에 포함되어 있습니다"
+          # ZIP 압축 해제 후 main.jar 내부 확인
+          echo "=== lib/main.jar 내부 리소스 확인 ==="
+          unzip -q "$ZIP_FILE" -d /tmp/lambda-check
+          
+          if [ -f "/tmp/lambda-check/lib/main.jar" ]; then
+            echo "✅ lib/main.jar 존재"
+            
+            if unzip -l /tmp/lambda-check/lib/main.jar | grep -q "application-secret.properties"; then
+              echo "✅ application-secret.properties가 main.jar에 포함되어 있습니다"
+              unzip -l /tmp/lambda-check/lib/main.jar | grep -E "\.properties|\.yml|\.yaml"
+            else
+              echo "❌ application-secret.properties가 main.jar에 포함되지 않았습니다!"
+              echo "=== main.jar 내 리소스 파일 목록 ==="
+              unzip -l /tmp/lambda-check/lib/main.jar | grep -E "\.properties|\.yml|\.yaml" || echo "properties/yml 파일 없음"
+              exit 1
+            fi
           else
-            echo "❌ application-secret.properties가 ZIP에 포함되지 않았습니다!"
-            echo "=== ZIP 내 리소스 파일 목록 ==="
-            unzip -l "$ZIP_FILE" | grep -E "\.properties|\.yml|\.yaml" || echo "properties/yml 파일 없음"
+            echo "❌ lib/main.jar를 찾을 수 없습니다"
+            ls -la /tmp/lambda-check/
             exit 1
           fi
+          
+          # 정리
+          rm -rf /tmp/lambda-check
 
       # Step 3.5: Clean up failed stack if exists
       - name: Clean up failed stack
