@@ -127,6 +127,7 @@ management:
     web:
       exposure:
         include: health, info
+      base-path: ${ACTUATOR_PATH}
   endpoint:
     health:
       enabled: true
