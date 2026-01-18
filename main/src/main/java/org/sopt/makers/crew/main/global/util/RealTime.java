@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile({"local", "dev", "prod", "traffic"})
+@Profile({"local", "dev", "prod", "traffic", "lambda-dev"})
 public class RealTime implements Time {
 	@Override
 	public LocalDateTime now() {

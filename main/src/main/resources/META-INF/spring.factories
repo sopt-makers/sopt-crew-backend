@@ -1,1 +1,0 @@
-org.springframework.boot.env.EnvironmentPostProcessor=org.sopt.makers.crew.main.global.config.SecretPropertiesEnvironmentPostProcessor
