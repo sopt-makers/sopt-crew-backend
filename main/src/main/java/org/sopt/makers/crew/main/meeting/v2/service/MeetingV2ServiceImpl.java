@@ -83,6 +83,7 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.global.util.UserPartUtil;
+import org.sopt.makers.crew.main.meeting.v2.dto.ApplyDataContext;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.FlashMeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
@@ -162,6 +163,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final Time time;
 
 	private final ApplyTransactionService applyTransactionService;
+	private final ApplyReadService applyReadService;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -346,48 +348,33 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	@Transactional(readOnly = true) // 읽기 4개를 1개 connection으로, saveApply는 REQUIRES_NEW로 독립
+	// @Transactional 제거 - Facade 역할만 (Sequential Transaction Pattern)
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
-		// Phase 1: 읽기 (readOnly 트랜잭션 - 클래스 레벨 기본값)
-		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+		// Phase 1: 읽기 (별도 트랜잭션, 완료 후 커넥션 반환)
+		ApplyDataContext data = applyReadService.fetchDataForApply(requestBody.getMeetingId(), userId);
 
-		validateMeetingCategoryEvent(meeting);
-
-		User user = userRepository.findByIdOrThrow(userId);
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
+		// Phase 2: 검증 (트랜잭션 없음, 메모리 연산만)
+		validateMeetingCategoryEvent(data.meeting());
+		validateMeetingCapacity(data.meeting(), data.applies());
+		validateUserAlreadyAppliedStressVersion(userId, data.applies());
+		validateApplyPeriod(data.meeting());
+		validateUserActivities(data.user());
+		validateUserJoinableParts(data.user(), data.meeting());
+		data.getCoLeaders().validateCoLeader(data.meeting().getId(), data.user().getId());
+		data.meeting().validateIsNotMeetingLeader(userId);
 
 		// Traffic 환경에서는 Lock을 사용하지 않음 (부하 테스트용)
 		if (isTrafficProfile()) {
-			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-
-			// Phase 2: 검증 (메모리 연산, Connection 불필요)
-			validateMeetingCapacity(meeting, applies);
-			validateUserAlreadyAppliedStressVersion(userId, applies);
-			validateApplyPeriod(meeting);
-			validateUserActivities(user);
-			validateUserJoinableParts(user, meeting);
-			coLeaders.validateCoLeader(meeting.getId(), user.getId());
-			meeting.validateIsNotMeetingLeader(userId);
-
-			// Phase 3: 쓰기 (별도 트랜잭션, Connection 4ms만 사용)
+			// Phase 3: 쓰기 (별도 트랜잭션, 새 커넥션 획득)
 			Apply savedApply = applyTransactionService.saveApply(
-				requestBody, EnApplyType.APPLY, meeting, user, userId);
+				requestBody, EnApplyType.APPLY, data.meeting(), data.user(), userId);
 			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 		}
 
 		return userLockManager.executeWithLock(userId, () -> {
-			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-
-			validateMeetingCapacity(meeting, applies);
-			validateUserAlreadyAppliedStressVersion(userId, applies);
-			validateApplyPeriod(meeting);
-			validateUserActivities(user);
-			validateUserJoinableParts(user, meeting);
-			coLeaders.validateCoLeader(meeting.getId(), user.getId());
-			meeting.validateIsNotMeetingLeader(userId);
-
-			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
+			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY,
+				data.meeting(), data.user(), userId);
 			Apply savedApply = applyRepository.save(apply);
 			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 		});

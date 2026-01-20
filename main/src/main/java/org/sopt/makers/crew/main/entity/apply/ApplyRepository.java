@@ -39,6 +39,8 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 
 	List<Apply> findAllByMeetingId(Integer meetingId);
 
+	int countByMeetingId(Integer meetingId);
+
 	List<Apply> findAllByMeetingIdIn(List<Integer> meetingIds);
 
 	boolean existsByMeetingIdAndUserId(Integer meetingId, Integer userId);
