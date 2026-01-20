@@ -128,7 +128,6 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private static final int ZERO = 0;
@@ -165,6 +164,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final ApplyTransactionService applyTransactionService;
 
 	@Override
+	@Transactional(readOnly = true)
 	public MeetingV2GetAllMeetingByOrgUserDto getAllMeetingByOrgUser(
 		MeetingV2GetAllMeetingByOrgUserQueryDto queryDto) {
 		int page = queryDto.getPage();
@@ -206,6 +206,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	 * @Note: 최근 활동 여부는 게시글 생성일자를 기준으로 진행한다.
 	 */
 	@Override
+	@Transactional(readOnly = true)
 	public List<MeetingV2GetMeetingBannerResponseDto> getMeetingBanner() {
 
 		List<Meeting> meetings = meetingRepository.findTop20ByOrderByIdDesc();
@@ -405,6 +406,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public MeetingGetApplyListResponseDto findApplyList(MeetingGetAppliesQueryDto queryCommand,
 		Integer meetingId,
 		Integer userId) {
@@ -420,6 +422,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public MeetingV2GetAllMeetingDto getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand) {
 		PageableStrategy pageableStrategy = getPageableStrategy(queryCommand);
 		Pageable pageable = pageableStrategy.createPageable(queryCommand);
@@ -563,6 +566,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public AppliesCsvFileUrlResponseDto getAppliesCsvFileUrl(Integer meetingId, List<Integer> status, String order,
 		Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
@@ -579,6 +583,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public MeetingV2GetMeetingByIdResponseDto getMeetingDetail(Integer meetingId, Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
@@ -614,6 +619,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public MeetingV2GetRecommendDto getRecommendMeetingsByIds(List<Integer> meetingIds, Integer userId) {
 
 		List<Meeting> meetings = meetingRepository.findRecommendMeetings(meetingIds, time);
@@ -684,6 +690,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public MeetingLeaderUserIdDto getMeetingLeaderUserIdByMeetingId(Integer meetingId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		return MeetingLeaderUserIdDto.from(meeting);
