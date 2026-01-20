@@ -130,6 +130,6 @@ thread-pool:
   core-size: ${DEV_THREAD_CORE_SIZE}
   thread-name-prefix: ${DEV_THREAD_NAME_PREFIX}
 
-
-
-
+cors:
+  allowed-origins:
+    traffic: ${CORS_TRAFFIC_ORIGIN}
