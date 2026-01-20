@@ -162,6 +162,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private final Time time;
 
+	private final ApplyTransactionService applyTransactionService;
+
 	@Override
 	public MeetingV2GetAllMeetingByOrgUserDto getAllMeetingByOrgUser(
 		MeetingV2GetAllMeetingByOrgUserQueryDto queryDto) {
@@ -343,9 +345,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	@Transactional
+	// @Transactional 제거 - Traffic 환경에서 트랜잭션 범위 축소를 위해 applyTransactionService 사용
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
+		// Phase 1: 읽기 (readOnly 트랜잭션 - 클래스 레벨 기본값)
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
 
 		validateMeetingCategoryEvent(meeting);
@@ -357,6 +360,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (isTrafficProfile()) {
 			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 
+			// Phase 2: 검증 (메모리 연산, Connection 불필요)
 			validateMeetingCapacity(meeting, applies);
 			validateUserAlreadyAppliedStressVersion(userId, applies);
 			validateApplyPeriod(meeting);
@@ -365,8 +369,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			coLeaders.validateCoLeader(meeting.getId(), user.getId());
 			meeting.validateIsNotMeetingLeader(userId);
 
-			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-			Apply savedApply = applyRepository.save(apply);
+			// Phase 3: 쓰기 (별도 트랜잭션, Connection 4ms만 사용)
+			Apply savedApply = applyTransactionService.saveApply(
+				requestBody, EnApplyType.APPLY, meeting, user, userId);
 			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 		}
 
