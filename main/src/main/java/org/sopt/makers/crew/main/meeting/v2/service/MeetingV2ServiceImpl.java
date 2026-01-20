@@ -346,7 +346,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	// @Transactional 제거 - Traffic 환경에서 트랜잭션 범위 축소를 위해 applyTransactionService 사용
+	@Transactional(readOnly = true) // 읽기 4개를 1개 connection으로, saveApply는 REQUIRES_NEW로 독립
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 		// Phase 1: 읽기 (readOnly 트랜잭션 - 클래스 레벨 기본값)
