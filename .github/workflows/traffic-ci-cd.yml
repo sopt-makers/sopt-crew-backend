@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - traffic
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: "Branch/tag/commit SHA to deploy"
+        required: true
+        default: "traffic"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,6 +30,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
 
       - name: Inject application-secret.properties from Secrets
         run: |
