@@ -127,8 +127,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.opencsv.CSVWriter;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MeetingV2ServiceImpl implements MeetingV2Service {
@@ -146,6 +149,12 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		} else {
 			EVENT_GATE = null;
 		}
+	}
+
+	@PostConstruct
+	void logSemaphoreConfig() {
+		log.info("[SPIKE-CONFIG] permits={}, fatTx={}, gate={}",
+			SEMAPHORE_PERMITS, USE_FAT_TX, EVENT_GATE != null ? "ON" : "OFF");
 	}
 
 	private final Environment environment;
@@ -367,16 +376,21 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 
+		long acquireWaitMs = 0;
+
 		// Semaphore Gate (OFF일 때 bypass)
 		if (EVENT_GATE != null) {
 			try {
+				long acquireStart = System.nanoTime();
 				EVENT_GATE.acquire();
+				acquireWaitMs = (System.nanoTime() - acquireStart) / 1_000_000;
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new ServerException(INTERNAL_SERVER_ERROR.getErrorCode());
 			}
 		}
 
+		long businessStart = System.nanoTime();
 		try {
 			if (USE_FAT_TX) {
 				return applyWithFatTx(requestBody, userId);
@@ -384,6 +398,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				return applyWithSequentialTx(requestBody, userId);
 			}
 		} finally {
+			long businessMs = (System.nanoTime() - businessStart) / 1_000_000;
+			log.info("[SPIKE] acquireWait={}ms business={}ms total={}ms permits={} queue={}",
+				acquireWaitMs, businessMs, acquireWaitMs + businessMs,
+				EVENT_GATE != null ? EVENT_GATE.availablePermits() : -1,
+				EVENT_GATE != null ? EVENT_GATE.getQueueLength() : -1);
 			if (EVENT_GATE != null) {
 				EVENT_GATE.release();
 			}
