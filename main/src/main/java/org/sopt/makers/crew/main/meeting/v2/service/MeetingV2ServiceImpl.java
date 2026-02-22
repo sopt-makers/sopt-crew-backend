@@ -6,6 +6,7 @@ import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.WAITING
 import static org.sopt.makers.crew.main.global.constant.CrewConst.ORDER_ASC;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.ALREADY_APPLIED_MEETING;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.CSV_ERROR;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.INTERNAL_SERVER_ERROR;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.MISSING_GENERATION_PART;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_ACTIVE_GENERATION;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_APPLY;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -132,6 +134,19 @@ import lombok.RequiredArgsConstructor;
 public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private static final int ZERO = 0;
+
+	// 실험 제어 상수 (static final → 변경 시 앱 재시작)
+	private static final int SEMAPHORE_PERMITS = 10;  // 0 = OFF, 실험마다 변경
+	private static final boolean USE_FAT_TX = false;  // true: Fat TX, false: Sequential TX
+	private static final Semaphore EVENT_GATE;
+
+	static {
+		if (SEMAPHORE_PERMITS > 0) {
+			EVENT_GATE = new Semaphore(SEMAPHORE_PERMITS, true);
+		} else {
+			EVENT_GATE = null;
+		}
+	}
 
 	private final Environment environment;
 	private final UserRepository userRepository;
@@ -348,8 +363,34 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	// @Transactional 제거 - Facade 역할만 (Sequential Transaction Pattern)
+	// @Transactional 제거 - Facade 역할만 (Semaphore Gate + TX 분기)
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
+		Integer userId) {
+
+		// Semaphore Gate (OFF일 때 bypass)
+		if (EVENT_GATE != null) {
+			try {
+				EVENT_GATE.acquire();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new ServerException(INTERNAL_SERVER_ERROR.getErrorCode());
+			}
+		}
+
+		try {
+			if (USE_FAT_TX) {
+				return applyWithFatTx(requestBody, userId);
+			} else {
+				return applyWithSequentialTx(requestBody, userId);
+			}
+		} finally {
+			if (EVENT_GATE != null) {
+				EVENT_GATE.release();
+			}
+		}
+	}
+
+	private MeetingV2ApplyMeetingResponseDto applyWithSequentialTx(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 		// Phase 1: 읽기 (별도 트랜잭션, 완료 후 커넥션 반환)
 		ApplyDataContext data = applyReadService.fetchDataForApply(requestBody.getMeetingId(), userId);
@@ -364,20 +405,16 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		data.getCoLeaders().validateCoLeader(data.meeting().getId(), data.user().getId());
 		data.meeting().validateIsNotMeetingLeader(userId);
 
-		// Traffic 환경에서는 Lock을 사용하지 않음 (부하 테스트용)
-		if (isTrafficProfile()) {
-			// Phase 3: 쓰기 (별도 트랜잭션, 새 커넥션 획득)
-			Apply savedApply = applyTransactionService.saveApply(
-				requestBody, EnApplyType.APPLY, data.meeting(), data.user(), userId);
-			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
-		}
+		// Phase 3: 쓰기 (별도 트랜잭션, 새 커넥션 획득)
+		Apply savedApply = applyTransactionService.saveApply(
+			requestBody, EnApplyType.APPLY, data.meeting(), data.user(), userId);
+		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+	}
 
-		return userLockManager.executeWithLock(userId, () -> {
-			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY,
-				data.meeting(), data.user(), userId);
-			Apply savedApply = applyRepository.save(apply);
-			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
-		});
+	private MeetingV2ApplyMeetingResponseDto applyWithFatTx(MeetingV2ApplyMeetingDto requestBody,
+		Integer userId) {
+		// 별도 Bean 호출 — AOP proxy 통해 @Transactional 적용
+		return applyTransactionService.applyFatTx(requestBody, userId);
 	}
 
 	@Override
