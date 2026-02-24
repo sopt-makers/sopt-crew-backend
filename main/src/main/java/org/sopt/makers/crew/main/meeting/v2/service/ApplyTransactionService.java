@@ -68,19 +68,19 @@ public class ApplyTransactionService {
 	/**
 	 * Fat TX 경로 (부하 테스트 전용)
 	 * <p>
-	 * develop의 Fat TX와 동일한 DB I/O 패턴(SELECT 4 + INSERT 1)을 재현.
+	 * develop과 동일한 요청 형태(SELECT 4 + INSERT 1)를 유지하되, hydration 대신 scalar 조회로 경량화.
 	 * 검증 로직은 의도적으로 생략: (1) private 메서드 접근 불가 (2) 부하 테스트 목적상 불필요.
-	 * 핵심은 "단일 TX 내 5개 DB 왕복"의 성능 특성 측정.
+	 * 핵심은 "단일 TX 내 DB 왕복 형태 유지 + JPA hydration 비용 제거"의 성능 특성 측정.
 	 */
 	@Transactional
 	public MeetingV2ApplyMeetingResponseDto applyFatTx(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 
-		// SELECT 4회: develop Fat TX와 동일한 DB I/O 패턴
+		// SELECT 4회: PK 조회 2 + scalar 조회 2 (no-validation 유지)
 		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
 		User user = userRepository.findByIdOrThrow(userId);
-		coLeaderRepository.findAllByMeetingId(meeting.getId());
-		applyRepository.findAllByMeetingId(meeting.getId());
+		coLeaderRepository.existsByMeetingIdAndUserId(meeting.getId(), userId);
+		applyRepository.countByMeetingId(meeting.getId());
 
 		// INSERT 1회
 		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY,
