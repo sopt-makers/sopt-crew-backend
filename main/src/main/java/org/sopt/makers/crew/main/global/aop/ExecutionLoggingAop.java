@@ -21,7 +21,7 @@ import lombok.extern.log4j.Log4j2;
 @Aspect
 @Component
 @Log4j2
-@Profile("!test")
+@Profile({"!test", "!traffic"})
 public class ExecutionLoggingAop {
 
 	private static final String UNKNOWN_USER = "unknownUser";
