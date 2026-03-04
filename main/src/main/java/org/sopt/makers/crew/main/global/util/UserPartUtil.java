@@ -9,7 +9,7 @@ public class UserPartUtil {
 
     public static MeetingJoinablePart getMeetingJoinablePart(UserPart userPart) {
         switch (userPart) {
-            case PM:
+            case PLAN:
             case PM_LEADER:
                 return MeetingJoinablePart.PM;
             case DESIGN:
