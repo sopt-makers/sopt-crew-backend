@@ -8,13 +8,22 @@ import org.sopt.makers.crew.main.global.exception.BadRequestException;
 
 @Slf4j
 public enum UserPart {
-	// 파트
-	PM("기획"),
+	// SOPT
+	PLAN("기획"),
 	DESIGN("디자인"),
 	IOS("iOS"),
 	ANDROID("안드로이드"),
 	SERVER("서버"),
 	WEB("웹"),
+
+	// SOPT MAKERS
+	PM("PM"),
+	FRONTEND("프론트엔드"),
+	BACKEND("백엔드"),
+	MARKETER("마케터"),
+	RESEARCHER("리서처"),
+	ORGANIZER("오거나이저"),
+	CX("CX"),
 
 	// 파트장
 	PM_LEADER("기획 파트장"),
