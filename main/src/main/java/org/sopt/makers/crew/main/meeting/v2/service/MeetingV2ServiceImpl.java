@@ -31,9 +31,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -129,12 +129,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.opencsv.CSVWriter;
+
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import com.opencsv.CSVWriter;
-
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -165,7 +165,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private static final String TX_SEQUENTIAL = "sequential";
 
 	// 실험 제어 상수 (static final → 변경 시 앱 재시작)
-	private static final int SEMAPHORE_PERMITS = 10;  // 0 = OFF, 실험마다 변경
+	private static final int SEMAPHORE_PERMITS = 20;  // 0 = OFF, 실험마다 변경
 	private static final boolean USE_FAT_TX = true;  // true: Fat TX, false: Sequential TX
 	private static final Semaphore EVENT_GATE;
 
@@ -433,13 +433,13 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 			long businessStart = System.nanoTime();
 			try {
-					if (USE_FAT_TX) {
-						return applyWithFatTx(requestBody, userId, gate);
-					}
-					return applyWithSequentialTx(requestBody, userId, gate);
-				} catch (RuntimeException e) {
-					outcome = OUTCOME_ERROR;
-					throw e;
+				if (USE_FAT_TX) {
+					return applyWithFatTx(requestBody, userId, gate);
+				}
+				return applyWithSequentialTx(requestBody, userId, gate);
+			} catch (RuntimeException e) {
+				outcome = OUTCOME_ERROR;
+				throw e;
 			} finally {
 				businessNanos = System.nanoTime() - businessStart;
 			}
