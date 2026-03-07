@@ -35,6 +35,7 @@ public class ApplyTransactionService {
 	private final UserRepository userRepository;
 	private final CoLeaderRepository coLeaderRepository;
 	private final ApplyMapper applyMapper;
+	private final SpikeApplyProfiler spikeApplyProfiler;
 
 	/**
 	 * Apply 엔티티를 생성하고 저장
@@ -54,15 +55,20 @@ public class ApplyTransactionService {
 		EnApplyType applyType,
 		Meeting meeting,
 		User user,
-		Integer userId) {
+		Integer userId,
+		String txMode,
+		String gate) {
 		// Race Condition 방지: 쓰기 트랜잭션 내에서 capacity 재검증 (APPROVE만 — develop 비즈니스 로직과 일치)
-		int approvedCount = applyRepository.countByMeetingIdAndStatus(meeting.getId(), EnApplyStatus.APPROVE);
+		int approvedCount = spikeApplyProfiler.profile("crew.spike.apply.business.write.approved_count", txMode, gate,
+			() -> applyRepository.countByMeetingIdAndStatus(meeting.getId(), EnApplyStatus.APPROVE));
 		if (approvedCount >= meeting.getCapacity()) {
 			throw new BadRequestException(FULL_MEETING_CAPACITY.getErrorCode());
 		}
 
-		Apply apply = applyMapper.toApplyEntity(requestBody, applyType, meeting, user, userId);
-		return applyRepository.save(apply);
+		Apply apply = spikeApplyProfiler.profile("crew.spike.apply.business.write.map_entity", txMode, gate,
+			() -> applyMapper.toApplyEntity(requestBody, applyType, meeting, user, userId));
+		return spikeApplyProfiler.profile("crew.spike.apply.business.write.save_apply", txMode, gate,
+			() -> applyRepository.save(apply));
 	}
 
 	/**
@@ -74,18 +80,25 @@ public class ApplyTransactionService {
 	 */
 	@Transactional
 	public MeetingV2ApplyMeetingResponseDto applyFatTx(MeetingV2ApplyMeetingDto requestBody,
-		Integer userId) {
+		Integer userId,
+		String txMode,
+		String gate) {
 
 		// SELECT 4회: PK 조회 2 + scalar 조회 2 (no-validation 유지)
-		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
-		User user = userRepository.findByIdOrThrow(userId);
-		coLeaderRepository.existsByMeetingIdAndUserId(meeting.getId(), userId);
-		applyRepository.countByMeetingId(meeting.getId());
+		Meeting meeting = spikeApplyProfiler.profile("crew.spike.apply.business.fetch.meeting", txMode, gate,
+			() -> meetingRepository.findByIdOrThrow(requestBody.getMeetingId()));
+		User user = spikeApplyProfiler.profile("crew.spike.apply.business.fetch.user", txMode, gate,
+			() -> userRepository.findByIdOrThrow(userId));
+		spikeApplyProfiler.profile("crew.spike.apply.business.query.coleader_exists", txMode, gate,
+			() -> coLeaderRepository.existsByMeetingIdAndUserId(meeting.getId(), userId));
+		spikeApplyProfiler.profile("crew.spike.apply.business.query.apply_count", txMode, gate,
+			() -> applyRepository.countByMeetingId(meeting.getId()));
 
 		// INSERT 1회
-		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY,
-			meeting, user, userId);
-		Apply savedApply = applyRepository.save(apply);
+		Apply apply = spikeApplyProfiler.profile("crew.spike.apply.business.write.map_entity", txMode, gate,
+			() -> applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId));
+		Apply savedApply = spikeApplyProfiler.profile("crew.spike.apply.business.write.save_apply", txMode, gate,
+			() -> applyRepository.save(apply));
 		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 	}
 }

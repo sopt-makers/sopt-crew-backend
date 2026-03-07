@@ -22,6 +22,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -30,8 +31,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -125,6 +129,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import com.opencsv.CSVWriter;
 
 import jakarta.annotation.PostConstruct;
@@ -137,6 +145,24 @@ import lombok.extern.slf4j.Slf4j;
 public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private static final int ZERO = 0;
+	private static final String METRIC_APPLY_PREFIX = "crew.spike.apply";
+	private static final String METRIC_APPLY_TOTAL = METRIC_APPLY_PREFIX + ".total";
+	private static final String METRIC_APPLY_ACQUIRE_WAIT = METRIC_APPLY_PREFIX + ".acquire.wait";
+	private static final String METRIC_APPLY_BUSINESS = METRIC_APPLY_PREFIX + ".business";
+	private static final String METRIC_APPLY_QUEUE_SNAPSHOT = METRIC_APPLY_PREFIX + ".queue.length.snapshot";
+	private static final String METRIC_APPLY_PERMITS_SNAPSHOT = METRIC_APPLY_PREFIX + ".permits.available.snapshot";
+	private static final String METRIC_APPLY_QUEUE_CURRENT = METRIC_APPLY_PREFIX + ".queue.length.current";
+	private static final String METRIC_APPLY_PERMITS_CURRENT = METRIC_APPLY_PREFIX + ".permits.available.current";
+	private static final String TAG_TX_MODE = "tx_mode";
+	private static final String TAG_GATE = "gate";
+	private static final String TAG_OUTCOME = "outcome";
+	private static final String OUTCOME_SUCCESS = "success";
+	private static final String OUTCOME_ERROR = "error";
+	private static final String OUTCOME_INTERRUPTED = "interrupted";
+	private static final String GATE_ON = "on";
+	private static final String GATE_OFF = "off";
+	private static final String TX_FAT = "fat";
+	private static final String TX_SEQUENTIAL = "sequential";
 
 	// 실험 제어 상수 (static final → 변경 시 앱 재시작)
 	private static final int SEMAPHORE_PERMITS = 10;  // 0 = OFF, 실험마다 변경
@@ -155,6 +181,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	void logSemaphoreConfig() {
 		log.info("[SPIKE-CONFIG] permits={}, fatTx={}, gate={}",
 			SEMAPHORE_PERMITS, USE_FAT_TX, EVENT_GATE != null ? "ON" : "OFF");
+		registerSpikeGauges();
 	}
 
 	private final Environment environment;
@@ -188,6 +215,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private final ApplyTransactionService applyTransactionService;
 	private final ApplyReadService applyReadService;
+	private final MeterRegistry meterRegistry;
+	private final SpikeApplyProfiler spikeApplyProfiler;
+
+	private final ConcurrentMap<String, Timer> spikeTimers = new ConcurrentHashMap<>();
+	private final ConcurrentMap<String, DistributionSummary> spikeSummaries = new ConcurrentHashMap<>();
 
 	@Override
 	@Transactional(readOnly = true)
@@ -376,64 +408,164 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 
-		long acquireWaitMs = 0;
+		String txMode = USE_FAT_TX ? TX_FAT : TX_SEQUENTIAL;
+		String gate = EVENT_GATE != null ? GATE_ON : GATE_OFF;
+		String outcome = OUTCOME_SUCCESS;
+		boolean acquired = false;
+		long acquireWaitNanos = 0L;
+		long businessNanos = 0L;
+		long totalStart = System.nanoTime();
 
-		// Semaphore Gate (OFF일 때 bypass)
-		if (EVENT_GATE != null) {
-			try {
-				long acquireStart = System.nanoTime();
-				EVENT_GATE.acquire();
-				acquireWaitMs = (System.nanoTime() - acquireStart) / 1_000_000;
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				throw new ServerException(INTERNAL_SERVER_ERROR.getErrorCode());
-			}
-		}
-
-		long businessStart = System.nanoTime();
 		try {
-			if (USE_FAT_TX) {
-				return applyWithFatTx(requestBody, userId);
-			} else {
-				return applyWithSequentialTx(requestBody, userId);
+			// Semaphore Gate (OFF일 때 bypass)
+			if (EVENT_GATE != null) {
+				long acquireStart = System.nanoTime();
+				try {
+					EVENT_GATE.acquire();
+					acquired = true;
+					acquireWaitNanos = System.nanoTime() - acquireStart;
+				} catch (InterruptedException e) {
+					outcome = OUTCOME_INTERRUPTED;
+					Thread.currentThread().interrupt();
+					throw new ServerException(INTERNAL_SERVER_ERROR.getErrorCode());
+				}
+			}
+
+			long businessStart = System.nanoTime();
+			try {
+					if (USE_FAT_TX) {
+						return applyWithFatTx(requestBody, userId, gate);
+					}
+					return applyWithSequentialTx(requestBody, userId, gate);
+				} catch (RuntimeException e) {
+					outcome = OUTCOME_ERROR;
+					throw e;
+			} finally {
+				businessNanos = System.nanoTime() - businessStart;
 			}
 		} finally {
-			long businessMs = (System.nanoTime() - businessStart) / 1_000_000;
-			log.info("[SPIKE] acquireWait={}ms business={}ms total={}ms permits={} queue={}",
-				acquireWaitMs, businessMs, acquireWaitMs + businessMs,
-				EVENT_GATE != null ? EVENT_GATE.availablePermits() : -1,
-				EVENT_GATE != null ? EVENT_GATE.getQueueLength() : -1);
-			if (EVENT_GATE != null) {
+			if (acquired && EVENT_GATE != null) {
 				EVENT_GATE.release();
 			}
+			long totalNanos = System.nanoTime() - totalStart;
+			recordSpikeMetrics(txMode, gate, outcome, acquireWaitNanos, businessNanos, totalNanos);
 		}
 	}
 
 	private MeetingV2ApplyMeetingResponseDto applyWithSequentialTx(MeetingV2ApplyMeetingDto requestBody,
-		Integer userId) {
+		Integer userId, String gate) {
+		String txMode = TX_SEQUENTIAL;
+
 		// Phase 1: 읽기 (별도 트랜잭션, 완료 후 커넥션 반환)
-		ApplyDataContext data = applyReadService.fetchDataForApply(requestBody.getMeetingId(), userId);
+		ApplyDataContext data = spikeApplyProfiler.profile("crew.spike.apply.business.read_tx", txMode, gate,
+			() -> applyReadService.fetchDataForApply(requestBody.getMeetingId(), userId, txMode, gate));
 
 		// Phase 2: 검증 (트랜잭션 없음, 메모리 연산만)
-		validateMeetingCategoryEvent(data.meeting());
-		validateMeetingCapacity(data.meeting(), data.applies());
-		validateUserAlreadyAppliedStressVersion(userId, data.applies());
-		validateApplyPeriod(data.meeting());
-		validateUserActivities(data.user());
-		validateUserJoinableParts(data.user(), data.meeting());
-		data.getCoLeaders().validateCoLeader(data.meeting().getId(), data.user().getId());
-		data.meeting().validateIsNotMeetingLeader(userId);
+		spikeApplyProfiler.profile("crew.spike.apply.business.validate.total", txMode, gate, () -> {
+			spikeApplyProfiler.profile("crew.spike.apply.business.validate.category", txMode, gate,
+				() -> validateMeetingCategoryEvent(data.meeting()));
+			spikeApplyProfiler.profile("crew.spike.apply.business.validate.capacity", txMode, gate,
+				() -> validateMeetingCapacity(data.meeting(), data.applies()));
+			spikeApplyProfiler.profile("crew.spike.apply.business.validate.user_applied", txMode, gate,
+				() -> validateUserAlreadyAppliedStressVersion(userId, data.applies()));
+			spikeApplyProfiler.profile("crew.spike.apply.business.validate.apply_period", txMode, gate,
+				() -> validateApplyPeriod(data.meeting()));
+			spikeApplyProfiler.profile("crew.spike.apply.business.validate.user_activities", txMode, gate,
+				() -> validateUserActivities(data.user()));
+			spikeApplyProfiler.profile("crew.spike.apply.business.validate.user_joinable_parts", txMode, gate,
+				() -> validateUserJoinableParts(data.user(), data.meeting()));
+			spikeApplyProfiler.profile("crew.spike.apply.business.validate.coleader", txMode, gate,
+				() -> data.getCoLeaders().validateCoLeader(data.meeting().getId(), data.user().getId()));
+			spikeApplyProfiler.profile("crew.spike.apply.business.validate.not_leader", txMode, gate,
+				() -> data.meeting().validateIsNotMeetingLeader(userId));
+		});
 
 		// Phase 3: 쓰기 (별도 트랜잭션, 새 커넥션 획득)
-		Apply savedApply = applyTransactionService.saveApply(
-			requestBody, EnApplyType.APPLY, data.meeting(), data.user(), userId);
+		Apply savedApply = spikeApplyProfiler.profile("crew.spike.apply.business.write_tx", txMode, gate,
+			() -> applyTransactionService.saveApply(
+				requestBody, EnApplyType.APPLY, data.meeting(), data.user(), userId, txMode, gate));
 		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 	}
 
 	private MeetingV2ApplyMeetingResponseDto applyWithFatTx(MeetingV2ApplyMeetingDto requestBody,
-		Integer userId) {
+		Integer userId, String gate) {
 		// 별도 Bean 호출 — AOP proxy 통해 @Transactional 적용
-		return applyTransactionService.applyFatTx(requestBody, userId);
+		return spikeApplyProfiler.profile("crew.spike.apply.business.fat.total", TX_FAT, gate,
+			() -> applyTransactionService.applyFatTx(requestBody, userId, TX_FAT, gate));
+	}
+
+	private void registerSpikeGauges() {
+		if (EVENT_GATE == null) {
+			return;
+		}
+		Gauge.builder(METRIC_APPLY_QUEUE_CURRENT, EVENT_GATE, Semaphore::getQueueLength)
+			.description("Current waiting threads for event-apply semaphore")
+			.register(meterRegistry);
+		Gauge.builder(METRIC_APPLY_PERMITS_CURRENT, EVENT_GATE, Semaphore::availablePermits)
+			.description("Current available permits for event-apply semaphore")
+			.register(meterRegistry);
+	}
+
+	private void recordSpikeMetrics(String txMode, String gate, String outcome, long acquireWaitNanos,
+		long businessNanos, long totalNanos) {
+		recordTimer(METRIC_APPLY_ACQUIRE_WAIT, txMode, gate, outcome, acquireWaitNanos);
+		recordTimer(METRIC_APPLY_BUSINESS, txMode, gate, outcome, businessNanos);
+		recordTimer(METRIC_APPLY_TOTAL, txMode, gate, outcome, totalNanos);
+		spikeApplyProfiler.recordTimer(METRIC_APPLY_ACQUIRE_WAIT, txMode, gate, outcome, acquireWaitNanos);
+		spikeApplyProfiler.recordTimer(METRIC_APPLY_BUSINESS, txMode, gate, outcome, businessNanos);
+		spikeApplyProfiler.recordTimer(METRIC_APPLY_TOTAL, txMode, gate, outcome, totalNanos);
+
+		if (EVENT_GATE != null) {
+			recordSummary(METRIC_APPLY_QUEUE_SNAPSHOT, txMode, gate, outcome, EVENT_GATE.getQueueLength());
+			recordSummary(METRIC_APPLY_PERMITS_SNAPSHOT, txMode, gate, outcome, EVENT_GATE.availablePermits());
+			spikeApplyProfiler.recordSummary(METRIC_APPLY_QUEUE_SNAPSHOT, txMode, gate, outcome,
+				EVENT_GATE.getQueueLength());
+			spikeApplyProfiler.recordSummary(METRIC_APPLY_PERMITS_SNAPSHOT, txMode, gate, outcome,
+				EVENT_GATE.availablePermits());
+		}
+	}
+
+	private void recordTimer(String metricName, String txMode, String gate, String outcome, long nanos) {
+		if (nanos <= 0) {
+			return;
+		}
+		Timer timer = spikeTimers.computeIfAbsent(
+			metricKey(metricName, txMode, gate, outcome),
+			key -> Timer.builder(metricName)
+				.description("Spike traffic timing metrics for event apply path")
+				.tags(
+					TAG_TX_MODE, txMode,
+					TAG_GATE, gate,
+					TAG_OUTCOME, outcome
+				)
+				.publishPercentiles(0.5, 0.9, 0.95, 0.99)
+				.publishPercentileHistogram()
+				.minimumExpectedValue(Duration.ofMillis(1))
+				.maximumExpectedValue(Duration.ofSeconds(30))
+				.register(meterRegistry)
+		);
+		timer.record(nanos, TimeUnit.NANOSECONDS);
+	}
+
+	private void recordSummary(String metricName, String txMode, String gate, String outcome, double value) {
+		DistributionSummary summary = spikeSummaries.computeIfAbsent(
+			metricKey(metricName, txMode, gate, outcome),
+			key -> DistributionSummary.builder(metricName)
+				.description("Spike traffic queue/permit snapshot metrics for event apply path")
+				.tags(
+					TAG_TX_MODE, txMode,
+					TAG_GATE, gate,
+					TAG_OUTCOME, outcome
+				)
+				.publishPercentiles(0.5, 0.9, 0.95, 0.99)
+				.publishPercentileHistogram()
+				.register(meterRegistry)
+		);
+		summary.record(value);
+	}
+
+	private String metricKey(String metricName, String txMode, String gate, String outcome) {
+		return metricName + '|' + txMode + '|' + gate + '|' + outcome;
 	}
 
 	@Override
