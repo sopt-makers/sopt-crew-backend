@@ -45,12 +45,12 @@ public class PlaygroundDataSourceConfig {
 		em.setPackagesToScan("org.sopt.makers.crew.main.external.playground.entity");
 
 		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-		vendorAdapter.setShowSql(true);
+		vendorAdapter.setShowSql(false);
 		em.setJpaVendorAdapter(vendorAdapter);
 
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-		properties.put("hibernate.format_sql", true);
+		properties.put("hibernate.format_sql", false);
 		properties.put("hibernate.physical_naming_strategy",
 			"org.sopt.makers.crew.main.global.config.CamelCaseNamingStrategy");
 
