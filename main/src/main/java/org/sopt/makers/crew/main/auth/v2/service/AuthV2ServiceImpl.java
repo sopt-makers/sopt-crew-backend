@@ -1,16 +1,11 @@
 package org.sopt.makers.crew.main.auth.v2.service;
 
 import org.sopt.makers.crew.main.auth.v2.dto.response.AuthV2ResponseDto;
-import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.auth.AuthService;
 import org.sopt.makers.crew.main.external.auth.dto.request.AuthUserRequestDto;
 import org.sopt.makers.crew.main.external.auth.dto.response.AuthUserResponseDto;
-import org.sopt.makers.crew.main.global.dto.OrgIdListDto;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthV2ServiceImpl implements AuthV2Service {
 
 	private final UserRepository userRepository;
-	private final CoLeaderRepository coLeaderRepository;
-
 	private final AuthService authService;
+	private final AuthV2UserCacheInvalidationService authV2UserCacheInvalidationService;
 
 	@Override
 	@Transactional
@@ -38,7 +32,7 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 			.orElseGet(() -> signUpNewUser(responseDto));
 
 		if (updateUserIfChanged(curUser, responseDto)) {
-			clearCacheForUser(curUser.getId());
+			authV2UserCacheInvalidationService.refreshCachesAfterUserUpdate(curUser.getId());
 		}
 
 		log.info("로그인 완료: userId={}", curUser.getId());
@@ -59,7 +53,7 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 		User savedUser = userRepository.save(newUser);
 		log.info("New user signup: {} {}", savedUser.getId(), savedUser.getName());
 
-		updateOrgIds();
+		authV2UserCacheInvalidationService.refreshCachesAfterUserCreate();
 
 		return savedUser;
 	}
@@ -73,41 +67,6 @@ public class AuthV2ServiceImpl implements AuthV2Service {
 		}
 
 		return isUpdated;
-	}
-
-	private void clearCacheForUser(Integer userId) {
-		clearCacheForLeader(userId);
-
-		coLeaderRepository.findAllByUserIdWithMeeting(userId).forEach(
-			coLeader -> clearCacheForCoLeader(coLeader.getMeeting().getId())
-		);
-
-		updateOrgIds();
-
-		log.info("Cache cleared for user: {}", userId);
-	}
-
-	@Caching(evict = {
-		@CacheEvict(value = "meetingLeaderCache", key = "#userId")
-	})
-	public void clearCacheForLeader(Integer userId) {
-
-	}
-
-	@Caching(evict = {
-		@CacheEvict(value = "coLeadersCache", key = "#meetingId")
-	})
-	public void clearCacheForCoLeader(Integer meetingId) {
-
-	}
-
-	@CachePut(value = "orgIdCache", key = "'allOrgIds'")
-	public OrgIdListDto updateOrgIds() {
-		OrgIdListDto latestOrgIds = OrgIdListDto.of(userRepository.findAllOrgIds());
-
-		log.info("OrgId cache updated: {}", latestOrgIds);
-
-		return latestOrgIds;
 	}
 
 }
