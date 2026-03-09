@@ -3,6 +3,7 @@ package org.sopt.makers.crew.main.global.config;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.sopt.makers.crew.main.global.filter.MdcLoggingFilter;
 import org.sopt.makers.crew.main.global.security.filter.JwtAuthenticationExceptionFilter;
 import org.sopt.makers.crew.main.global.security.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +37,7 @@ public class SecurityConfig {
 		"/docs/swagger-ui/index.html",
 		"/swagger-ui/swagger-ui.css",
 	};
+	private final MdcLoggingFilter mdcLoggingFilter;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final JwtAuthenticationExceptionFilter jwtAuthenticationExceptionFilter;
 	@Value("${management.endpoints.web.base-path}")
@@ -76,7 +78,8 @@ public class SecurityConfig {
 						.toArray(AntPathRequestMatcher[]::new)).permitAll()
 					.anyRequest().authenticated())
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-			.addFilterBefore(jwtAuthenticationExceptionFilter, JwtAuthenticationFilter.class);
+			.addFilterBefore(jwtAuthenticationExceptionFilter, JwtAuthenticationFilter.class)
+			.addFilterBefore(mdcLoggingFilter, JwtAuthenticationExceptionFilter.class);
 		return http.build();
 	}
 

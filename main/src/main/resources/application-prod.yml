@@ -120,7 +120,12 @@ custom:
 sentry:
   dsn: ${SENTRY_DSN}
   environment: ${PROD_SENTRY_ENVIRONMENT}
-  servername: ${PROD_SENTRY_SERVERNAME}
+  server-name: ${PROD_SENTRY_SERVERNAME}
+  traces-sample-rate: 1.0
+  send-default-pii: true
+  logging:
+    minimum-event-level: error
+    minimum-breadcrumb-level: info
 
 
 img:

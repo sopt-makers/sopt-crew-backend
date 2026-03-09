@@ -16,6 +16,9 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    all {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
 }
 
 repositories {
@@ -105,11 +108,13 @@ dependencies {
     // Prometheus (Monitoring and Metrics Collection)
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
-    // Sentry Logback (Error Tracking)
-    implementation 'io.sentry:sentry-logback:7.17.0'
+    // Log4j2
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    implementation 'com.lmax:disruptor:4.0.0'
 
-    // Slack Webhook
-    implementation 'com.github.maricn:logback-slack-appender:1.4.0'
+    // Sentry (Error Tracking)
+    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.22.0'
+    implementation 'io.sentry:sentry-log4j2:8.22.0'
 
     // caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")

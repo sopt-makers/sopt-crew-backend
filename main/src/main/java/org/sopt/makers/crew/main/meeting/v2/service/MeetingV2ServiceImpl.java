@@ -139,10 +139,15 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class MeetingV2ServiceImpl implements MeetingV2Service {
+
+	private static final Logger applyLog = LogManager.getLogger("crew.spike.apply");
 
 	private static final int ZERO = 0;
 	private static final String METRIC_APPLY_PREFIX = "crew.spike.apply";
@@ -408,6 +413,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 
+		applyLog.info("[APPLY] start | meetingId={}", requestBody.getMeetingId());
+
 		String txMode = USE_FAT_TX ? TX_FAT : TX_SEQUENTIAL;
 		String gate = EVENT_GATE != null ? GATE_ON : GATE_OFF;
 		String outcome = OUTCOME_SUCCESS;
@@ -449,6 +456,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			}
 			long totalNanos = System.nanoTime() - totalStart;
 			recordSpikeMetrics(txMode, gate, outcome, acquireWaitNanos, businessNanos, totalNanos);
+			applyLog.info("[APPLY] end | meetingId={} outcome={} total={}ms",
+				requestBody.getMeetingId(), outcome, totalNanos / 1_000_000);
 		}
 	}
 

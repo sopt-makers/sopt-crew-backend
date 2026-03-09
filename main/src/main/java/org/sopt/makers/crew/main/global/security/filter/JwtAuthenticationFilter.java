@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.global.security.filter;
 
 import java.io.IOException;
 
+import org.slf4j.MDC;
 import org.sopt.makers.crew.main.global.jwt.authenticator.JwtAuthenticator;
 import org.sopt.makers.crew.main.global.security.authentication.MakersAuthentication;
 import org.springframework.http.HttpHeaders;
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private static final String ACCESS_TOKEN_PREFIX = "Bearer ";
+	private static final String USER_ID = "userId";
 	private final JwtAuthenticator jwtAuthenticator;
 
 	@Override
@@ -38,6 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		MakersAuthentication authentication = jwtAuthenticator.authenticate(authorizationToken);
 		authentication.setAuthenticated(true);
 		SecurityContextHolder.getContext().setAuthentication(authentication);
+		MDC.put(USER_ID, String.valueOf(authentication.getPrincipal()));
 		filterChain.doFilter(request, response);
 	}
 
