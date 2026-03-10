@@ -23,7 +23,7 @@ public class ExecutionLoggingAop {
 	 * @implNote : 일부 클래스를 제외하고, 모든 클래스의 메서드의 시작과 끝을 로깅한다.
 	 * @implNote : 제외 클래스 - global 패키지, config 관련 패키지, Test 클래스, redis 클래스
 	 * @implNote : MDC "skipAopLogging" 플래그가 설정된 스레드는 로깅을 건너뛴다.
-	 *           (Spike Traffic 경로: applyEventMeetingWithLock 및 하위 호출 전체)
+	 *           (Spike Traffic 경로: pre-controller interceptor가 controller/facade/하위 호출 전체를 skip)
 	 */
 	@Around("execution(* org.sopt.makers.crew.main..*(..)) "
 			+ "&& !within(org.sopt.makers.crew.main.global..*) "

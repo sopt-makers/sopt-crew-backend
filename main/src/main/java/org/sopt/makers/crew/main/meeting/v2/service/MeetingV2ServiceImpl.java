@@ -42,7 +42,6 @@ import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.slf4j.MDC;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
@@ -413,7 +412,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 
-		MDC.put("skipAopLogging", "true");
 		applyLog.info("[APPLY] start | meetingId={}", requestBody.getMeetingId());
 
 		String txMode = USE_FAT_TX ? TX_FAT : TX_SEQUENTIAL;
@@ -459,7 +457,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			recordSpikeMetrics(txMode, gate, outcome, acquireWaitNanos, businessNanos, totalNanos);
 			applyLog.info("[APPLY] end | meetingId={} outcome={} total={}ms",
 				requestBody.getMeetingId(), outcome, totalNanos / 1_000_000);
-			MDC.remove("skipAopLogging");
 		}
 	}
 

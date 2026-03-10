@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.util.List;
 
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
+import org.sopt.makers.crew.main.global.annotation.SkipAopLogging;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesCsvQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
@@ -86,6 +87,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 			.body(meetingV2Service.applyGeneralMeetingWithLock(requestBody, userId));
 	}
 
+	@SkipAopLogging
 	@PostMapping("${custom.paths.eventApply}")
 	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyEventMeeting(
 		@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
