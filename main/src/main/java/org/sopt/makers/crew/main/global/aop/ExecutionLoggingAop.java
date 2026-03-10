@@ -22,21 +22,17 @@ public class ExecutionLoggingAop {
 	/**
 	 * @implNote : 일부 클래스를 제외하고, 모든 클래스의 메서드의 시작과 끝을 로깅한다.
 	 * @implNote : 제외 클래스 - global 패키지, config 관련 패키지, Test 클래스, redis 클래스
-	 * @implNote : 제외 클래스(Spike Traffic 최적화) - ApplyTransactionService,
-	 *           ApplyReadService, SpikeApplyProfiler,
-	 *           MeetingV2Controller.applyEventMeeting,
-	 *           MeetingV2ServiceImpl.applyEventMeetingWithLock
+	 * @implNote : MDC "skipAopLogging" 플래그가 설정된 스레드는 로깅을 건너뛴다.
+	 *           (Spike Traffic 경로: applyEventMeetingWithLock 및 하위 호출 전체)
 	 */
 	@Around("execution(* org.sopt.makers.crew.main..*(..)) "
 			+ "&& !within(org.sopt.makers.crew.main.global..*) "
 			+ "&& !within(org.sopt.makers.crew.main.external.s3.config..*)"
-			+ "&& !within(org.sopt.makers.crew.main.external.redis..*) "
-			+ "&& !within(org.sopt.makers.crew.main.meeting.v2.service.ApplyTransactionService) "
-			+ "&& !within(org.sopt.makers.crew.main.meeting.v2.service.ApplyReadService) "
-			+ "&& !within(org.sopt.makers.crew.main.meeting.v2.service.SpikeApplyProfiler) "
-			+ "&& !execution(* org.sopt.makers.crew.main.meeting.v2.service.MeetingV2ServiceImpl.applyEventMeetingWithLock(..)) "
-			+ "&& !execution(* org.sopt.makers.crew.main.meeting.v2.MeetingV2Controller.applyEventMeeting(..)) ")
+			+ "&& !within(org.sopt.makers.crew.main.external.redis..*) ")
 	public Object logExecutionTrace(ProceedingJoinPoint pjp) throws Throwable {
+		if ("true".equals(MDC.get("skipAopLogging"))) {
+			return pjp.proceed();
+		}
 		String className = pjp.getSignature().getDeclaringType().getSimpleName();
 		String methodName = pjp.getSignature().getName();
 		String task = className + "." + methodName;

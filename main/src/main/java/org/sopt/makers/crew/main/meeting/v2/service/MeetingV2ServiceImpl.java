@@ -40,6 +40,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.slf4j.MDC;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
@@ -139,9 +142,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -170,8 +170,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private static final String TX_SEQUENTIAL = "sequential";
 
 	// 실험 제어 상수 (static final → 변경 시 앱 재시작)
-	private static final int SEMAPHORE_PERMITS = 20;  // 0 = OFF, 실험마다 변경
-	private static final boolean USE_FAT_TX = true;  // true: Fat TX, false: Sequential TX
+	private static final int SEMAPHORE_PERMITS = 20; // 0 = OFF, 실험마다 변경
+	private static final boolean USE_FAT_TX = true; // true: Fat TX, false: Sequential TX
 	private static final Semaphore EVENT_GATE;
 
 	static {
@@ -256,10 +256,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.collect(Collectors.toList());
 		}
 
-		List<MeetingV2GetAllMeetingByOrgUserMeetingDto> pagedUserJoinedList =
-			userJoinedList.stream().skip((long)(page - 1) * take) // 스킵할 아이템 수 계산
-				.limit(take) // 페이지당 아이템 수 제한
-				.collect(Collectors.toList());
+		List<MeetingV2GetAllMeetingByOrgUserMeetingDto> pagedUserJoinedList = userJoinedList.stream()
+			.skip((long)(page - 1) * take) // 스킵할 아이템 수 계산
+			.limit(take) // 페이지당 아이템 수 제한
+			.collect(Collectors.toList());
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(page, take);
 		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, userJoinedList.size());
 		return MeetingV2GetAllMeetingByOrgUserDto.of(pagedUserJoinedList, pageMetaDto);
@@ -326,8 +326,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private void publishMeetingEvent(MeetingV2CreateAndUpdateMeetingBodyDto requestBody, Meeting meeting) {
 		List<KeywordMatchedUserDto> keywordMatchedUserDtos = userReader.findByInterestingKeywordTypes(
 			requestBody.getMeetingKeywordTypes());
-		eventPublisher.publishEvent(new KeywordEventDto(keywordMatchedUserDtos
-			, meeting.getId(), meeting.getTitle(), meeting.getCategory()));
+		eventPublisher.publishEvent(new KeywordEventDto(keywordMatchedUserDtos, meeting.getId(), meeting.getTitle(),
+			meeting.getCategory()));
 	}
 
 	@Override
@@ -413,6 +413,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 
+		MDC.put("skipAopLogging", "true");
 		applyLog.info("[APPLY] start | meetingId={}", requestBody.getMeetingId());
 
 		String txMode = USE_FAT_TX ? TX_FAT : TX_SEQUENTIAL;
@@ -458,6 +459,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			recordSpikeMetrics(txMode, gate, outcome, acquireWaitNanos, businessNanos, totalNanos);
 			applyLog.info("[APPLY] end | meetingId={} outcome={} total={}ms",
 				requestBody.getMeetingId(), outcome, totalNanos / 1_000_000);
+			MDC.remove("skipAopLogging");
 		}
 	}
 
@@ -545,14 +547,12 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.tags(
 					TAG_TX_MODE, txMode,
 					TAG_GATE, gate,
-					TAG_OUTCOME, outcome
-				)
+					TAG_OUTCOME, outcome)
 				.publishPercentiles(0.5, 0.9, 0.95, 0.99)
 				.publishPercentileHistogram()
 				.minimumExpectedValue(Duration.ofMillis(1))
 				.maximumExpectedValue(Duration.ofSeconds(30))
-				.register(meterRegistry)
-		);
+				.register(meterRegistry));
 		timer.record(nanos, TimeUnit.NANOSECONDS);
 	}
 
@@ -564,12 +564,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				.tags(
 					TAG_TX_MODE, txMode,
 					TAG_GATE, gate,
-					TAG_OUTCOME, outcome
-				)
+					TAG_OUTCOME, outcome)
 				.publishPercentiles(0.5, 0.9, 0.95, 0.99)
 				.publishPercentileHistogram()
-				.register(meterRegistry)
-		);
+				.register(meterRegistry));
 		summary.record(value);
 	}
 
@@ -630,8 +628,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				allApplies.getApprovedCount(meeting.getId()),
 				time.now(),
 				activeGenerationProvider.getActiveGeneration(),
-				allTagsResponseDto)
-			)
+				allTagsResponseDto))
 			.toList();
 
 		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetings.getPageable().getPageNumber() + 1,
@@ -643,8 +640,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	/**
 	 * @note: 1. like(Comment, post 관련) -> comment -> post 순으로 삭제
-	 * 2. apply 삭제
-	 * 3. meeting 삭제
+	 *        2. apply 삭제
+	 *        3. meeting 삭제
 	 */
 
 	@Caching(evict = {
@@ -823,8 +820,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				allApplies.getApprovedCount(meeting.getId()),
 				time.now(),
 				activeGenerationProvider.getActiveGeneration(),
-				allTagsResponseDto)
-			)
+				allTagsResponseDto))
 			.toList();
 
 		return MeetingV2GetRecommendDto.from(meetingResponseDtos);
@@ -935,8 +931,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Map<Integer, Post> postMap, Applies applies) {
 		return meetings.stream()
 			.map(meeting -> {
-				MeetingV2GetMeetingBannerResponseUserDto meetingCreatorDto = MeetingV2GetMeetingBannerResponseUserDto.of(
-					meeting.getUser());
+				MeetingV2GetMeetingBannerResponseUserDto meetingCreatorDto = MeetingV2GetMeetingBannerResponseUserDto
+					.of(
+						meeting.getUser());
 
 				LocalDateTime recentActivityDate = null;
 				if (postMap.containsKey(meeting.getId())) {
