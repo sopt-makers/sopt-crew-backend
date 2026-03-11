@@ -1,16 +1,25 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_APP_EDGE_TOTAL;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
 
+import org.slf4j.MDC;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerResetResponseDto;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerSnapshotResponseDto;
+import org.sopt.makers.crew.main.internal.dto.SpikeProfilerTraceDto;
+import org.sopt.makers.crew.main.internal.dto.SpikeProfilerTraceMetricDto;
+import org.sopt.makers.crew.main.internal.dto.SpikeProfilerTraceSnapshotResponseDto;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerSummaryMetricDto;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerTimerMetricDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +34,16 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 	public static final String OUTCOME_SUCCESS = "success";
 	public static final String OUTCOME_ERROR = "error";
 	private static final int MAX_SAMPLES_PER_METRIC = 1024;
+	private static final int MAX_TRACES = 1024;
+	private static final String TRACE_ID = "traceId";
+	private static final String REQUEST_INFO = "requestInfo";
+	private static final String USER_ID = "userId";
 
 	private final ConcurrentMap<MetricKey, TimerStats> timerStats = new ConcurrentHashMap<>();
 	private final ConcurrentMap<MetricKey, SummaryStats> summaryStats = new ConcurrentHashMap<>();
+	private final ConcurrentMap<String, RequestTrace> requestTraces = new ConcurrentHashMap<>();
+	private final ConcurrentLinkedDeque<String> traceOrder = new ConcurrentLinkedDeque<>();
+	private final Object traceOrderLock = new Object();
 	@Autowired(required = false)
 	private Environment environment;
 	private volatile boolean enabled = true;
@@ -50,6 +66,7 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 		}
 		timerStats.computeIfAbsent(new MetricKey(metricName, txMode, gate, outcome), ignored -> new TimerStats())
 			.record(nanos);
+		recordTraceMeasurement(metricName, outcome, nanosToMillis(nanos), "ms", "timer");
 	}
 
 	public void recordSummary(String metricName, String txMode, String gate, String outcome, double value) {
@@ -58,6 +75,7 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 		}
 		summaryStats.computeIfAbsent(new MetricKey(metricName, txMode, gate, outcome), ignored -> new SummaryStats())
 			.record(value);
+		recordTraceMeasurement(metricName, outcome, value, "value", "summary");
 	}
 
 	public <T> T profile(String metricName, String txMode, String gate, StepSupplier<T> supplier) {
@@ -106,12 +124,67 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 		return new SpikeProfilerSnapshotResponseDto(Instant.now().toString(), timers, summaries);
 	}
 
+	public SpikeProfilerTraceSnapshotResponseDto traceSnapshot() {
+		if (!enabled) {
+			return new SpikeProfilerTraceSnapshotResponseDto(Instant.now().toString(), List.of());
+		}
+
+		List<SpikeProfilerTraceDto> traces = requestTraces.values().stream()
+			.map(RequestTrace::toDto)
+			.sorted(Comparator.comparing(SpikeProfilerTraceDto::lastUpdatedAt).reversed())
+			.toList();
+
+		return new SpikeProfilerTraceSnapshotResponseDto(Instant.now().toString(), traces);
+	}
+
 	public SpikeProfilerResetResponseDto reset() {
 		int clearedTimers = timerStats.size();
 		int clearedSummaries = summaryStats.size();
+		int clearedTraces = requestTraces.size();
 		timerStats.clear();
 		summaryStats.clear();
-		return new SpikeProfilerResetResponseDto(Instant.now().toString(), clearedTimers, clearedSummaries);
+		requestTraces.clear();
+		traceOrder.clear();
+		return new SpikeProfilerResetResponseDto(Instant.now().toString(), clearedTimers, clearedSummaries,
+			clearedTraces);
+	}
+
+	private void recordTraceMeasurement(String metricName, String outcome, double value, String unit, String kind) {
+		String traceId = MDC.get(TRACE_ID);
+		if (traceId == null || traceId.isBlank()) {
+			return;
+		}
+
+		RequestTrace requestTrace = getOrCreateTrace(traceId);
+		requestTrace.updateMetadata(MDC.get(REQUEST_INFO), MDC.get(USER_ID));
+		requestTrace.recordMetric(metricName, kind, outcome, value, unit);
+	}
+
+	private RequestTrace getOrCreateTrace(String traceId) {
+		RequestTrace existing = requestTraces.get(traceId);
+		if (existing != null) {
+			return existing;
+		}
+
+		RequestTrace created = new RequestTrace(traceId);
+		RequestTrace previous = requestTraces.putIfAbsent(traceId, created);
+		RequestTrace actual = previous != null ? previous : created;
+		if (previous == null) {
+			trackTraceOrder(traceId);
+		}
+		return actual;
+	}
+
+	private void trackTraceOrder(String traceId) {
+		synchronized (traceOrderLock) {
+			traceOrder.addLast(traceId);
+			while (traceOrder.size() > MAX_TRACES) {
+				String evicted = traceOrder.pollFirst();
+				if (evicted != null) {
+					requestTraces.remove(evicted);
+				}
+			}
+		}
 	}
 
 	@FunctionalInterface
@@ -225,5 +298,69 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 
 	private static double nanosToMillis(long nanos) {
 		return nanos / 1_000_000.0;
+	}
+
+	private static final class RequestTrace {
+		private final String traceId;
+		private final Instant startedAt;
+		private volatile Instant lastUpdatedAt;
+		private volatile Instant completedAt;
+		private volatile String requestInfo;
+		private volatile String userId;
+		private volatile String finalOutcome;
+		private final List<TraceMetric> metrics = Collections.synchronizedList(new ArrayList<>());
+
+		private RequestTrace(String traceId) {
+			this.traceId = traceId;
+			this.startedAt = Instant.now();
+			this.lastUpdatedAt = startedAt;
+		}
+
+		private void updateMetadata(String requestInfo, String userId) {
+			if (requestInfo != null && !requestInfo.isBlank()) {
+				this.requestInfo = requestInfo;
+			}
+			if (userId != null && !userId.isBlank()) {
+				this.userId = userId;
+			}
+		}
+
+		private void recordMetric(String metricName, String kind, String outcome, double value, String unit) {
+			metrics.add(new TraceMetric(metricName, kind, outcome, value, unit));
+			lastUpdatedAt = Instant.now();
+			if (METRIC_APP_EDGE_TOTAL.equals(metricName)) {
+				completedAt = lastUpdatedAt;
+				finalOutcome = outcome;
+			}
+		}
+
+		private SpikeProfilerTraceDto toDto() {
+			List<TraceMetric> metricSnapshot;
+			synchronized (metrics) {
+				metricSnapshot = List.copyOf(metrics);
+			}
+			List<SpikeProfilerTraceMetricDto> traceMetrics = metricSnapshot.stream()
+				.map(metric -> new SpikeProfilerTraceMetricDto(
+					metric.metricName(),
+					metric.kind(),
+					metric.outcome(),
+					metric.value(),
+					metric.unit()
+				))
+				.toList();
+			return new SpikeProfilerTraceDto(
+				traceId,
+				requestInfo,
+				userId,
+				startedAt.toString(),
+				lastUpdatedAt.toString(),
+				completedAt != null ? completedAt.toString() : null,
+				finalOutcome,
+				traceMetrics
+			);
+		}
+	}
+
+	private record TraceMetric(String metricName, String kind, String outcome, double value, String unit) {
 	}
 }

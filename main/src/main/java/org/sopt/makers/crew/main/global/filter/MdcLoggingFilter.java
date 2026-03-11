@@ -1,5 +1,9 @@
 package org.sopt.makers.crew.main.global.filter;
 
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.CLIENT_IP_ATTRIBUTE;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.REQUEST_INFO_ATTRIBUTE;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.TRACE_ID_ATTRIBUTE;
+
 import java.io.IOException;
 import java.util.UUID;
 
@@ -26,9 +30,14 @@ public class MdcLoggingFilter extends OncePerRequestFilter {
 		FilterChain filterChain) throws ServletException, IOException {
 		try {
 			String traceId = resolveTraceId(request);
+			String clientIp = resolveClientIp(request);
+			String requestInfo = request.getMethod() + " " + request.getRequestURI();
 			MDC.put(TRACE_ID, traceId);
-			MDC.put(CLIENT_IP, resolveClientIp(request));
-			MDC.put(REQUEST_INFO, request.getMethod() + " " + request.getRequestURI());
+			MDC.put(CLIENT_IP, clientIp);
+			MDC.put(REQUEST_INFO, requestInfo);
+			request.setAttribute(TRACE_ID_ATTRIBUTE, traceId);
+			request.setAttribute(CLIENT_IP_ATTRIBUTE, clientIp);
+			request.setAttribute(REQUEST_INFO_ATTRIBUTE, requestInfo);
 			response.setHeader(X_REQUEST_ID, traceId);
 			filterChain.doFilter(request, response);
 		} finally {

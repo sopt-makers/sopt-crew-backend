@@ -1,14 +1,19 @@
 package org.sopt.makers.crew.main.global.filter;
 
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.CLIENT_IP_ATTRIBUTE;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_APP_EDGE_PRE_REQUEST_TOTAL;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_APP_EDGE_TOTAL;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_ERROR;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_SUCCESS;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.REQUEST_INFO_ATTRIBUTE;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.REQUEST_MATCHED_ATTRIBUTE;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.REQUEST_TOTAL_NANOS_ATTRIBUTE;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.TRACE_ID_ATTRIBUTE;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.USER_ID_ATTRIBUTE;
 
 import java.io.IOException;
 
+import org.slf4j.MDC;
 import org.sopt.makers.crew.main.global.metrics.EventApplyRequestMatcher;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
@@ -55,6 +60,7 @@ public class SpikeApplyAppEdgeMetricsFilter extends OncePerRequestFilter {
 			throw exception;
 		} finally {
 			long totalNanos = System.nanoTime() - start;
+			restoreCorrelationMdc(request);
 			recordTimer(METRIC_APP_EDGE_TOTAL, outcome, totalNanos);
 
 			Object requestTotalAttr = request.getAttribute(REQUEST_TOTAL_NANOS_ATTRIBUTE);
@@ -62,6 +68,7 @@ public class SpikeApplyAppEdgeMetricsFilter extends OncePerRequestFilter {
 				long preRequestNanos = Math.max(0L, totalNanos - requestTotalNanos);
 				recordTimer(METRIC_APP_EDGE_PRE_REQUEST_TOTAL, outcome, preRequestNanos);
 			}
+			clearCorrelationMdc();
 		}
 	}
 
@@ -73,5 +80,26 @@ public class SpikeApplyAppEdgeMetricsFilter extends OncePerRequestFilter {
 			outcome,
 			durationNanos
 		);
+	}
+
+	private void restoreCorrelationMdc(HttpServletRequest request) {
+		restoreIfPresent(request, TRACE_ID_ATTRIBUTE, "traceId");
+		restoreIfPresent(request, USER_ID_ATTRIBUTE, "userId");
+		restoreIfPresent(request, CLIENT_IP_ATTRIBUTE, "clientIp");
+		restoreIfPresent(request, REQUEST_INFO_ATTRIBUTE, "requestInfo");
+	}
+
+	private void restoreIfPresent(HttpServletRequest request, String attributeName, String mdcKey) {
+		Object value = request.getAttribute(attributeName);
+		if (value instanceof String stringValue && !stringValue.isBlank()) {
+			MDC.put(mdcKey, stringValue);
+		}
+	}
+
+	private void clearCorrelationMdc() {
+		MDC.remove("traceId");
+		MDC.remove("userId");
+		MDC.remove("clientIp");
+		MDC.remove("requestInfo");
 	}
 }

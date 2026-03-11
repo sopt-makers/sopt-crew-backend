@@ -3,8 +3,11 @@ package org.sopt.makers.crew.main.meeting.v2.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerResetResponseDto;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerSnapshotResponseDto;
+import org.sopt.makers.crew.main.internal.dto.SpikeProfilerTraceDto;
+import org.sopt.makers.crew.main.internal.dto.SpikeProfilerTraceSnapshotResponseDto;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerTimerMetricDto;
 
 class SpikeApplyProfilerTest {
@@ -39,14 +42,57 @@ class SpikeApplyProfilerTest {
 		// given
 		spikeApplyProfiler.recordTimer("crew.spike.apply.business.test", "seq", "on", "success", 10_000_000L);
 		spikeApplyProfiler.recordSummary("crew.spike.apply.queue.length.snapshot", "seq", "on", "success", 12.0);
+		MDC.put("traceId", "trace-1");
+		MDC.put("requestInfo", "POST /meeting/v2/apply/undefined");
+		MDC.put("userId", "744");
+		spikeApplyProfiler.recordTimer("crew.spike.apply.envelope.request.total", "fat", "on", "success",
+			20_000_000L);
+		MDC.clear();
 
 		// when
 		SpikeProfilerResetResponseDto response = spikeApplyProfiler.reset();
 
 		// then
-		assertThat(response.clearedTimers()).isEqualTo(1);
+		assertThat(response.clearedTimers()).isEqualTo(2);
 		assertThat(response.clearedSummaries()).isEqualTo(1);
+		assertThat(response.clearedTraces()).isEqualTo(1);
 		assertThat(spikeApplyProfiler.snapshot().timers()).isEmpty();
 		assertThat(spikeApplyProfiler.snapshot().summaries()).isEmpty();
+		assertThat(spikeApplyProfiler.traceSnapshot().traces()).isEmpty();
+	}
+
+	@Test
+	void traceSnapshot_요청별_traceId_기준_metric을_반환한다() {
+		// given
+		MDC.put("traceId", "trace-123");
+		MDC.put("requestInfo", "POST /meeting/v2/apply/undefined");
+		MDC.put("userId", "744");
+		spikeApplyProfiler.recordTimer("crew.spike.apply.envelope.app_edge.total", "fat", "on", "success",
+			30_000_000L);
+		spikeApplyProfiler.recordTimer("crew.spike.apply.envelope.jwt.get_public_key.total", "fat", "on", "success",
+			10_000_000L);
+		spikeApplyProfiler.recordTimer("crew.spike.apply.envelope.jwt.get_public_key.total", "fat", "on", "success",
+			20_000_000L);
+		spikeApplyProfiler.recordSummary("crew.spike.apply.envelope.jwk.cache.hit", "fat", "on", "observed", 1.0);
+		MDC.clear();
+
+		// when
+		SpikeProfilerTraceSnapshotResponseDto traceSnapshot = spikeApplyProfiler.traceSnapshot();
+
+		// then
+		assertThat(traceSnapshot.traces()).hasSize(1);
+		SpikeProfilerTraceDto trace = traceSnapshot.traces().get(0);
+		assertThat(trace.traceId()).isEqualTo("trace-123");
+		assertThat(trace.requestInfo()).isEqualTo("POST /meeting/v2/apply/undefined");
+		assertThat(trace.userId()).isEqualTo("744");
+		assertThat(trace.completedAt()).isNotNull();
+		assertThat(trace.finalOutcome()).isEqualTo("success");
+		assertThat(trace.metrics()).extracting(metric -> metric.metricName())
+			.containsExactlyInAnyOrder(
+				"crew.spike.apply.envelope.app_edge.total",
+				"crew.spike.apply.envelope.jwt.get_public_key.total",
+				"crew.spike.apply.envelope.jwt.get_public_key.total",
+				"crew.spike.apply.envelope.jwk.cache.hit"
+			);
 	}
 }

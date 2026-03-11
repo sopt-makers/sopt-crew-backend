@@ -3,6 +3,10 @@ package org.sopt.makers.crew.main.global.metrics;
 public final class SpikeApplyMetrics {
 	public static final String REQUEST_MATCHED_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".matched";
 	public static final String REQUEST_TOTAL_NANOS_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".requestTotalNanos";
+	public static final String TRACE_ID_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".traceId";
+	public static final String USER_ID_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".userId";
+	public static final String CLIENT_IP_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".clientIp";
+	public static final String REQUEST_INFO_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".requestInfo";
 	public static final String MDC_ACTIVE_KEY = SpikeApplyMetrics.class.getName() + ".active";
 	public static final String MDC_ACTIVE_PREVIOUS = SpikeApplyMetrics.class.getName() + ".previous";
 

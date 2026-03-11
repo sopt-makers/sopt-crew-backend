@@ -4,6 +4,7 @@ import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_ERROR;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_SUCCESS;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.REQUEST_MATCHED_ATTRIBUTE;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.USER_ID_ATTRIBUTE;
 
 import java.io.IOException;
 
@@ -52,7 +53,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			MakersAuthentication authentication = jwtAuthenticator.authenticate(authorizationToken);
 			authentication.setAuthenticated(true);
 			SecurityContextHolder.getContext().setAuthentication(authentication);
-			MDC.put(USER_ID, String.valueOf(authentication.getPrincipal()));
+			String authenticatedUserId = String.valueOf(authentication.getPrincipal());
+			MDC.put(USER_ID, authenticatedUserId);
+			request.setAttribute(USER_ID_ATTRIBUTE, authenticatedUserId);
 		} catch (RuntimeException exception) {
 			outcome = OUTCOME_ERROR;
 			throw exception;

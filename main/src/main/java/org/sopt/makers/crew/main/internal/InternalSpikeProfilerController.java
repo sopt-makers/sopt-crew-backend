@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.internal;
 
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerResetResponseDto;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerSnapshotResponseDto;
+import org.sopt.makers.crew.main.internal.dto.SpikeProfilerTraceSnapshotResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.SpikeApplyProfiler;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,16 @@ public class InternalSpikeProfilerController {
 	})
 	public ResponseEntity<SpikeProfilerSnapshotResponseDto> getSnapshot() {
 		return ResponseEntity.ok(spikeApplyProfiler.snapshot());
+	}
+
+	@GetMapping("/traces")
+	@Operation(summary = "[Internal] Spike apply profiler trace snapshot",
+		description = "Spike apply 경로의 request-id(traceId) 기준 in-memory per-request trace snapshot을 반환합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Spike profiler trace snapshot 조회 성공")
+	})
+	public ResponseEntity<SpikeProfilerTraceSnapshotResponseDto> getTraceSnapshot() {
+		return ResponseEntity.ok(spikeApplyProfiler.traceSnapshot());
 	}
 
 	@PostMapping("/reset")
