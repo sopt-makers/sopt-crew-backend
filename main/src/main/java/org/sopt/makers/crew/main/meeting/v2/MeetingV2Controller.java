@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.global.annotation.SkipAopLogging;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesCsvQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
@@ -50,6 +53,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 	private final MeetingV2Service meetingV2Service;
 
 	private final S3Service s3Service;
+	private final SpikeApplyMetricRecorder spikeApplyMetricRecorder;
 
 	@Override
 	@GetMapping("/org-user")
@@ -92,7 +96,23 @@ public class MeetingV2Controller implements MeetingV2Api {
 	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyEventMeeting(
 		@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
 		Principal principal) {
-		Integer userId = UserUtil.getUserId(principal);
+		long controllerEntryStart = System.nanoTime();
+		Integer userId;
+		String outcome = SpikeApplyMetrics.OUTCOME_SUCCESS;
+		try {
+			userId = UserUtil.getUserId(principal);
+		} catch (RuntimeException exception) {
+			outcome = SpikeApplyMetrics.OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			spikeApplyMetricRecorder.recordTimer(
+				SpikeApplyMetrics.METRIC_CONTROLLER_ENTRY,
+				SpikeApplyRuntimeConfig.currentTxMode(),
+				SpikeApplyRuntimeConfig.currentGate(),
+				outcome,
+				System.nanoTime() - controllerEntryStart
+			);
+		}
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(meetingV2Service.applyEventMeetingWithLock(requestBody, userId));
 	}

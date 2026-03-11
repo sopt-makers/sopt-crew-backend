@@ -1,6 +1,10 @@
 package org.sopt.makers.crew.main.global.jwt.provider;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.MDC_ACTIVE_KEY;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWK_CACHE_HIT;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWK_CACHE_MISS;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_OBSERVED;
 
 import java.io.IOException;
 import java.security.PublicKey;
@@ -8,10 +12,13 @@ import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.time.Duration;
 
+import org.slf4j.MDC;
 import org.sopt.makers.crew.main.external.auth.AuthClient;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.springframework.stereotype.Component;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -28,13 +35,15 @@ import lombok.extern.slf4j.Slf4j;
 public class JwkProvider {
 	private final Cache<String, PublicKey> keyCache;
 	private final AuthClient authClient;
+	private final SpikeApplyMetricRecorder spikeApplyMetricRecorder;
 
-	public JwkProvider(AuthClient authClient) {
+	public JwkProvider(AuthClient authClient, SpikeApplyMetricRecorder spikeApplyMetricRecorder) {
 		this.keyCache = Caffeine.newBuilder()
 			.maximumSize(20)
 			.expireAfterWrite(Duration.ofDays(1))
 			.build();
 		this.authClient = authClient;
+		this.spikeApplyMetricRecorder = spikeApplyMetricRecorder;
 	}
 
 	/**
@@ -43,10 +52,29 @@ public class JwkProvider {
 	 * @return RSA PublicKey
 	 */
 	public PublicKey getPublicKey(String kid) {
+		PublicKey cachedKey = keyCache.getIfPresent(kid);
+		if (cachedKey != null) {
+			recordCacheObservation(METRIC_JWK_CACHE_HIT);
+			return cachedKey;
+		}
 		return keyCache.get(kid, this::resolvePublicKey);
 	}
 
+	private void recordCacheObservation(String metricName) {
+		if (!"true".equals(MDC.get(MDC_ACTIVE_KEY))) {
+			return;
+		}
+		spikeApplyMetricRecorder.recordSummary(
+			metricName,
+			SpikeApplyRuntimeConfig.currentTxMode(),
+			SpikeApplyRuntimeConfig.currentGate(),
+			OUTCOME_OBSERVED,
+			1.0
+		);
+	}
+
 	private PublicKey resolvePublicKey(String kid) {
+		recordCacheObservation(METRIC_JWK_CACHE_MISS);
 		try {
 			JWKSet jwkSet = loadJwkSet();
 			JWK jwk = findJwkByKeyId(jwkSet, kid);

@@ -3,6 +3,10 @@ package org.sopt.makers.crew.main.global.jwt.authenticator;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.JWT_INVALID_CLAIMS;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.JWT_PARSE_FAILED;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.JWT_VERIFICATION_FAILED;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.MDC_ACTIVE_KEY;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_VERIFY_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_ERROR;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_SUCCESS;
 
 import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
@@ -10,8 +14,11 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.MDC;
 import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
 import org.sopt.makers.crew.main.global.jwt.provider.JwkProvider;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.sopt.makers.crew.main.global.security.authentication.MakersAuthentication;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class JwtAuthenticator {
 	private final JwkProvider jwkProvider;
+	private final SpikeApplyMetricRecorder spikeApplyMetricRecorder;
 	private static final String ROLES = "roles";
 
 	@Value("${jwt.jwk.issuer}")
@@ -51,6 +59,9 @@ public class JwtAuthenticator {
 	 * @throws UnAuthorizedException 서명 검증 실패, 파싱 실패, 키 조회 실패 등의 경우
 	 */
 	public MakersAuthentication authenticate(String token) {
+		boolean shouldRecord = "true".equals(MDC.get(MDC_ACTIVE_KEY));
+		long start = shouldRecord ? System.nanoTime() : 0L;
+		String outcome = OUTCOME_SUCCESS;
 		try {
 			SignedJWT jwt = SignedJWT.parse(token);
 			String kid = extractKeyId(jwt);
@@ -59,11 +70,26 @@ public class JwtAuthenticator {
 
 			return toAuthentication(claims);
 		} catch (ParseException e) {
+			outcome = OUTCOME_ERROR;
 			log.warn("JWT 파싱 실패: {}", e.getMessage());
 			throw new UnAuthorizedException(JWT_PARSE_FAILED.getErrorCode());
 		} catch (UnAuthorizedException e) {
+			outcome = OUTCOME_ERROR;
 			log.warn("JWT 서명 검증 실패: {}", e.getMessage());
 			throw new UnAuthorizedException(JWT_VERIFICATION_FAILED.getErrorCode());
+		} catch (RuntimeException e) {
+			outcome = OUTCOME_ERROR;
+			throw e;
+		} finally {
+			if (shouldRecord) {
+				spikeApplyMetricRecorder.recordTimer(
+					METRIC_JWT_VERIFY_TOTAL,
+					SpikeApplyRuntimeConfig.currentTxMode(),
+					SpikeApplyRuntimeConfig.currentGate(),
+					outcome,
+					System.nanoTime() - start
+				);
+			}
 		}
 	}
 

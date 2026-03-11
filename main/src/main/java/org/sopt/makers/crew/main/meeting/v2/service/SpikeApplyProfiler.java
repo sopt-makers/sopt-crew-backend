@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerResetResponseDto;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerSnapshotResponseDto;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerSummaryMetricDto;
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 
 @Service
-public class SpikeApplyProfiler {
+public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 
 	public static final String OUTCOME_SUCCESS = "success";
 	public static final String OUTCOME_ERROR = "error";

@@ -1,9 +1,16 @@
 package org.sopt.makers.crew.main.global.security.filter;
 
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_AUTH_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_ERROR;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_SUCCESS;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.REQUEST_MATCHED_ATTRIBUTE;
+
 import java.io.IOException;
 
 import org.slf4j.MDC;
 import org.sopt.makers.crew.main.global.jwt.authenticator.JwtAuthenticator;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.sopt.makers.crew.main.global.security.authentication.MakersAuthentication;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
@@ -24,6 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private static final String ACCESS_TOKEN_PREFIX = "Bearer ";
 	private static final String USER_ID = "userId";
 	private final JwtAuthenticator jwtAuthenticator;
+	private final SpikeApplyMetricRecorder spikeApplyMetricRecorder;
 
 	@Override
 	protected void doFilterInternal(
@@ -37,10 +45,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			return;
 		}
 
-		MakersAuthentication authentication = jwtAuthenticator.authenticate(authorizationToken);
-		authentication.setAuthenticated(true);
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-		MDC.put(USER_ID, String.valueOf(authentication.getPrincipal()));
+		boolean isSpikeApplyRequest = Boolean.TRUE.equals(request.getAttribute(REQUEST_MATCHED_ATTRIBUTE));
+		long authStart = System.nanoTime();
+		String outcome = OUTCOME_SUCCESS;
+		try {
+			MakersAuthentication authentication = jwtAuthenticator.authenticate(authorizationToken);
+			authentication.setAuthenticated(true);
+			SecurityContextHolder.getContext().setAuthentication(authentication);
+			MDC.put(USER_ID, String.valueOf(authentication.getPrincipal()));
+		} catch (RuntimeException exception) {
+			outcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			if (isSpikeApplyRequest) {
+				spikeApplyMetricRecorder.recordTimer(
+					METRIC_AUTH_TOTAL,
+					SpikeApplyRuntimeConfig.currentTxMode(),
+					SpikeApplyRuntimeConfig.currentGate(),
+					outcome,
+					System.nanoTime() - authStart
+				);
+			}
+		}
 		filterChain.doFilter(request, response);
 	}
 
@@ -54,4 +80,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		return header.substring(ACCESS_TOKEN_PREFIX.length()).trim();
 	}
 }
-

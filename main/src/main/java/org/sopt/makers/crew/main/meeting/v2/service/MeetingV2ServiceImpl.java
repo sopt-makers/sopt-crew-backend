@@ -78,6 +78,7 @@ import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto;
 import org.sopt.makers.crew.main.global.config.ImageSettingProperties;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
@@ -169,16 +170,12 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private static final String TX_SEQUENTIAL = "sequential";
 
 	// 실험 제어 상수 (static final → 변경 시 앱 재시작)
-	private static final int SEMAPHORE_PERMITS = 20; // 0 = OFF, 실험마다 변경
-	private static final boolean USE_FAT_TX = true; // true: Fat TX, false: Sequential TX
+	private static final int SEMAPHORE_PERMITS = SpikeApplyRuntimeConfig.SEMAPHORE_PERMITS; // 0 = OFF, 실험마다 변경
+	private static final boolean USE_FAT_TX = SpikeApplyRuntimeConfig.USE_FAT_TX; // true: Fat TX, false: Sequential TX
 	private static final Semaphore EVENT_GATE;
 
 	static {
-		if (SEMAPHORE_PERMITS > 0) {
-			EVENT_GATE = new Semaphore(SEMAPHORE_PERMITS, true);
-		} else {
-			EVENT_GATE = null;
-		}
+		EVENT_GATE = SpikeApplyRuntimeConfig.createEventGate();
 	}
 
 	@PostConstruct
