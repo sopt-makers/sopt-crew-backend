@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.sopt.makers.crew.main.global.filter.MdcLoggingFilter;
+import org.sopt.makers.crew.main.global.filter.SpikeApplyAppEdgeMetricsFilter;
 import org.sopt.makers.crew.main.global.filter.SpikeApplyEnvelopeMetricsFilter;
 import org.sopt.makers.crew.main.global.security.filter.JwtAuthenticationExceptionFilter;
 import org.sopt.makers.crew.main.global.security.filter.JwtAuthenticationFilter;
@@ -39,6 +40,7 @@ public class SecurityConfig {
 		"/swagger-ui/swagger-ui.css",
 	};
 	private final MdcLoggingFilter mdcLoggingFilter;
+	private final SpikeApplyAppEdgeMetricsFilter spikeApplyAppEdgeMetricsFilter;
 	private final SpikeApplyEnvelopeMetricsFilter spikeApplyEnvelopeMetricsFilter;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final JwtAuthenticationExceptionFilter jwtAuthenticationExceptionFilter;
@@ -82,6 +84,7 @@ public class SecurityConfig {
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 			.addFilterBefore(jwtAuthenticationExceptionFilter, JwtAuthenticationFilter.class)
 			.addFilterBefore(mdcLoggingFilter, JwtAuthenticationExceptionFilter.class)
+			.addFilterBefore(spikeApplyAppEdgeMetricsFilter, MdcLoggingFilter.class)
 			.addFilterAfter(spikeApplyEnvelopeMetricsFilter, MdcLoggingFilter.class);
 		return http.build();
 	}

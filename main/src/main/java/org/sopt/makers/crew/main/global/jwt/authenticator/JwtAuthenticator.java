@@ -11,7 +11,10 @@ import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_RETRY_NOT_USED;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_RETRY_USED;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_SIGNATURE_VERIFY_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_TO_AUTHENTICATION_TOTAL;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_VERIFY_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_VERIFY_UNATTRIBUTED_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_VERIFY_WITH_RETRY_TOTAL;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_ERROR;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_OBSERVED;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_SUCCESS;
@@ -70,13 +73,14 @@ public class JwtAuthenticator {
 		boolean shouldRecord = "true".equals(MDC.get(MDC_ACTIVE_KEY));
 		long start = shouldRecord ? System.nanoTime() : 0L;
 		String outcome = OUTCOME_SUCCESS;
+		StageAccumulator stageAccumulator = new StageAccumulator();
 		try {
-			SignedJWT jwt = parseJwt(token, shouldRecord);
-			String kid = extractKeyId(jwt, shouldRecord);
-			PublicKey key = getPublicKey(kid, shouldRecord);
-			VerificationResult verificationResult = verifyWithRetry(jwt, kid, key, shouldRecord);
+			SignedJWT jwt = parseJwt(token, shouldRecord, stageAccumulator);
+			String kid = extractKeyId(jwt, shouldRecord, stageAccumulator);
+			PublicKey key = getPublicKey(kid, shouldRecord, stageAccumulator);
+			VerificationResult verificationResult = verifyWithRetry(jwt, kid, key, shouldRecord, stageAccumulator);
 
-			return toAuthentication(verificationResult.claims());
+			return toAuthentication(verificationResult.claims(), shouldRecord, stageAccumulator);
 		} catch (ParseException e) {
 			outcome = OUTCOME_ERROR;
 			log.warn("JWT 파싱 실패: {}", e.getMessage());
@@ -90,12 +94,20 @@ public class JwtAuthenticator {
 			throw e;
 		} finally {
 			if (shouldRecord) {
+				long totalNanos = System.nanoTime() - start;
 				spikeApplyMetricRecorder.recordTimer(
 					METRIC_JWT_VERIFY_TOTAL,
 					SpikeApplyRuntimeConfig.currentTxMode(),
 					SpikeApplyRuntimeConfig.currentGate(),
 					outcome,
-					System.nanoTime() - start
+					totalNanos
+				);
+				spikeApplyMetricRecorder.recordTimer(
+					METRIC_JWT_VERIFY_UNATTRIBUTED_TOTAL,
+					SpikeApplyRuntimeConfig.currentTxMode(),
+					SpikeApplyRuntimeConfig.currentGate(),
+					outcome,
+					Math.max(0L, totalNanos - stageAccumulator.totalNanos())
 				);
 			}
 		}
@@ -107,13 +119,22 @@ public class JwtAuthenticator {
 	 * @param claims JWT 내부 클레임
 	 * @return 사용자 인증 정보 객체
 	 */
-	private MakersAuthentication toAuthentication(JWTClaimsSet claims) {
-		String userId = claims.getSubject();
-		List<String> roles = (List<String>)claims.getClaim(ROLES);
-		return new MakersAuthentication(userId, roles);
+	private MakersAuthentication toAuthentication(JWTClaimsSet claims, boolean shouldRecord, StageAccumulator stageAccumulator) {
+		long start = System.nanoTime();
+		String outcome = OUTCOME_SUCCESS;
+		try {
+			String userId = claims.getSubject();
+			List<String> roles = (List<String>)claims.getClaim(ROLES);
+			return new MakersAuthentication(userId, roles);
+		} catch (RuntimeException exception) {
+			outcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			recordMeasuredStage(METRIC_JWT_TO_AUTHENTICATION_TOTAL, start, outcome, shouldRecord, stageAccumulator);
+		}
 	}
 
-	private SignedJWT parseJwt(String token, boolean shouldRecord) throws ParseException {
+	private SignedJWT parseJwt(String token, boolean shouldRecord, StageAccumulator stageAccumulator) throws ParseException {
 		long start = System.nanoTime();
 		String outcome = OUTCOME_SUCCESS;
 		try {
@@ -122,11 +143,11 @@ public class JwtAuthenticator {
 			outcome = OUTCOME_ERROR;
 			throw exception;
 		} finally {
-			recordTimer(METRIC_JWT_PARSE_TOTAL, start, outcome, shouldRecord);
+			recordMeasuredStage(METRIC_JWT_PARSE_TOTAL, start, outcome, shouldRecord, stageAccumulator);
 		}
 	}
 
-	private String extractKeyId(SignedJWT jwt, boolean shouldRecord) {
+	private String extractKeyId(SignedJWT jwt, boolean shouldRecord, StageAccumulator stageAccumulator) {
 		long start = System.nanoTime();
 		String outcome = OUTCOME_SUCCESS;
 		try {
@@ -135,7 +156,20 @@ public class JwtAuthenticator {
 			outcome = OUTCOME_ERROR;
 			throw exception;
 		} finally {
-			recordTimer(METRIC_JWT_EXTRACT_KID_TOTAL, start, outcome, shouldRecord);
+			recordMeasuredStage(METRIC_JWT_EXTRACT_KID_TOTAL, start, outcome, shouldRecord, stageAccumulator);
+		}
+	}
+
+	private PublicKey getPublicKey(String kid, boolean shouldRecord, StageAccumulator stageAccumulator) {
+		long start = System.nanoTime();
+		String outcome = OUTCOME_SUCCESS;
+		try {
+			return loadPublicKey(kid);
+		} catch (RuntimeException exception) {
+			outcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			recordMeasuredStage(METRIC_JWT_GET_PUBLIC_KEY_TOTAL, start, outcome, shouldRecord, stageAccumulator);
 		}
 	}
 
@@ -143,12 +177,12 @@ public class JwtAuthenticator {
 		long start = System.nanoTime();
 		String outcome = OUTCOME_SUCCESS;
 		try {
-			return jwkProvider.getPublicKey(kid);
+			return loadPublicKey(kid);
 		} catch (RuntimeException exception) {
 			outcome = OUTCOME_ERROR;
 			throw exception;
 		} finally {
-			recordTimer(METRIC_JWT_GET_PUBLIC_KEY_TOTAL, start, outcome, shouldRecord);
+			recordTimerFromStart(METRIC_JWT_GET_PUBLIC_KEY_TOTAL, start, outcome, shouldRecord);
 		}
 	}
 
@@ -160,7 +194,10 @@ public class JwtAuthenticator {
 	 * @param publicKey 현재 캐시된 공개키
 	 * @return 검증된 JWTClaimsSet
 	 */
-	private VerificationResult verifyWithRetry(SignedJWT jwt, String kid, PublicKey publicKey, boolean shouldRecord) {
+	private VerificationResult verifyWithRetry(SignedJWT jwt, String kid, PublicKey publicKey, boolean shouldRecord,
+		StageAccumulator stageAccumulator) {
+		long start = System.nanoTime();
+		String outcome = OUTCOME_SUCCESS;
 		try {
 			VerificationResult result = new VerificationResult(verify(jwt, publicKey, shouldRecord), false);
 			recordRetryObservation(METRIC_JWT_RETRY_NOT_USED, shouldRecord);
@@ -169,6 +206,11 @@ public class JwtAuthenticator {
 			log.warn("JWT verification failed. reason={}", e.getMessage());
 			recordRetryObservation(METRIC_JWT_RETRY_USED, shouldRecord);
 			return new VerificationResult(retryVerification(jwt, kid, shouldRecord), true);
+		} catch (RuntimeException exception) {
+			outcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			recordMeasuredStage(METRIC_JWT_VERIFY_WITH_RETRY_TOTAL, start, outcome, shouldRecord, stageAccumulator);
 		}
 	}
 
@@ -229,7 +271,7 @@ public class JwtAuthenticator {
 			outcome = OUTCOME_ERROR;
 			throw exception;
 		} finally {
-			recordTimer(METRIC_JWT_SIGNATURE_VERIFY_TOTAL, start, outcome, shouldRecord);
+			recordTimerFromStart(METRIC_JWT_SIGNATURE_VERIFY_TOTAL, start, outcome, shouldRecord);
 		}
 	}
 
@@ -255,11 +297,31 @@ public class JwtAuthenticator {
 			outcome = OUTCOME_ERROR;
 			throw exception;
 		} finally {
-			recordTimer(METRIC_JWT_CLAIMS_VALIDATE_TOTAL, start, outcome, shouldRecord);
+			recordTimerFromStart(METRIC_JWT_CLAIMS_VALIDATE_TOTAL, start, outcome, shouldRecord);
 		}
 	}
 
-	private void recordTimer(String metricName, long start, String outcome, boolean shouldRecord) {
+	private void recordMeasuredStage(
+		String metricName,
+		long start,
+		String outcome,
+		boolean shouldRecord,
+		StageAccumulator stageAccumulator
+	) {
+		long durationNanos = System.nanoTime() - start;
+		stageAccumulator.add(durationNanos);
+		recordTimer(metricName, durationNanos, outcome, shouldRecord);
+	}
+
+	private void recordTimerFromStart(String metricName, long start, String outcome, boolean shouldRecord) {
+		recordTimer(metricName, System.nanoTime() - start, outcome, shouldRecord);
+	}
+
+	private PublicKey loadPublicKey(String kid) {
+		return jwkProvider.getPublicKey(kid);
+	}
+
+	private void recordTimer(String metricName, long durationNanos, String outcome, boolean shouldRecord) {
 		if (!shouldRecord) {
 			return;
 		}
@@ -268,7 +330,7 @@ public class JwtAuthenticator {
 			SpikeApplyRuntimeConfig.currentTxMode(),
 			SpikeApplyRuntimeConfig.currentGate(),
 			outcome,
-			System.nanoTime() - start
+			durationNanos
 		);
 	}
 
@@ -287,6 +349,18 @@ public class JwtAuthenticator {
 
 	private String extractKeyId(SignedJWT jwt) {
 		return jwt.getHeader().getKeyID();
+	}
+
+	private static final class StageAccumulator {
+		private long totalNanos;
+
+		private void add(long durationNanos) {
+			totalNanos += durationNanos;
+		}
+
+		private long totalNanos() {
+			return totalNanos;
+		}
 	}
 
 	private record VerificationResult(JWTClaimsSet claims, boolean retryUsed) {

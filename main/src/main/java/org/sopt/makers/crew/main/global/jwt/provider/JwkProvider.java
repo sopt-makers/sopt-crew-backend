@@ -4,7 +4,12 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.MDC_ACTIVE_KEY;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWK_CACHE_HIT;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWK_CACHE_MISS;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_GET_PUBLIC_KEY_CACHE_GET_IF_PRESENT_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_GET_PUBLIC_KEY_HIT_BOOKKEEPING_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_GET_PUBLIC_KEY_MISS_LOAD_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_ERROR;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_OBSERVED;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_SUCCESS;
 
 import java.io.IOException;
 import java.security.PublicKey;
@@ -52,16 +57,61 @@ public class JwkProvider {
 	 * @return RSA PublicKey
 	 */
 	public PublicKey getPublicKey(String kid) {
-		PublicKey cachedKey = keyCache.getIfPresent(kid);
-		if (cachedKey != null) {
-			recordCacheObservation(METRIC_JWK_CACHE_HIT);
-			return cachedKey;
+		boolean shouldRecord = "true".equals(MDC.get(MDC_ACTIVE_KEY));
+		long cacheLookupStart = System.nanoTime();
+		String cacheLookupOutcome = OUTCOME_SUCCESS;
+		PublicKey cachedKey;
+		try {
+			cachedKey = keyCache.getIfPresent(kid);
+		} catch (RuntimeException exception) {
+			cacheLookupOutcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			recordTimer(
+				METRIC_JWT_GET_PUBLIC_KEY_CACHE_GET_IF_PRESENT_TOTAL,
+				System.nanoTime() - cacheLookupStart,
+				cacheLookupOutcome,
+				shouldRecord
+			);
 		}
-		return keyCache.get(kid, this::resolvePublicKey);
+		if (cachedKey != null) {
+			long hitBookkeepingStart = System.nanoTime();
+			String hitBookkeepingOutcome = OUTCOME_SUCCESS;
+			try {
+				recordCacheObservation(METRIC_JWK_CACHE_HIT, shouldRecord);
+				return cachedKey;
+			} catch (RuntimeException exception) {
+				hitBookkeepingOutcome = OUTCOME_ERROR;
+				throw exception;
+			} finally {
+				recordTimer(
+					METRIC_JWT_GET_PUBLIC_KEY_HIT_BOOKKEEPING_TOTAL,
+					System.nanoTime() - hitBookkeepingStart,
+					hitBookkeepingOutcome,
+					shouldRecord
+				);
+			}
+		}
+
+		long missLoadStart = System.nanoTime();
+		String missLoadOutcome = OUTCOME_SUCCESS;
+		try {
+			return keyCache.get(kid, this::resolvePublicKey);
+		} catch (RuntimeException exception) {
+			missLoadOutcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			recordTimer(
+				METRIC_JWT_GET_PUBLIC_KEY_MISS_LOAD_TOTAL,
+				System.nanoTime() - missLoadStart,
+				missLoadOutcome,
+				shouldRecord
+			);
+		}
 	}
 
-	private void recordCacheObservation(String metricName) {
-		if (!"true".equals(MDC.get(MDC_ACTIVE_KEY))) {
+	private void recordCacheObservation(String metricName, boolean shouldRecord) {
+		if (!shouldRecord) {
 			return;
 		}
 		spikeApplyMetricRecorder.recordSummary(
@@ -73,8 +123,25 @@ public class JwkProvider {
 		);
 	}
 
+	private void recordTimer(String metricName, long durationNanos, String outcome, boolean shouldRecord) {
+		if (!shouldRecord) {
+			return;
+		}
+		spikeApplyMetricRecorder.recordTimer(
+			metricName,
+			SpikeApplyRuntimeConfig.currentTxMode(),
+			SpikeApplyRuntimeConfig.currentGate(),
+			outcome,
+			durationNanos
+		);
+	}
+
+	private boolean isSpikeApplyActive() {
+		return "true".equals(MDC.get(MDC_ACTIVE_KEY));
+	}
+
 	private PublicKey resolvePublicKey(String kid) {
-		recordCacheObservation(METRIC_JWK_CACHE_MISS);
+		recordCacheObservation(METRIC_JWK_CACHE_MISS, isSpikeApplyActive());
 		try {
 			JWKSet jwkSet = loadJwkSet();
 			JWK jwk = findJwkByKeyId(jwkSet, kid);
