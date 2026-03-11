@@ -21,6 +21,7 @@ public class MdcLoggingFilter extends OncePerRequestFilter {
 	private static final String TRACE_ID = "traceId";
 	private static final String CLIENT_IP = "clientIp";
 	private static final String REQUEST_INFO = "requestInfo";
+	private static final String X_CORRELATION_ID = "X-Correlation-ID";
 	private static final String X_REQUEST_ID = "X-Request-ID";
 	private static final String X_FORWARDED_FOR = "X-Forwarded-For";
 	private static final String X_REAL_IP = "X-Real-IP";
@@ -38,6 +39,7 @@ public class MdcLoggingFilter extends OncePerRequestFilter {
 			request.setAttribute(TRACE_ID_ATTRIBUTE, traceId);
 			request.setAttribute(CLIENT_IP_ATTRIBUTE, clientIp);
 			request.setAttribute(REQUEST_INFO_ATTRIBUTE, requestInfo);
+			response.setHeader(X_CORRELATION_ID, traceId);
 			response.setHeader(X_REQUEST_ID, traceId);
 			filterChain.doFilter(request, response);
 		} finally {
@@ -46,6 +48,10 @@ public class MdcLoggingFilter extends OncePerRequestFilter {
 	}
 
 	private String resolveTraceId(HttpServletRequest request) {
+		String correlationId = request.getHeader(X_CORRELATION_ID);
+		if (correlationId != null && !correlationId.isBlank()) {
+			return correlationId;
+		}
 		String requestId = request.getHeader(X_REQUEST_ID);
 		return (requestId != null && !requestId.isBlank()) ? requestId : UUID.randomUUID().toString();
 	}
