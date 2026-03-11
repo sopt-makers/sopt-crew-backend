@@ -12,6 +12,13 @@ public final class SpikeApplyMetrics {
 	public static final String METRIC_REQUEST_TOTAL = "crew.spike.apply.envelope.request.total";
 	public static final String METRIC_AUTH_TOTAL = "crew.spike.apply.envelope.auth.total";
 	public static final String METRIC_JWT_VERIFY_TOTAL = "crew.spike.apply.envelope.jwt.verify.total";
+	public static final String METRIC_JWT_PARSE_TOTAL = "crew.spike.apply.envelope.jwt.parse.total";
+	public static final String METRIC_JWT_EXTRACT_KID_TOTAL = "crew.spike.apply.envelope.jwt.extract_kid.total";
+	public static final String METRIC_JWT_GET_PUBLIC_KEY_TOTAL = "crew.spike.apply.envelope.jwt.get_public_key.total";
+	public static final String METRIC_JWT_SIGNATURE_VERIFY_TOTAL = "crew.spike.apply.envelope.jwt.signature_verify.total";
+	public static final String METRIC_JWT_CLAIMS_VALIDATE_TOTAL = "crew.spike.apply.envelope.jwt.claims_validate.total";
+	public static final String METRIC_JWT_RETRY_USED = "crew.spike.apply.envelope.jwt.retry.used";
+	public static final String METRIC_JWT_RETRY_NOT_USED = "crew.spike.apply.envelope.jwt.retry.not_used";
 	public static final String METRIC_CONTROLLER_ENTRY = "crew.spike.apply.envelope.controller.entry";
 	public static final String METRIC_JWK_CACHE_HIT = "crew.spike.apply.envelope.jwk.cache.hit";
 	public static final String METRIC_JWK_CACHE_MISS = "crew.spike.apply.envelope.jwk.cache.miss";

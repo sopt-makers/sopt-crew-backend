@@ -4,8 +4,16 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.JWT_INVALID
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.JWT_PARSE_FAILED;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.JWT_VERIFICATION_FAILED;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.MDC_ACTIVE_KEY;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_CLAIMS_VALIDATE_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_EXTRACT_KID_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_GET_PUBLIC_KEY_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_PARSE_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_RETRY_NOT_USED;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_RETRY_USED;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_SIGNATURE_VERIFY_TOTAL;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_JWT_VERIFY_TOTAL;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_ERROR;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_OBSERVED;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_SUCCESS;
 
 import java.security.PublicKey;
@@ -63,12 +71,12 @@ public class JwtAuthenticator {
 		long start = shouldRecord ? System.nanoTime() : 0L;
 		String outcome = OUTCOME_SUCCESS;
 		try {
-			SignedJWT jwt = SignedJWT.parse(token);
-			String kid = extractKeyId(jwt);
-			PublicKey key = jwkProvider.getPublicKey(kid);
-			JWTClaimsSet claims = verifyWithRetry(jwt, kid, key);
+			SignedJWT jwt = parseJwt(token, shouldRecord);
+			String kid = extractKeyId(jwt, shouldRecord);
+			PublicKey key = getPublicKey(kid, shouldRecord);
+			VerificationResult verificationResult = verifyWithRetry(jwt, kid, key, shouldRecord);
 
-			return toAuthentication(claims);
+			return toAuthentication(verificationResult.claims());
 		} catch (ParseException e) {
 			outcome = OUTCOME_ERROR;
 			log.warn("JWT 파싱 실패: {}", e.getMessage());
@@ -105,6 +113,45 @@ public class JwtAuthenticator {
 		return new MakersAuthentication(userId, roles);
 	}
 
+	private SignedJWT parseJwt(String token, boolean shouldRecord) throws ParseException {
+		long start = System.nanoTime();
+		String outcome = OUTCOME_SUCCESS;
+		try {
+			return SignedJWT.parse(token);
+		} catch (ParseException exception) {
+			outcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			recordTimer(METRIC_JWT_PARSE_TOTAL, start, outcome, shouldRecord);
+		}
+	}
+
+	private String extractKeyId(SignedJWT jwt, boolean shouldRecord) {
+		long start = System.nanoTime();
+		String outcome = OUTCOME_SUCCESS;
+		try {
+			return extractKeyId(jwt);
+		} catch (RuntimeException exception) {
+			outcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			recordTimer(METRIC_JWT_EXTRACT_KID_TOTAL, start, outcome, shouldRecord);
+		}
+	}
+
+	private PublicKey getPublicKey(String kid, boolean shouldRecord) {
+		long start = System.nanoTime();
+		String outcome = OUTCOME_SUCCESS;
+		try {
+			return jwkProvider.getPublicKey(kid);
+		} catch (RuntimeException exception) {
+			outcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			recordTimer(METRIC_JWT_GET_PUBLIC_KEY_TOTAL, start, outcome, shouldRecord);
+		}
+	}
+
 	/**
 	 * JWT 검증을 수행하며, 서명 검증 실패 시 1회 재시도를 수행합니다.
 	 *
@@ -113,12 +160,15 @@ public class JwtAuthenticator {
 	 * @param publicKey 현재 캐시된 공개키
 	 * @return 검증된 JWTClaimsSet
 	 */
-	private JWTClaimsSet verifyWithRetry(SignedJWT jwt, String kid, PublicKey publicKey) {
+	private VerificationResult verifyWithRetry(SignedJWT jwt, String kid, PublicKey publicKey, boolean shouldRecord) {
 		try {
-			return verify(jwt, publicKey);
+			VerificationResult result = new VerificationResult(verify(jwt, publicKey, shouldRecord), false);
+			recordRetryObservation(METRIC_JWT_RETRY_NOT_USED, shouldRecord);
+			return result;
 		} catch (JOSEException | ParseException e) {
 			log.warn("JWT verification failed. reason={}", e.getMessage());
-			return retryVerification(jwt, kid);
+			recordRetryObservation(METRIC_JWT_RETRY_USED, shouldRecord);
+			return new VerificationResult(retryVerification(jwt, kid, shouldRecord), true);
 		}
 	}
 
@@ -139,11 +189,11 @@ public class JwtAuthenticator {
 	 * @return 검증된 JWTClaimsSet
 	 * @throws UnAuthorizedException 키 재조회 후에도 검증에 실패한 경우
 	 */
-	private JWTClaimsSet retryVerification(SignedJWT jwt, String kid) {
+	private JWTClaimsSet retryVerification(SignedJWT jwt, String kid, boolean shouldRecord) {
 		jwkProvider.invalidateKey(kid);
 		try {
-			PublicKey refreshedKey = jwkProvider.getPublicKey(kid);
-			return verify(jwt, refreshedKey);
+			PublicKey refreshedKey = getPublicKey(kid, shouldRecord);
+			return verify(jwt, refreshedKey, shouldRecord);
 		} catch (UnAuthorizedException | JOSEException | ParseException e) {
 			log.error("Re-verification failed. reason={}", e.getMessage());
 			throw new UnAuthorizedException(JWT_VERIFICATION_FAILED.getErrorCode());
@@ -160,24 +210,85 @@ public class JwtAuthenticator {
 	 * @throws ParseException JWT 클레임 파싱 실패 시
 	 * @throws UnAuthorizedException 클레임 자체가 유효하지 않은 경우 (issuer 불일치, 만료 등)
 	 */
-	private JWTClaimsSet verify(SignedJWT jwt, PublicKey publicKey) throws JOSEException, ParseException {
-		JWTClaimsSet claims = jwt.getJWTClaimsSet();
+	private JWTClaimsSet verify(SignedJWT jwt, PublicKey publicKey, boolean shouldRecord) throws
+		JOSEException,
+		ParseException {
 		JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey)publicKey);
-		boolean signatureValid = jwt.verify(verifier);
-		boolean issuerValid = issuer.equals(claims.getIssuer());
-		boolean notExpired = skipExpirationCheck || claims.getExpirationTime().after(new Date());
-
-		if (!(signatureValid && issuerValid && notExpired)) {
-			log.warn(
-				"Invalid JWT claims detected. signatureValid={}, issuerValid={}, notExpired={}, skipExpirationCheck={}",
-				signatureValid, issuerValid, notExpired, skipExpirationCheck);
-			throw new UnAuthorizedException(JWT_INVALID_CLAIMS.getErrorCode());
-		}
+		boolean signatureValid = verifySignature(jwt, verifier, shouldRecord);
+		JWTClaimsSet claims = validateClaims(jwt, signatureValid, shouldRecord);
 
 		return claims;
 	}
 
+	private boolean verifySignature(SignedJWT jwt, JWSVerifier verifier, boolean shouldRecord) throws JOSEException {
+		long start = System.nanoTime();
+		String outcome = OUTCOME_SUCCESS;
+		try {
+			return jwt.verify(verifier);
+		} catch (JOSEException exception) {
+			outcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			recordTimer(METRIC_JWT_SIGNATURE_VERIFY_TOTAL, start, outcome, shouldRecord);
+		}
+	}
+
+	private JWTClaimsSet validateClaims(SignedJWT jwt, boolean signatureValid, boolean shouldRecord) throws
+		ParseException {
+		long start = System.nanoTime();
+		String outcome = OUTCOME_SUCCESS;
+		try {
+			JWTClaimsSet claims = jwt.getJWTClaimsSet();
+			boolean issuerValid = issuer.equals(claims.getIssuer());
+			boolean notExpired = skipExpirationCheck || claims.getExpirationTime().after(new Date());
+
+			if (!(signatureValid && issuerValid && notExpired)) {
+				outcome = OUTCOME_ERROR;
+				log.warn(
+					"Invalid JWT claims detected. signatureValid={}, issuerValid={}, notExpired={}, skipExpirationCheck={}",
+					signatureValid, issuerValid, notExpired, skipExpirationCheck);
+				throw new UnAuthorizedException(JWT_INVALID_CLAIMS.getErrorCode());
+			}
+
+			return claims;
+		} catch (ParseException | RuntimeException exception) {
+			outcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			recordTimer(METRIC_JWT_CLAIMS_VALIDATE_TOTAL, start, outcome, shouldRecord);
+		}
+	}
+
+	private void recordTimer(String metricName, long start, String outcome, boolean shouldRecord) {
+		if (!shouldRecord) {
+			return;
+		}
+		spikeApplyMetricRecorder.recordTimer(
+			metricName,
+			SpikeApplyRuntimeConfig.currentTxMode(),
+			SpikeApplyRuntimeConfig.currentGate(),
+			outcome,
+			System.nanoTime() - start
+		);
+	}
+
+	private void recordRetryObservation(String metricName, boolean shouldRecord) {
+		if (!shouldRecord) {
+			return;
+		}
+		spikeApplyMetricRecorder.recordSummary(
+			metricName,
+			SpikeApplyRuntimeConfig.currentTxMode(),
+			SpikeApplyRuntimeConfig.currentGate(),
+			OUTCOME_OBSERVED,
+			1.0
+		);
+	}
+
 	private String extractKeyId(SignedJWT jwt) {
 		return jwt.getHeader().getKeyID();
+	}
+
+	private record VerificationResult(JWTClaimsSet claims, boolean retryUsed) {
 	}
 }
