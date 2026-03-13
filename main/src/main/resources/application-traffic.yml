@@ -152,7 +152,7 @@ cors:
 
 execution-logging:
   aop:
-    enabled: false
+    enabled: true
 
 spike:
   diagnostic:
