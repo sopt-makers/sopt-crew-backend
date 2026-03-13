@@ -7,6 +7,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.MDC;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
@@ -17,6 +18,7 @@ import lombok.extern.log4j.Log4j2;
 @Component
 @Log4j2
 @Profile("!test")
+@ConditionalOnProperty(prefix = "execution-logging.aop", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class ExecutionLoggingAop {
 
 	/**
@@ -24,11 +26,13 @@ public class ExecutionLoggingAop {
 	 * @implNote : 제외 클래스 - global 패키지, config 관련 패키지, Test 클래스, redis 클래스
 	 * @implNote : MDC "skipAopLogging" 플래그가 설정된 스레드는 로깅을 건너뛴다.
 	 *           (Spike Traffic 경로: pre-controller interceptor가 controller/facade/하위 호출 전체를 skip)
+	 * @implNote : Spike profiler 자체는 계측 경로이므로 AOP 대상에서 제외한다.
 	 */
 	@Around("execution(* org.sopt.makers.crew.main..*(..)) "
 			+ "&& !within(org.sopt.makers.crew.main.global..*) "
 			+ "&& !within(org.sopt.makers.crew.main.external.s3.config..*)"
-			+ "&& !within(org.sopt.makers.crew.main.external.redis..*) ")
+			+ "&& !within(org.sopt.makers.crew.main.external.redis..*) "
+			+ "&& !within(org.sopt.makers.crew.main.meeting.v2.service.SpikeApplyProfiler)")
 	public Object logExecutionTrace(ProceedingJoinPoint pjp) throws Throwable {
 		if ("true".equals(MDC.get("skipAopLogging"))) {
 			return pjp.proceed();

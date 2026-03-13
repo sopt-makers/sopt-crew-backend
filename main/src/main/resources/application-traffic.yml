@@ -150,6 +150,10 @@ cors:
   allowed-origins:
     traffic: ${CORS_TRAFFIC_ORIGIN}
 
+execution-logging:
+  aop:
+    enabled: true
+
 spike:
   diagnostic:
     enabled: false
