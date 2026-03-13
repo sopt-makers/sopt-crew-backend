@@ -14,9 +14,9 @@ import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.USER_ID
 import java.io.IOException;
 
 import org.slf4j.MDC;
-import org.sopt.makers.crew.main.global.metrics.EventApplyRequestMatcher;
 import org.sopt.makers.crew.main.global.metrics.SpikeDiagnosticProperties;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyRequestSupport;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -28,16 +28,16 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class SpikeApplyAppEdgeMetricsFilter extends OncePerRequestFilter {
-	private final EventApplyRequestMatcher eventApplyRequestMatcher;
+	private final SpikeApplyRequestSupport spikeApplyRequestSupport;
 	private final SpikeDiagnosticProperties spikeDiagnosticProperties;
 	private final SpikeApplyMetricRecorder spikeApplyMetricRecorder;
 
 	public SpikeApplyAppEdgeMetricsFilter(
-		EventApplyRequestMatcher eventApplyRequestMatcher,
+		SpikeApplyRequestSupport spikeApplyRequestSupport,
 		SpikeDiagnosticProperties spikeDiagnosticProperties,
 		SpikeApplyMetricRecorder spikeApplyMetricRecorder
 	) {
-		this.eventApplyRequestMatcher = eventApplyRequestMatcher;
+		this.spikeApplyRequestSupport = spikeApplyRequestSupport;
 		this.spikeDiagnosticProperties = spikeDiagnosticProperties;
 		this.spikeApplyMetricRecorder = spikeApplyMetricRecorder;
 	}
@@ -45,12 +45,10 @@ public class SpikeApplyAppEdgeMetricsFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
-		if (!eventApplyRequestMatcher.matches(request)) {
+		if (!spikeApplyRequestSupport.isSpikeApplyRequest(request)) {
 			filterChain.doFilter(request, response);
 			return;
 		}
-
-		request.setAttribute(REQUEST_MATCHED_ATTRIBUTE, true);
 
 		long start = System.nanoTime();
 		String outcome = OUTCOME_SUCCESS;

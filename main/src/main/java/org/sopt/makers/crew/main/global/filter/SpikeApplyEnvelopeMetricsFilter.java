@@ -11,8 +11,8 @@ import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.REQUEST
 import java.io.IOException;
 
 import org.slf4j.MDC;
-import org.sopt.makers.crew.main.global.metrics.EventApplyRequestMatcher;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyRequestSupport;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -24,28 +24,24 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class SpikeApplyEnvelopeMetricsFilter extends OncePerRequestFilter {
-	private final EventApplyRequestMatcher eventApplyRequestMatcher;
+	private final SpikeApplyRequestSupport spikeApplyRequestSupport;
 	private final SpikeApplyMetricRecorder spikeApplyMetricRecorder;
 
 	public SpikeApplyEnvelopeMetricsFilter(
-		EventApplyRequestMatcher eventApplyRequestMatcher,
+		SpikeApplyRequestSupport spikeApplyRequestSupport,
 		SpikeApplyMetricRecorder spikeApplyMetricRecorder
 	) {
-		this.eventApplyRequestMatcher = eventApplyRequestMatcher;
+		this.spikeApplyRequestSupport = spikeApplyRequestSupport;
 		this.spikeApplyMetricRecorder = spikeApplyMetricRecorder;
 	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
-		boolean matched = Boolean.TRUE.equals(request.getAttribute(REQUEST_MATCHED_ATTRIBUTE))
-			|| eventApplyRequestMatcher.matches(request);
-		if (!matched) {
+		if (!spikeApplyRequestSupport.isSpikeApplyRequest(request)) {
 			filterChain.doFilter(request, response);
 			return;
 		}
-
-		request.setAttribute(REQUEST_MATCHED_ATTRIBUTE, true);
 		request.setAttribute(MDC_ACTIVE_PREVIOUS, MDC.get(MDC_ACTIVE_KEY));
 		MDC.put(MDC_ACTIVE_KEY, "true");
 

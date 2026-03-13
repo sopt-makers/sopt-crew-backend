@@ -11,6 +11,7 @@ import java.io.IOException;
 import org.slf4j.MDC;
 import org.sopt.makers.crew.main.global.jwt.authenticator.JwtAuthenticator;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyRequestSupport;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.sopt.makers.crew.main.global.security.authentication.MakersAuthentication;
 import org.springframework.http.HttpHeaders;
@@ -31,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private static final String ACCESS_TOKEN_PREFIX = "Bearer ";
 	private static final String USER_ID = "userId";
+	private final SpikeApplyRequestSupport spikeApplyRequestSupport;
 	private final JwtAuthenticator jwtAuthenticator;
 	private final SpikeApplyMetricRecorder spikeApplyMetricRecorder;
 
@@ -46,7 +48,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			return;
 		}
 
-		boolean isSpikeApplyRequest = Boolean.TRUE.equals(request.getAttribute(REQUEST_MATCHED_ATTRIBUTE));
+		boolean isSpikeApplyRequest = spikeApplyRequestSupport.isSpikeApplyRequest(request);
+		boolean persistDiagnosticAttributes = spikeApplyRequestSupport.shouldPersistDiagnosticAttributes(request);
 		long authStart = System.nanoTime();
 		String outcome = OUTCOME_SUCCESS;
 		try {
@@ -55,7 +58,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 			String authenticatedUserId = String.valueOf(authentication.getPrincipal());
 			MDC.put(USER_ID, authenticatedUserId);
-			request.setAttribute(USER_ID_ATTRIBUTE, authenticatedUserId);
+			if (persistDiagnosticAttributes) {
+				request.setAttribute(USER_ID_ATTRIBUTE, authenticatedUserId);
+			}
 		} catch (RuntimeException exception) {
 			outcome = OUTCOME_ERROR;
 			throw exception;
