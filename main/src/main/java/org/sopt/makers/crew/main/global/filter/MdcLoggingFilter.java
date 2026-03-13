@@ -2,12 +2,15 @@ package org.sopt.makers.crew.main.global.filter;
 
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.CLIENT_IP_ATTRIBUTE;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.REQUEST_INFO_ATTRIBUTE;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.REQUEST_MATCHED_ATTRIBUTE;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.TRACE_ID_ATTRIBUTE;
 
 import java.io.IOException;
 import java.util.UUID;
 
 import org.slf4j.MDC;
+import org.sopt.makers.crew.main.global.metrics.EventApplyRequestMatcher;
+import org.sopt.makers.crew.main.global.metrics.SpikeDiagnosticProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,8 +18,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class MdcLoggingFilter extends OncePerRequestFilter {
 	private static final String TRACE_ID = "traceId";
 	private static final String CLIENT_IP = "clientIp";
@@ -25,19 +30,25 @@ public class MdcLoggingFilter extends OncePerRequestFilter {
 	private static final String X_REQUEST_ID = "X-Request-ID";
 	private static final String X_FORWARDED_FOR = "X-Forwarded-For";
 	private static final String X_REAL_IP = "X-Real-IP";
+	private final EventApplyRequestMatcher eventApplyRequestMatcher;
+	private final SpikeDiagnosticProperties spikeDiagnosticProperties;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
 		try {
+			boolean isSpikeApplyRequest = Boolean.TRUE.equals(request.getAttribute(REQUEST_MATCHED_ATTRIBUTE))
+				|| eventApplyRequestMatcher.matches(request);
 			String traceId = resolveTraceId(request);
-			String clientIp = resolveClientIp(request);
+			String clientIp = shouldCaptureClientIp(isSpikeApplyRequest) ? resolveClientIp(request) : null;
 			String requestInfo = request.getMethod() + " " + request.getRequestURI();
 			MDC.put(TRACE_ID, traceId);
-			MDC.put(CLIENT_IP, clientIp);
+			if (clientIp != null) {
+				MDC.put(CLIENT_IP, clientIp);
+				request.setAttribute(CLIENT_IP_ATTRIBUTE, clientIp);
+			}
 			MDC.put(REQUEST_INFO, requestInfo);
 			request.setAttribute(TRACE_ID_ATTRIBUTE, traceId);
-			request.setAttribute(CLIENT_IP_ATTRIBUTE, clientIp);
 			request.setAttribute(REQUEST_INFO_ATTRIBUTE, requestInfo);
 			response.setHeader(X_CORRELATION_ID, traceId);
 			response.setHeader(X_REQUEST_ID, traceId);
@@ -66,6 +77,10 @@ public class MdcLoggingFilter extends OncePerRequestFilter {
 			return ip;
 		}
 		return request.getRemoteAddr();
+	}
+
+	private boolean shouldCaptureClientIp(boolean isSpikeApplyRequest) {
+		return spikeDiagnosticProperties.isEnabled() || !isSpikeApplyRequest;
 	}
 
 }

@@ -15,6 +15,7 @@ import java.io.IOException;
 
 import org.slf4j.MDC;
 import org.sopt.makers.crew.main.global.metrics.EventApplyRequestMatcher;
+import org.sopt.makers.crew.main.global.metrics.SpikeDiagnosticProperties;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.springframework.stereotype.Component;
@@ -28,13 +29,16 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class SpikeApplyAppEdgeMetricsFilter extends OncePerRequestFilter {
 	private final EventApplyRequestMatcher eventApplyRequestMatcher;
+	private final SpikeDiagnosticProperties spikeDiagnosticProperties;
 	private final SpikeApplyMetricRecorder spikeApplyMetricRecorder;
 
 	public SpikeApplyAppEdgeMetricsFilter(
 		EventApplyRequestMatcher eventApplyRequestMatcher,
+		SpikeDiagnosticProperties spikeDiagnosticProperties,
 		SpikeApplyMetricRecorder spikeApplyMetricRecorder
 	) {
 		this.eventApplyRequestMatcher = eventApplyRequestMatcher;
+		this.spikeDiagnosticProperties = spikeDiagnosticProperties;
 		this.spikeApplyMetricRecorder = spikeApplyMetricRecorder;
 	}
 
@@ -60,7 +64,9 @@ public class SpikeApplyAppEdgeMetricsFilter extends OncePerRequestFilter {
 			throw exception;
 		} finally {
 			long totalNanos = System.nanoTime() - start;
-			restoreCorrelationMdc(request);
+			if (spikeDiagnosticProperties.isEnabled()) {
+				restoreCorrelationMdc(request);
+			}
 			recordTimer(METRIC_APP_EDGE_TOTAL, outcome, totalNanos);
 
 			Object requestTotalAttr = request.getAttribute(REQUEST_TOTAL_NANOS_ATTRIBUTE);
@@ -68,7 +74,9 @@ public class SpikeApplyAppEdgeMetricsFilter extends OncePerRequestFilter {
 				long preRequestNanos = Math.max(0L, totalNanos - requestTotalNanos);
 				recordTimer(METRIC_APP_EDGE_PRE_REQUEST_TOTAL, outcome, preRequestNanos);
 			}
-			clearCorrelationMdc();
+			if (spikeDiagnosticProperties.isEnabled()) {
+				clearCorrelationMdc();
+			}
 		}
 	}
 

@@ -22,6 +22,7 @@ import org.sopt.makers.crew.main.external.auth.AuthClient;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
+import org.sopt.makers.crew.main.global.metrics.SpikeDiagnosticProperties;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.springframework.stereotype.Component;
@@ -40,14 +41,20 @@ import lombok.extern.slf4j.Slf4j;
 public class JwkProvider {
 	private final Cache<String, PublicKey> keyCache;
 	private final AuthClient authClient;
+	private final SpikeDiagnosticProperties spikeDiagnosticProperties;
 	private final SpikeApplyMetricRecorder spikeApplyMetricRecorder;
 
-	public JwkProvider(AuthClient authClient, SpikeApplyMetricRecorder spikeApplyMetricRecorder) {
+	public JwkProvider(
+		AuthClient authClient,
+		SpikeDiagnosticProperties spikeDiagnosticProperties,
+		SpikeApplyMetricRecorder spikeApplyMetricRecorder
+	) {
 		this.keyCache = Caffeine.newBuilder()
 			.maximumSize(20)
 			.expireAfterWrite(Duration.ofDays(1))
 			.build();
 		this.authClient = authClient;
+		this.spikeDiagnosticProperties = spikeDiagnosticProperties;
 		this.spikeApplyMetricRecorder = spikeApplyMetricRecorder;
 	}
 
@@ -58,6 +65,13 @@ public class JwkProvider {
 	 */
 	public PublicKey getPublicKey(String kid) {
 		boolean shouldRecord = "true".equals(MDC.get(MDC_ACTIVE_KEY));
+		if (!(shouldRecord && spikeDiagnosticProperties.isEnabled())) {
+			PublicKey cachedKey = keyCache.getIfPresent(kid);
+			if (cachedKey != null) {
+				return cachedKey;
+			}
+			return keyCache.get(kid, this::resolvePublicKey);
+		}
 		long cacheLookupStart = System.nanoTime();
 		String cacheLookupOutcome = OUTCOME_SUCCESS;
 		PublicKey cachedKey;
@@ -137,7 +151,7 @@ public class JwkProvider {
 	}
 
 	private boolean isSpikeApplyActive() {
-		return "true".equals(MDC.get(MDC_ACTIVE_KEY));
+		return "true".equals(MDC.get(MDC_ACTIVE_KEY)) && spikeDiagnosticProperties.isEnabled();
 	}
 
 	private PublicKey resolvePublicKey(String kid) {

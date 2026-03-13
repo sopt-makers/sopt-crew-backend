@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics;
+import org.sopt.makers.crew.main.global.metrics.SpikeDiagnosticProperties;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerResetResponseDto;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerSnapshotResponseDto;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerTraceDto;
@@ -12,7 +14,7 @@ import org.sopt.makers.crew.main.internal.dto.SpikeProfilerTimerMetricDto;
 
 class SpikeApplyProfilerTest {
 
-	private final SpikeApplyProfiler spikeApplyProfiler = new SpikeApplyProfiler();
+	private final SpikeApplyProfiler spikeApplyProfiler = new SpikeApplyProfiler(new SpikeDiagnosticProperties());
 
 	@Test
 	void snapshot_타이머_통계를_반환한다() {
@@ -94,5 +96,25 @@ class SpikeApplyProfilerTest {
 				"crew.spike.apply.envelope.jwt.get_public_key.total",
 				"crew.spike.apply.envelope.jwk.cache.hit"
 			);
+	}
+
+	@Test
+	void diagnosticsDisabled_keepsCoarseMetrics_onlyAndDisablesTraceStore() {
+		SpikeDiagnosticProperties properties = new SpikeDiagnosticProperties();
+		properties.setEnabled(false);
+		SpikeApplyProfiler disabledProfiler = new SpikeApplyProfiler(properties);
+
+		disabledProfiler.recordTimer(SpikeApplyMetrics.METRIC_REQUEST_TOTAL, "fat", "on", "success", 10_000_000L);
+		disabledProfiler.recordTimer(SpikeApplyMetrics.METRIC_JWT_PARSE_TOTAL, "fat", "on", "success", 10_000_000L);
+		disabledProfiler.recordSummary("crew.spike.apply.queue.length.snapshot", "fat", "on", "success", 1.0);
+		disabledProfiler.recordSummary(SpikeApplyMetrics.METRIC_JWK_CACHE_HIT, "fat", "on", "observed", 1.0);
+
+		SpikeProfilerSnapshotResponseDto snapshot = disabledProfiler.snapshot();
+
+		assertThat(snapshot.timers()).extracting(SpikeProfilerTimerMetricDto::metricName)
+			.containsExactly(SpikeApplyMetrics.METRIC_REQUEST_TOTAL);
+		assertThat(snapshot.summaries()).extracting(summary -> summary.metricName())
+			.containsExactly("crew.spike.apply.queue.length.snapshot");
+		assertThat(disabledProfiler.traceSnapshot().traces()).isEmpty();
 	}
 }

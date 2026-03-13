@@ -149,3 +149,7 @@ slack:
 cors:
   allowed-origins:
     traffic: ${CORS_TRAFFIC_ORIGIN}
+
+spike:
+  diagnostic:
+    enabled: false

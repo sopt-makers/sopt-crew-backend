@@ -134,3 +134,7 @@ slack:
   bot-token: ${SLACK_BOT_TOKEN}
   app-token: ${SLACK_APP_TOKEN}
   api-auth-token: ${SLACK_API_AUTH_TOKEN}
+
+spike:
+  diagnostic:
+    enabled: true

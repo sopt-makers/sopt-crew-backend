@@ -7,13 +7,15 @@ import java.util.Arrays;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.MDC;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics;
+import org.sopt.makers.crew.main.global.metrics.SpikeDiagnosticProperties;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerResetResponseDto;
 import org.sopt.makers.crew.main.internal.dto.SpikeProfilerSnapshotResponseDto;
@@ -27,8 +29,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 
 	public static final String OUTCOME_SUCCESS = "success";
@@ -38,7 +42,23 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 	private static final String TRACE_ID = "traceId";
 	private static final String REQUEST_INFO = "requestInfo";
 	private static final String USER_ID = "userId";
+	private static final List<String> COARSE_TIMER_METRICS = List.of(
+		SpikeApplyMetrics.METRIC_APP_EDGE_TOTAL,
+		SpikeApplyMetrics.METRIC_APP_EDGE_PRE_REQUEST_TOTAL,
+		SpikeApplyMetrics.METRIC_REQUEST_TOTAL,
+		SpikeApplyMetrics.METRIC_AUTH_TOTAL,
+		SpikeApplyMetrics.METRIC_JWT_VERIFY_TOTAL,
+		SpikeApplyMetrics.METRIC_CONTROLLER_ENTRY,
+		"crew.spike.apply.acquire.wait",
+		"crew.spike.apply.business",
+		"crew.spike.apply.total"
+	);
+	private static final List<String> COARSE_SUMMARY_METRICS = List.of(
+		"crew.spike.apply.queue.length.snapshot",
+		"crew.spike.apply.permits.available.snapshot"
+	);
 
+	private final SpikeDiagnosticProperties spikeDiagnosticProperties;
 	private final ConcurrentMap<MetricKey, TimerStats> timerStats = new ConcurrentHashMap<>();
 	private final ConcurrentMap<MetricKey, SummaryStats> summaryStats = new ConcurrentHashMap<>();
 	private final ConcurrentMap<String, RequestTrace> requestTraces = new ConcurrentHashMap<>();
@@ -61,6 +81,9 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 		if (!enabled) {
 			return;
 		}
+		if (!shouldRecordTimerMetric(metricName)) {
+			return;
+		}
 		if (nanos <= 0) {
 			return;
 		}
@@ -73,12 +96,18 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 		if (!enabled) {
 			return;
 		}
+		if (!shouldRecordSummaryMetric(metricName)) {
+			return;
+		}
 		summaryStats.computeIfAbsent(new MetricKey(metricName, txMode, gate, outcome), ignored -> new SummaryStats())
 			.record(value);
 		recordTraceMeasurement(metricName, outcome, value, "value", "summary");
 	}
 
 	public <T> T profile(String metricName, String txMode, String gate, StepSupplier<T> supplier) {
+		if (!enabled || !shouldRecordTimerMetric(metricName)) {
+			return supplier.get();
+		}
 		long start = System.nanoTime();
 		try {
 			T result = supplier.get();
@@ -91,6 +120,10 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 	}
 
 	public void profile(String metricName, String txMode, String gate, StepRunnable runnable) {
+		if (!enabled || !shouldRecordTimerMetric(metricName)) {
+			runnable.run();
+			return;
+		}
 		long start = System.nanoTime();
 		try {
 			runnable.run();
@@ -125,7 +158,7 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 	}
 
 	public SpikeProfilerTraceSnapshotResponseDto traceSnapshot() {
-		if (!enabled) {
+		if (!enabled || !spikeDiagnosticProperties.isEnabled()) {
 			return new SpikeProfilerTraceSnapshotResponseDto(Instant.now().toString(), List.of());
 		}
 
@@ -150,6 +183,9 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 	}
 
 	private void recordTraceMeasurement(String metricName, String outcome, double value, String unit, String kind) {
+		if (!spikeDiagnosticProperties.isEnabled()) {
+			return;
+		}
 		String traceId = MDC.get(TRACE_ID);
 		if (traceId == null || traceId.isBlank()) {
 			return;
@@ -298,6 +334,14 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 
 	private static double nanosToMillis(long nanos) {
 		return nanos / 1_000_000.0;
+	}
+
+	private boolean shouldRecordTimerMetric(String metricName) {
+		return spikeDiagnosticProperties.isEnabled() || COARSE_TIMER_METRICS.contains(metricName);
+	}
+
+	private boolean shouldRecordSummaryMetric(String metricName) {
+		return spikeDiagnosticProperties.isEnabled() || COARSE_SUMMARY_METRICS.contains(metricName);
 	}
 
 	private static final class RequestTrace {

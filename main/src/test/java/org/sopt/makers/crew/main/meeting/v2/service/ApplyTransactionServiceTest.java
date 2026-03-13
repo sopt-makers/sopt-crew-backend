@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.sopt.makers.crew.main.global.metrics.SpikeDiagnosticProperties;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
@@ -46,7 +47,7 @@ class ApplyTransactionServiceTest {
 	private ApplyMapper applyMapper;
 
 	@Spy
-	private SpikeApplyProfiler spikeApplyProfiler = new SpikeApplyProfiler();
+	private SpikeApplyProfiler spikeApplyProfiler = new SpikeApplyProfiler(new SpikeDiagnosticProperties());
 
 	@InjectMocks
 	private ApplyTransactionService applyTransactionService;
