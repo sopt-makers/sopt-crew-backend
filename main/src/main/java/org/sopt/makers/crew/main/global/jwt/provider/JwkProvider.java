@@ -65,18 +65,61 @@ public class JwkProvider {
 	 */
 	public PublicKey getPublicKey(String kid) {
 		boolean shouldRecord = "true".equals(MDC.get(MDC_ACTIVE_KEY));
-		if (!(shouldRecord && spikeDiagnosticProperties.isEnabled())) {
+		if (!shouldUseDetailedCacheInstrumentation(shouldRecord)) {
 			PublicKey cachedKey = keyCache.getIfPresent(kid);
 			if (cachedKey != null) {
 				return cachedKey;
 			}
 			return keyCache.get(kid, this::resolvePublicKey);
 		}
+		PublicKey cachedKey = getCachedKey(kid, shouldRecord);
+		if (cachedKey != null) {
+			recordCacheHit(shouldRecord);
+			return cachedKey;
+		}
+
+		return loadMissPath(kid, shouldRecord);
+	}
+
+	private void recordCacheObservation(String metricName, boolean shouldRecord) {
+		if (!(shouldRecord && spikeDiagnosticProperties.isDetailedSummaryEnabled(metricName))) {
+			return;
+		}
+		spikeApplyMetricRecorder.recordSummary(
+			metricName,
+			SpikeApplyRuntimeConfig.currentTxMode(),
+			SpikeApplyRuntimeConfig.currentGate(),
+			OUTCOME_OBSERVED,
+			1.0
+		);
+	}
+
+	private void recordTimer(String metricName, long durationNanos, String outcome, boolean shouldRecord) {
+		if (!(shouldRecord && spikeDiagnosticProperties.isDetailedTimerEnabled(metricName))) {
+			return;
+		}
+		spikeApplyMetricRecorder.recordTimer(
+			metricName,
+			SpikeApplyRuntimeConfig.currentTxMode(),
+			SpikeApplyRuntimeConfig.currentGate(),
+			outcome,
+			durationNanos
+		);
+	}
+
+	private boolean isSpikeApplyActive() {
+		return "true".equals(MDC.get(MDC_ACTIVE_KEY)) && spikeDiagnosticProperties.isEnabled();
+	}
+
+	private PublicKey getCachedKey(String kid, boolean shouldRecord) {
+		if (!spikeDiagnosticProperties.isDetailedTimerEnabled(
+			METRIC_JWT_GET_PUBLIC_KEY_CACHE_GET_IF_PRESENT_TOTAL)) {
+			return keyCache.getIfPresent(kid);
+		}
 		long cacheLookupStart = System.nanoTime();
 		String cacheLookupOutcome = OUTCOME_SUCCESS;
-		PublicKey cachedKey;
 		try {
-			cachedKey = keyCache.getIfPresent(kid);
+			return keyCache.getIfPresent(kid);
 		} catch (RuntimeException exception) {
 			cacheLookupOutcome = OUTCOME_ERROR;
 			throw exception;
@@ -88,25 +131,35 @@ public class JwkProvider {
 				shouldRecord
 			);
 		}
-		if (cachedKey != null) {
-			long hitBookkeepingStart = System.nanoTime();
-			String hitBookkeepingOutcome = OUTCOME_SUCCESS;
-			try {
-				recordCacheObservation(METRIC_JWK_CACHE_HIT, shouldRecord);
-				return cachedKey;
-			} catch (RuntimeException exception) {
-				hitBookkeepingOutcome = OUTCOME_ERROR;
-				throw exception;
-			} finally {
-				recordTimer(
-					METRIC_JWT_GET_PUBLIC_KEY_HIT_BOOKKEEPING_TOTAL,
-					System.nanoTime() - hitBookkeepingStart,
-					hitBookkeepingOutcome,
-					shouldRecord
-				);
-			}
-		}
+	}
 
+	private void recordCacheHit(boolean shouldRecord) {
+		if (!spikeDiagnosticProperties.isDetailedTimerEnabled(
+			METRIC_JWT_GET_PUBLIC_KEY_HIT_BOOKKEEPING_TOTAL)) {
+			recordCacheObservation(METRIC_JWK_CACHE_HIT, shouldRecord);
+			return;
+		}
+		long hitBookkeepingStart = System.nanoTime();
+		String hitBookkeepingOutcome = OUTCOME_SUCCESS;
+		try {
+			recordCacheObservation(METRIC_JWK_CACHE_HIT, shouldRecord);
+		} catch (RuntimeException exception) {
+			hitBookkeepingOutcome = OUTCOME_ERROR;
+			throw exception;
+		} finally {
+			recordTimer(
+				METRIC_JWT_GET_PUBLIC_KEY_HIT_BOOKKEEPING_TOTAL,
+				System.nanoTime() - hitBookkeepingStart,
+				hitBookkeepingOutcome,
+				shouldRecord
+			);
+		}
+	}
+
+	private PublicKey loadMissPath(String kid, boolean shouldRecord) {
+		if (!spikeDiagnosticProperties.isDetailedTimerEnabled(METRIC_JWT_GET_PUBLIC_KEY_MISS_LOAD_TOTAL)) {
+			return keyCache.get(kid, this::resolvePublicKey);
+		}
 		long missLoadStart = System.nanoTime();
 		String missLoadOutcome = OUTCOME_SUCCESS;
 		try {
@@ -124,34 +177,16 @@ public class JwkProvider {
 		}
 	}
 
-	private void recordCacheObservation(String metricName, boolean shouldRecord) {
-		if (!shouldRecord) {
-			return;
-		}
-		spikeApplyMetricRecorder.recordSummary(
-			metricName,
-			SpikeApplyRuntimeConfig.currentTxMode(),
-			SpikeApplyRuntimeConfig.currentGate(),
-			OUTCOME_OBSERVED,
-			1.0
+	private boolean shouldUseDetailedCacheInstrumentation(boolean shouldRecord) {
+		return shouldRecord
+			&& spikeDiagnosticProperties.isEnabled()
+			&& (
+			spikeDiagnosticProperties.isDetailedTimerEnabled(METRIC_JWT_GET_PUBLIC_KEY_CACHE_GET_IF_PRESENT_TOTAL)
+				|| spikeDiagnosticProperties.isDetailedTimerEnabled(METRIC_JWT_GET_PUBLIC_KEY_HIT_BOOKKEEPING_TOTAL)
+				|| spikeDiagnosticProperties.isDetailedTimerEnabled(METRIC_JWT_GET_PUBLIC_KEY_MISS_LOAD_TOTAL)
+				|| spikeDiagnosticProperties.isDetailedSummaryEnabled(METRIC_JWK_CACHE_HIT)
+				|| spikeDiagnosticProperties.isDetailedSummaryEnabled(METRIC_JWK_CACHE_MISS)
 		);
-	}
-
-	private void recordTimer(String metricName, long durationNanos, String outcome, boolean shouldRecord) {
-		if (!shouldRecord) {
-			return;
-		}
-		spikeApplyMetricRecorder.recordTimer(
-			metricName,
-			SpikeApplyRuntimeConfig.currentTxMode(),
-			SpikeApplyRuntimeConfig.currentGate(),
-			outcome,
-			durationNanos
-		);
-	}
-
-	private boolean isSpikeApplyActive() {
-		return "true".equals(MDC.get(MDC_ACTIVE_KEY)) && spikeDiagnosticProperties.isEnabled();
 	}
 
 	private PublicKey resolvePublicKey(String kid) {

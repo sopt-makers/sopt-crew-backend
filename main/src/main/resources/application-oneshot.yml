@@ -1,0 +1,35 @@
+spring:
+  config:
+    activate:
+      on-profile: oneshot
+
+execution-logging:
+  aop:
+    enabled: false
+
+spike:
+  diagnostic:
+    enabled: true
+    selective:
+      enabled: true
+      timer-allowlist:
+        - crew.spike.apply.envelope.jwt.verify.unattributed.total
+        - crew.spike.apply.envelope.jwt.verify_with_retry.total
+        - crew.spike.apply.envelope.jwt.get_public_key.total
+        - crew.spike.apply.envelope.jwt.get_public_key.cache_get_if_present.total
+        - crew.spike.apply.envelope.jwt.get_public_key.hit_bookkeeping.total
+        - crew.spike.apply.business.fat.total
+        - crew.spike.apply.business.fetch.meeting
+        - crew.spike.apply.business.fetch.user
+        - crew.spike.apply.business.query.coleader_exists
+        - crew.spike.apply.business.query.apply_count
+        - crew.spike.apply.business.validate.total
+        - crew.spike.apply.business.write.map_entity
+        - crew.spike.apply.business.write.save_apply
+        - crew.spike.apply.business.write.flush
+        - crew.spike.apply.business.write.commit_tail
+      summary-allowlist:
+        - crew.spike.apply.envelope.jwk.cache.hit
+        - crew.spike.apply.envelope.jwk.cache.miss
+        - crew.spike.apply.envelope.jwt.retry.used
+        - crew.spike.apply.envelope.jwt.retry.not_used

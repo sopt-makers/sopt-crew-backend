@@ -9,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,6 +47,9 @@ class ApplyTransactionServiceTest {
 	@Mock
 	private ApplyMapper applyMapper;
 
+	@Mock
+	private EntityManager entityManager;
+
 	@Spy
 	private SpikeApplyProfiler spikeApplyProfiler = new SpikeApplyProfiler(new SpikeDiagnosticProperties());
 
@@ -64,9 +68,8 @@ class ApplyTransactionServiceTest {
 		Apply mappedApply = mock(Apply.class);
 		Apply savedApply = mock(Apply.class);
 
-		doReturn(meeting).when(meetingRepository).findByIdOrThrow(meetingId);
-		doReturn(user).when(userRepository).findByIdOrThrow(userId);
-		doReturn(meetingId).when(meeting).getId();
+		doReturn(meeting).when(entityManager).getReference(Meeting.class, meetingId);
+		doReturn(user).when(entityManager).getReference(User.class, userId);
 		doReturn(false).when(coLeaderRepository).existsByMeetingIdAndUserId(meetingId, userId);
 		doReturn(230).when(applyRepository).countByMeetingId(meetingId);
 		doReturn(mappedApply).when(applyMapper).toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
@@ -79,10 +82,15 @@ class ApplyTransactionServiceTest {
 
 		// then
 		assertThat(response.getApplyId()).isEqualTo(999);
+		verify(entityManager).getReference(Meeting.class, meetingId);
+		verify(entityManager).getReference(User.class, userId);
 		verify(coLeaderRepository).existsByMeetingIdAndUserId(meetingId, userId);
 		verify(applyRepository).countByMeetingId(meetingId);
+		verify(applyRepository).flush();
 		verify(coLeaderRepository, never()).findAllByMeetingId(anyInt());
 		verify(applyRepository, never()).findAllByMeetingId(anyInt());
+		verify(meetingRepository, never()).findByIdOrThrow(anyInt());
+		verify(userRepository, never()).findByIdOrThrow(anyInt());
 		verify(applyRepository).save(mappedApply);
 	}
 
@@ -98,9 +106,8 @@ class ApplyTransactionServiceTest {
 		Apply mappedApply = mock(Apply.class);
 		Apply savedApply = mock(Apply.class);
 
-		doReturn(meeting).when(meetingRepository).findByIdOrThrow(meetingId);
-		doReturn(user).when(userRepository).findByIdOrThrow(userId);
-		doReturn(meetingId).when(meeting).getId();
+		doReturn(meeting).when(entityManager).getReference(Meeting.class, meetingId);
+		doReturn(user).when(entityManager).getReference(User.class, userId);
 		doReturn(true).when(coLeaderRepository).existsByMeetingIdAndUserId(meetingId, userId);
 		doReturn(9999).when(applyRepository).countByMeetingId(meetingId);
 		doReturn(mappedApply).when(applyMapper).toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
@@ -111,5 +118,6 @@ class ApplyTransactionServiceTest {
 		assertThatCode(() -> applyTransactionService.applyFatTx(requestBody, userId, "fat", "on"))
 			.doesNotThrowAnyException();
 		verify(applyRepository, times(1)).save(mappedApply);
+		verify(applyRepository, times(1)).flush();
 	}
 }

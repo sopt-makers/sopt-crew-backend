@@ -1,6 +1,8 @@
 package org.sopt.makers.crew.main.global.filter;
 
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.CLIENT_IP_ATTRIBUTE;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_MDC_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_SUCCESS;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.REQUEST_INFO_ATTRIBUTE;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.TRACE_ID_ATTRIBUTE;
 
@@ -8,7 +10,9 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.slf4j.MDC;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyRequestSupport;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -29,11 +33,15 @@ public class MdcLoggingFilter extends OncePerRequestFilter {
 	private static final String X_FORWARDED_FOR = "X-Forwarded-For";
 	private static final String X_REAL_IP = "X-Real-IP";
 	private final SpikeApplyRequestSupport spikeApplyRequestSupport;
+	private final SpikeApplyMetricRecorder spikeApplyMetricRecorder;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
+		boolean isSpikeApplyRequest = spikeApplyRequestSupport.isSpikeApplyRequest(request);
 		try {
+			long mdcSetupStart = isSpikeApplyRequest ? System.nanoTime() : 0L;
+			String outcome = OUTCOME_SUCCESS;
 			boolean persistDiagnosticAttributes = spikeApplyRequestSupport.shouldPersistDiagnosticAttributes(request);
 			String traceId = resolveTraceId(request);
 			String clientIp = spikeApplyRequestSupport.shouldCaptureClientIp(request) ? resolveClientIp(request) : null;
@@ -52,7 +60,18 @@ public class MdcLoggingFilter extends OncePerRequestFilter {
 			}
 			response.setHeader(X_CORRELATION_ID, traceId);
 			response.setHeader(X_REQUEST_ID, traceId);
+			if (isSpikeApplyRequest) {
+				spikeApplyMetricRecorder.recordTimer(
+					METRIC_MDC_TOTAL,
+					SpikeApplyRuntimeConfig.currentTxMode(),
+					SpikeApplyRuntimeConfig.currentGate(),
+					outcome,
+					System.nanoTime() - mdcSetupStart
+				);
+			}
 			filterChain.doFilter(request, response);
+		} catch (ServletException | IOException | RuntimeException exception) {
+			throw exception;
 		} finally {
 			MDC.clear();
 		}

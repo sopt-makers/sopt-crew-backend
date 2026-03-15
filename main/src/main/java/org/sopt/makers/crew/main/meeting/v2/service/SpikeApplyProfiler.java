@@ -45,6 +45,7 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 	private static final List<String> COARSE_TIMER_METRICS = List.of(
 		SpikeApplyMetrics.METRIC_APP_EDGE_TOTAL,
 		SpikeApplyMetrics.METRIC_APP_EDGE_PRE_REQUEST_TOTAL,
+		SpikeApplyMetrics.METRIC_MDC_TOTAL,
 		SpikeApplyMetrics.METRIC_REQUEST_TOTAL,
 		SpikeApplyMetrics.METRIC_AUTH_TOTAL,
 		SpikeApplyMetrics.METRIC_JWT_VERIFY_TOTAL,
@@ -337,11 +338,19 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 	}
 
 	private boolean shouldRecordTimerMetric(String metricName) {
-		return spikeDiagnosticProperties.isEnabled() || COARSE_TIMER_METRICS.contains(metricName);
+		if (!spikeDiagnosticProperties.isEnabled()) {
+			return COARSE_TIMER_METRICS.contains(metricName);
+		}
+		return COARSE_TIMER_METRICS.contains(metricName)
+			|| spikeDiagnosticProperties.isDetailedTimerEnabled(metricName);
 	}
 
 	private boolean shouldRecordSummaryMetric(String metricName) {
-		return spikeDiagnosticProperties.isEnabled() || COARSE_SUMMARY_METRICS.contains(metricName);
+		if (!spikeDiagnosticProperties.isEnabled()) {
+			return COARSE_SUMMARY_METRICS.contains(metricName);
+		}
+		return COARSE_SUMMARY_METRICS.contains(metricName)
+			|| spikeDiagnosticProperties.isDetailedSummaryEnabled(metricName);
 	}
 
 	private static final class RequestTrace {

@@ -16,6 +16,7 @@ public final class SpikeApplyMetrics {
 
 	public static final String METRIC_APP_EDGE_TOTAL = "crew.spike.apply.envelope.app_edge.total";
 	public static final String METRIC_APP_EDGE_PRE_REQUEST_TOTAL = "crew.spike.apply.envelope.app_edge.pre_request.total";
+	public static final String METRIC_MDC_TOTAL = "crew.spike.apply.envelope.mdc.total";
 	public static final String METRIC_REQUEST_TOTAL = "crew.spike.apply.envelope.request.total";
 	public static final String METRIC_AUTH_TOTAL = "crew.spike.apply.envelope.auth.total";
 	public static final String METRIC_JWT_VERIFY_TOTAL = "crew.spike.apply.envelope.jwt.verify.total";

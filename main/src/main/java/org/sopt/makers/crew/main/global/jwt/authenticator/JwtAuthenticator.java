@@ -105,7 +105,8 @@ public class JwtAuthenticator {
 					outcome,
 					totalNanos
 				);
-				if (diagnosticsEnabled) {
+				if (diagnosticsEnabled && spikeDiagnosticProperties.isDetailedTimerEnabled(
+					METRIC_JWT_VERIFY_UNATTRIBUTED_TOTAL)) {
 					spikeApplyMetricRecorder.recordTimer(
 						METRIC_JWT_VERIFY_UNATTRIBUTED_TOTAL,
 						SpikeApplyRuntimeConfig.currentTxMode(),
@@ -125,7 +126,7 @@ public class JwtAuthenticator {
 	 * @return 사용자 인증 정보 객체
 	 */
 	private MakersAuthentication toAuthentication(JWTClaimsSet claims, boolean shouldRecord, StageAccumulator stageAccumulator) {
-		if (!shouldRecord) {
+		if (!shouldMeasureDetailedTimer(METRIC_JWT_TO_AUTHENTICATION_TOTAL, shouldRecord)) {
 			String userId = claims.getSubject();
 			List<String> roles = (List<String>)claims.getClaim(ROLES);
 			return new MakersAuthentication(userId, roles);
@@ -145,7 +146,7 @@ public class JwtAuthenticator {
 	}
 
 	private SignedJWT parseJwt(String token, boolean shouldRecord, StageAccumulator stageAccumulator) throws ParseException {
-		if (!shouldRecord) {
+		if (!shouldMeasureDetailedTimer(METRIC_JWT_PARSE_TOTAL, shouldRecord)) {
 			return SignedJWT.parse(token);
 		}
 		long start = System.nanoTime();
@@ -161,7 +162,7 @@ public class JwtAuthenticator {
 	}
 
 	private String extractKeyId(SignedJWT jwt, boolean shouldRecord, StageAccumulator stageAccumulator) {
-		if (!shouldRecord) {
+		if (!shouldMeasureDetailedTimer(METRIC_JWT_EXTRACT_KID_TOTAL, shouldRecord)) {
 			return extractKeyId(jwt);
 		}
 		long start = System.nanoTime();
@@ -177,7 +178,7 @@ public class JwtAuthenticator {
 	}
 
 	private PublicKey getPublicKey(String kid, boolean shouldRecord, StageAccumulator stageAccumulator) {
-		if (!shouldRecord) {
+		if (!shouldMeasureDetailedTimer(METRIC_JWT_GET_PUBLIC_KEY_TOTAL, shouldRecord)) {
 			return loadPublicKey(kid);
 		}
 		long start = System.nanoTime();
@@ -215,7 +216,7 @@ public class JwtAuthenticator {
 	 */
 	private VerificationResult verifyWithRetry(SignedJWT jwt, String kid, PublicKey publicKey, boolean shouldRecord,
 		StageAccumulator stageAccumulator) {
-		if (!shouldRecord) {
+		if (!shouldMeasureDetailedTimer(METRIC_JWT_VERIFY_WITH_RETRY_TOTAL, shouldRecord)) {
 			try {
 				return new VerificationResult(verify(jwt, publicKey, false), false);
 			} catch (JOSEException | ParseException e) {
@@ -289,7 +290,7 @@ public class JwtAuthenticator {
 	}
 
 	private boolean verifySignature(SignedJWT jwt, JWSVerifier verifier, boolean shouldRecord) throws JOSEException {
-		if (!shouldRecord) {
+		if (!shouldMeasureDetailedTimer(METRIC_JWT_SIGNATURE_VERIFY_TOTAL, shouldRecord)) {
 			return jwt.verify(verifier);
 		}
 		long start = System.nanoTime();
@@ -306,7 +307,7 @@ public class JwtAuthenticator {
 
 	private JWTClaimsSet validateClaims(SignedJWT jwt, boolean signatureValid, boolean shouldRecord) throws
 		ParseException {
-		if (!shouldRecord) {
+		if (!shouldMeasureDetailedTimer(METRIC_JWT_CLAIMS_VALIDATE_TOTAL, shouldRecord)) {
 			JWTClaimsSet claims = jwt.getJWTClaimsSet();
 			boolean issuerValid = issuer.equals(claims.getIssuer());
 			boolean notExpired = skipExpirationCheck || claims.getExpirationTime().after(new Date());
@@ -348,7 +349,9 @@ public class JwtAuthenticator {
 		StageAccumulator stageAccumulator
 	) {
 		long durationNanos = System.nanoTime() - start;
-		stageAccumulator.add(durationNanos);
+		if (shouldMeasureDetailedTimer(metricName, shouldRecord)) {
+			stageAccumulator.add(durationNanos);
+		}
 		recordTimer(metricName, durationNanos, outcome, shouldRecord);
 	}
 
@@ -374,7 +377,7 @@ public class JwtAuthenticator {
 	}
 
 	private void recordRetryObservation(String metricName, boolean shouldRecord) {
-		if (!shouldRecord) {
+		if (!(shouldRecord && spikeDiagnosticProperties.isDetailedSummaryEnabled(metricName))) {
 			return;
 		}
 		spikeApplyMetricRecorder.recordSummary(
@@ -388,6 +391,10 @@ public class JwtAuthenticator {
 
 	private String extractKeyId(SignedJWT jwt) {
 		return jwt.getHeader().getKeyID();
+	}
+
+	private boolean shouldMeasureDetailedTimer(String metricName, boolean shouldRecord) {
+		return shouldRecord && spikeDiagnosticProperties.isDetailedTimerEnabled(metricName);
 	}
 
 	private static final class StageAccumulator {

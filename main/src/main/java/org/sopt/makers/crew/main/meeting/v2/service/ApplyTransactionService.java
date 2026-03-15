@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.meeting.v2.service;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FULL_MEETING_CAPACITY;
 
+import jakarta.persistence.EntityManager;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
@@ -17,6 +18,8 @@ import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +39,7 @@ public class ApplyTransactionService {
 	private final CoLeaderRepository coLeaderRepository;
 	private final ApplyMapper applyMapper;
 	private final SpikeApplyProfiler spikeApplyProfiler;
+	private final EntityManager entityManager;
 
 	/**
 	 * Apply 엔티티를 생성하고 저장
@@ -65,10 +69,7 @@ public class ApplyTransactionService {
 			throw new BadRequestException(FULL_MEETING_CAPACITY.getErrorCode());
 		}
 
-		Apply apply = spikeApplyProfiler.profile("crew.spike.apply.business.write.map_entity", txMode, gate,
-			() -> applyMapper.toApplyEntity(requestBody, applyType, meeting, user, userId));
-		return spikeApplyProfiler.profile("crew.spike.apply.business.write.save_apply", txMode, gate,
-			() -> applyRepository.save(apply));
+		return saveApplyWithWriteTiming(requestBody, applyType, meeting, user, userId, txMode, gate);
 	}
 
 	/**
@@ -83,22 +84,58 @@ public class ApplyTransactionService {
 		Integer userId,
 		String txMode,
 		String gate) {
+		Integer meetingId = requestBody.getMeetingId();
 
-		// SELECT 4회: PK 조회 2 + scalar 조회 2 (no-validation 유지)
+		// representative scalar reads 유지 + entity hydration은 reference로 대체
 		Meeting meeting = spikeApplyProfiler.profile("crew.spike.apply.business.fetch.meeting", txMode, gate,
-			() -> meetingRepository.findByIdOrThrow(requestBody.getMeetingId()));
+			() -> entityManager.getReference(Meeting.class, meetingId));
 		User user = spikeApplyProfiler.profile("crew.spike.apply.business.fetch.user", txMode, gate,
-			() -> userRepository.findByIdOrThrow(userId));
+			() -> entityManager.getReference(User.class, userId));
 		spikeApplyProfiler.profile("crew.spike.apply.business.query.coleader_exists", txMode, gate,
-			() -> coLeaderRepository.existsByMeetingIdAndUserId(meeting.getId(), userId));
+			() -> coLeaderRepository.existsByMeetingIdAndUserId(meetingId, userId));
 		spikeApplyProfiler.profile("crew.spike.apply.business.query.apply_count", txMode, gate,
-			() -> applyRepository.countByMeetingId(meeting.getId()));
+			() -> applyRepository.countByMeetingId(meetingId));
 
-		// INSERT 1회
+		Apply savedApply = saveApplyWithWriteTiming(requestBody, EnApplyType.APPLY, meeting, user, userId, txMode,
+			gate);
+		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+	}
+
+	private Apply saveApplyWithWriteTiming(
+		MeetingV2ApplyMeetingDto requestBody,
+		EnApplyType applyType,
+		Meeting meeting,
+		User user,
+		Integer userId,
+		String txMode,
+		String gate
+	) {
 		Apply apply = spikeApplyProfiler.profile("crew.spike.apply.business.write.map_entity", txMode, gate,
-			() -> applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId));
+			() -> applyMapper.toApplyEntity(requestBody, applyType, meeting, user, userId));
 		Apply savedApply = spikeApplyProfiler.profile("crew.spike.apply.business.write.save_apply", txMode, gate,
 			() -> applyRepository.save(apply));
-		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+		spikeApplyProfiler.profile("crew.spike.apply.business.write.flush", txMode, gate, applyRepository::flush);
+		registerCommitTailMetric(txMode, gate);
+		return savedApply;
+	}
+
+	private void registerCommitTailMetric(String txMode, String gate) {
+		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+			return;
+		}
+		long commitStart = System.nanoTime();
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCompletion(int status) {
+				String outcome = status == STATUS_COMMITTED ? "success" : "error";
+				spikeApplyProfiler.recordTimer(
+					"crew.spike.apply.business.write.commit_tail",
+					txMode,
+					gate,
+					outcome,
+					System.nanoTime() - commitStart
+				);
+			}
+		});
 	}
 }

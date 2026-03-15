@@ -117,4 +117,42 @@ class SpikeApplyProfilerTest {
 			.containsExactly("crew.spike.apply.queue.length.snapshot");
 		assertThat(disabledProfiler.traceSnapshot().traces()).isEmpty();
 	}
+
+	@Test
+	void selectiveDiagnostics_keepsCoarseMetrics_andConfiguredDetailedMetricsOnly() {
+		SpikeDiagnosticProperties properties = new SpikeDiagnosticProperties();
+		properties.getSelective().setEnabled(true);
+		properties.getSelective().setTimerAllowlist(
+			java.util.List.of(
+				"crew.spike.apply.business.write.save_apply",
+				SpikeApplyMetrics.METRIC_JWT_VERIFY_WITH_RETRY_TOTAL
+			)
+		);
+		properties.getSelective().setSummaryAllowlist(
+			java.util.List.of(SpikeApplyMetrics.METRIC_JWK_CACHE_HIT)
+		);
+		SpikeApplyProfiler selectiveProfiler = new SpikeApplyProfiler(properties);
+
+		selectiveProfiler.recordTimer(SpikeApplyMetrics.METRIC_REQUEST_TOTAL, "fat", "on", "success", 10_000_000L);
+		selectiveProfiler.recordTimer("crew.spike.apply.business.write.save_apply", "fat", "on", "success",
+			10_000_000L);
+		selectiveProfiler.recordTimer(SpikeApplyMetrics.METRIC_JWT_SIGNATURE_VERIFY_TOTAL, "fat", "on", "success",
+			10_000_000L);
+		selectiveProfiler.recordSummary("crew.spike.apply.queue.length.snapshot", "fat", "on", "success", 1.0);
+		selectiveProfiler.recordSummary(SpikeApplyMetrics.METRIC_JWK_CACHE_HIT, "fat", "on", "observed", 1.0);
+		selectiveProfiler.recordSummary(SpikeApplyMetrics.METRIC_JWK_CACHE_MISS, "fat", "on", "observed", 1.0);
+
+		SpikeProfilerSnapshotResponseDto snapshot = selectiveProfiler.snapshot();
+
+		assertThat(snapshot.timers()).extracting(SpikeProfilerTimerMetricDto::metricName)
+			.containsExactlyInAnyOrder(
+				SpikeApplyMetrics.METRIC_REQUEST_TOTAL,
+				"crew.spike.apply.business.write.save_apply"
+			);
+		assertThat(snapshot.summaries()).extracting(summary -> summary.metricName())
+			.containsExactlyInAnyOrder(
+				"crew.spike.apply.queue.length.snapshot",
+				SpikeApplyMetrics.METRIC_JWK_CACHE_HIT
+			);
+	}
 }

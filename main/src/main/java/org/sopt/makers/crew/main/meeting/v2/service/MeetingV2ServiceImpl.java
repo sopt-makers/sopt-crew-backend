@@ -5,6 +5,7 @@ import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.REJECT;
 import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.WAITING;
 import static org.sopt.makers.crew.main.global.constant.CrewConst.ORDER_ASC;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.ALREADY_APPLIED_MEETING;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.CO_LEADER_CANNOT_APPLY;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.CSV_ERROR;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.INTERNAL_SERVER_ERROR;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.MISSING_GENERATION_PART;
@@ -334,16 +335,13 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		validateMeetingCategoryNotEvent(meeting);
 
 		User user = userRepository.findByIdOrThrow(userId);
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
 
-		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-
-		validateMeetingCapacity(meeting, applies);
-		validateUserAlreadyApplied(userId, applies);
+		validateMeetingCapacityByApprovedCount(meeting);
+		validateUserAlreadyAppliedByExistence(meeting.getId(), userId);
 		validateApplyPeriod(meeting);
 		validateUserActivities(user);
 		validateUserJoinableParts(user, meeting);
-		coLeaders.validateCoLeader(meeting.getId(), user.getId());
+		validateUserIsNotCoLeader(meeting.getId(), user.getId());
 		meeting.validateIsNotMeetingLeader(userId);
 
 		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
@@ -359,16 +357,13 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		validateMeetingCategoryEvent(meeting);
 
 		User user = userRepository.findByIdOrThrow(userId);
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
 
-		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-
-		validateMeetingCapacity(meeting, applies);
-		validateUserAlreadyApplied(userId, applies);
+		validateMeetingCapacityByApprovedCount(meeting);
+		validateUserAlreadyAppliedByExistence(meeting.getId(), userId);
 		validateApplyPeriod(meeting);
 		validateUserActivities(user);
 		validateUserJoinableParts(user, meeting);
-		coLeaders.validateCoLeader(meeting.getId(), user.getId());
+		validateUserIsNotCoLeader(meeting.getId(), user.getId());
 		meeting.validateIsNotMeetingLeader(userId);
 
 		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
@@ -385,17 +380,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		validateMeetingCategoryNotEvent(meeting);
 
 		User user = userRepository.findByIdOrThrow(userId);
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
 
 		return userLockManager.executeWithLock(userId, () -> {
-			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-
-			validateMeetingCapacity(meeting, applies);
-			validateUserAlreadyApplied(userId, applies);
+			validateMeetingCapacityByApprovedCount(meeting);
+			validateUserAlreadyAppliedByExistence(meeting.getId(), userId);
 			validateApplyPeriod(meeting);
 			validateUserActivities(user);
 			validateUserJoinableParts(user, meeting);
-			coLeaders.validateCoLeader(meeting.getId(), user.getId());
+			validateUserIsNotCoLeader(meeting.getId(), user.getId());
 			meeting.validateIsNotMeetingLeader(userId);
 
 			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
@@ -1033,6 +1025,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		meeting.validateCapacity(approvedApplies.size());
 	}
 
+	private void validateMeetingCapacityByApprovedCount(Meeting meeting) {
+		int approvedCount = applyRepository.countByMeetingIdAndStatus(meeting.getId(), EnApplyStatus.APPROVE);
+		meeting.validateCapacity(approvedCount);
+	}
+
 	private void validateUserAlreadyApplied(Integer userId, List<Apply> applies) {
 		boolean hasApplied = applies.stream()
 			.anyMatch(appliedInfo -> appliedInfo.getUser().getId().equals(userId));
@@ -1042,10 +1039,22 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 	}
 
+	private void validateUserAlreadyAppliedByExistence(Integer meetingId, Integer userId) {
+		if (applyRepository.existsByMeetingIdAndUserId(meetingId, userId)) {
+			throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
+		}
+	}
+
 	private void validateUserAlreadyAppliedStressVersion(Integer userId, List<Apply> applies) {
 		boolean hasApplied = applies.stream()
 			.anyMatch(appliedInfo -> appliedInfo.getUser().getId().equals(userId));
 
+	}
+
+	private void validateUserIsNotCoLeader(Integer meetingId, Integer userId) {
+		if (coLeaderRepository.existsByMeetingIdAndUserId(meetingId, userId)) {
+			throw new BadRequestException(CO_LEADER_CANNOT_APPLY.getErrorCode());
+		}
 	}
 
 	private void validateApplyPeriod(Meeting meeting) {
