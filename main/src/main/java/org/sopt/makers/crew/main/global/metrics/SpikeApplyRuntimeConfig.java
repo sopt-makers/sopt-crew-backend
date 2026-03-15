@@ -3,7 +3,7 @@ package org.sopt.makers.crew.main.global.metrics;
 import java.util.concurrent.Semaphore;
 
 public final class SpikeApplyRuntimeConfig {
-	public static final int SEMAPHORE_PERMITS = 20;
+	public static final int SEMAPHORE_PERMITS = 30;
 	public static final boolean USE_FAT_TX = true;
 	public static final String TX_MODE_FAT = "fat";
 	public static final String TX_MODE_SEQUENTIAL = "sequential";
