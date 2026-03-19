@@ -169,7 +169,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private static final String TX_SEQUENTIAL = "sequential";
 
 	// 실험 제어 상수 (static final → 변경 시 앱 재시작)
-	private static final int SEMAPHORE_PERMITS = 20; // 0 = OFF, 실험마다 변경
+	private static final int SEMAPHORE_PERMITS = 10; // 0 = OFF, 실험마다 변경
 	private static final boolean USE_FAT_TX = true; // true: Fat TX, false: Sequential TX
 	private static final Semaphore EVENT_GATE;
 
