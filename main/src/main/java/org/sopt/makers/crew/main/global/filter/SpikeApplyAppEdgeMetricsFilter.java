@@ -1,6 +1,9 @@
 package org.sopt.makers.crew.main.global.filter;
 
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.CLIENT_IP_ATTRIBUTE;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.INGRESS_START_NANOS_ATTRIBUTE;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_INGRESS_PRE_APP_EDGE_TOTAL;
+import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_INGRESS_TOTAL;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_APP_EDGE_PRE_REQUEST_TOTAL;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_APP_EDGE_TOTAL;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_ERROR;
@@ -61,7 +64,8 @@ public class SpikeApplyAppEdgeMetricsFilter extends OncePerRequestFilter {
 			outcome = OUTCOME_ERROR;
 			throw exception;
 		} finally {
-			long totalNanos = System.nanoTime() - start;
+			long end = System.nanoTime();
+			long totalNanos = end - start;
 			if (spikeDiagnosticProperties.isEnabled()) {
 				restoreCorrelationMdc(request);
 			}
@@ -71,6 +75,13 @@ public class SpikeApplyAppEdgeMetricsFilter extends OncePerRequestFilter {
 			if (requestTotalAttr instanceof Long requestTotalNanos) {
 				long preRequestNanos = Math.max(0L, totalNanos - requestTotalNanos);
 				recordTimer(METRIC_APP_EDGE_PRE_REQUEST_TOTAL, outcome, preRequestNanos);
+			}
+			Object ingressStartAttr = request.getAttribute(INGRESS_START_NANOS_ATTRIBUTE);
+			if (ingressStartAttr instanceof Long ingressStartNanos) {
+				long ingressTotalNanos = Math.max(0L, end - ingressStartNanos);
+				recordTimer(METRIC_INGRESS_TOTAL, outcome, ingressTotalNanos);
+				long ingressPreAppEdgeNanos = Math.max(0L, ingressTotalNanos - totalNanos);
+				recordTimer(METRIC_INGRESS_PRE_APP_EDGE_TOTAL, outcome, ingressPreAppEdgeNanos);
 			}
 			if (spikeDiagnosticProperties.isEnabled()) {
 				clearCorrelationMdc();

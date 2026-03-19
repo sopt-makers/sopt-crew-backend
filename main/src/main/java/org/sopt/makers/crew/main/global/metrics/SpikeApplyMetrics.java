@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.global.metrics;
 
 public final class SpikeApplyMetrics {
 	public static final String REQUEST_MATCHED_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".matched";
+	public static final String INGRESS_START_NANOS_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".ingressStartNanos";
 	public static final String REQUEST_TOTAL_NANOS_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".requestTotalNanos";
 	public static final String TRACE_ID_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".traceId";
 	public static final String USER_ID_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".userId";
@@ -14,6 +15,10 @@ public final class SpikeApplyMetrics {
 	public static final String OUTCOME_ERROR = "error";
 	public static final String OUTCOME_OBSERVED = "observed";
 
+	public static final String METRIC_INGRESS_TOTAL = "crew.spike.apply.envelope.ingress.total";
+	public static final String METRIC_INGRESS_PRE_APP_EDGE_TOTAL =
+		"crew.spike.apply.envelope.ingress.pre_app_edge.total";
+	public static final String METRIC_JWT_BOUNDARY_TOTAL = "crew.spike.apply.envelope.jwt_boundary.total";
 	public static final String METRIC_APP_EDGE_TOTAL = "crew.spike.apply.envelope.app_edge.total";
 	public static final String METRIC_APP_EDGE_PRE_REQUEST_TOTAL = "crew.spike.apply.envelope.app_edge.pre_request.total";
 	public static final String METRIC_MDC_TOTAL = "crew.spike.apply.envelope.mdc.total";
