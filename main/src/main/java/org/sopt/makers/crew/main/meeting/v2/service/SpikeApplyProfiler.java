@@ -43,6 +43,7 @@ public class SpikeApplyProfiler implements SpikeApplyMetricRecorder {
 	private static final String REQUEST_INFO = "requestInfo";
 	private static final String USER_ID = "userId";
 	private static final List<String> COARSE_TIMER_METRICS = List.of(
+		SpikeApplyMetrics.METRIC_TOMCAT_PIPELINE_ENTRY_TOTAL,
 		SpikeApplyMetrics.METRIC_INGRESS_TOTAL,
 		SpikeApplyMetrics.METRIC_INGRESS_PRE_APP_EDGE_TOTAL,
 		SpikeApplyMetrics.METRIC_JWT_BOUNDARY_TOTAL,

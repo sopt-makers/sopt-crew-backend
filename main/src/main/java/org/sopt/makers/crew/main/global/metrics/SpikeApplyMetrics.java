@@ -2,6 +2,10 @@ package org.sopt.makers.crew.main.global.metrics;
 
 public final class SpikeApplyMetrics {
 	public static final String REQUEST_MATCHED_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".matched";
+	public static final String TOMCAT_PIPELINE_ENTRY_START_NANOS_ATTRIBUTE =
+		SpikeApplyMetrics.class.getName() + ".tomcatPipelineEntryStartNanos";
+	public static final String TOMCAT_PIPELINE_ENTRY_RECORDED_ATTRIBUTE =
+		SpikeApplyMetrics.class.getName() + ".tomcatPipelineEntryRecorded";
 	public static final String INGRESS_START_NANOS_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".ingressStartNanos";
 	public static final String REQUEST_TOTAL_NANOS_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".requestTotalNanos";
 	public static final String TRACE_ID_ATTRIBUTE = SpikeApplyMetrics.class.getName() + ".traceId";
@@ -15,6 +19,8 @@ public final class SpikeApplyMetrics {
 	public static final String OUTCOME_ERROR = "error";
 	public static final String OUTCOME_OBSERVED = "observed";
 
+	public static final String METRIC_TOMCAT_PIPELINE_ENTRY_TOTAL =
+		"crew.spike.apply.envelope.tomcat_pipeline_entry.total";
 	public static final String METRIC_INGRESS_TOTAL = "crew.spike.apply.envelope.ingress.total";
 	public static final String METRIC_INGRESS_PRE_APP_EDGE_TOTAL =
 		"crew.spike.apply.envelope.ingress.pre_app_edge.total";
