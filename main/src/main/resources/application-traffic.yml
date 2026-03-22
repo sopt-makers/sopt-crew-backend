@@ -1,6 +1,8 @@
 server:
   port: 4000
   tomcat:
+    mbeanregistry:
+      enabled: true
     threads:
       max: 200                    # 최대 스레드 수 (Default: 200)
       min-spare: 10               # 최소 유휴 스레드 수 (Default: 10)
