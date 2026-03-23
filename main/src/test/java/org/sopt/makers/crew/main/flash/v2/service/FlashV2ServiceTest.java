@@ -1,9 +1,9 @@
 package org.sopt.makers.crew.main.flash.v2.service;
 
+import static org.sopt.makers.crew.main.support.TestReflectionUtils.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -297,15 +297,5 @@ class FlashV2ServiceTest {
 			.build();
 		setField(flash, "id", 99);
 		return flash;
-	}
-
-	private void setField(Object target, String fieldName, Object value) {
-		try {
-			Field field = target.getClass().getDeclaredField(fieldName);
-			field.setAccessible(true);
-			field.set(target, value);
-		} catch (ReflectiveOperationException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 }
