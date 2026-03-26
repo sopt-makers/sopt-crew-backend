@@ -173,6 +173,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	// 실험 제어 상수 (static final → 변경 시 앱 재시작)
 	private static final int SEMAPHORE_PERMITS = SpikeApplyRuntimeConfig.SEMAPHORE_PERMITS; // 0 = OFF, 실험마다 변경
 	private static final boolean USE_EVENT_NARROWED_WRITE_PATH = SpikeApplyRuntimeConfig.USE_EVENT_NARROWED_WRITE_PATH;
+	private static final boolean USE_EVENT_VALIDATION_BYPASS = SpikeApplyRuntimeConfig.USE_EVENT_VALIDATION_BYPASS;
 	private static final Semaphore EVENT_GATE;
 
 	static {
@@ -181,8 +182,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@PostConstruct
 	void logSemaphoreConfig() {
-		log.info("[SPIKE-CONFIG] permits={}, eventNarrowedWritePath={}, gate={}",
-			SEMAPHORE_PERMITS, USE_EVENT_NARROWED_WRITE_PATH, EVENT_GATE != null ? "ON" : "OFF");
+		log.info("[SPIKE-CONFIG] permits={}, eventNarrowedWritePath={}, eventValidationBypass={}, gate={}",
+			SEMAPHORE_PERMITS,
+			USE_EVENT_NARROWED_WRITE_PATH,
+			USE_EVENT_VALIDATION_BYPASS,
+			EVENT_GATE != null ? "ON" : "OFF");
 		registerSpikeGauges();
 	}
 
@@ -412,7 +416,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		long totalStart = System.nanoTime();
 
 		try {
-			validateEventApplyOutsideGate(requestBody, userId);
+			if (!USE_EVENT_VALIDATION_BYPASS) {
+				validateEventApplyOutsideGate(requestBody, userId);
+			}
 
 			// Semaphore Gate (OFF일 때 bypass)
 			if (EVENT_GATE != null) {
