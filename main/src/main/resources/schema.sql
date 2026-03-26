@@ -134,7 +134,8 @@ create table if not exists apply
     "appliedDate" timestamp           not null,
     status        integer   default 0 not null,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
-    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    constraint "UQ_apply_meeting_user" unique ("meetingId", "userId")
 );
 
 create index if not exists "meetingId_index"

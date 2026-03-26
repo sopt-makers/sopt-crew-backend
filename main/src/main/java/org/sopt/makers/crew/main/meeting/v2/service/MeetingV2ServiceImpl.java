@@ -79,11 +79,11 @@ import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.flash.v2.dto.request.FlashV2CreateAndUpdateFlashBodyWithoutWelcomeMessageDto;
 import org.sopt.makers.crew.main.global.config.ImageSettingProperties;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
-import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.sopt.makers.crew.main.global.dto.MeetingResponseDto;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
+import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.sopt.makers.crew.main.global.pagination.AdvertisementPageableStrategy;
 import org.sopt.makers.crew.main.global.pagination.DefaultPageableStrategy;
 import org.sopt.makers.crew.main.global.pagination.PageableStrategy;
@@ -172,7 +172,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	// 실험 제어 상수 (static final → 변경 시 앱 재시작)
 	private static final int SEMAPHORE_PERMITS = SpikeApplyRuntimeConfig.SEMAPHORE_PERMITS; // 0 = OFF, 실험마다 변경
-	private static final boolean USE_FAT_TX = SpikeApplyRuntimeConfig.USE_FAT_TX; // true: Fat TX, false: Sequential TX
+	private static final boolean USE_EVENT_NARROWED_WRITE_PATH = SpikeApplyRuntimeConfig.USE_EVENT_NARROWED_WRITE_PATH;
 	private static final Semaphore EVENT_GATE;
 
 	static {
@@ -181,8 +181,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@PostConstruct
 	void logSemaphoreConfig() {
-		log.info("[SPIKE-CONFIG] permits={}, fatTx={}, gate={}",
-			SEMAPHORE_PERMITS, USE_FAT_TX, EVENT_GATE != null ? "ON" : "OFF");
+		log.info("[SPIKE-CONFIG] permits={}, eventNarrowedWritePath={}, gate={}",
+			SEMAPHORE_PERMITS, USE_EVENT_NARROWED_WRITE_PATH, EVENT_GATE != null ? "ON" : "OFF");
 		registerSpikeGauges();
 	}
 
@@ -403,7 +403,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		applyLog.info("[APPLY] start | meetingId={}", requestBody.getMeetingId());
 
-		String txMode = USE_FAT_TX ? TX_FAT : TX_SEQUENTIAL;
+		String txMode = SpikeApplyRuntimeConfig.currentTxMode();
 		String gate = EVENT_GATE != null ? GATE_ON : GATE_OFF;
 		String outcome = OUTCOME_SUCCESS;
 		boolean acquired = false;
@@ -412,6 +412,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		long totalStart = System.nanoTime();
 
 		try {
+			validateEventApplyOutsideGate(requestBody, userId);
+
 			// Semaphore Gate (OFF일 때 bypass)
 			if (EVENT_GATE != null) {
 				long acquireStart = System.nanoTime();
@@ -428,16 +430,15 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 			long businessStart = System.nanoTime();
 			try {
-				if (USE_FAT_TX) {
-					return applyWithFatTx(requestBody, userId, gate);
-				}
-				return applyWithSequentialTx(requestBody, userId, gate);
-			} catch (RuntimeException e) {
-				outcome = OUTCOME_ERROR;
-				throw e;
+				return applyTransactionService.saveEventApplyNarrowed(requestBody, userId, txMode, gate);
 			} finally {
 				businessNanos = System.nanoTime() - businessStart;
 			}
+		} catch (RuntimeException e) {
+			if (!OUTCOME_INTERRUPTED.equals(outcome)) {
+				outcome = OUTCOME_ERROR;
+			}
+			throw e;
 		} finally {
 			if (acquired && EVENT_GATE != null) {
 				EVENT_GATE.release();
@@ -447,6 +448,19 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			applyLog.info("[APPLY] end | meetingId={} outcome={} total={}ms",
 				requestBody.getMeetingId(), outcome, totalNanos / 1_000_000);
 		}
+	}
+
+	private void validateEventApplyOutsideGate(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+		validateMeetingCategoryEvent(meeting);
+
+		User user = userRepository.findByIdOrThrow(userId);
+		validateUserAlreadyAppliedByExistence(meeting.getId(), userId);
+		validateApplyPeriod(meeting);
+		validateUserActivities(user);
+		validateUserJoinableParts(user, meeting);
+		validateUserIsNotCoLeader(meeting.getId(), user.getId());
+		meeting.validateIsNotMeetingLeader(userId);
 	}
 
 	private MeetingV2ApplyMeetingResponseDto applyWithSequentialTx(MeetingV2ApplyMeetingDto requestBody,

@@ -1,9 +1,11 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.ALREADY_APPLIED_MEETING;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FULL_MEETING_CAPACITY;
 
 import jakarta.persistence.EntityManager;
 import org.sopt.makers.crew.main.entity.apply.Apply;
+import org.sopt.makers.crew.main.entity.apply.ApplyConstraintSupport;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
@@ -16,6 +18,7 @@ import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -69,7 +72,27 @@ public class ApplyTransactionService {
 			throw new BadRequestException(FULL_MEETING_CAPACITY.getErrorCode());
 		}
 
-		return saveApplyWithWriteTiming(requestBody, applyType, meeting, user, userId, txMode, gate);
+		return saveApplyWithDuplicateProtection(requestBody, applyType, meeting, user, userId, txMode, gate);
+	}
+
+	@Transactional
+	public MeetingV2ApplyMeetingResponseDto saveEventApplyNarrowed(MeetingV2ApplyMeetingDto requestBody,
+		Integer userId,
+		String txMode,
+		String gate) {
+		Integer meetingId = requestBody.getMeetingId();
+		Meeting meeting = entityManager.getReference(Meeting.class, meetingId);
+		User user = entityManager.getReference(User.class, userId);
+
+		int approvedCount = spikeApplyProfiler.profile("crew.spike.apply.business.write.approved_count", txMode, gate,
+			() -> applyRepository.countByMeetingIdAndStatus(meetingId, EnApplyStatus.APPROVE));
+		if (approvedCount >= meeting.getCapacity()) {
+			throw new BadRequestException(FULL_MEETING_CAPACITY.getErrorCode());
+		}
+
+		Apply savedApply = saveApplyWithDuplicateProtection(requestBody, EnApplyType.APPLY, meeting, user, userId,
+			txMode, gate);
+		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 	}
 
 	/**
@@ -99,6 +122,25 @@ public class ApplyTransactionService {
 		Apply savedApply = saveApplyWithWriteTiming(requestBody, EnApplyType.APPLY, meeting, user, userId, txMode,
 			gate);
 		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+	}
+
+	private Apply saveApplyWithDuplicateProtection(
+		MeetingV2ApplyMeetingDto requestBody,
+		EnApplyType applyType,
+		Meeting meeting,
+		User user,
+		Integer userId,
+		String txMode,
+		String gate
+	) {
+		try {
+			return saveApplyWithWriteTiming(requestBody, applyType, meeting, user, userId, txMode, gate);
+		} catch (DataIntegrityViolationException exception) {
+			if (ApplyConstraintSupport.isDuplicateApplyViolation(exception)) {
+				throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
+			}
+			throw exception;
+		}
 	}
 
 	private Apply saveApplyWithWriteTiming(

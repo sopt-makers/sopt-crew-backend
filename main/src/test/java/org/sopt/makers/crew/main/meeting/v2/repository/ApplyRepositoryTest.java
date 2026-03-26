@@ -8,13 +8,20 @@ import java.time.LocalTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.meeting.Meeting;
+import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
@@ -36,6 +43,12 @@ public class ApplyRepositoryTest {
 
 	@Autowired
 	private ApplyRepository applyRepository;
+
+	@Autowired
+	private MeetingRepository meetingRepository;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	@Test
 	void 스터디장이_신청자_리스트_최신순으로_조회() {
@@ -268,6 +281,50 @@ public class ApplyRepositoryTest {
 			.extracting("id", "name", "profileImage", "phone")
 			.containsExactly(2, "홍길동", "profile2.jpg", "010-1111-2222");
 		assertThat(applyInfoDto3.getUser().getRecentActivity().getGeneration()).isEqualTo(33);
+	}
+
+	@Test
+	void 동일한_meetingId_userId는_유니크_제약으로_막힌다() {
+		Meeting meeting = meetingRepository.findByIdOrThrow(1);
+		User user = userRepository.findByIdOrThrow(2);
+
+		Apply duplicate = Apply.builder()
+			.type(EnApplyType.APPLY)
+			.meeting(meeting)
+			.meetingId(meeting.getId())
+			.user(user)
+			.userId(user.getId())
+			.content("중복 지원")
+			.build();
+
+		assertThatThrownBy(() -> {
+			applyRepository.save(duplicate);
+			applyRepository.flush();
+		}).isInstanceOf(DataIntegrityViolationException.class);
+	}
+
+	@Test
+	void deleteByMeetingIdAndUserId_이후에는_같은_유저가_다시_신청할_수_있다() {
+		Meeting meeting = meetingRepository.findByIdOrThrow(1);
+		User user = userRepository.findByIdOrThrow(2);
+
+		applyRepository.deleteByMeetingIdAndUserId(meeting.getId(), user.getId());
+		applyRepository.flush();
+
+		Apply reapplied = Apply.builder()
+			.type(EnApplyType.APPLY)
+			.meeting(meeting)
+			.meetingId(meeting.getId())
+			.user(user)
+			.userId(user.getId())
+			.content("재신청")
+			.build();
+
+		Apply savedApply = applyRepository.save(reapplied);
+		applyRepository.flush();
+
+		assertThat(savedApply.getId()).isNotNull();
+		assertThat(applyRepository.existsByMeetingIdAndUserId(meeting.getId(), user.getId())).isTrue();
 	}
 
 }

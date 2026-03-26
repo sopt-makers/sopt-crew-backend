@@ -7,11 +7,13 @@ spring:
       on-profile: test
     import: application-secret.properties
   datasource:
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    jdbc-url: jdbc:tc:postgresql:///crew
+    hikari:
+      driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+      jdbc-url: jdbc:tc:postgresql:///crew
 
   playground-datasource:
-    jdbc-url: jdbc:tc:postgresql:///playground
+    hikari:
+      jdbc-url: jdbc:tc:postgresql:///playground
   jpa:
     open-in-view: false
     hibernate:

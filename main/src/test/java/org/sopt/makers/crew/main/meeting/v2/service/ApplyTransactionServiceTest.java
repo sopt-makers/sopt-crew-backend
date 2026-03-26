@@ -2,8 +2,10 @@ package org.sopt.makers.crew.main.meeting.v2.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -19,15 +21,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.sopt.makers.crew.main.global.metrics.SpikeDiagnosticProperties;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class ApplyTransactionServiceTest {
@@ -119,5 +124,30 @@ class ApplyTransactionServiceTest {
 			.doesNotThrowAnyException();
 		verify(applyRepository, times(1)).save(mappedApply);
 		verify(applyRepository, times(1)).flush();
+	}
+
+	@Test
+	void saveApply_중복_유니크_위반을_도메인_예외로_매핑한다() {
+		Integer meetingId = 1;
+		Integer userId = 10;
+		MeetingV2ApplyMeetingDto requestBody = new MeetingV2ApplyMeetingDto(meetingId, "지원합니다.");
+
+		Meeting meeting = mock(Meeting.class);
+		User user = mock(User.class);
+		Apply mappedApply = mock(Apply.class);
+
+		doReturn(meetingId).when(meeting).getId();
+		doReturn(10).when(meeting).getCapacity();
+		doReturn(0).when(applyRepository).countByMeetingIdAndStatus(meetingId, EnApplyStatus.APPROVE);
+		doReturn(mappedApply).when(applyMapper).toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
+		doThrow(new DataIntegrityViolationException("constraint [UQ_apply_meeting_user]")).when(applyRepository)
+			.save(mappedApply);
+
+		assertThatThrownBy(() -> applyTransactionService.saveApply(requestBody, EnApplyType.APPLY, meeting, user, userId,
+			"fat", "on"))
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("이미 지원한 모임입니다.");
+
+		verify(applyRepository, never()).flush();
 	}
 }

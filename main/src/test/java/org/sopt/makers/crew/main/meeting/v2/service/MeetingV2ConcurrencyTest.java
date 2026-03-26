@@ -160,6 +160,103 @@ class MeetingV2ConcurrencyTest {
 		}
 
 		@Test
+		@DisplayName("일반 모임 경로에서 동일 사용자가 동시에 여러 신청을 시도할 경우 오직 하나만 성공해야 한다")
+		void applyGeneralMeetingWithLock_WhenMultipleRequestsFromSameUser_ShouldProcessOnlyOne()
+			throws InterruptedException {
+			User leader = User.builder()
+				.name("일반모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("안드로이드", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(leader);
+
+			Meeting meeting = Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("일반 모임 지원 테스트")
+				.category(MeetingCategory.STUDY)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 4, 27, 23, 59, 59))
+				.capacity(20)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build();
+
+			meetingRepository.save(meeting);
+
+			User applicant = User.builder()
+				.name("지원자")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("웹", 35)))
+				.profileImage("applicantProfile.jpg")
+				.phone("010-1234-5678")
+				.build();
+
+			userRepository.save(applicant);
+
+			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
+
+			int concurrentRequests = 5;
+			ExecutorService executorService = Executors.newFixedThreadPool(concurrentRequests);
+			CountDownLatch startLatch = new CountDownLatch(1);
+			CountDownLatch readyLatch = new CountDownLatch(concurrentRequests);
+			CountDownLatch finishLatch = new CountDownLatch(concurrentRequests);
+
+			AtomicInteger successCount = new AtomicInteger(0);
+			AtomicInteger failCount = new AtomicInteger(0);
+
+			for (int i = 0; i < concurrentRequests; i++) {
+				executorService.submit(() -> {
+					try {
+						readyLatch.countDown();
+						startLatch.await();
+
+						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyGeneralMeetingWithLock(applyDto,
+							applicant.getId());
+
+						if (response != null && response.getApplyId() != null) {
+							successCount.incrementAndGet();
+						}
+					} catch (Exception e) {
+						failCount.incrementAndGet();
+					} finally {
+						finishLatch.countDown();
+					}
+				});
+			}
+
+			readyLatch.await();
+			startLatch.countDown();
+			boolean completedInTime = finishLatch.await(10, TimeUnit.SECONDS);
+
+			executorService.shutdown();
+
+			assertThat(completedInTime).isTrue();
+			assertThat(successCount.get()).isEqualTo(1);
+			assertThat(failCount.get()).isEqualTo(concurrentRequests - 1);
+
+			List<Apply> allApplies = applyRepository.findAllByMeetingId(meeting.getId());
+			List<Apply> userApplies = allApplies.stream()
+				.filter(apply -> apply.getUserId().equals(applicant.getId()))
+				.toList();
+
+			Assertions.assertThat(userApplies).hasSize(1);
+		}
+
+		@Test
 		@DisplayName("서로 다른 사용자가 동시에 신청하는 경우 모두 성공해야 한다")
 		void applyMeetingWithLock_WhenMultipleRequestsFromDifferentUsers_ShouldProcessAll() throws
 			InterruptedException {
@@ -262,19 +359,19 @@ class MeetingV2ConcurrencyTest {
 				assertThat(exists).isTrue();
 			}
 
-			List<Apply> allApplies = applyRepository.findAllByMeetingId(meeting.getId());
-			Assertions.assertThat(allApplies).hasSize(userCount);
+				List<Apply> allApplies = applyRepository.findAllByMeetingId(meeting.getId());
+				Assertions.assertThat(allApplies).hasSize(userCount);
 
-			Set<Integer> userIds = allApplies.stream()
-				.map(Apply::getUserId)
-				.collect(Collectors.toSet());
-			Assertions.assertThat(userIds).hasSize(userCount);
-		}
+				Set<Integer> userIds = allApplies.stream()
+					.map(Apply::getUserId)
+					.collect(Collectors.toSet());
+				Assertions.assertThat(userIds).hasSize(userCount);
+			}
 
-		@Test
-		@DisplayName("락 획득 후 해제 시 다른 요청이 정상 처리되어야 한다")
-		void applyMeetingWithLock_WhenLockIsReleased_ShouldAllowNextRequest() throws InterruptedException {
-			// given
+			@Test
+			@DisplayName("락 획득 후 해제 시 다른 요청이 정상 처리되어야 한다")
+			void applyMeetingWithLock_WhenLockIsReleased_ShouldAllowNextRequest() throws InterruptedException {
+				// given
 			User leader = userRepository.save(User.builder()
 				.name("모임장")
 				.orgId(1)

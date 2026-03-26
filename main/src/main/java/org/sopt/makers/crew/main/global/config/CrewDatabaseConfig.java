@@ -10,8 +10,6 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -26,6 +24,8 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.zaxxer.hikari.HikariDataSource;
+
 import jakarta.persistence.EntityManagerFactory;
 
 @Configuration
@@ -37,6 +37,8 @@ import jakarta.persistence.EntityManagerFactory;
 )
 @Profile({"local", "dev", "prod", "test", "traffic"})
 public class CrewDatabaseConfig {
+
+	private final ResourceLoader resourceLoader;
 
 	@Bean
 	@Primary
@@ -86,8 +88,6 @@ public class CrewDatabaseConfig {
 	) {
 		return new JpaTransactionManager(Objects.requireNonNull(localContainerEntityManagerFactoryBean.getObject()));
 	}
-
-	private final ResourceLoader resourceLoader;
 
 	public CrewDatabaseConfig(ResourceLoader resourceLoader) {
 		this.resourceLoader = resourceLoader;

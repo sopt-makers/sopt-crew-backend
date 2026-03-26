@@ -1,10 +1,13 @@
 package org.sopt.makers.crew.main.global.advice;
 
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.ALREADY_APPLIED_MEETING;
+
 import java.io.IOException;
 
 import org.sopt.makers.crew.main.global.exception.BaseException;
 import org.sopt.makers.crew.main.global.exception.ErrorStatus;
 import org.sopt.makers.crew.main.global.exception.ExceptionResponse;
+import org.sopt.makers.crew.main.entity.apply.ApplyConstraintSupport;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,6 +80,10 @@ public class ControllerExceptionAdvice {
 	@ExceptionHandler(DataIntegrityViolationException.class)
 	public ResponseEntity<ExceptionResponse> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
 		log.warn("데이터 무결성 위반: {}", e.getMessage());
+		if (ApplyConstraintSupport.isDuplicateApplyViolation(e)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(ExceptionResponse.fail(ALREADY_APPLIED_MEETING.getErrorCode()));
+		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 			.body(ExceptionResponse.fail(
 				ErrorStatus.DATA_INTEGRITY_VIOLATION.getErrorCode(),
