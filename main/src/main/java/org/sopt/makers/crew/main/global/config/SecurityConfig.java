@@ -4,10 +4,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.sopt.makers.crew.main.global.filter.MdcLoggingFilter;
-import org.sopt.makers.crew.main.global.filter.SpikeApplyAppEdgeMetricsFilter;
-import org.sopt.makers.crew.main.global.filter.SpikeApplyEnvelopeMetricsFilter;
-import org.sopt.makers.crew.main.global.filter.SpikeApplyIngressBoundaryFilter;
-import org.sopt.makers.crew.main.global.filter.SpikeApplyJwtBoundaryFilter;
 import org.sopt.makers.crew.main.global.security.filter.JwtAuthenticationExceptionFilter;
 import org.sopt.makers.crew.main.global.security.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,10 +38,6 @@ public class SecurityConfig {
 		"/swagger-ui/swagger-ui.css",
 	};
 	private final MdcLoggingFilter mdcLoggingFilter;
-	private final SpikeApplyIngressBoundaryFilter spikeApplyIngressBoundaryFilter;
-	private final SpikeApplyAppEdgeMetricsFilter spikeApplyAppEdgeMetricsFilter;
-	private final SpikeApplyEnvelopeMetricsFilter spikeApplyEnvelopeMetricsFilter;
-	private final SpikeApplyJwtBoundaryFilter spikeApplyJwtBoundaryFilter;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final JwtAuthenticationExceptionFilter jwtAuthenticationExceptionFilter;
 	@Value("${management.endpoints.web.base-path}")
@@ -85,14 +77,11 @@ public class SecurityConfig {
 						.map(AntPathRequestMatcher::antMatcher)
 						.toArray(AntPathRequestMatcher[]::new)).permitAll()
 					.anyRequest().authenticated())
-			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-			.addFilterBefore(jwtAuthenticationExceptionFilter, JwtAuthenticationFilter.class)
-			.addFilterBefore(spikeApplyJwtBoundaryFilter, JwtAuthenticationFilter.class)
-			.addFilterBefore(mdcLoggingFilter, JwtAuthenticationExceptionFilter.class)
-			.addFilterBefore(spikeApplyAppEdgeMetricsFilter, MdcLoggingFilter.class)
-			.addFilterBefore(spikeApplyIngressBoundaryFilter, SpikeApplyAppEdgeMetricsFilter.class)
-			.addFilterAfter(spikeApplyEnvelopeMetricsFilter, MdcLoggingFilter.class);
-		return http.build();
+				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+				.addFilterBefore(jwtAuthenticationExceptionFilter, JwtAuthenticationFilter.class)
+				// EXP: operational-no-observer narrow p95
+				.addFilterBefore(mdcLoggingFilter, JwtAuthenticationExceptionFilter.class);
+			return http.build();
 	}
 
 	@Bean

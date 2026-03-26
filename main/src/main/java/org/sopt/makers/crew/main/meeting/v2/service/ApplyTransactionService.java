@@ -84,8 +84,8 @@ public class ApplyTransactionService {
 		Meeting meeting = entityManager.getReference(Meeting.class, meetingId);
 		User user = entityManager.getReference(User.class, userId);
 
-		int approvedCount = spikeApplyProfiler.profile("crew.spike.apply.business.write.approved_count", txMode, gate,
-			() -> applyRepository.countByMeetingIdAndStatus(meetingId, EnApplyStatus.APPROVE));
+		// EXP: operational-no-observer narrow p95
+		int approvedCount = applyRepository.countByMeetingIdAndStatus(meetingId, EnApplyStatus.APPROVE);
 		if (approvedCount >= meeting.getCapacity()) {
 			throw new BadRequestException(FULL_MEETING_CAPACITY.getErrorCode());
 		}
@@ -152,12 +152,10 @@ public class ApplyTransactionService {
 		String txMode,
 		String gate
 	) {
-		Apply apply = spikeApplyProfiler.profile("crew.spike.apply.business.write.map_entity", txMode, gate,
-			() -> applyMapper.toApplyEntity(requestBody, applyType, meeting, user, userId));
-		Apply savedApply = spikeApplyProfiler.profile("crew.spike.apply.business.write.save_apply", txMode, gate,
-			() -> applyRepository.save(apply));
-		spikeApplyProfiler.profile("crew.spike.apply.business.write.flush", txMode, gate, applyRepository::flush);
-		registerCommitTailMetric(txMode, gate);
+		// EXP: operational-no-observer narrow p95
+		Apply apply = applyMapper.toApplyEntity(requestBody, applyType, meeting, user, userId);
+		Apply savedApply = applyRepository.save(apply);
+		applyRepository.flush();
 		return savedApply;
 	}
 

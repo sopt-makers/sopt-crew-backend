@@ -41,8 +41,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
@@ -147,8 +145,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class MeetingV2ServiceImpl implements MeetingV2Service {
-
-	private static final Logger applyLog = LogManager.getLogger("crew.spike.apply");
 
 	private static final int ZERO = 0;
 	private static final String METRIC_APPLY_PREFIX = "crew.spike.apply";
@@ -405,15 +401,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 
-		applyLog.info("[APPLY] start | meetingId={}", requestBody.getMeetingId());
+		// EXP: operational-no-observer narrow p95
 
 		String txMode = SpikeApplyRuntimeConfig.currentTxMode();
 		String gate = EVENT_GATE != null ? GATE_ON : GATE_OFF;
-		String outcome = OUTCOME_SUCCESS;
 		boolean acquired = false;
-		long acquireWaitNanos = 0L;
-		long businessNanos = 0L;
-		long totalStart = System.nanoTime();
 
 		try {
 			if (!USE_EVENT_VALIDATION_BYPASS) {
@@ -422,37 +414,21 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 			// Semaphore Gate (OFF일 때 bypass)
 			if (EVENT_GATE != null) {
-				long acquireStart = System.nanoTime();
 				try {
 					EVENT_GATE.acquire();
 					acquired = true;
-					acquireWaitNanos = System.nanoTime() - acquireStart;
 				} catch (InterruptedException e) {
-					outcome = OUTCOME_INTERRUPTED;
 					Thread.currentThread().interrupt();
 					throw new ServerException(INTERNAL_SERVER_ERROR.getErrorCode());
 				}
 			}
 
-			long businessStart = System.nanoTime();
-			try {
-				return applyTransactionService.saveEventApplyNarrowed(requestBody, userId, txMode, gate);
-			} finally {
-				businessNanos = System.nanoTime() - businessStart;
-			}
-		} catch (RuntimeException e) {
-			if (!OUTCOME_INTERRUPTED.equals(outcome)) {
-				outcome = OUTCOME_ERROR;
-			}
-			throw e;
+			return applyTransactionService.saveEventApplyNarrowed(requestBody, userId, txMode, gate);
 		} finally {
 			if (acquired && EVENT_GATE != null) {
 				EVENT_GATE.release();
 			}
-			long totalNanos = System.nanoTime() - totalStart;
-			recordSpikeMetrics(txMode, gate, outcome, acquireWaitNanos, businessNanos, totalNanos);
-			applyLog.info("[APPLY] end | meetingId={} outcome={} total={}ms",
-				requestBody.getMeetingId(), outcome, totalNanos / 1_000_000);
+			// EXP: operational-no-observer narrow p95
 		}
 	}
 

@@ -1,18 +1,14 @@
 package org.sopt.makers.crew.main.global.security.filter;
 
-import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.METRIC_AUTH_TOTAL;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_ERROR;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.OUTCOME_SUCCESS;
-import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.REQUEST_MATCHED_ATTRIBUTE;
 import static org.sopt.makers.crew.main.global.metrics.SpikeApplyMetrics.USER_ID_ATTRIBUTE;
 
 import java.io.IOException;
 
 import org.slf4j.MDC;
 import org.sopt.makers.crew.main.global.jwt.authenticator.JwtAuthenticator;
-import org.sopt.makers.crew.main.global.metrics.SpikeApplyMetricRecorder;
 import org.sopt.makers.crew.main.global.metrics.SpikeApplyRequestSupport;
-import org.sopt.makers.crew.main.global.metrics.SpikeApplyRuntimeConfig;
 import org.sopt.makers.crew.main.global.security.authentication.MakersAuthentication;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
@@ -34,7 +30,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private static final String USER_ID = "userId";
 	private final SpikeApplyRequestSupport spikeApplyRequestSupport;
 	private final JwtAuthenticator jwtAuthenticator;
-	private final SpikeApplyMetricRecorder spikeApplyMetricRecorder;
 
 	@Override
 	protected void doFilterInternal(
@@ -48,9 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			return;
 		}
 
-		boolean isSpikeApplyRequest = spikeApplyRequestSupport.isSpikeApplyRequest(request);
 		boolean persistDiagnosticAttributes = spikeApplyRequestSupport.shouldPersistDiagnosticAttributes(request);
-		long authStart = System.nanoTime();
 		String outcome = OUTCOME_SUCCESS;
 		try {
 			MakersAuthentication authentication = jwtAuthenticator.authenticate(authorizationToken);
@@ -65,15 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			outcome = OUTCOME_ERROR;
 			throw exception;
 		} finally {
-			if (isSpikeApplyRequest) {
-				spikeApplyMetricRecorder.recordTimer(
-					METRIC_AUTH_TOTAL,
-					SpikeApplyRuntimeConfig.currentTxMode(),
-					SpikeApplyRuntimeConfig.currentGate(),
-					outcome,
-					System.nanoTime() - authStart
-				);
-			}
+			// EXP: operational-no-observer narrow p95
 		}
 		filterChain.doFilter(request, response);
 	}

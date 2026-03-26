@@ -6,7 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.sopt.makers.crew.main.global.tomcat.SpikeApplyTomcatPipelineEntryValve;
 
-@Configuration
+// EXP: operational-no-observer narrow p95
+// @Configuration
 public class SpikeApplyTomcatPipelineEntryConfig {
 
 	@Bean
