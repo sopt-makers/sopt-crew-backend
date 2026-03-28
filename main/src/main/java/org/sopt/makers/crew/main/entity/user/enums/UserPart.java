@@ -39,7 +39,8 @@ public enum UserPart {
 	GENERAL_AFFAIRS("총무"),
 	OPERATION_LEADER("운영 팀장"),
 	MEDIA_LEADER("미디어 팀장"),
-	MAKERS_LEADER("메이커스 팀장");
+	MAKERS_LEADER("메이커스 팀장"),
+	ART_DIRECTOR("아트디렉터");
 
 	private final String value;
 
