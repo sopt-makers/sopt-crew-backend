@@ -1,12 +1,7 @@
 package org.sopt.makers.crew.main.soptmap;
 
-import static org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.CreateSoptMapRequest;
-import static org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.SoptMapUpdateRequest;
-import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.CreateSoptMapResponse;
-import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SearchSubwayStationResponse;
-import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SoptMapEventResponse;
-import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.SoptMapGiftResponse;
-import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.ToggleSoptMapResponse;
+import static org.sopt.makers.crew.main.soptmap.dto.request.SoptMapRequest.*;
+import static org.sopt.makers.crew.main.soptmap.dto.response.SoptMapResponse.*;
 
 import java.net.URI;
 import java.security.Principal;
@@ -40,7 +35,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v2/map")
+@RequestMapping("/api/v2/map/event/{soptMapId}")
 public class SoptMapController implements SoptMapApi {
 
 	private final SoptMapRequestValidator soptMapRequestValidator;
