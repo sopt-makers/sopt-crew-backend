@@ -80,6 +80,6 @@ jobs:
             export IMAGE_TAG="${{ steps.meta.outputs.version }}"
             export RELEASE_VERSION="${{ github.event.release.tag_name }}"
             export IMAGE_NAME="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
-            cd ~
+            cd ~./crew
             chmod +x ./deploy.sh
             ./deploy.sh
