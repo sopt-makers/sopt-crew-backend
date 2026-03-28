@@ -1,9 +1,9 @@
 name: Prod CI/CD - Build, Push and Deploy
 
 on:
-  release:
-    types:
-      - published # GitHub Release가 'published' 상태일 때만 워크플로우를 실행합니다.
+  push:
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
