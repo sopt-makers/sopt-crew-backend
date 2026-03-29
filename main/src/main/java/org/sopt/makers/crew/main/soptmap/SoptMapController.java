@@ -35,7 +35,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v2/map/event")
+@RequestMapping("/api/v2/map")
 public class SoptMapController implements SoptMapApi {
 
 	private final SoptMapRequestValidator soptMapRequestValidator;
