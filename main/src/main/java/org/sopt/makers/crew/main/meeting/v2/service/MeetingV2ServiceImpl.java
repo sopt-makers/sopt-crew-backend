@@ -41,6 +41,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
@@ -148,6 +150,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private static final int ZERO = 0;
 	private static final String METRIC_APPLY_PREFIX = "crew.spike.apply";
+	private static final Logger SPIKE_APPLY_LOG = LogManager.getLogger(METRIC_APPLY_PREFIX);
 	private static final String METRIC_APPLY_TOTAL = METRIC_APPLY_PREFIX + ".total";
 	private static final String METRIC_APPLY_ACQUIRE_WAIT = METRIC_APPLY_PREFIX + ".acquire.wait";
 	private static final String METRIC_APPLY_BUSINESS = METRIC_APPLY_PREFIX + ".business";
@@ -408,6 +411,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		boolean acquired = false;
 
 		try {
+			SPIKE_APPLY_LOG.info("[APPLY-START] meetingId={}, userId={}, txMode={}, gate={}",
+				requestBody.getMeetingId(), userId, txMode, gate);
+
 			if (!USE_EVENT_VALIDATION_BYPASS) {
 				validateEventApplyOutsideGate(requestBody, userId);
 			}
@@ -423,10 +429,18 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				}
 			}
 
-			return applyTransactionService.saveEventApplyNarrowed(requestBody, userId, txMode, gate);
-		} finally {
-			if (acquired && EVENT_GATE != null) {
-				EVENT_GATE.release();
+				MeetingV2ApplyMeetingResponseDto response = applyTransactionService.saveEventApplyNarrowed(requestBody,
+					userId, txMode, gate);
+				SPIKE_APPLY_LOG.info("[APPLY-END] meetingId={}, userId={}, status=success", requestBody.getMeetingId(),
+					userId);
+				return response;
+			} catch (RuntimeException exception) {
+				SPIKE_APPLY_LOG.warn("[APPLY-END] meetingId={}, userId={}, status=error, type={}",
+					requestBody.getMeetingId(), userId, exception.getClass().getSimpleName());
+				throw exception;
+			} finally {
+				if (acquired && EVENT_GATE != null) {
+					EVENT_GATE.release();
 			}
 			// EXP: operational-no-observer narrow p95
 		}

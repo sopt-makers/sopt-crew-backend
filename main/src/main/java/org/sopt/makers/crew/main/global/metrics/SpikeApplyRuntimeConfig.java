@@ -3,7 +3,7 @@ package org.sopt.makers.crew.main.global.metrics;
 import java.util.concurrent.Semaphore;
 
 public final class SpikeApplyRuntimeConfig {
-	public static final int SEMAPHORE_PERMITS = 26;
+	public static final int SEMAPHORE_PERMITS = 30;
 	public static final boolean USE_EVENT_NARROWED_WRITE_PATH = true;
 	public static final boolean USE_EVENT_VALIDATION_BYPASS = true;
 	public static final String TX_MODE_FAT = "fat";
