@@ -26,6 +26,8 @@ import java.util.stream.Stream;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
+import org.sopt.makers.crew.main.entity.apply.ApplyTest;
+import org.sopt.makers.crew.main.entity.apply.ApplyTestRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.comment.Comment;
@@ -123,6 +125,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private final UserRepository userRepository;
 	private final ApplyRepository applyRepository;
+	private final ApplyTestRepository applyTestRepository;
 	private final MeetingRepository meetingRepository;
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
@@ -325,6 +328,25 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
 			Apply savedApply = applyRepository.save(apply);
+			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+		});
+	}
+
+	@Override
+	@Transactional
+	public MeetingV2ApplyMeetingResponseDto testApplyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
+		Integer userId) {
+		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
+		User user = userRepository.findByIdOrThrow(userId);
+
+		return userLockManager.executeWithLock(userId, () -> {
+			List<ApplyTest> applies = applyTestRepository.findAllByMeetingId(meeting.getId());
+
+			//validateMeetingCapacity(meeting, applies);
+
+			ApplyTest apply = applyMapper.toApplyTestEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
+
+			ApplyTest savedApply = applyTestRepository.save(apply);
 			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 		});
 	}

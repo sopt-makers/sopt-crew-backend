@@ -1,0 +1,69 @@
+package org.sopt.makers.crew.main.entity.apply;
+
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+
+import java.util.List;
+
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+public interface ApplyTestRepository extends JpaRepository<ApplyTest, Integer> {
+
+	@Query("select a from ApplyTest a join fetch a.meeting m where a.userId = :userId and a.status = :statusValue")
+	List<ApplyTest> findAllByUserIdAndStatus(@Param("userId") Integer userId,
+		@Param("statusValue") EnApplyStatus statusValue);
+
+	@Query("select a "
+		+ "from ApplyTest a "
+		+ "join fetch a.meeting m "
+		+ "join fetch m.user u "
+		+ "where a.userId = :userId "
+		+ "ORDER BY a.id DESC ")
+	List<ApplyTest> findAllByUserIdOrderByIdDesc(@Param("userId") Integer userId);
+
+	@Query("select a "
+		+ "from ApplyTest a "
+		+ "join fetch a.user u "
+		+ "where a.meetingId = :meetingId "
+		+ "and a.status in :statuses order by :order")
+	List<ApplyTest> findAllByMeetingIdWithUser(@Param("meetingId") Integer meetingId,
+		@Param("statuses") List<EnApplyStatus> statuses, @Param("order") String order);
+
+	List<ApplyTest> findAllByMeetingIdAndStatus(Integer meetingId, EnApplyStatus statusValue);
+
+	List<ApplyTest> findAllByMeetingId(Integer meetingId);
+
+	List<ApplyTest> findAllByMeetingIdIn(List<Integer> meetingIds);
+
+	boolean existsByMeetingIdAndUserId(Integer meetingId, Integer userId);
+
+	@Transactional
+	@Modifying(clearAutomatically = true)
+	@Query("delete from ApplyTest a where a.meeting.id = :meetingId and a.userId = :userId")
+	void deleteByMeetingIdAndUserId(@Param("meetingId") Integer meetingId, @Param("userId") Integer userId);
+
+	default ApplyTest findByIdOrThrow(Integer applyId) {
+		return findById(applyId)
+			.orElseThrow(() -> new BadRequestException(NOT_FOUND_APPLY.getErrorCode()));
+	}
+
+	@Modifying(clearAutomatically = true)
+	@Transactional
+	@Query("DELETE FROM ApplyTest a WHERE a.meetingId = :meetingId")
+	void deleteAllByMeetingIdQuery(Integer meetingId);
+
+	@Query("SELECT COALESCE(COUNT(a.id), 0) " +
+		"FROM ApplyTest a JOIN a.meeting m " +
+		"JOIN a.user u " +
+		"WHERE m.category = :category AND a.status = :status AND u.id = :orgId")
+	Long findApprovedStudyCountByOrgId(
+		@Param("category") MeetingCategory category,
+		@Param("status") EnApplyStatus status,
+		@Param("orgId") Integer orgId);
+}

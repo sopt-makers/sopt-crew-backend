@@ -38,6 +38,12 @@ import jakarta.persistence.EntityManagerFactory;
 @Profile({"local", "dev", "prod", "test", "traffic"})
 public class CrewDatabaseConfig {
 
+	private final ResourceLoader resourceLoader;
+
+	public CrewDatabaseConfig(ResourceLoader resourceLoader) {
+		this.resourceLoader = resourceLoader;
+	}
+
 	@Bean
 	@ConfigurationProperties("spring.datasource")
 	public DataSource physicalDatasource() {
@@ -91,12 +97,6 @@ public class CrewDatabaseConfig {
 		final @Qualifier("primaryEntityManagerFactory") LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean
 	) {
 		return new JpaTransactionManager(Objects.requireNonNull(localContainerEntityManagerFactoryBean.getObject()));
-	}
-
-	private final ResourceLoader resourceLoader;
-
-	public CrewDatabaseConfig(ResourceLoader resourceLoader) {
-		this.resourceLoader = resourceLoader;
 	}
 
 	@Bean

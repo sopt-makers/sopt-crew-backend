@@ -36,6 +36,9 @@ public interface MeetingV2Service {
 
 	MeetingV2ApplyMeetingResponseDto applyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody, Integer userId);
 
+	MeetingV2ApplyMeetingResponseDto testApplyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
+		Integer userId);
+
 	MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody, Integer userId);
 
 	void applyMeetingCancel(Integer meetingId, Integer userId);
