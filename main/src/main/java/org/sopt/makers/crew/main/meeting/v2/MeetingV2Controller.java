@@ -23,6 +23,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingById
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -40,15 +42,18 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/meeting/v2")
 @RequiredArgsConstructor
 public class MeetingV2Controller implements MeetingV2Api {
 
 	private final MeetingV2Service meetingV2Service;
-
 	private final S3Service s3Service;
+	@Value("${API_TEST_SECRET}")
+	private String API_TEST_SECRET;
 
 	@Override
 	@GetMapping("/org-user")
@@ -84,6 +89,21 @@ public class MeetingV2Controller implements MeetingV2Api {
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(meetingV2Service.applyGeneralMeetingWithLock(requestBody, userId));
+	}
+
+	@PostMapping("/test/apply")
+	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyTestGeneralMeeting(
+		@RequestHeader("X-API-TEST") String testKey,
+		@RequestHeader("X-USER-ID") Integer userId,
+		@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody) {
+
+		if (!testKey.equals(API_TEST_SECRET)) {
+			log.info("Test key does not match API TEST SECRET");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(meetingV2Service.testApplyGeneralMeetingWithLock(requestBody, userId));
 	}
 
 	@PostMapping("${custom.paths.eventApply}")

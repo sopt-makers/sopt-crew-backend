@@ -129,3 +129,6 @@ img:
 thread-pool:
   core-size: ${PROD_THREAD_CORE_SIZE}
   thread-name-prefix: ${PROD_THREAD_NAME_PREFIX}
+
+api:
+  secret: ${API_TEST_SECRET}

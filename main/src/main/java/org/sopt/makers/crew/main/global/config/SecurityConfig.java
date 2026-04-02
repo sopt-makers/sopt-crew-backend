@@ -53,7 +53,8 @@ public class SecurityConfig {
 			actuatorEndPoint + "/cachecontents/**",
 			actuatorEndPoint + "/metrics/**",
 			"/internal/**",
-			"/slack/**"
+			"/slack/**",
+			"/meeting/v2/test/**"
 		};
 	}
 

@@ -20,7 +20,7 @@ spring:
     hibernate:
       naming:
         physical-strategy: org.sopt.makers.crew.main.global.config.CamelCaseNamingStrategy
-      ddl-auto: validate
+      ddl-auto: none
     properties:
       hibernate:
         show_sql: true
@@ -129,3 +129,7 @@ slack:
   bot-token: ${SLACK_BOT_TOKEN}
   app-token: ${SLACK_APP_TOKEN}
   api-auth-token: ${SLACK_API_AUTH_TOKEN}
+
+
+api:
+  secret: ${API_TEST_SECRET}
