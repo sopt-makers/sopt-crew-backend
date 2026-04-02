@@ -429,18 +429,18 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 				}
 			}
 
-				MeetingV2ApplyMeetingResponseDto response = applyTransactionService.saveEventApplyNarrowed(requestBody,
-					userId, txMode, gate);
-				SPIKE_APPLY_LOG.info("[APPLY-END] meetingId={}, userId={}, status=success", requestBody.getMeetingId(),
-					userId);
-				return response;
-			} catch (RuntimeException exception) {
-				SPIKE_APPLY_LOG.warn("[APPLY-END] meetingId={}, userId={}, status=error, type={}",
-					requestBody.getMeetingId(), userId, exception.getClass().getSimpleName());
-				throw exception;
-			} finally {
-				if (acquired && EVENT_GATE != null) {
-					EVENT_GATE.release();
+			MeetingV2ApplyMeetingResponseDto response = applyTransactionService.saveEventApplyNarrowed(requestBody,
+				userId, txMode, gate);
+			SPIKE_APPLY_LOG.info("[APPLY-END] meetingId={}, userId={}, status=success", requestBody.getMeetingId(),
+				userId);
+			return response;
+		} catch (RuntimeException exception) {
+			SPIKE_APPLY_LOG.warn("[APPLY-END] meetingId={}, userId={}, status=error, type={}",
+				requestBody.getMeetingId(), userId, exception.getClass().getSimpleName());
+			throw exception;
+		} finally {
+			if (acquired && EVENT_GATE != null) {
+				EVENT_GATE.release();
 			}
 			// EXP: operational-no-observer narrow p95
 		}
