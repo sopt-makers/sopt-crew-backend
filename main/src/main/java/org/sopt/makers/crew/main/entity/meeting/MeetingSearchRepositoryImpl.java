@@ -18,9 +18,9 @@ import org.sopt.makers.crew.main.global.pagination.PaginationType;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.Expression;
@@ -64,15 +64,13 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 				activeGeneration);
 			JPAQuery<Long> countQuery = getCount(queryCommand, now, activeGeneration);
 
-			return PageableExecutionUtils.getPage(flashMeetings,
-				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
+			return createPage(flashMeetings, pageable, countQuery);
 		}
 
 		List<Meeting> meetings = getMeetings(queryCommand, pageable, now, activeGeneration);
 		JPAQuery<Long> countQuery = getCount(queryCommand, now, activeGeneration);
 
-		return PageableExecutionUtils.getPage(meetings,
-			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
+		return createPage(meetings, pageable, countQuery);
 	}
 
 	/**
@@ -106,8 +104,17 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.limit(pageable.getPageSize())
 			.fetch();
 
-		return PageableExecutionUtils.getPage(meetings,
-			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), getCount()::fetchFirst);
+		return createPage(meetings, pageable, getCount());
+	}
+
+	private Page<Meeting> createPage(List<Meeting> meetings, Pageable pageable, JPAQuery<Long> countQuery) {
+		Long totalCount = countQuery.fetchOne();
+
+		return new PageImpl<>(
+			meetings,
+			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()),
+			totalCount == null ? 0L : totalCount
+		);
 	}
 
 	/**
