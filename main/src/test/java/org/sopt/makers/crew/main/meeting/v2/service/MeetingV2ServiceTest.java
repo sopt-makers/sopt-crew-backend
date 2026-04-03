@@ -846,6 +846,29 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
+		@DisplayName("검색 결과보다 큰 page를 요청하면 마지막 페이지로 보정하여 반환한다.")
+		void pageGreaterThanKeywordSearchResult_getMeetings_lastPage() {
+			// given
+			int page = 5;
+			int take = 12;
+			MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(page, take);
+			queryDto.setIsOnlyActiveGeneration(false);
+			queryDto.setKeyword(List.of("기타"));
+
+			// when
+			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
+
+			// then
+			Assertions.assertThat(meetingDto.meetings())
+				.extracting(MeetingResponseDto::getTitle)
+				.containsExactly("운동 스터디");
+			Assertions.assertThat(meetingDto.meta().getPage()).isEqualTo(1);
+			Assertions.assertThat(meetingDto.meta().getPageCount()).isEqualTo(1);
+			Assertions.assertThat(meetingDto.meta().isHasPreviousPage()).isFalse();
+			Assertions.assertThat(meetingDto.meta().isHasNextPage()).isFalse();
+		}
+
+		@Test
 		@DisplayName("페이지네이션에서 page 1일 경우, 11개의 모임목록을 반환한다.")
 		void pageIs1_getMeetings_11meetings() {
 			// given
@@ -889,6 +912,29 @@ public class MeetingV2ServiceTest {
 
 			// then
 			Assertions.assertThat(meetings).hasSize(12);
+		}
+
+		@Test
+		@DisplayName("ADVERTISEMENT 페이지네이션의 pageCount는 현재 페이지 크기와 무관하게 계산된다.")
+		void advertisementPagination_getMeetings_consistentPageCount() {
+			// given
+			User user = userRepository.findByIdOrThrow(5);
+
+			for (int i = 0; i < 20; i++) {
+				Meeting meeting = createMeetingFixture(i, user);
+				meetingRepository.save(meeting);
+			}
+
+			MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(2, 12);
+			queryDto.setIsOnlyActiveGeneration(false);
+
+			// when
+			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
+
+			// then
+			Assertions.assertThat(meetingDto.meetings()).hasSize(12);
+			Assertions.assertThat(meetingDto.meta().getPage()).isEqualTo(2);
+			Assertions.assertThat(meetingDto.meta().getPageCount()).isEqualTo(3);
 		}
 	}
 
