@@ -861,7 +861,7 @@ public class MeetingV2ServiceTest {
 			// then
 			Assertions.assertThat(meetingDto.meetings())
 				.extracting(MeetingResponseDto::getTitle)
-				.containsExactly("운동 스터디");
+				.containsExactly("스터디 구합니다1");
 			Assertions.assertThat(meetingDto.meta().getPage()).isEqualTo(1);
 			Assertions.assertThat(meetingDto.meta().getPageCount()).isEqualTo(1);
 			Assertions.assertThat(meetingDto.meta().isHasPreviousPage()).isFalse();
