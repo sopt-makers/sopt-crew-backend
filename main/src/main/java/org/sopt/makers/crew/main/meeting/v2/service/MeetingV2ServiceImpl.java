@@ -710,6 +710,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private MeetingV2GetAllMeetingQueryDto adjustPageWhenOutOfRange(MeetingV2GetAllMeetingQueryDto queryCommand,
 		int itemCount, PageableStrategy pageableStrategy) {
+		if (itemCount == 0 && queryCommand.getPage() > 1) {
+			return copyQueryWithPage(queryCommand, 1);
+		}
+
 		int normalizedPage = pageableStrategy.normalizePage(queryCommand, itemCount);
 
 		if (normalizedPage == queryCommand.getPage()) {

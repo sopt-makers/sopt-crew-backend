@@ -13,7 +13,7 @@ public interface PageableStrategy {
 		int pageCount = calculatePageCount(itemCount, queryCommand.getTake());
 
 		if (pageCount == 0) {
-			return queryCommand.getPage();
+			return 1;
 		}
 
 		return Math.min(queryCommand.getPage(), pageCount);
