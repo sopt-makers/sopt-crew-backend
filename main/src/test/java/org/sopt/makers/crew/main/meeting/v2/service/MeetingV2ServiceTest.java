@@ -869,6 +869,30 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
+		@DisplayName("status 필터 결과가 첫 페이지에만 존재하면 두 번째 페이지 요청은 첫 페이지로 보정한다.")
+		void outOfRangeStatusPage_getMeetings_firstPage() {
+			User user = userRepository.findByIdOrThrow(5);
+
+			for (int i = 0; i < 10; i++) {
+				Meeting meeting = createMeetingFixture(i, user);
+				meetingRepository.save(meeting);
+			}
+
+			MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(2, 12);
+			queryDto.setIsOnlyActiveGeneration(false);
+			queryDto.setStatus(List.of(String.valueOf(EnMeetingStatus.BEFORE_START.getValue())));
+
+			MeetingV2GetAllMeetingDto meetingDto = meetingV2Service.getMeetings(queryDto);
+
+			Assertions.assertThat(meetingDto.meetings()).hasSize(11);
+			Assertions.assertThat(meetingDto.meta().getPage()).isEqualTo(1);
+			Assertions.assertThat(meetingDto.meta().getItemCount()).isEqualTo(11);
+			Assertions.assertThat(meetingDto.meta().getPageCount()).isEqualTo(1);
+			Assertions.assertThat(meetingDto.meta().isHasPreviousPage()).isFalse();
+			Assertions.assertThat(meetingDto.meta().isHasNextPage()).isFalse();
+		}
+
+		@Test
 		@DisplayName("페이지네이션에서 page 1일 경우, 11개의 모임목록을 반환한다.")
 		void pageIs1_getMeetings_11meetings() {
 			// given

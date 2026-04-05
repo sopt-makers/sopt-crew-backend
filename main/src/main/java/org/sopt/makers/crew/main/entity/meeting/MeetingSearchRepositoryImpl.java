@@ -42,6 +42,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	/**
 	 * @note: canJoinOnlyActiveGeneration 처리 유의
 	 * @note: status 처리 유의
+	 * @implSpec : 조건에 맞는 content와 count를 함께 조회하여 Page 객체를 생성한다.
 	 */
 	@Override
 	public Page<Meeting> findAllByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time,
@@ -71,6 +72,46 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		JPAQuery<Long> countQuery = getCount(queryCommand, now, activeGeneration);
 
 		return createPage(meetings, pageable, countQuery);
+	}
+
+	/**
+	 * @note: canJoinOnlyActiveGeneration 처리 유의
+	 * @note: status 처리 유의
+	 * @implSpec : count 조회 없이 페이지에 해당하는 모임 content만 반환한다.
+	 */
+	@Override
+	public List<Meeting> findMeetingsByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time,
+		Integer activeGeneration) {
+		LocalDateTime now = time.now();
+
+		List<String> categoryNames = queryCommand.getCategory();
+		List<MeetingCategory> categories = List.of();
+
+		if (categoryNames != null) {
+			categories = categoryNames.stream()
+				.map(MeetingCategory::ofValue)
+				.toList();
+		}
+
+		if (categories.size() == 1 && categories.contains(MeetingCategory.FLASH)
+			&& queryCommand.getPaginationType() == PaginationType.DEFAULT) {
+			return getFlashMeetingsForFlashCarousel(queryCommand, pageable, now, activeGeneration);
+		}
+
+		return getMeetings(queryCommand, pageable, now, activeGeneration);
+	}
+
+	/**
+	 * @note: canJoinOnlyActiveGeneration 처리 유의
+	 * @note: status 처리 유의
+	 * @implSpec : 조건에 맞는 모임의 총 개수를 직접 count query로 조회한다.
+	 */
+	@Override
+	public long countMeetingsByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Time time, Integer activeGeneration) {
+		LocalDateTime now = time.now();
+		Long totalCount = getCount(queryCommand, now, activeGeneration).fetchOne();
+
+		return totalCount == null ? 0L : totalCount;
 	}
 
 	/**
@@ -107,6 +148,9 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		return createPage(meetings, pageable, getCount());
 	}
 
+	/**
+	 * @implSpec : 조회된 content와 count query 결과를 조합해 Page 객체를 생성한다.
+	 */
 	private Page<Meeting> createPage(List<Meeting> meetings, Pageable pageable, JPAQuery<Long> countQuery) {
 		Long totalCount = countQuery.fetchOne();
 

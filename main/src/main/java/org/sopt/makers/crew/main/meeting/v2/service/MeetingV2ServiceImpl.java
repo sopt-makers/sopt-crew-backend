@@ -411,16 +411,23 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Override
 	public MeetingV2GetAllMeetingDto getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand) {
 		PageableStrategy pageableStrategy = getPageableStrategy(queryCommand);
-		Page<Meeting> meetings = findMeetings(queryCommand, pageableStrategy);
+		int totalMeetingCount = (int)meetingRepository.countMeetingsByQuery(
+			queryCommand,
+			time,
+			activeGenerationProvider.getActiveGeneration()
+		);
 		MeetingV2GetAllMeetingQueryDto effectiveQueryCommand = adjustPageWhenOutOfRange(
 			queryCommand,
-			(int)meetings.getTotalElements(),
+			totalMeetingCount,
 			pageableStrategy
 		);
-
-		if (effectiveQueryCommand != queryCommand) {
-			meetings = findMeetings(effectiveQueryCommand, pageableStrategy);
-		}
+		Pageable pageable = pageableStrategy.createPageable(effectiveQueryCommand);
+		List<Meeting> meetings = meetingRepository.findMeetingsByQuery(
+			effectiveQueryCommand,
+			pageable,
+			time,
+			activeGenerationProvider.getActiveGeneration()
+		);
 
 		List<Integer> meetingIds = meetings.stream()
 			.map(Meeting::getId)
@@ -431,7 +438,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
 			meetingIds);
 
-		List<MeetingResponseDto> meetingResponseDtos = meetings.getContent().stream()
+		List<MeetingResponseDto> meetingResponseDtos = meetings.stream()
 			.map(meeting -> MeetingResponseDto.of(
 				meeting,
 				meeting.getUser(),
@@ -443,8 +450,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			.toList();
 
 		PageMetaDto pageMetaDto = pageableStrategy.createPageMeta(
-			meetings.getPageable(),
-			(int)meetings.getTotalElements(),
+			pageable,
+			totalMeetingCount,
 			effectiveQueryCommand.getTake()
 		);
 
@@ -721,13 +728,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		return copyQueryWithPage(queryCommand, normalizedPage);
-	}
-
-	private Page<Meeting> findMeetings(MeetingV2GetAllMeetingQueryDto queryCommand, PageableStrategy pageableStrategy) {
-		Pageable pageable = pageableStrategy.createPageable(queryCommand);
-
-		return meetingRepository.findAllByQuery(queryCommand, pageable, time,
-			activeGenerationProvider.getActiveGeneration());
 	}
 
 	private MeetingV2GetAllMeetingQueryDto copyQueryWithPage(MeetingV2GetAllMeetingQueryDto source, int page) {
