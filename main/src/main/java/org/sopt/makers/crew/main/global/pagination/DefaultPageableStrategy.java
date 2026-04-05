@@ -14,4 +14,9 @@ public class DefaultPageableStrategy implements PageableStrategy {
 		Sort sort = Sort.by(Sort.Direction.ASC, "id");
 		return new CustomPageable(queryCommand.getPage() - 1, queryCommand.getTake(), sort);
 	}
+
+	@Override
+	public int calculatePageCount(int itemCount, int take) {
+		return (int)Math.ceil((double)itemCount / take);
+	}
 }

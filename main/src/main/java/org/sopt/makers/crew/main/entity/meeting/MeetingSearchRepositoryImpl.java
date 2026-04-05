@@ -18,9 +18,9 @@ import org.sopt.makers.crew.main.global.pagination.PaginationType;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.Expression;
@@ -42,6 +42,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	/**
 	 * @note: canJoinOnlyActiveGeneration 처리 유의
 	 * @note: status 처리 유의
+	 * @implSpec : 조건에 맞는 content와 count를 함께 조회하여 Page 객체를 생성한다.
 	 */
 	@Override
 	public Page<Meeting> findAllByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time,
@@ -64,15 +65,53 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 				activeGeneration);
 			JPAQuery<Long> countQuery = getCount(queryCommand, now, activeGeneration);
 
-			return PageableExecutionUtils.getPage(flashMeetings,
-				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
+			return createPage(flashMeetings, pageable, countQuery);
 		}
 
 		List<Meeting> meetings = getMeetings(queryCommand, pageable, now, activeGeneration);
 		JPAQuery<Long> countQuery = getCount(queryCommand, now, activeGeneration);
 
-		return PageableExecutionUtils.getPage(meetings,
-			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), countQuery::fetchFirst);
+		return createPage(meetings, pageable, countQuery);
+	}
+
+	/**
+	 * @note: canJoinOnlyActiveGeneration 처리 유의
+	 * @note: status 처리 유의
+	 * @implSpec : count 조회 없이 페이지에 해당하는 모임 content만 반환한다.
+	 */
+	@Override
+	public List<Meeting> findMeetingsByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Pageable pageable, Time time,
+		Integer activeGeneration) {
+		LocalDateTime now = time.now();
+
+		List<String> categoryNames = queryCommand.getCategory();
+		List<MeetingCategory> categories = List.of();
+
+		if (categoryNames != null) {
+			categories = categoryNames.stream()
+				.map(MeetingCategory::ofValue)
+				.toList();
+		}
+
+		if (categories.size() == 1 && categories.contains(MeetingCategory.FLASH)
+			&& queryCommand.getPaginationType() == PaginationType.DEFAULT) {
+			return getFlashMeetingsForFlashCarousel(queryCommand, pageable, now, activeGeneration);
+		}
+
+		return getMeetings(queryCommand, pageable, now, activeGeneration);
+	}
+
+	/**
+	 * @note: canJoinOnlyActiveGeneration 처리 유의
+	 * @note: status 처리 유의
+	 * @implSpec : 조건에 맞는 모임의 총 개수를 직접 count query로 조회한다.
+	 */
+	@Override
+	public long countMeetingsByQuery(MeetingV2GetAllMeetingQueryDto queryCommand, Time time, Integer activeGeneration) {
+		LocalDateTime now = time.now();
+		Long totalCount = getCount(queryCommand, now, activeGeneration).fetchOne();
+
+		return totalCount == null ? 0L : totalCount;
 	}
 
 	/**
@@ -106,8 +145,20 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			.limit(pageable.getPageSize())
 			.fetch();
 
-		return PageableExecutionUtils.getPage(meetings,
-			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), getCount()::fetchFirst);
+		return createPage(meetings, pageable, getCount());
+	}
+
+	/**
+	 * @implSpec : 조회된 content와 count query 결과를 조합해 Page 객체를 생성한다.
+	 */
+	private Page<Meeting> createPage(List<Meeting> meetings, Pageable pageable, JPAQuery<Long> countQuery) {
+		Long totalCount = countQuery.fetchOne();
+
+		return new PageImpl<>(
+			meetings,
+			PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()),
+			totalCount == null ? 0L : totalCount
+		);
 	}
 
 	/**
