@@ -8,7 +8,7 @@
 | `spike-test-tps.js` | 모임 신청 API 스파이크 트래픽 테스트  |
 | `load-test-meeting-read.js` | 모임 배너/목록/상세/추천 조회 테스트   |
 | `load-test-community-read.js` | 게시글/댓글 조회 테스트           |
-| `load-test-user-dashboard.js` | 마이페이지 프로필/신청 모임/개설 모임 조회 테스트 |
+| `load-test-user.js` | 마이페이지 프로필/신청 모임/개설 모임 조회 테스트 |
 
 ## 포트 가이드
 
@@ -70,7 +70,7 @@ k6 run \
   main/perf/k6/spike-test-tps.js
 ```
 
-### 3. 모임 조회 흐름 테스트
+### 3. 모임 조회 테스트
 
 ```bash
 k6 run \
@@ -81,7 +81,7 @@ k6 run \
   main/perf/k6/load-test-meeting-read.js
 ```
 
-### 4. 커뮤니티 조회 흐름 테스트
+### 4. 커뮤니티 조회 테스트
 
 ```bash
 k6 run \
@@ -93,14 +93,14 @@ k6 run \
   main/perf/k6/load-test-community-read.js
 ```
 
-### 5. 유저 대시보드 조회 테스트
+### 5. 유저 정보 조회 테스트
 
 ```bash
 k6 run \
   --env BASE_URL=http://localhost:5557 \
   --env AUTH_TOKEN=<BEARER_TOKEN> \
   --env TARGET_TPS=5 \
-  main/perf/k6/load-test-user-dashboard.js
+  main/perf/k6/load-test-user.js
 ```
 
 ## 스크립트별 메모
@@ -134,7 +134,7 @@ k6 run \
   - `GET /comment/v2`
 - 게시글과 댓글 조회를 같이 확인하는 단순한 커뮤니티 읽기 테스트입니다.
 
-### `load-test-user-dashboard.js`
+### `load-test-user.js`
 
 - 한 iteration 에서 아래 4개를 함께 호출합니다.
   - `GET /user/v2/profile/me`
