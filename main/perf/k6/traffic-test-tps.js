@@ -2,9 +2,9 @@ import http from "k6/http";
 import { check } from "k6";
 
 // ============================================
-// 환경변수 기반 URL 구성 (실행 전 포트 확인)
+// 환경변수 기반 URL 구성
 // ============================================
-const BASE_URL = (__ENV.BASE_URL || "http://localhost:4002").replace(/\/$/, "");
+const BASE_URL = (__ENV.BASE_URL || "").replace(/\/$/, "");
 const X_API_TEST = __ENV.X_API_TEST || "";
 const X_USER_ID = __ENV.X_USER_ID || "";
 const X_USER_IDS = (__ENV.X_USER_IDS || "")
@@ -57,13 +57,16 @@ export const options = {
 // 테스트 시작 시 설정 출력
 // ============================================
 export function setup() {
+    if (!BASE_URL) {
+        throw new Error("BASE_URL을 설정해주세요.");
+    }
+
     if (!X_USER_ID && X_USER_IDS.length === 0) {
         throw new Error("X_USER_ID 또는 X_USER_IDS를 설정해주세요.");
     }
 
     console.log("========================================");
     console.log("Traffic TPS Test");
-    console.log(`Target URL: ${BASE_URL}/meeting/v2/test/apply`);
     console.log(`Meeting ID: ${MEETING_ID}`);
     console.log(`Target TPS: ${TARGET_TPS}`);
     console.log(`Duration: ${TEST_DURATION}`);
@@ -114,7 +117,6 @@ export default function (data) {
 export function teardown(data) {
     console.log("========================================");
     console.log("Traffic TPS test completed.");
-    console.log(`Target: ${data.applyUrl}`);
     console.log(`Meeting ID: ${MEETING_ID}`);
     console.log("========================================");
 }

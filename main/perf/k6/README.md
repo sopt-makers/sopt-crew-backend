@@ -10,22 +10,11 @@
 | `load-test-community-read.js` | 게시글/댓글 조회 테스트           |
 | `load-test-user.js` | 마이페이지 프로필/신청 모임/개설 모임 조회 테스트 |
 
-## 포트 가이드
-
-| 환경 | 포트 |
-|---|---|
-| dev | `5556`, `5557` |
-| prod | `4001`, `4002` |
-
-- 스크립트는 `BASE_URL` 이 있으면 그 값을 우선 사용합니다.
-- 모든 스크립트의 기본값은 `http://localhost:4002` 으로 일단 되어있습니다.
-- 테스트할 때마다 `BASE_URL` 만 바꿔서 dev/prod 포트에 맞춰 실행하면 됩니다.
-
 ## 공통 환경 변수
 
 | 변수 | 설명 |
 |---|---|
-| `BASE_URL` | 대상 서버 URL. 예: `http://localhost:4001` |
+| `BASE_URL` | 대상 서버 URL |
 | `MEETING_ID` | 테스트 대상 모임 ID |
 | `POST_ID` | 커뮤니티 조회 테스트용 게시글 ID |
 | `AUTH_TOKEN` | 조회 스크립트에서 사용할 Bearer 토큰 |
@@ -49,7 +38,7 @@ k6 version
 
 ```bash
 k6 run \
-  --env BASE_URL=http://localhost:4001 \
+  --env BASE_URL=<BASE_URL> \
   --env MEETING_ID=720 \
   --env X_API_TEST=<X_API_TEST_SECRET> \
   --env X_USER_IDS=<TEST_USER_IDS_CSV> \
@@ -61,7 +50,7 @@ k6 run \
 
 ```bash
 k6 run \
-  --env BASE_URL=http://localhost:4002 \
+  --env BASE_URL=<BASE_URL> \
   --env MEETING_ID=720 \
   --env X_API_TEST=<X_API_TEST_SECRET> \
   --env X_USER_IDS=<TEST_USER_IDS_CSV> \
@@ -74,7 +63,7 @@ k6 run \
 
 ```bash
 k6 run \
-  --env BASE_URL=http://localhost:4002 \
+  --env BASE_URL=<BASE_URL> \
   --env AUTH_TOKEN=<BEARER_TOKEN> \
   --env MEETING_ID=720 \
   --env TARGET_TPS=10 \
@@ -85,7 +74,7 @@ k6 run \
 
 ```bash
 k6 run \
-  --env BASE_URL=http://localhost:5556 \
+  --env BASE_URL=<BASE_URL> \
   --env AUTH_TOKEN=<BEARER_TOKEN> \
   --env MEETING_ID=720 \
   --env POST_ID=1234 \
@@ -97,7 +86,7 @@ k6 run \
 
 ```bash
 k6 run \
-  --env BASE_URL=http://localhost:5557 \
+  --env BASE_URL=<BASE_URL> \
   --env AUTH_TOKEN=<BEARER_TOKEN> \
   --env TARGET_TPS=5 \
   main/perf/k6/load-test-user.js

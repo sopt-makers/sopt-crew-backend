@@ -4,7 +4,7 @@ import { check } from "k6";
 // ============================================
 // 환경변수 기반 URL 구성
 // ============================================
-const BASE_URL = (__ENV.BASE_URL || "http://localhost:4002").replace(/\/$/, "");
+const BASE_URL = (__ENV.BASE_URL || "").replace(/\/$/, "");
 const AUTH_TOKEN = __ENV.AUTH_TOKEN || "";
 
 const MEETING_ID = Number(__ENV.MEETING_ID || 720);
@@ -40,9 +40,12 @@ export const options = {
 // 테스트 시작 시 설정 출력
 // ============================================
 export function setup() {
+    if (!BASE_URL) {
+        throw new Error("BASE_URL을 설정해주세요.");
+    }
+
     console.log("========================================");
     console.log("Community Read Test");
-    console.log(`Target URL: ${BASE_URL}/post/v2`);
     console.log(`Meeting ID: ${MEETING_ID}`);
     console.log(`Post ID: ${POST_ID}`);
     console.log(`Target TPS: ${TARGET_TPS}`);
@@ -99,7 +102,5 @@ export default function (data) {
 export function teardown(data) {
     console.log("========================================");
     console.log("Community read test completed.");
-    console.log(`Post List URL: ${data.postListUrl}`);
-    console.log(`Comment URL: ${data.commentUrl}`);
     console.log("========================================");
 }
