@@ -4,6 +4,7 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllMeetingDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllWritingPostResponseDto;
 import org.sopt.makers.crew.main.internal.dto.InternalUserAppliedMeetingResponseDto;
+import org.sopt.makers.crew.main.internal.dto.InternalUserWithMeetingUsersResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -52,6 +53,15 @@ public interface InternalMeetingApi {
 	})
 	ResponseEntity<InternalUserAppliedMeetingResponseDto> getAppliedMeetingInfo(
 		@PathVariable @Valid Integer userId
+	);
+
+	@Operation(summary = "[Internal] 모임에 함께 참여했던 유저 정보들 조회", description = "플그 요청에 따른 맴버에 따라 크루 모임에 함께 참여했던 유저를 조회하기 위한 api")
+	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "조회 성공")})
+	@Parameters(value = {
+		@Parameter(name = "userId", description = "찾고자 하는 userId", example = "10", required = true, schema = @Schema(type = "integer", format = "int32")),
+	})
+	ResponseEntity<InternalUserWithMeetingUsersResponseDto> getWithMeetingUserIds(
+		@PathVariable @Valid Integer orgUserId
 	);
 
 }

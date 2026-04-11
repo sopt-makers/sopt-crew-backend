@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
+import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -41,6 +42,8 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 
 	List<Apply> findAllByMeetingIdIn(List<Integer> meetingIds);
 
+	List<Apply> findAllByMeetingIdInAndStatus(List<Integer> meetingIds, EnApplyStatus statusValue);
+
 	boolean existsByMeetingIdAndUserId(Integer meetingId, Integer userId);
 
 	@Transactional
@@ -66,4 +69,6 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 		@Param("category") MeetingCategory category,
 		@Param("status") EnApplyStatus status,
 		@Param("orgId") Integer orgId);
+
+	List<Apply> findByUser(User user);
 }
