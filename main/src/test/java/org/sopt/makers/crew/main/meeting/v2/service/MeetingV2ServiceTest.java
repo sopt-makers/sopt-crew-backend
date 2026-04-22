@@ -27,8 +27,11 @@ import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingFrequency;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingType;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
@@ -45,7 +48,8 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2UpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
@@ -53,6 +57,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingRe
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateMeetingResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
@@ -141,15 +146,15 @@ public class MeetingV2ServiceTest {
 				MeetingJoinablePart.IOS
 			};
 
-			// 환영 태그 목록
-			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
-
 			// 모임 키워드 목록
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
+			MeetingJoinInfo joinInfo = new MeetingJoinInfo(MeetingType.ONLINE, MeetingFrequency.STEADY);
+
 			// DTO 생성
-			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
+				"백엔드 실전 설계부터 배포까지", // subTitle
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2024.10.01", // startDate (모집 시작 날짜)
@@ -163,9 +168,9 @@ public class MeetingV2ServiceTest {
 				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				canJoinOnlyActiveGeneration, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
 				null, // coLeaders (공동모임장 리스트)
-				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
@@ -180,14 +185,15 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(foundMeeting)
 				.isNotNull()
 				.extracting(
-					"user", "userId", "title", "category", "startDate", "endDate", "capacity", "desc",
+					"user", "userId", "title", "subTitle", "category", "startDate", "endDate", "capacity", "desc",
 					"processDesc", "mStartDate", "mEndDate", "leaderDesc", "note", "isMentorNeeded",
-					"canJoinOnlyActiveGeneration", "createdGeneration", "targetActiveGeneration", "joinableParts"
+					"canJoinOnlyActiveGeneration", "joinInfo", "createdGeneration", "targetActiveGeneration", "joinableParts"
 				)
 				.containsExactly(
 					savedUser,  // user 필드
 					savedUser.getId(),  // userId 필드
 					"알고보면 쓸데있는 개발 프로세스",  // title 필드
+					"백엔드 실전 설계부터 배포까지", // subTitle 필드
 					MeetingCategory.STUDY,  // category 필드
 					LocalDateTime.of(2024, 10, 1, 0, 0, 0),  // startDate 필드
 					LocalDateTime.of(2024, 10, 15, 23, 59, 59),  // endDate 필드
@@ -200,6 +206,7 @@ public class MeetingV2ServiceTest {
 					"준비물은 노트북과 열정입니다.",  // note 필드
 					false,  // isMentorNeeded 필드
 					canJoinOnlyActiveGeneration,  // canJoinOnlyActiveGeneration 필드
+					joinInfo, // joinInfo 필드
 					activeGenerationProvide.getActiveGeneration(),  // createdGeneration 필드
 					canJoinOnlyActiveGeneration ? activeGenerationProvide.getActiveGeneration() : null,
 					// targetActiveGeneration 필드
@@ -263,7 +270,7 @@ public class MeetingV2ServiceTest {
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
-			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -335,7 +342,7 @@ public class MeetingV2ServiceTest {
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
-			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -395,7 +402,7 @@ public class MeetingV2ServiceTest {
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
-			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -455,7 +462,7 @@ public class MeetingV2ServiceTest {
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
-			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -509,7 +516,7 @@ public class MeetingV2ServiceTest {
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
-			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -564,7 +571,7 @@ public class MeetingV2ServiceTest {
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
 			// DTO 생성
-			MeetingV2CreateAndUpdateMeetingBodyDto meetingDto = new MeetingV2CreateAndUpdateMeetingBodyDto(
+			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
@@ -617,30 +624,30 @@ public class MeetingV2ServiceTest {
 			// then
 			Assertions.assertThat(meetings)
 				.extracting(
-					"title", "category", "canJoinOnlyActiveGeneration",
+					"title", "subTitle", "category", "canJoinOnlyActiveGeneration",
 					"mStartDate", "mEndDate",
 					"capacity", "isMentorNeeded", "targetActiveGeneration",
 					"joinableParts", "status", "approvedCount"
 				).containsExactly(
-					tuple("스터디 구합니다1", "행사", true,
+					tuple("스터디 구합니다1", "스터디 부제목1", "행사", true,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
 						10, true, 35,
 						new MeetingJoinablePart[] {PM, SERVER}, 1, 2
 					),
-					tuple("스터디 구합니다 - 신청전", "스터디", false,
+					tuple("스터디 구합니다 - 신청전", "스터디 부제목2", "스터디", false,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
 						10, false, null,
 						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
 					),
-					tuple("세미나 구합니다 - 신청후", "세미나", false,
+					tuple("세미나 구합니다 - 신청후", "세미나 부제목4", "세미나", false,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
 						13, false, null,
 						new MeetingJoinablePart[] {WEB, IOS}, 2, 0
 					),
-					tuple("스터디 구합니다 - 신청후", "스터디", false,
+					tuple("스터디 구합니다 - 신청후", "스터디 부제목3", "스터디", false,
 						LocalDateTime.of(2024, 5, 29, 0, 0),
 						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
 						10, false, null,
@@ -986,11 +993,11 @@ public class MeetingV2ServiceTest {
 			// then
 			Assertions.assertThat(responseDto)
 				.extracting(
-					"id", "userId", "title", "category",
+					"id", "userId", "title", "subTitle", "category",
 					"startDate", "endDate",
 					"capacity", "desc", "processDesc",
 					"mStartDate", "mEndDate",
-					"leaderDesc", "note", "isMentorNeeded", "canJoinOnlyActiveGeneration",
+					"leaderDesc", "note", "isMentorNeeded", "canJoinOnlyActiveGeneration", "joinInfo",
 					"createdGeneration", "targetActiveGeneration",
 					"joinableParts",
 					"status", "approvedApplyCount",
@@ -998,13 +1005,14 @@ public class MeetingV2ServiceTest {
 					"user.id", "user.name", "user.profileImage", "user.activities", "user.phone"
 				)
 				.containsExactly(
-					1, 1, "스터디 구합니다1", "행사",
+					1, 1, "스터디 구합니다1", "스터디 부제목1", "행사",
 					LocalDateTime.of(2024, 4, 24, 0, 0, 0),
 					LocalDateTime.of(2024, 5, 24, 23, 59, 59),
 					10, "스터디 설명입니다.", "스터디 진행방식입니다.",
 					LocalDateTime.of(2024, 5, 29, 0, 0, 0),
 					LocalDateTime.of(2024, 5, 31, 23, 59, 59),
 					"스터디장 설명입니다.", "시간지키세요.", true, true,
+					new MeetingJoinInfo(MeetingType.ONLINE, MeetingFrequency.STEADY),
 					35, 35,
 					new MeetingJoinablePart[] {MeetingJoinablePart.PM, MeetingJoinablePart.SERVER},
 					1, 2L,
@@ -1161,6 +1169,56 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
+		@DisplayName("활동 기수가 아닌 조회자는 마지막 활동 파트 기준 같은 파트 참여 정보를 반환한다.")
+		void nonActiveGenerationUser_getMeetingById_participantPartInfo() {
+			// given
+			Integer meetingId = 1;
+			Integer userId = 1;
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId, userId);
+
+			// then
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().part()).isEqualTo("서버");
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(0);
+		}
+
+		@Test
+		@DisplayName("서버 조회자는 백엔드 신청자를 같은 파트 참여자로 집계한다.")
+		void serverUser_getMeetingById_backendApplicant_samePart() {
+			// given
+			Integer meetingId = 1;
+			Integer userId = 1;
+
+			User backendUser = User.builder()
+				.name("백엔드신청자")
+				.orgId(999)
+				.activities(List.of(new UserActivityVO("백엔드", 38)))
+				.profileImage("backend-profile.jpg")
+				.phone("010-9999-9999")
+				.build();
+			User savedBackendUser = userRepository.save(backendUser);
+
+			Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+			Apply apply = Apply.builder()
+				.type(EnApplyType.APPLY)
+				.meeting(meeting)
+				.meetingId(meetingId)
+				.user(savedBackendUser)
+				.userId(savedBackendUser.getId())
+				.content("백엔드 신청합니다.")
+				.build();
+			applyRepository.save(apply);
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId, userId);
+
+			// then
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().part()).isEqualTo("서버");
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(1);
+		}
+
+		@Test
 		@DisplayName("모임 신청기간 전인 경우, status 0 를 반환한다.")
 		void beforeApply_getMeetingById_success() {
 			// given
@@ -1244,6 +1302,69 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(applyNumbers).isEqualTo(expectedNumbers);
 		}
 
+	}
+
+	@Nested
+	@SqlGroup({
+		@Sql(value = "/sql/meeting-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+
+	})
+	class 모임_같은_파트_참여_멤버_조회 {
+
+		@Test
+		@DisplayName("활동 기수 조회자는 현재 활동 기수 파트 기준 참여중인 멤버 리스트를 반환한다.")
+		void activeGenerationUser_getMeetingPartMembers_success() {
+			// given
+			Integer meetingId = 1;
+			Integer userId = 5;
+
+			// when
+			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
+				userId);
+
+			// then
+			Assertions.assertThat(responseDto.part()).isEqualTo("iOS");
+			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
+			Assertions.assertThat(responseDto.memberNames()).containsExactly("대기신청자");
+		}
+
+		@Test
+		@DisplayName("서버 조회자는 백엔드 신청자를 같은 파트 멤버로 조회한다.")
+		void serverUser_getMeetingPartMembers_backendApplicant_samePart() {
+			// given
+			Integer meetingId = 1;
+			Integer userId = 1;
+
+			User backendUser = User.builder()
+				.name("백엔드신청자")
+				.orgId(1000)
+				.activities(List.of(new UserActivityVO("백엔드", 38)))
+				.profileImage("backend-profile.jpg")
+				.phone("010-0000-0000")
+				.build();
+			User savedBackendUser = userRepository.save(backendUser);
+
+			Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+			Apply apply = Apply.builder()
+				.type(EnApplyType.APPLY)
+				.meeting(meeting)
+				.meetingId(meetingId)
+				.user(savedBackendUser)
+				.userId(savedBackendUser.getId())
+				.content("백엔드 신청합니다.")
+				.build();
+			applyRepository.save(apply);
+
+			// when
+			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
+				userId);
+
+			// then
+			Assertions.assertThat(responseDto.part()).isEqualTo("서버");
+			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
+			Assertions.assertThat(responseDto.memberNames()).containsExactly("백엔드신청자");
+		}
 	}
 
 	@Nested
@@ -2070,15 +2191,11 @@ public class MeetingV2ServiceTest {
 				MeetingJoinablePart.IOS
 			};
 
-			// 환영 태그 목록
-			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
+			MeetingJoinInfo joinInfo = new MeetingJoinInfo(MeetingType.ONLINE, MeetingFrequency.STEADY);
 
-			// 모임 키워드 목록
-			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
-
-			// DTO 생성
-			MeetingV2CreateAndUpdateMeetingBodyDto dto = new MeetingV2CreateAndUpdateMeetingBodyDto(
+			MeetingV2UpdateMeetingBodyDto dto = new MeetingV2UpdateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
+				"백엔드 실전 설계부터 배포까지", // subTitle
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2024.10.01", // startDate (모집 시작 날짜)
@@ -2092,10 +2209,9 @@ public class MeetingV2ServiceTest {
 				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
-				null, // coLeaders (공동모임장 리스트)
-				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
-				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
+				null // coLeaders (공동모임장 리스트)
 			);
 			// when, then
 			Assertions.assertThatThrownBy(
@@ -2122,15 +2238,11 @@ public class MeetingV2ServiceTest {
 				MeetingJoinablePart.IOS
 			};
 
-			// 환영 태그 목록
-			List<String> welcomeMessageTypes = List.of("YB 환영", "초면 환영");
+			MeetingJoinInfo joinInfo = new MeetingJoinInfo(MeetingType.OFFLINE, MeetingFrequency.IMMERSIVE);
 
-			// 모임 키워드 목록
-			List<String> meetingKeywordTypes = List.of("운동", "먹방");
-
-			// DTO 생성
-			MeetingV2CreateAndUpdateMeetingBodyDto dto = new MeetingV2CreateAndUpdateMeetingBodyDto(
+			MeetingV2UpdateMeetingBodyDto dto = new MeetingV2UpdateMeetingBodyDto(
 				"수정1", // title
+				"수정 부제목", // subTitle
 				files, // files (모임 이미지 리스트)
 				"행사", // category
 				"2024.12.12", // startDate (모집 시작 날짜)
@@ -2144,10 +2256,9 @@ public class MeetingV2ServiceTest {
 				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
-				List.of(3, 4), // coLeaders (공동모임장 리스트)
-				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
-				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
+				List.of(3, 4) // coLeaders (공동모임장 리스트)
 			);
 
 			// when
@@ -2156,8 +2267,8 @@ public class MeetingV2ServiceTest {
 			// then
 			Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 			Assertions.assertThat(meeting)
-				.extracting("title", "category", "startDate", "endDate")
-				.containsExactly("수정1", MeetingCategory.EVENT,
+				.extracting("title", "subTitle", "joinInfo", "category", "startDate", "endDate")
+				.containsExactly("수정1", "수정 부제목", joinInfo, MeetingCategory.EVENT,
 					LocalDateTime.of(2024, 12, 12, 0, 0, 0),
 					LocalDateTime.of(2024, 12, 25, 23, 59, 59));
 
