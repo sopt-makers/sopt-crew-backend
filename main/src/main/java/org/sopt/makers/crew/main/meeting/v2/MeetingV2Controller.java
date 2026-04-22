@@ -21,6 +21,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingB
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
@@ -217,6 +218,15 @@ public class MeetingV2Controller implements MeetingV2Api {
 		Integer userId = UserUtil.getUserId(principal);
 
 		return ResponseEntity.ok(meetingV2Service.getMeetingDetail(meetingId, userId));
+	}
+
+	@Override
+	@GetMapping("/{meetingId}/members")
+	public ResponseEntity<MeetingV2GetMeetingPartMembersResponseDto> getMeetingPartMembers(
+		@PathVariable Integer meetingId, Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+
+		return ResponseEntity.ok(meetingV2Service.getMeetingPartMembers(meetingId, userId));
 	}
 
 	@Override
