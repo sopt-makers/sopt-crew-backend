@@ -7,6 +7,7 @@ import org.sopt.makers.crew.main.entity.meeting.CoLeader;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
@@ -35,6 +36,9 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@Schema(description = "모임 제목", example = "모임 제목입니다.")
 	@NotNull
 	private final String title;
+
+	@Schema(description = "모임 부제목", example = "모임 부제목입니다.")
+	private final String subTitle;
 
 	@Schema(description = "모임 카테고리", example = "스터디")
 	@NotNull
@@ -82,6 +86,9 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@Schema(description = "활동 기수만 신청가능한 여부", example = "false")
 	@NotNull
 	private final Boolean canJoinOnlyActiveGeneration;
+
+	@Schema(description = "참여 정보")
+	private final MeetingJoinInfo joinInfo;
 
 	@Schema(description = "개설 기수", example = "36")
 	@NotNull
@@ -180,6 +187,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 			.id(meetingId)
 			.userId(meeting.getUserId())
 			.title(meeting.getTitle())
+			.subTitle(meeting.getSubTitle())
 			.category(meeting.getCategory().getValue())
 			.imageURL(meeting.getImageURL())
 			.startDate(meeting.getStartDate())
@@ -193,6 +201,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 			.note(meeting.getNote())
 			.isMentorNeeded(meeting.getIsMentorNeeded())
 			.canJoinOnlyActiveGeneration(meeting.getCanJoinOnlyActiveGeneration())
+			.joinInfo(meeting.getJoinInfo())
 			.createdGeneration(meeting.getCreatedGeneration())
 			.targetActiveGeneration(meeting.getTargetActiveGeneration())
 			.joinableParts(meeting.getJoinableParts())

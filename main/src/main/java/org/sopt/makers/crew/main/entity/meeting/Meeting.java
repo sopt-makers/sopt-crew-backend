@@ -69,7 +69,8 @@ public class Meeting extends BaseTimeEntity {
 	/**
 	 * 모임 부제목
 	 */
-	@Column(name = "subTitle")
+	@Size(min = 1, max = 30)
+	@Column(name = "subTitle", length = 30)
 	private String subTitle;
 
 	/**
@@ -158,7 +159,7 @@ public class Meeting extends BaseTimeEntity {
 	/**
 	 * 참여 정보
 	 */
-	@Column(name = "joinInfo")
+	@Column(name = "joinInfo", columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
 	private MeetingJoinInfo joinInfo;
 
