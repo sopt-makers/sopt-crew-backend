@@ -119,6 +119,10 @@ public class MeetingV2ServiceTest {
 			.build();
 	}
 
+	private MeetingJoinInfo createMeetingJoinInfo() {
+		return new MeetingJoinInfo(MeetingType.ONLINE_OFFLINE, MeetingFrequency.STEADY);
+	}
+
 	@Nested
 	class 모임_생성 {
 		@ParameterizedTest
@@ -149,7 +153,7 @@ public class MeetingV2ServiceTest {
 			// 모임 키워드 목록
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
-			MeetingJoinInfo joinInfo = new MeetingJoinInfo(MeetingType.ONLINE, MeetingFrequency.STEADY);
+			MeetingJoinInfo joinInfo = createMeetingJoinInfo();
 
 			// DTO 생성
 			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
@@ -269,9 +273,12 @@ public class MeetingV2ServiceTest {
 			// 모임 키워드 목록
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
+			MeetingJoinInfo joinInfo = createMeetingJoinInfo();
+
 			// DTO 생성
 			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
+				"알고보면 쓸데있는 개발 프로세스", // subTitle
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2024.10.01", // startDate (모집 시작 날짜)
@@ -285,9 +292,9 @@ public class MeetingV2ServiceTest {
 				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
 				List.of(savedJointLeader1.getId(), savedJointLeader2.getId()), // coLeaders (공동모임장 리스트)
-				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
@@ -341,9 +348,12 @@ public class MeetingV2ServiceTest {
 			// 모임 키워드 목록
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
+			MeetingJoinInfo joinInfo = createMeetingJoinInfo();
+
 			// DTO 생성
 			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
+				"알고보면 쓸데있는 개발 프로세스", // subTitle
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2024.10.01", // startDate (모집 시작 날짜)
@@ -357,9 +367,9 @@ public class MeetingV2ServiceTest {
 				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
 				List.of(0, Integer.MAX_VALUE), // coLeaders (공동모임장 리스트)
-				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
@@ -401,9 +411,12 @@ public class MeetingV2ServiceTest {
 			// 모임 키워드 목록
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
+			MeetingJoinInfo joinInfo = createMeetingJoinInfo();
+
 			// DTO 생성
 			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
+				"알고보면 쓸데있는 개발 프로세스", // subTitle
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2024.10.01", // startDate (모집 시작 날짜)
@@ -417,9 +430,9 @@ public class MeetingV2ServiceTest {
 				"준비물은 노트북과 열정입니다.", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
 				List.of(savedUser.getId()), // coLeaders (공동모임장 리스트)
-				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
@@ -461,9 +474,12 @@ public class MeetingV2ServiceTest {
 			// 모임 키워드 목록
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
+			MeetingJoinInfo joinInfo = createMeetingJoinInfo();
+
 			// DTO 생성
 			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
+				"알고보면 쓸데있는 개발 프로세스", // subTitle
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2022.10.08", // startDate (모집 시작 날짜)
@@ -477,9 +493,9 @@ public class MeetingV2ServiceTest {
 				"유의할 사항", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
 				null, // coLeaders (공동모임장 리스트)
-				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
@@ -515,9 +531,12 @@ public class MeetingV2ServiceTest {
 			// 모임 키워드 목록
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
+			MeetingJoinInfo joinInfo = createMeetingJoinInfo();
+
 			// DTO 생성
 			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
+				"알고보면 쓸데있는 개발 프로세스", // subTitle
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2022.10.08", // startDate (모집 시작 날짜)
@@ -531,9 +550,9 @@ public class MeetingV2ServiceTest {
 				"유의할 사항", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
 				null, // coLeaders (공동모임장 리스트)
-				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 
@@ -570,9 +589,12 @@ public class MeetingV2ServiceTest {
 			// 모임 키워드 목록
 			List<String> meetingKeywordTypes = List.of("자기계발", "네트워킹");
 
+			MeetingJoinInfo joinInfo = createMeetingJoinInfo();
+
 			// DTO 생성
 			MeetingV2CreateMeetingBodyDto meetingDto = new MeetingV2CreateMeetingBodyDto(
 				"알고보면 쓸데있는 개발 프로세스", // title
+				"알고보면 쓸데있는 개발 프로세스", // subTitle
 				files, // files (모임 이미지 리스트)
 				"스터디", // category
 				"2022.10.08", // startDate (모집 시작 날짜)
@@ -586,9 +608,9 @@ public class MeetingV2ServiceTest {
 				"유의할 사항", // note (유의할 사항)
 				false, // isMentorNeeded (멘토 필요 여부)
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
+				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
 				null, // coLeaders (공동모임장 리스트)
-				welcomeMessageTypes, // welcomeMessageTypes (환영 태그 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
 

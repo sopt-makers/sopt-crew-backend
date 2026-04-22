@@ -108,47 +108,6 @@ public class MeetingV2CreateMeetingBodyDto {
 	@Size(min = 1, max = 2)
 	private List<String> meetingKeywordTypes;
 
-	public MeetingV2CreateMeetingBodyDto(
-		String title,
-		List<String> files,
-		String category,
-		String startDate,
-		String endDate,
-		Integer capacity,
-		String desc,
-		String processDesc,
-		String mStartDate,
-		String mEndDate,
-		String leaderDesc,
-		String note,
-		Boolean isMentorNeeded,
-		Boolean canJoinOnlyActiveGeneration,
-		MeetingJoinablePart[] joinableParts,
-		List<Integer> coLeaderUserIds,
-		List<String> welcomeMessageTypes,
-		List<String> meetingKeywordTypes
-	) {
-		this.title = title;
-		this.subTitle = title;
-		this.files = files;
-		this.category = category;
-		this.startDate = startDate;
-		this.endDate = endDate;
-		this.capacity = capacity;
-		this.desc = desc;
-		this.processDesc = processDesc;
-		this.mStartDate = mStartDate;
-		this.mEndDate = mEndDate;
-		this.leaderDesc = leaderDesc;
-		this.note = note;
-		this.isMentorNeeded = isMentorNeeded;
-		this.canJoinOnlyActiveGeneration = canJoinOnlyActiveGeneration;
-		this.joinInfo = new MeetingJoinInfo(MeetingType.ONLINE_OFFLINE, MeetingFrequency.STEADY);
-		this.joinableParts = joinableParts;
-		this.coLeaderUserIds = coLeaderUserIds;
-		this.meetingKeywordTypes = meetingKeywordTypes;
-	}
-
 	public String getmStartDate() {
 		return mStartDate;
 	}
