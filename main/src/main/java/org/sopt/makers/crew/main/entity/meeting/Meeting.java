@@ -13,6 +13,7 @@ import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
@@ -64,6 +65,12 @@ public class Meeting extends BaseTimeEntity {
 	 */
 	@Column(nullable = false)
 	private String title;
+
+	/**
+	 * 모임 부제목
+	 */
+	@Column(name = "subTitle")
+	private String subTitle;
 
 	/**
 	 * 모임 카테고리
@@ -149,6 +156,13 @@ public class Meeting extends BaseTimeEntity {
 	private Boolean canJoinOnlyActiveGeneration;
 
 	/**
+	 * 참여 정보
+	 */
+	@Column(name = "joinInfo")
+	@Type(JsonBinaryType.class)
+	private MeetingJoinInfo joinInfo;
+
+	/**
 	 * 모임 기수
 	 */
 	@Column(name = "createdGeneration", nullable = false)
@@ -170,15 +184,16 @@ public class Meeting extends BaseTimeEntity {
 	private MeetingJoinablePart[] joinableParts;
 
 	@Builder
-	public Meeting(User user, Integer userId, String title, MeetingCategory category,
+	public Meeting(User user, Integer userId, String title, String subTitle, MeetingCategory category,
 		List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
 		String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
 		String leaderDesc, String note, Boolean isMentorNeeded,
-		Boolean canJoinOnlyActiveGeneration, Integer createdGeneration,
+		Boolean canJoinOnlyActiveGeneration, MeetingJoinInfo joinInfo, Integer createdGeneration,
 		Integer targetActiveGeneration, MeetingJoinablePart[] joinableParts) {
 		this.user = user;
 		this.userId = userId;
 		this.title = title;
+		this.subTitle = subTitle;
 		this.category = category;
 		this.imageURL = imageURL;
 		this.startDate = startDate;
@@ -192,6 +207,7 @@ public class Meeting extends BaseTimeEntity {
 		this.note = note;
 		this.isMentorNeeded = isMentorNeeded;
 		this.canJoinOnlyActiveGeneration = canJoinOnlyActiveGeneration;
+		this.joinInfo = joinInfo;
 		this.createdGeneration = createdGeneration;
 		this.targetActiveGeneration = targetActiveGeneration;
 		this.joinableParts = joinableParts;
@@ -241,6 +257,7 @@ public class Meeting extends BaseTimeEntity {
 	public void updateMeeting(Meeting updateMeeting) {
 
 		this.title = updateMeeting.getTitle();
+		this.subTitle = updateMeeting.getSubTitle();
 		this.category = updateMeeting.getCategory();
 		this.imageURL = updateMeeting.getImageURL();
 		this.startDate = updateMeeting.getStartDate();
@@ -254,6 +271,7 @@ public class Meeting extends BaseTimeEntity {
 		this.note = updateMeeting.getNote();
 		this.isMentorNeeded = updateMeeting.getIsMentorNeeded();
 		this.canJoinOnlyActiveGeneration = updateMeeting.getCanJoinOnlyActiveGeneration();
+		this.joinInfo = updateMeeting.getJoinInfo();
 		this.targetActiveGeneration = updateMeeting.getTargetActiveGeneration();
 		this.joinableParts = updateMeeting.getJoinableParts();
 	}
