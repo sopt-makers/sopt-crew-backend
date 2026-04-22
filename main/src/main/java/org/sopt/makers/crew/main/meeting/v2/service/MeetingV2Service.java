@@ -20,6 +20,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingB
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 
 public interface MeetingV2Service {
@@ -59,6 +60,8 @@ public interface MeetingV2Service {
 		Integer userId);
 
 	MeetingV2GetMeetingByIdResponseDto getMeetingDetail(Integer meetingId, Integer userId);
+
+	MeetingV2GetMeetingPartMembersResponseDto getMeetingPartMembers(Integer meetingId, Integer userId);
 
 	MeetingV2GetRecommendDto getRecommendMeetingsByIds(List<Integer> meetingIds, Integer userId);
 
