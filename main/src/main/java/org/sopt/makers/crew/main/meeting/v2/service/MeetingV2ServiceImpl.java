@@ -82,7 +82,8 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOr
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2UpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDetailDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
@@ -213,7 +214,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	@Transactional
-	public MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
+	public MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateMeetingBodyDto requestBody,
 		Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
@@ -240,7 +241,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		TagV2CreateGeneralMeetingTagResponseDto tagResponseDto = tagV2Service.createGeneralMeetingTag(
-			requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(), meeting.getId());
+			List.of(), requestBody.getMeetingKeywordTypes(), meeting.getId());
 
 		if (NotificationTimeValidator.isPublishedTime(time.now())) {
 			publishMeetingEvent(requestBody, meeting);
@@ -249,7 +250,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId(), tagResponseDto.tagId());
 	}
 
-	private void publishMeetingEvent(MeetingV2CreateAndUpdateMeetingBodyDto requestBody, Meeting meeting) {
+	private void publishMeetingEvent(MeetingV2CreateMeetingBodyDto requestBody, Meeting meeting) {
 		List<KeywordMatchedUserDto> keywordMatchedUserDtos = userReader.findByInterestingKeywordTypes(
 			requestBody.getMeetingKeywordTypes());
 		eventPublisher.publishEvent(new KeywordEventDto(keywordMatchedUserDtos
@@ -513,7 +514,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	})
 	@Override
 	@Transactional
-	public void updateMeeting(Integer meetingId, MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
+	public void updateMeeting(Integer meetingId, MeetingV2UpdateMeetingBodyDto requestBody,
 		Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
@@ -528,9 +529,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			user.getId());
 
 		meeting.updateMeeting(updatedMeeting);
-
-		tagV2Service.updateGeneralMeetingTag(requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(),
-			meeting.getId());
 	}
 
 	private void updateCoLeaders(List<Integer> coLeaderUserIds, Meeting updatedMeeting) {
