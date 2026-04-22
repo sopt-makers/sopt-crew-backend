@@ -90,6 +90,9 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@Schema(description = "참여 정보")
 	private final MeetingJoinInfo joinInfo;
 
+	@Schema(description = "조회자와 같은 파트 참여 정보")
+	private final MeetingV2ParticipatingPartInfoDto participatingPartInfo;
+
 	@Schema(description = "개설 기수", example = "36")
 	@NotNull
 	private final Integer createdGeneration;
@@ -163,6 +166,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 		Boolean isHost,
 		Boolean isApply,
 		Boolean isApproved,
+		MeetingV2ParticipatingPartInfoDto participatingPartInfo,
 		MeetingCreatorDto meetingCreatorDto,
 		List<ApplyWholeInfoDto> appliedInfo,
 		List<WelcomeMessageType> welcomeMessageTypes,
@@ -202,6 +206,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 			.isMentorNeeded(meeting.getIsMentorNeeded())
 			.canJoinOnlyActiveGeneration(meeting.getCanJoinOnlyActiveGeneration())
 			.joinInfo(meeting.getJoinInfo())
+			.participatingPartInfo(participatingPartInfo)
 			.createdGeneration(meeting.getCreatedGeneration())
 			.targetActiveGeneration(meeting.getTargetActiveGeneration())
 			.joinableParts(meeting.getJoinableParts())
