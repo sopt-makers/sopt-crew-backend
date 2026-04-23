@@ -2,9 +2,7 @@ package org.sopt.makers.crew.main.meeting.v2.dto.request;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingFrequency;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingType;
 import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -84,7 +82,7 @@ public class MeetingV2CreateMeetingBodyDto {
 	@Schema(example = """
 		{
 		  "meetingType": "온라인",
-		  "meetingFrequency": "꾸준히"
+		  "meetingFrequency": "적당히"
 		}
 		""", description = "참여 정보")
 	@NotNull
