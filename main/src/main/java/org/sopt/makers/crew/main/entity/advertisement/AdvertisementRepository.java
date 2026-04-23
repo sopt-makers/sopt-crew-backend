@@ -31,4 +31,14 @@ public interface AdvertisementRepository extends JpaRepository<Advertisement, In
 		@Param("category") AdvertisementCategory category,
 		@Param("isSponsored") boolean isSponsored,
 		Pageable pageable);
+
+	@Query("SELECT a FROM Advertisement a " +
+		"WHERE a.advertisementCategory = :category " +
+		"AND a.isDisplay = true " +
+		"AND a.advertisementStartDate <= :now " +
+		"AND a.advertisementEndDate >= :now " +
+		"ORDER BY a.priority ASC")
+	List<Advertisement> findMeetingTopAdvertisements(
+		@Param("category") AdvertisementCategory category,
+		@Param("now") LocalDateTime now);
 }
