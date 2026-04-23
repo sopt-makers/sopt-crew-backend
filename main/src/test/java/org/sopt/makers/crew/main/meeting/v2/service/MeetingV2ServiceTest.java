@@ -1362,25 +1362,7 @@ public class MeetingV2ServiceTest {
 			Integer meetingId = 1;
 			Integer userId = 1;
 
-			User backendUser = User.builder()
-				.name("백엔드신청자")
-				.orgId(1000)
-				.activities(List.of(new UserActivityVO("백엔드", 38)))
-				.profileImage("backend-profile.jpg")
-				.phone("010-0000-0000")
-				.build();
-			User savedBackendUser = userRepository.save(backendUser);
-
-			Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-			Apply apply = Apply.builder()
-				.type(EnApplyType.APPLY)
-				.meeting(meeting)
-				.meetingId(meetingId)
-				.user(savedBackendUser)
-				.userId(savedBackendUser.getId())
-				.content("백엔드 신청합니다.")
-				.build();
-			applyRepository.save(apply);
+			saveApplyUser(meetingId, 1000, "백엔드신청자", "백엔드");
 
 			// when
 			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
@@ -1390,6 +1372,71 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.part()).isEqualTo("서버");
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
 			Assertions.assertThat(responseDto.memberNames()).containsExactly("백엔드신청자");
+		}
+
+		@Test
+		@DisplayName("기획 조회자는 PM 신청자를 같은 파트 멤버로 조회한다.")
+		void planUser_getMeetingPartMembers_pmApplicant_samePart() {
+			// given
+			Integer meetingId = 1;
+			Integer userId = 2;
+
+			saveApplyUser(meetingId, 1001, "PM신청자", "PM");
+
+			// when
+			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
+				userId);
+
+			// then
+			Assertions.assertThat(responseDto.part()).isEqualTo("기획");
+			Assertions.assertThat(responseDto.participantCount()).isEqualTo(2);
+			Assertions.assertThat(responseDto.memberNames()).containsExactly("승인신청자", "PM신청자");
+		}
+
+		@Test
+		@DisplayName("웹 조회자는 프론트엔드 신청자를 같은 파트 멤버로 조회한다.")
+		void webUser_getMeetingPartMembers_frontendApplicant_samePart() {
+			// given
+			Integer meetingId = 4;
+			User webUser = userRepository.save(User.builder()
+				.name("웹조회자")
+				.orgId(1002)
+				.activities(List.of(new UserActivityVO("웹", 35)))
+				.profileImage("web-profile.jpg")
+				.phone("010-0000-0000")
+				.build());
+
+			saveApplyUser(meetingId, 1003, "프론트엔드신청자", "프론트엔드");
+
+			// when
+			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
+				webUser.getId());
+
+			// then
+			Assertions.assertThat(responseDto.part()).isEqualTo("웹");
+			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
+			Assertions.assertThat(responseDto.memberNames()).containsExactly("프론트엔드신청자");
+		}
+
+		private void saveApplyUser(Integer meetingId, Integer userId, String name, String part) {
+			User user = userRepository.save(User.builder()
+				.name(name)
+				.orgId(userId)
+				.activities(List.of(new UserActivityVO(part, 38)))
+				.profileImage("profile.jpg")
+				.phone("010-0000-0000")
+				.build());
+
+			Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+			Apply apply = Apply.builder()
+				.type(EnApplyType.APPLY)
+				.meeting(meeting)
+				.meetingId(meetingId)
+				.user(user)
+				.userId(user.getId())
+				.content(part + " 신청합니다.")
+				.build();
+			applyRepository.save(apply);
 		}
 	}
 
