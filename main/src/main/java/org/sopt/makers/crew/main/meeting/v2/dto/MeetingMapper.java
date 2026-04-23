@@ -15,7 +15,6 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2UpdateMeetingBodyDto;
 
 @Mapper(componentModel = "spring")
 public interface MeetingMapper {
@@ -58,16 +57,5 @@ public interface MeetingMapper {
 	@Mapping(source = "requestBody.mEndDate", target = "mEndDate", qualifiedByName = "getEndDate")
 	@Mapping(source = "requestBody.joinInfo", target = "joinInfo")
 	Meeting toMeetingEntity(MeetingV2CreateMeetingBodyDto requestBody, Integer targetActiveGeneration,
-		Integer createdGeneration, User user, Integer userId);
-
-	@Mapping(source = "requestBody.subTitle", target = "subTitle")
-	@Mapping(source = "requestBody.files", target = "imageURL", qualifiedByName = "getImageURL")
-	@Mapping(source = "requestBody.category", target = "category", qualifiedByName = "getCategory")
-	@Mapping(source = "requestBody.startDate", target = "startDate", qualifiedByName = "getStartDate")
-	@Mapping(source = "requestBody.endDate", target = "endDate", qualifiedByName = "getEndDate")
-	@Mapping(source = "requestBody.mStartDate", target = "mStartDate", qualifiedByName = "getStartDate")
-	@Mapping(source = "requestBody.mEndDate", target = "mEndDate", qualifiedByName = "getEndDate")
-	@Mapping(source = "requestBody.joinInfo", target = "joinInfo")
-	Meeting toMeetingEntity(MeetingV2UpdateMeetingBodyDto requestBody, Integer targetActiveGeneration,
 		Integer createdGeneration, User user, Integer userId);
 }

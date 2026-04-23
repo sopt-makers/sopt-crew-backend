@@ -45,6 +45,7 @@ import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
@@ -519,19 +520,59 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Transactional
 	public void updateMeeting(Integer meetingId, MeetingV2UpdateMeetingBodyDto requestBody,
 		Integer userId) {
-		User user = userRepository.findByIdOrThrow(userId);
-
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		meeting.validateMeetingCreator(userId);
 
-		updateCoLeaders(requestBody.getCoLeaderUserIds(), meeting);
+		if (requestBody.getCoLeaderUserIds() != null) {
+			updateCoLeaders(requestBody.getCoLeaderUserIds(), meeting);
+		}
 
-		Meeting updatedMeeting = meetingMapper.toMeetingEntity(requestBody,
-			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()),
-			activeGenerationProvider.getActiveGeneration(), user,
-			user.getId());
+		MeetingCategory updatedCategory = requestBody.getCategory() != null
+			? MeetingMapper.getCategory(requestBody.getCategory())
+			: null;
+		List<ImageUrlVO> updatedImageURL = requestBody.getFiles() != null
+			? MeetingMapper.getImageURL(requestBody.getFiles())
+			: null;
+		LocalDateTime updatedStartDate = requestBody.getStartDate() != null
+			? MeetingMapper.getStartDate(requestBody.getStartDate())
+			: null;
+		LocalDateTime updatedEndDate = requestBody.getEndDate() != null
+			? MeetingMapper.getEndDate(requestBody.getEndDate())
+			: null;
+		LocalDateTime updatedMeetingStartDate = requestBody.getmStartDate() != null
+			? MeetingMapper.getStartDate(requestBody.getmStartDate())
+			: null;
+		LocalDateTime updatedMeetingEndDate = requestBody.getmEndDate() != null
+			? MeetingMapper.getEndDate(requestBody.getmEndDate())
+			: null;
+		Integer updatedTargetActiveGeneration = requestBody.getCanJoinOnlyActiveGeneration() != null
+			? createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration())
+			: null;
 
-		meeting.updateMeeting(updatedMeeting);
+		meeting.patchMeeting(
+			requestBody.getTitle(),
+			requestBody.getSubTitle(),
+			updatedCategory,
+			updatedImageURL,
+			updatedStartDate,
+			updatedEndDate,
+			requestBody.getCapacity(),
+			requestBody.getDesc(),
+			requestBody.getProcessDesc(),
+			updatedMeetingStartDate,
+			updatedMeetingEndDate,
+			requestBody.getLeaderDesc(),
+			requestBody.getNote(),
+			requestBody.getIsMentorNeeded(),
+			requestBody.getCanJoinOnlyActiveGeneration(),
+			updatedTargetActiveGeneration,
+			requestBody.getJoinInfo(),
+			requestBody.getJoinableParts()
+		);
+
+		if (requestBody.getWelcomeMessageTypes() != null) {
+			tagV2Service.updateGeneralMeetingWelcomeMessageTypes(requestBody.getWelcomeMessageTypes(), meetingId);
+		}
 	}
 
 	private void updateCoLeaders(List<Integer> coLeaderUserIds, Meeting updatedMeeting) {

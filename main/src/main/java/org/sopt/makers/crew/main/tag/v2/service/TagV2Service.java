@@ -27,6 +27,8 @@ public interface TagV2Service {
 	void updateGeneralMeetingTag(List<String> welcomeMessageTypes,
 		List<String> meetingKeywordTypes, Integer meetingId);
 
+	void updateGeneralMeetingWelcomeMessageTypes(List<String> welcomeMessageTypes, Integer meetingId);
+
 	void updateFlashMeetingTag(List<String> welcomeMessageTypes,
 		List<String> meetingKeywordTypes, Integer flashId);
 

@@ -24,6 +24,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDt
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -117,7 +118,8 @@ public interface MeetingV2Api {
 	@Operation(summary = "모임 삭제", description = "모임 삭제합니다.")
 	ResponseEntity<Void> deleteMeeting(@PathVariable Integer meetingId, Principal principal);
 
-	@Operation(summary = "모임 수정", description = "모임 내용을 수정합니다.")
+	@Operation(summary = "모임 수정", description = "모임 내용을 부분 수정합니다.")
+	@PatchMapping("/{meetingId}")
 	ResponseEntity<Void> updateMeeting(@PathVariable Integer meetingId,
 		@RequestBody @Valid MeetingV2UpdateMeetingBodyDto requestBody, Principal principal);
 

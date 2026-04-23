@@ -277,6 +277,67 @@ public class Meeting extends BaseTimeEntity {
 		this.joinableParts = updateMeeting.getJoinableParts();
 	}
 
+	public void patchMeeting(String title, String subTitle, MeetingCategory category,
+		List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
+		String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
+		String leaderDesc, String note, Boolean isMentorNeeded,
+		Boolean canJoinOnlyActiveGeneration, Integer targetActiveGeneration,
+		MeetingJoinInfo joinInfo, MeetingJoinablePart[] joinableParts) {
+
+		if (title != null) {
+			this.title = title;
+		}
+		if (subTitle != null) {
+			this.subTitle = subTitle;
+		}
+		if (category != null) {
+			this.category = category;
+		}
+		if (imageURL != null) {
+			this.imageURL = imageURL;
+		}
+		if (startDate != null) {
+			this.startDate = startDate;
+		}
+		if (endDate != null) {
+			this.endDate = endDate;
+		}
+		if (capacity != null) {
+			this.capacity = capacity;
+		}
+		if (desc != null) {
+			this.desc = desc;
+		}
+		if (processDesc != null) {
+			this.processDesc = processDesc;
+		}
+		if (mStartDate != null) {
+			this.mStartDate = mStartDate;
+		}
+		if (mEndDate != null) {
+			this.mEndDate = mEndDate;
+		}
+		if (leaderDesc != null) {
+			this.leaderDesc = leaderDesc;
+		}
+		if (note != null) {
+			this.note = note;
+		}
+		if (isMentorNeeded != null) {
+			this.isMentorNeeded = isMentorNeeded;
+		}
+		if (canJoinOnlyActiveGeneration != null) {
+			this.canJoinOnlyActiveGeneration = canJoinOnlyActiveGeneration;
+			this.targetActiveGeneration = targetActiveGeneration;
+		}
+		if (joinInfo != null) {
+			this.joinInfo = joinInfo;
+		}
+		if (joinableParts != null) {
+			this.joinableParts = joinableParts;
+		}
+	}
+
 	public LocalDateTime getmStartDate() {
 		return mStartDate;
 	}
