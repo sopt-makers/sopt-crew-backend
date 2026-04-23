@@ -151,6 +151,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final MeetingMapper meetingMapper;
 	private final FlashMeetingMapper flashMeetingMapper;
 	private final ApplyMapper applyMapper;
+	private final MeetingPartNormalizer meetingPartNormalizer;
 
 	private final ImageSettingProperties imageSettingProperties;
 	private final ActiveGenerationProvider activeGenerationProvider;
@@ -635,7 +636,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		List<Apply> meetingApplies = applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE,
 			REJECT), ORDER_ASC);
 		Applies applies = new Applies(meetingApplies);
-		List<Apply> participatingApplies = getParticipatingApplies(meetingId);
+		List<Apply> participatingApplies = filterParticipatingApplies(meetingApplies);
 
 		Boolean isHost = meeting.checkMeetingLeader(user.getId());
 		Boolean isApply = applies.isApply(meetingId, user.getId());
@@ -925,7 +926,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		String requestUserPart = requestUserActivity.getPart();
-		String normalizedRequestUserPart = normalizeParticipatingPart(requestUserPart);
+		String normalizedRequestUserPart = meetingPartNormalizer.normalize(requestUserPart);
 		int participantCount = (int)participatingApplies.stream()
 			.filter(apply -> isSamePartParticipatingApply(apply, normalizedRequestUserPart))
 			.count();
@@ -941,7 +942,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		String requestUserPart = requestUserActivity.getPart();
-		String normalizedRequestUserPart = normalizeParticipatingPart(requestUserPart);
+		String normalizedRequestUserPart = meetingPartNormalizer.normalize(requestUserPart);
 		List<String> memberNames = participatingApplies.stream()
 			.filter(apply -> isSamePartParticipatingApply(apply, normalizedRequestUserPart))
 			.map(apply -> apply.getUser().getName())
@@ -956,7 +957,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			return false;
 		}
 
-		String normalizedParticipatingUserPart = normalizeParticipatingPart(participatingUserActivity.getPart());
+		String normalizedParticipatingUserPart = meetingPartNormalizer.normalize(participatingUserActivity.getPart());
 		return Objects.equals(normalizedParticipatingUserPart, normalizedRequestUserPart);
 	}
 
@@ -977,14 +978,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		return participatingUser.getRecentActivityVO();
-	}
-
-	private String normalizeParticipatingPart(String part) {
-		if (Objects.equals(part, UserPart.SERVER.getValue()) || Objects.equals(part, UserPart.BACKEND.getValue())) {
-			return MeetingJoinablePart.SERVER.name();
-		}
-
-		return part;
 	}
 
 	private Integer createTargetActiveGeneration(Boolean canJoinOnlyActiveGeneration) {
