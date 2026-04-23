@@ -33,6 +33,9 @@ public class MeetingV2GetMeetingBannerResponseDto {
 	@NotNull
 	private final String title;
 
+	@Schema(description = "모임 부제목", example = "모임 부제목입니다")
+	private final String subTitle;
+
 	/**
 	 * 모임 카테고리
 	 *
@@ -114,6 +117,7 @@ public class MeetingV2GetMeetingBannerResponseDto {
 		long applicantCount, long approvedUserCount, MeetingV2GetMeetingBannerResponseUserDto meetingCreator, LocalDateTime now) {
 
 		return new MeetingV2GetMeetingBannerResponseDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(),
+			meeting.getSubTitle(),
 			meeting.getCategory(),
 			meeting.getImageURL(), meeting.getmStartDate(), meeting.getmEndDate(), meeting.getStartDate(),
 			meeting.getEndDate(), meeting.getCapacity(), recentActivityDate, meeting.getTargetActiveGeneration(),

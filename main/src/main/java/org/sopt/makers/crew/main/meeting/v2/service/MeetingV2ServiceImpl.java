@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,6 +45,7 @@ import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
@@ -82,7 +84,8 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOr
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2UpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDetailDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
@@ -98,6 +101,8 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingD
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ParticipatingPartInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
@@ -146,6 +151,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final MeetingMapper meetingMapper;
 	private final FlashMeetingMapper flashMeetingMapper;
 	private final ApplyMapper applyMapper;
+	private final MeetingPartNormalizer meetingPartNormalizer;
 
 	private final ImageSettingProperties imageSettingProperties;
 	private final ActiveGenerationProvider activeGenerationProvider;
@@ -213,7 +219,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	@Override
 	@Transactional
-	public MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
+	public MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateMeetingBodyDto requestBody,
 		Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
 
@@ -240,7 +246,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		TagV2CreateGeneralMeetingTagResponseDto tagResponseDto = tagV2Service.createGeneralMeetingTag(
-			requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(), meeting.getId());
+			List.of(), requestBody.getMeetingKeywordTypes(), meeting.getId());
 
 		if (NotificationTimeValidator.isPublishedTime(time.now())) {
 			publishMeetingEvent(requestBody, meeting);
@@ -249,7 +255,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId(), tagResponseDto.tagId());
 	}
 
-	private void publishMeetingEvent(MeetingV2CreateAndUpdateMeetingBodyDto requestBody, Meeting meeting) {
+	private void publishMeetingEvent(MeetingV2CreateMeetingBodyDto requestBody, Meeting meeting) {
 		List<KeywordMatchedUserDto> keywordMatchedUserDtos = userReader.findByInterestingKeywordTypes(
 			requestBody.getMeetingKeywordTypes());
 		eventPublisher.publishEvent(new KeywordEventDto(keywordMatchedUserDtos
@@ -513,24 +519,61 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	})
 	@Override
 	@Transactional
-	public void updateMeeting(Integer meetingId, MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
+	public void updateMeeting(Integer meetingId, MeetingV2UpdateMeetingBodyDto requestBody,
 		Integer userId) {
-		User user = userRepository.findByIdOrThrow(userId);
-
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		meeting.validateMeetingCreator(userId);
 
-		updateCoLeaders(requestBody.getCoLeaderUserIds(), meeting);
+		if (requestBody.getCoLeaderUserIds() != null) {
+			updateCoLeaders(requestBody.getCoLeaderUserIds(), meeting);
+		}
 
-		Meeting updatedMeeting = meetingMapper.toMeetingEntity(requestBody,
-			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()),
-			activeGenerationProvider.getActiveGeneration(), user,
-			user.getId());
+		MeetingCategory updatedCategory = requestBody.getCategory() != null
+			? MeetingMapper.getCategory(requestBody.getCategory())
+			: null;
+		List<ImageUrlVO> updatedImageURL = requestBody.getFiles() != null
+			? MeetingMapper.getImageURL(requestBody.getFiles())
+			: null;
+		LocalDateTime updatedStartDate = requestBody.getStartDate() != null
+			? MeetingMapper.getStartDate(requestBody.getStartDate())
+			: null;
+		LocalDateTime updatedEndDate = requestBody.getEndDate() != null
+			? MeetingMapper.getEndDate(requestBody.getEndDate())
+			: null;
+		LocalDateTime updatedMeetingStartDate = requestBody.getmStartDate() != null
+			? MeetingMapper.getStartDate(requestBody.getmStartDate())
+			: null;
+		LocalDateTime updatedMeetingEndDate = requestBody.getmEndDate() != null
+			? MeetingMapper.getEndDate(requestBody.getmEndDate())
+			: null;
+		Integer updatedTargetActiveGeneration = requestBody.getCanJoinOnlyActiveGeneration() != null
+			? createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration())
+			: null;
 
-		meeting.updateMeeting(updatedMeeting);
+		meeting.patchMeeting(
+			requestBody.getTitle(),
+			requestBody.getSubTitle(),
+			updatedCategory,
+			updatedImageURL,
+			updatedStartDate,
+			updatedEndDate,
+			requestBody.getCapacity(),
+			requestBody.getDesc(),
+			requestBody.getProcessDesc(),
+			updatedMeetingStartDate,
+			updatedMeetingEndDate,
+			requestBody.getLeaderDesc(),
+			requestBody.getNote(),
+			requestBody.getIsMentorNeeded(),
+			requestBody.getCanJoinOnlyActiveGeneration(),
+			updatedTargetActiveGeneration,
+			requestBody.getJoinInfo(),
+			requestBody.getJoinableParts()
+		);
 
-		tagV2Service.updateGeneralMeetingTag(requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(),
-			meeting.getId());
+		if (requestBody.getWelcomeMessageTypes() != null) {
+			tagV2Service.updateGeneralMeetingWelcomeMessageTypes(requestBody.getWelcomeMessageTypes(), meetingId);
+		}
 	}
 
 	private void updateCoLeaders(List<Integer> coLeaderUserIds, Meeting updatedMeeting) {
@@ -590,14 +633,17 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		MeetingCreatorDto meetingLeader = userReader.getMeetingLeader(meeting.getUserId());
 		CoLeaders coLeaders = coLeaderReader.getCoLeaders(meetingId).toEntity();
 
-		Applies applies = new Applies(
-			applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE, REJECT), ORDER_ASC));
+		List<Apply> meetingApplies = applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE,
+			REJECT), ORDER_ASC);
+		Applies applies = new Applies(meetingApplies);
+		List<Apply> participatingApplies = filterParticipatingApplies(meetingApplies);
 
 		Boolean isHost = meeting.checkMeetingLeader(user.getId());
 		Boolean isApply = applies.isApply(meetingId, user.getId());
 		Boolean isApproved = applies.isApproved(meetingId, user.getId());
 		boolean isCoLeader = coLeaders.isCoLeader(meetingId, userId);
 		long approvedCount = applies.getApprovedCount(meetingId);
+		MeetingV2ParticipatingPartInfoDto participatingPartInfo = createParticipatingPartInfo(user, participatingApplies);
 
 		List<ApplyWholeInfoDto> applyWholeInfoDtos = new ArrayList<>();
 		if (applies.hasApplies(meetingId)) {
@@ -613,8 +659,18 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		List<MeetingKeywordType> meetingKeywordTypes = tagV2Service.getMeetingKeywordsTypesByMeetingId(meetingId);
 
 		return MeetingV2GetMeetingByIdResponseDto.of(meetingId, meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
-			approvedCount, isHost, isApply, isApproved,
+			approvedCount, isHost, isApply, isApproved, participatingPartInfo,
 			meetingLeader, applyWholeInfoDtos, welcomeMessageTypes, meetingKeywordTypes, time.now());
+	}
+
+	@Override
+	public MeetingV2GetMeetingPartMembersResponseDto getMeetingPartMembers(Integer meetingId, Integer userId) {
+		User user = userRepository.findByIdOrThrow(userId);
+		meetingRepository.findByIdOrThrow(meetingId);
+
+		List<Apply> participatingApplies = getParticipatingApplies(meetingId);
+
+		return createMeetingPartMembersResponse(user, participatingApplies);
 	}
 
 	@Override
@@ -843,6 +899,85 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		return now.isEqual(mStartDate) || (now.isAfter(mStartDate) && now.isBefore(mEndDate));
+	}
+
+	private List<Apply> filterParticipatingApplies(List<Apply> meetingApplies) {
+		return meetingApplies.stream()
+			.filter(this::isParticipatingApply)
+			.sorted(Comparator.comparing(Apply::getAppliedDate))
+			.toList();
+	}
+
+	private List<Apply> getParticipatingApplies(Integer meetingId) {
+		List<Apply> participatingMeetingApplies = applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING,
+			APPROVE), ORDER_ASC);
+		return filterParticipatingApplies(participatingMeetingApplies);
+	}
+
+	private boolean isParticipatingApply(Apply apply) {
+		return WAITING.equals(apply.getStatus()) || APPROVE.equals(apply.getStatus());
+	}
+
+	private MeetingV2ParticipatingPartInfoDto createParticipatingPartInfo(User requestUser,
+		List<Apply> participatingApplies) {
+		UserActivityVO requestUserActivity = getRequestUserActivity(requestUser);
+		if (requestUserActivity == null) {
+			return MeetingV2ParticipatingPartInfoDto.of(null, 0);
+		}
+
+		String requestUserPart = requestUserActivity.getPart();
+		String normalizedRequestUserPart = meetingPartNormalizer.normalize(requestUserPart);
+		int participantCount = (int)participatingApplies.stream()
+			.filter(apply -> isSamePartParticipatingApply(apply, normalizedRequestUserPart))
+			.count();
+
+		return MeetingV2ParticipatingPartInfoDto.of(requestUserPart, participantCount);
+	}
+
+	private MeetingV2GetMeetingPartMembersResponseDto createMeetingPartMembersResponse(User requestUser,
+		List<Apply> participatingApplies) {
+		UserActivityVO requestUserActivity = getRequestUserActivity(requestUser);
+		if (requestUserActivity == null) {
+			return MeetingV2GetMeetingPartMembersResponseDto.of(null, 0, List.of());
+		}
+
+		String requestUserPart = requestUserActivity.getPart();
+		String normalizedRequestUserPart = meetingPartNormalizer.normalize(requestUserPart);
+		List<String> memberNames = participatingApplies.stream()
+			.filter(apply -> isSamePartParticipatingApply(apply, normalizedRequestUserPart))
+			.map(apply -> apply.getUser().getName())
+			.toList();
+
+		return MeetingV2GetMeetingPartMembersResponseDto.of(requestUserPart, memberNames.size(), memberNames);
+	}
+
+	private boolean isSamePartParticipatingApply(Apply apply, String normalizedRequestUserPart) {
+		UserActivityVO participatingUserActivity = getParticipatingUserActivity(apply.getUser());
+		if (participatingUserActivity == null) {
+			return false;
+		}
+
+		String normalizedParticipatingUserPart = meetingPartNormalizer.normalize(participatingUserActivity.getPart());
+		return Objects.equals(normalizedParticipatingUserPart, normalizedRequestUserPart);
+	}
+
+	private UserActivityVO getRequestUserActivity(User requestUser) {
+		if (requestUser.getActivities() == null || requestUser.getActivities().isEmpty()) {
+			return null;
+		}
+
+		return requestUser.getActivities().stream()
+			.filter(userActivityVO -> userActivityVO.getGeneration() == activeGenerationProvider.getActiveGeneration())
+			.findFirst()
+			.orElseGet(requestUser::getRecentActivityVO);
+	}
+
+	private UserActivityVO getParticipatingUserActivity(User participatingUser) {
+		if (participatingUser.getActivities() == null || participatingUser.getActivities().isEmpty()) {
+			return null;
+		}
+
+		return participatingUser.getRecentActivityVO();
 	}
 
 	private Integer createTargetActiveGeneration(Boolean canJoinOnlyActiveGeneration) {

@@ -33,6 +33,9 @@ public class MeetingResponseDto {
 	@NotNull
 	private final String title;
 
+	@Schema(description = "모임 부제목", example = "모임 부제목입니다")
+	private final String subTitle;
+
 	@Schema(description = "대상 기수", example = "33")
 	@NotNull
 	private final Integer targetActiveGeneration;
@@ -117,6 +120,7 @@ public class MeetingResponseDto {
 		return new MeetingResponseDto(
 			meeting.getId(),
 			meeting.getTitle(),
+			meeting.getSubTitle(),
 			meeting.getTargetActiveGeneration(),
 			meeting.getJoinableParts(),
 			meeting.getCategory().getValue(),

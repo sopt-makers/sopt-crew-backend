@@ -47,6 +47,7 @@ create table if not exists meeting
     references "user"
     on delete cascade,
     title                         varchar   not null,
+    "subTitle"                    varchar,
     category                      varchar   not null,
     "imageURL"                    jsonb     not null,
     "startDate"                   timestamp not null,
@@ -60,6 +61,7 @@ create table if not exists meeting
     note                          varchar,
     "isMentorNeeded"              boolean   not null,
     "canJoinOnlyActiveGeneration" boolean   not null,
+    "joinInfo"                    jsonb,
     "targetActiveGeneration"      integer,
     "joinableParts"               meeting_joinableparts_enum[],
     "createdGeneration"           integer   default 32,
