@@ -25,6 +25,7 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ParticipatingPartInfoDto;
@@ -88,6 +89,34 @@ public class AdvertisementService {
 			.flatMap(Optional::stream)
 			.findFirst()
 			.orElseGet(AdvertisementMeetingTopGetResponseDto::notDisplay);
+	}
+
+	@Transactional
+	public Advertisement updateMeetingTopDisplay(Integer advertisementId, boolean isDisplay) {
+		Advertisement advertisement = advertisementRepository.findByIdOrThrow(advertisementId);
+
+		validateSingleMeetingTopDisplay(advertisement, isDisplay);
+
+		advertisement.updateDisplay(isDisplay);
+
+		return advertisement;
+	}
+
+	private void validateSingleMeetingTopDisplay(Advertisement advertisement, boolean isDisplay) {
+		if (!shouldTurnOn(advertisement, isDisplay)) {
+			return;
+		}
+
+		boolean existsOtherDisplayedAdvertisement = advertisementRepository.existsDisplayedAdvertisementByCategoryExcludingId(
+			MEETING_TOP,
+			advertisement.getId());
+		if (existsOtherDisplayedAdvertisement) {
+			throw new BadRequestException("모임 상단 광고는 하나만 노출할 수 있습니다.");
+		}
+	}
+
+	private boolean shouldTurnOn(Advertisement advertisement, boolean isDisplay) {
+		return isDisplay && !advertisement.isDisplay();
 	}
 
 	private AdvertisementsGetResponseDto createResponseDto(List<Advertisement> advertisements) {
