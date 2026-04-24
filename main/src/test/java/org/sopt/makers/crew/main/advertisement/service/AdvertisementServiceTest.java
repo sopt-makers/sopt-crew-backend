@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.sopt.makers.crew.main.advertisement.dto.AdvertisementMeetingTopGetResponseDto;
 import org.sopt.makers.crew.main.entity.advertisement.Advertisement;
 import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
+import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.sopt.makers.crew.main.entity.advertisement.enums.EventType;
 import org.sopt.makers.crew.main.entity.advertisement.enums.TargetGeneration;
 import org.sopt.makers.crew.main.entity.apply.Apply;
@@ -145,17 +146,51 @@ class AdvertisementServiceTest {
 			.isInstanceOf(BadRequestException.class);
 	}
 
+	@Test
+	@DisplayName("어드민에서 모임 상단 광고 노출 여부를 변경한다.")
+	void updateMeetingTopDisplay_updatesAdvertisementDisplay() {
+		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true);
+		setField(advertisement, "id", 10);
+
+		doReturn(advertisement).when(advertisementRepository).findByIdOrThrow(10);
+
+		Advertisement updatedAdvertisement = advertisementService.updateMeetingTopDisplay(10, false);
+
+		assertThat(updatedAdvertisement.isDisplay()).isFalse();
+	}
+
+	@Test
+	@DisplayName("다른 모임 상단 광고가 이미 켜져 있으면 추가로 켤 수 없다.")
+	void updateMeetingTopDisplay_rejectsWhenAnotherMeetingTopAdvertisementIsDisplayed() {
+		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, false);
+		setField(advertisement, "id", 12);
+
+		doReturn(advertisement).when(advertisementRepository).findByIdOrThrow(12);
+		doReturn(true).when(advertisementRepository)
+			.existsDisplayedAdvertisementByCategoryExcludingId(MEETING_TOP, 12);
+
+		assertThatThrownBy(() -> advertisementService.updateMeetingTopDisplay(12, true))
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("모임 상단 광고는 하나만 노출할 수 있습니다.");
+		assertThat(advertisement.isDisplay()).isFalse();
+	}
+
 	private Advertisement createAdvertisement(TargetGeneration targetGeneration) {
+		return createAdvertisement(targetGeneration, MEETING_TOP, true);
+	}
+
+	private Advertisement createAdvertisement(TargetGeneration targetGeneration, AdvertisementCategory advertisementCategory,
+		boolean isDisplay) {
 		return Advertisement.builder()
 			.advertisementDesktopImageUrl("https://example.com/desktop.png")
 			.advertisementMobileImageUrl("https://example.com/mobile.png")
 			.advertisementLink("https://example.com")
-			.advertisementCategory(MEETING_TOP)
+			.advertisementCategory(advertisementCategory)
 			.priority(1L)
 			.advertisementStartDate(NOW.minusDays(1))
 			.advertisementEndDate(NOW.plusDays(1))
 			.isSponsoredContent(false)
-			.isDisplay(true)
+			.isDisplay(isDisplay)
 			.eventType(EventType.SOPKATHON)
 			.targetGeneration(targetGeneration)
 			.build();
