@@ -148,20 +148,35 @@ class AdvertisementServiceTest {
 
 	@Test
 	@DisplayName("어드민에서 모임 상단 광고 노출 여부를 변경한다.")
-	void updateMeetingTopDisplay_updatesAdvertisementDisplay() {
+	void updateMeetingTopAdvertisementDisplay_updatesAdvertisementDisplay() {
 		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true);
 		setField(advertisement, "id", 10);
 
 		doReturn(advertisement).when(advertisementRepository).findByIdOrThrow(10);
 
-		Advertisement updatedAdvertisement = advertisementService.updateMeetingTopDisplay(10, false);
+		Advertisement updatedAdvertisement = advertisementService.updateMeetingTopAdvertisementDisplay(10, false);
 
 		assertThat(updatedAdvertisement.isDisplay()).isFalse();
 	}
 
+	// Todo : 기존 Meeting 카테고리의 노출 여부도 isDisplay로 관리하게 되면 삭제
+	@Test
+	@DisplayName("어드민 노출 여부 수정은 MEETING_TOP 광고만 허용한다.")
+	void updateMeetingTopAdvertisementDisplay_rejectsGeneralAdvertisement() {
+		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING, true);
+		setField(advertisement, "id", 11);
+
+		doReturn(advertisement).when(advertisementRepository).findByIdOrThrow(11);
+
+		assertThatThrownBy(() -> advertisementService.updateMeetingTopAdvertisementDisplay(11, false))
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("모임 상단 광고만 노출 여부를 수정할 수 있습니다.");
+		assertThat(advertisement.isDisplay()).isTrue();
+	}
+
 	@Test
 	@DisplayName("다른 모임 상단 광고가 이미 켜져 있으면 추가로 켤 수 없다.")
-	void updateMeetingTopDisplay_rejectsWhenAnotherMeetingTopAdvertisementIsDisplayed() {
+	void updateMeetingTopAdvertisementDisplay_rejectsWhenAnotherMeetingTopAdvertisementIsDisplayed() {
 		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, false);
 		setField(advertisement, "id", 12);
 
@@ -169,7 +184,7 @@ class AdvertisementServiceTest {
 		doReturn(true).when(advertisementRepository)
 			.existsDisplayedAdvertisementByCategoryExcludingId(MEETING_TOP, 12);
 
-		assertThatThrownBy(() -> advertisementService.updateMeetingTopDisplay(12, true))
+		assertThatThrownBy(() -> advertisementService.updateMeetingTopAdvertisementDisplay(12, true))
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage("모임 상단 광고는 하나만 노출할 수 있습니다.");
 		assertThat(advertisement.isDisplay()).isFalse();

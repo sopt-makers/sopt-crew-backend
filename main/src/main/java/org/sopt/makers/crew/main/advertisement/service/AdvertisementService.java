@@ -55,6 +55,8 @@ public class AdvertisementService {
 	private final Time time;
 
 	public AdvertisementsGetResponseDto getAdvertisement(AdvertisementCategory advertisementCategory) {
+		validateGeneralAdvertisementCategory(advertisementCategory);
+
 		LocalDateTime now = time.now();
 
 		int maxItems = advertisementCategory.getMaxItems();
@@ -92,14 +94,27 @@ public class AdvertisementService {
 	}
 
 	@Transactional
-	public Advertisement updateMeetingTopDisplay(Integer advertisementId, boolean isDisplay) {
+	public Advertisement updateMeetingTopAdvertisementDisplay(Integer advertisementId, boolean isDisplay) {
 		Advertisement advertisement = advertisementRepository.findByIdOrThrow(advertisementId);
 
+		validateMeetingTopAdvertisement(advertisement);
 		validateSingleMeetingTopDisplay(advertisement, isDisplay);
 
 		advertisement.updateDisplay(isDisplay);
 
 		return advertisement;
+	}
+
+	private void validateGeneralAdvertisementCategory(AdvertisementCategory advertisementCategory) {
+		if (!advertisementCategory.isGeneralAdvertisement()) {
+			throw new BadRequestException("일반 광고 조회에서 허용하지 않는 카테고리입니다.");
+		}
+	}
+
+	private void validateMeetingTopAdvertisement(Advertisement advertisement) {
+		if (!MEETING_TOP.equals(advertisement.getAdvertisementCategory())) {
+			throw new BadRequestException("모임 상단 광고만 노출 여부를 수정할 수 있습니다.");
+		}
 	}
 
 	private void validateSingleMeetingTopDisplay(Advertisement advertisement, boolean isDisplay) {

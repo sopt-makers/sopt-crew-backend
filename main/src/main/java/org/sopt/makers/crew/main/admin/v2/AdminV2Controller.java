@@ -118,12 +118,12 @@ public class AdminV2Controller {
 		return getRedirectUrl();
 	}
 
-	@PatchMapping("/{advertisementId}/display")
-	public ResponseEntity<AdvertisementDisplayUpdateResponse> updateAdvertisementDisplay(
+	@PatchMapping("/advertisement/meeting-top/{advertisementId}/display")
+	public ResponseEntity<AdvertisementDisplayUpdateResponse> updateMeetingTopAdvertisementDisplay(
 		@PathVariable Integer advertisementId,
 		@Valid @RequestBody AdvertisementDisplayUpdateRequest request
 	) {
-		Advertisement advertisement = advertisementService.updateMeetingTopDisplay(advertisementId,
+		Advertisement advertisement = advertisementService.updateMeetingTopAdvertisementDisplay(advertisementId,
 			request.isDisplay());
 		return ResponseEntity.ok(AdvertisementDisplayUpdateResponse.from(advertisement));
 	}

@@ -78,7 +78,7 @@ public class Advertisement extends BaseTimeEntity {
 	private Advertisement(String advertisementDesktopImageUrl, String advertisementMobileImageUrl,
 		String advertisementLink,
 		AdvertisementCategory advertisementCategory, Long priority, LocalDateTime advertisementStartDate,
-		LocalDateTime advertisementEndDate, boolean isSponsoredContent, boolean isDisplay, EventType eventType,
+		LocalDateTime advertisementEndDate, boolean isSponsoredContent, Boolean isDisplay, EventType eventType,
 		TargetGeneration targetGeneration) {
 		this.advertisementDesktopImageUrl = advertisementDesktopImageUrl;
 		this.advertisementMobileImageUrl = advertisementMobileImageUrl;
@@ -88,7 +88,7 @@ public class Advertisement extends BaseTimeEntity {
 		this.advertisementStartDate = advertisementStartDate;
 		this.advertisementEndDate = advertisementEndDate;
 		this.isSponsoredContent = isSponsoredContent;
-		this.isDisplay = isDisplay;
+		this.isDisplay = isDisplay == null || isDisplay;
 		this.eventType = eventType;
 		this.targetGeneration = targetGeneration == null ? TargetGeneration.ALL : targetGeneration;
 	}

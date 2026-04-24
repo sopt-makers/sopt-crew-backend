@@ -4,6 +4,6 @@ public enum EventType {
 	// 솝커톤
 	SOPKATHON,
 
-	// 네트워킹
+	// TODO: 네트워킹도 솝커톤과 동일한 플로우로 구현 예정
 	NETWORKING
 }
