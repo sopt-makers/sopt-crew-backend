@@ -203,7 +203,7 @@ public class AdvertisementService {
 	}
 
 	private String createSopkathonApplyTitle(Integer generation, MeetingJoinablePart part) {
-		return String.format(SOPKATHON_APPLY_TITLE_FORMAT, generation, meetingPartNormalizer.getDisplayName(part));
+		return String.format(SOPKATHON_APPLY_TITLE_FORMAT, generation, part.getDisplayName());
 	}
 
 	private String createSopkathonBrowseQuery(Integer generation) {

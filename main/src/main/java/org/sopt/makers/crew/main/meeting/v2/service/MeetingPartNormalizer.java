@@ -35,15 +35,4 @@ public class MeetingPartNormalizer {
 			return Optional.empty();
 		}
 	}
-
-	public String getDisplayName(MeetingJoinablePart part) {
-		return switch (part) {
-			case PM -> "기획";
-			case DESIGN -> "디자인";
-			case IOS -> "iOS";
-			case ANDROID -> "안드로이드";
-			case SERVER -> "서버";
-			case WEB -> "웹";
-		};
-	}
 }
