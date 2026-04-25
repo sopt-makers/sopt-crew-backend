@@ -2,8 +2,8 @@ package org.sopt.makers.crew.main.meeting.v2.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.*;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -230,15 +230,5 @@ class MeetingV2ServiceFlashTest {
 			5,
 			files
 		);
-	}
-
-	private void setField(Object target, String fieldName, Object value) {
-		try {
-			Field field = target.getClass().getDeclaredField(fieldName);
-			field.setAccessible(true);
-			field.set(target, value);
-		} catch (ReflectiveOperationException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 }

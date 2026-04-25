@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory.*;
 import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
+import static org.springframework.test.util.ReflectionTestUtils.*;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -33,8 +33,8 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingType;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.entity.user.UserFixture;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
-import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
@@ -81,8 +81,8 @@ class AdvertisementServiceTest {
 	@Test
 	@DisplayName("모임 상단 광고 조회 시 부제목과 참여 정보 관련 필드를 반환한다.")
 	void getMeetingTopAdvertisement_returnsMeetingTopResponse() {
-		User requestUser = createUser(1, "서버", 38);
-		User participant = createUser(2, "백엔드", 38);
+		User requestUser = UserFixture.createUser(1, "서버", 38);
+		User participant = UserFixture.createUser(2, "백엔드", 38);
 		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL);
 		MeetingJoinInfo joinInfo = new MeetingJoinInfo(MeetingType.ONLINE_OFFLINE, MeetingFrequency.LIGHT);
 		Meeting meeting = createMeeting(joinInfo);
@@ -124,7 +124,7 @@ class AdvertisementServiceTest {
 	@Test
 	@DisplayName("활동 기수 타겟 광고는 현재 활동 기수 활동이 없으면 노출하지 않는다.")
 	void getMeetingTopAdvertisement_returnsNotDisplayWhenActiveGenerationTargetMisses() {
-		User requestUser = createUser(1, "서버", 37);
+		User requestUser = UserFixture.createUser(1, "서버", 37);
 		Advertisement advertisement = createAdvertisement(TargetGeneration.ACTIVE);
 
 		when(time.now()).thenReturn(NOW);
@@ -212,7 +212,7 @@ class AdvertisementServiceTest {
 	}
 
 	private Meeting createMeeting(MeetingJoinInfo joinInfo) {
-		User leader = createUser(3, "서버", 38);
+		User leader = UserFixture.createUser(3, "서버", 38);
 		return Meeting.builder()
 			.user(leader)
 			.userId(leader.getId())
@@ -236,27 +236,5 @@ class AdvertisementServiceTest {
 			.targetActiveGeneration(38)
 			.joinableParts(MeetingJoinablePart.values())
 			.build();
-	}
-
-	private User createUser(Integer userId, String part, int generation) {
-		User user = User.builder()
-			.orgId(userId)
-			.name("테스트 유저")
-			.activities(List.of(new UserActivityVO(part, generation)))
-			.profileImage("https://example.com/profile.png")
-			.phone("010-1234-5678")
-			.build();
-		user.setUserIdForTest(userId);
-		return user;
-	}
-
-	private void setField(Object target, String fieldName, Object value) {
-		try {
-			Field field = target.getClass().getDeclaredField(fieldName);
-			field.setAccessible(true);
-			field.set(target, value);
-		} catch (NoSuchFieldException | IllegalAccessException exception) {
-			throw new IllegalStateException(exception);
-		}
 	}
 }
