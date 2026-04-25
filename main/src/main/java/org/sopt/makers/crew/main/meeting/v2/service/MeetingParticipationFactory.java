@@ -1,13 +1,15 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ParticipatingPartInfoDto;
@@ -24,21 +26,19 @@ public class MeetingParticipationFactory {
 
 	public MeetingV2ParticipatingPartInfoDto createParticipatingPartInfo(User requestUser,
 		List<Apply> participatingApplies) {
-		UserActivityVO requestUserActivity = getRequestUserActivity(requestUser);
-		int activeGeneration = activeGenerationProvider.getActiveGeneration();
-		if (requestUserActivity == null) {
-			return MeetingV2ParticipatingPartInfoDto.of(null, 0, false, activeGeneration, List.of());
-		}
-
-		boolean isActiveGeneration = isActiveGenerationUser(requestUser, activeGeneration);
+		UserActivityVO requestUserActivity = getRequiredRequestUserActivity(requestUser);
+		int latestActiveGeneration = activeGenerationProvider.getActiveGeneration();
+		boolean isActiveGeneration = isActiveGenerationUser(requestUser, latestActiveGeneration);
 		String requestUserPart = requestUserActivity.getPart();
 		if (!isActiveGeneration) {
-			Set<Integer> honoraryGenerations = getHonoraryGenerations(requestUser, activeGeneration);
+			Integer latestHonoraryGeneration = getLatestHonoraryGeneration(requestUser, latestActiveGeneration)
+				.orElseThrow(() -> new BadRequestException(MISSING_GENERATION_PART.getErrorCode()));
 			List<String> memberNames = participatingApplies.stream()
-				.filter(apply -> isSameHonoraryGenerationParticipatingApply(apply, honoraryGenerations))
+				.filter(apply -> isSameHonoraryGenerationParticipatingApply(apply, latestHonoraryGeneration))
 				.map(apply -> apply.getUser().getName())
 				.toList();
-			return MeetingV2ParticipatingPartInfoDto.of(requestUserPart, memberNames.size(), false, activeGeneration,
+			return MeetingV2ParticipatingPartInfoDto.of(requestUserPart, memberNames.size(), false,
+				latestHonoraryGeneration,
 				memberNames);
 		}
 
@@ -48,17 +48,13 @@ public class MeetingParticipationFactory {
 			.map(apply -> apply.getUser().getName())
 			.toList();
 
-		return MeetingV2ParticipatingPartInfoDto.of(requestUserPart, memberNames.size(), true, activeGeneration,
+		return MeetingV2ParticipatingPartInfoDto.of(requestUserPart, memberNames.size(), true, latestActiveGeneration,
 			memberNames);
 	}
 
 	public MeetingV2GetMeetingPartMembersResponseDto createMeetingPartMembersResponse(User requestUser,
 		List<Apply> participatingApplies) {
-		UserActivityVO requestUserActivity = getRequestUserActivity(requestUser);
-		if (requestUserActivity == null) {
-			return MeetingV2GetMeetingPartMembersResponseDto.of(null, 0, List.of());
-		}
-
+		UserActivityVO requestUserActivity = getRequiredRequestUserActivity(requestUser);
 		String requestUserPart = requestUserActivity.getPart();
 		String normalizedRequestUserPart = meetingPartNormalizer.normalize(requestUserPart);
 		List<String> memberNames = participatingApplies.stream()
@@ -79,13 +75,13 @@ public class MeetingParticipationFactory {
 		return Objects.equals(normalizedParticipatingUserPart, normalizedRequestUserPart);
 	}
 
-	private boolean isSameHonoraryGenerationParticipatingApply(Apply apply, Set<Integer> honoraryGenerations) {
-		if (honoraryGenerations.isEmpty() || apply.getUser().getActivities() == null) {
+	private boolean isSameHonoraryGenerationParticipatingApply(Apply apply, int honoraryGeneration) {
+		if (apply.getUser().getActivities() == null) {
 			return false;
 		}
 
 		return apply.getUser().getActivities().stream()
-			.anyMatch(userActivityVO -> honoraryGenerations.contains(userActivityVO.getGeneration()));
+			.anyMatch(userActivityVO -> userActivityVO.getGeneration() == honoraryGeneration);
 	}
 
 	private boolean isActiveGenerationUser(User requestUser, int activeGeneration) {
@@ -97,20 +93,20 @@ public class MeetingParticipationFactory {
 			.anyMatch(userActivityVO -> userActivityVO.getGeneration() == activeGeneration);
 	}
 
-	private Set<Integer> getHonoraryGenerations(User requestUser, int activeGeneration) {
+	private Optional<Integer> getLatestHonoraryGeneration(User requestUser, int activeGeneration) {
 		if (requestUser.getActivities() == null) {
-			return Set.of();
+			return Optional.empty();
 		}
 
 		return requestUser.getActivities().stream()
 			.map(UserActivityVO::getGeneration)
 			.filter(generation -> generation != activeGeneration)
-			.collect(Collectors.toSet());
+			.max(Integer::compareTo);
 	}
 
-	private UserActivityVO getRequestUserActivity(User requestUser) {
+	private UserActivityVO getRequiredRequestUserActivity(User requestUser) {
 		if (requestUser.getActivities() == null || requestUser.getActivities().isEmpty()) {
-			return null;
+			throw new BadRequestException(MISSING_GENERATION_PART.getErrorCode());
 		}
 
 		return requestUser.getActivities().stream()

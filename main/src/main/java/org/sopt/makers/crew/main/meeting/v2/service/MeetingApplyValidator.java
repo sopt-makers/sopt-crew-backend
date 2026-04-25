@@ -5,6 +5,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.entity.apply.Apply;
@@ -123,7 +124,7 @@ public class MeetingApplyValidator {
 	}
 
 	private List<UserActivityVO> filterUserActivities(User user, Meeting meeting) {
-		if (meeting.getTargetActiveGeneration() == activeGenerationProvider.getActiveGeneration()
+		if (Objects.equals(meeting.getTargetActiveGeneration(), activeGenerationProvider.getActiveGeneration())
 			&& meeting.getCanJoinOnlyActiveGeneration()) {
 			List<UserActivityVO> filteredActivities = user.getActivities().stream()
 				.filter(activity -> activity.getGeneration() == activeGenerationProvider.getActiveGeneration())

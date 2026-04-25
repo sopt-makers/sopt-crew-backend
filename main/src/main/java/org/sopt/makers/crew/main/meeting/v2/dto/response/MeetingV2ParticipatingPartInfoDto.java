@@ -12,7 +12,7 @@ public record MeetingV2ParticipatingPartInfoDto(
 	int participantCount,
 	@Schema(description = "활동기수 여부", example = "true")
 	boolean isActiveGeneration,
-	@Schema(description = "현재 활동 기수", example = "38")
+	@Schema(description = "참여 정보 기준 기수", example = "38")
 	Integer activeGeneration,
 	@Schema(description = "조건에 맞는 신청중/대기중 유저 이름 리스트", example = "[\"이지훈\", \"김효준\"]")
 	List<String> memberNames

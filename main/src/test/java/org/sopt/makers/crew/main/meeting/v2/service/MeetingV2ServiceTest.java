@@ -1220,7 +1220,7 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
-		@DisplayName("명예기수 조회자는 본인이 참여했던 기수 기준 신청중인 멤버 정보를 반환한다.")
+		@DisplayName("명예기수 조회자는 본인이 참여했던 가장 최신 기수 기준 신청중인 멤버 정보를 반환한다.")
 		void nonActiveGenerationUser_getMeetingById_participantPartInfo() {
 			// given
 			Integer meetingId = 1;
@@ -1231,11 +1231,11 @@ public class MeetingV2ServiceTest {
 
 			// then
 			Assertions.assertThat(responseDto.getParticipatingPartInfo().part()).isEqualTo("서버");
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(2);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(1);
 			Assertions.assertThat(responseDto.getParticipatingPartInfo().isActiveGeneration()).isFalse();
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(35);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(33);
 			Assertions.assertThat(responseDto.getParticipatingPartInfo().memberNames())
-				.containsExactly("승인신청자", "대기신청자");
+				.containsExactly("승인신청자");
 		}
 
 		@Test
@@ -1284,8 +1284,8 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
-		@DisplayName("여러 명예기수 활동 이력이 있으면 해당 기수 신청자를 모두 반환한다.")
-		void honoraryGenerationUser_getMeetingById_sameHonoraryGenerationApplicantInfo() {
+		@DisplayName("여러 명예기수 활동 이력이 있으면 가장 최신 기수 신청자만 반환한다.")
+		void honoraryGenerationUser_getMeetingById_latestHonoraryGenerationApplicantInfo() {
 			// given
 			Integer meetingId = 1;
 			User honoraryUser = userRepository.save(User.builder()
@@ -1309,10 +1309,27 @@ public class MeetingV2ServiceTest {
 
 			// then
 			Assertions.assertThat(responseDto.getParticipatingPartInfo().isActiveGeneration()).isFalse();
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(35);
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(2);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(37);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(1);
 			Assertions.assertThat(responseDto.getParticipatingPartInfo().memberNames())
-				.containsExactly("36기신청자", "37기신청자");
+				.containsExactly("37기신청자");
+		}
+
+		@Test
+		@DisplayName("활동 이력이 없는 사용자가 상세 조회 시 예외가 발생한다.")
+		void noActivityUser_getMeetingById_throwException() {
+			Integer meetingId = 1;
+			User noActivityUser = userRepository.save(User.builder()
+				.name("활동없음조회자")
+				.orgId(2001)
+				.activities(null)
+				.profileImage("no-activity-profile.jpg")
+				.phone("010-2001-2001")
+				.build());
+
+			Assertions.assertThatThrownBy(() -> meetingV2Service.getMeetingDetail(meetingId, noActivityUser.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(MISSING_GENERATION_PART.getErrorCode());
 		}
 
 		@Test
@@ -1487,6 +1504,23 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.part()).isEqualTo("웹");
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
 			Assertions.assertThat(responseDto.memberNames()).containsExactly("프론트엔드신청자");
+		}
+
+		@Test
+		@DisplayName("활동 이력이 없는 사용자가 모집현황 멤버 조회 시 예외가 발생한다.")
+		void noActivityUser_getMeetingPartMembers_throwException() {
+			Integer meetingId = 1;
+			User noActivityUser = userRepository.save(User.builder()
+				.name("활동없음조회자")
+				.orgId(2002)
+				.activities(null)
+				.profileImage("no-activity-profile.jpg")
+				.phone("010-2002-2002")
+				.build());
+
+			Assertions.assertThatThrownBy(() -> meetingV2Service.getMeetingPartMembers(meetingId, noActivityUser.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(MISSING_GENERATION_PART.getErrorCode());
 		}
 
 	}
