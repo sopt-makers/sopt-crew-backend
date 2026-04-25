@@ -112,7 +112,7 @@ public class AdvertisementService {
 	}
 
 	private void validateMeetingTopAdvertisement(Advertisement advertisement) {
-		if (!MEETING_TOP.equals(advertisement.getAdvertisementCategory())) {
+		if (advertisement.getAdvertisementCategory() != MEETING_TOP) {
 			throw new BadRequestException("모임 상단 광고만 노출 여부를 수정할 수 있습니다.");
 		}
 	}
@@ -143,7 +143,7 @@ public class AdvertisementService {
 
 	private Optional<AdvertisementMeetingTopGetResponseDto> createMeetingTopResponse(Advertisement advertisement,
 		User user, LocalDateTime now) {
-		if (!EventType.SOPKATHON.equals(advertisement.getEventType())) {
+		if (advertisement.getEventType() != EventType.SOPKATHON) {
 			return Optional.empty();
 		}
 
@@ -160,7 +160,7 @@ public class AdvertisementService {
 
 		String applyTitle = createSopkathonApplyTitle(targetActivity.get().getGeneration(), meetingJoinablePart.get());
 		Optional<Meeting> meeting = meetingRepository.findFirstByTitleOrderByIdDesc(applyTitle);
-		if (meeting.isEmpty() || RECRUITMENT_COMPLETE.equals(meeting.get().getMeetingStatus(now))) {
+		if (meeting.isEmpty() || meeting.get().getMeetingStatus(now) == RECRUITMENT_COMPLETE) {
 			return Optional.empty();
 		}
 
