@@ -91,6 +91,12 @@ class MeetingV2ServiceFlashTest {
 	@Mock
 	private ApplyMapper applyMapper;
 	@Mock
+	private MeetingApplyValidator meetingApplyValidator;
+	@Mock
+	private MeetingParticipationFactory meetingParticipationFactory;
+	@Mock
+	private MeetingCoLeaderFactory meetingCoLeaderFactory;
+	@Mock
 	private ImageSettingProperties imageSettingProperties;
 	@Mock
 	private ActiveGenerationProvider activeGenerationProvider;

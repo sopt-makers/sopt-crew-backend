@@ -127,6 +127,31 @@ public class MeetingV2ServiceTest {
 		return new MeetingJoinInfo(MeetingType.ONLINE_OFFLINE, MeetingFrequency.STEADY);
 	}
 
+	private void saveApplyUser(Integer meetingId, Integer userId, String name, String part) {
+		saveApplyUser(meetingId, userId, name, part, 38);
+	}
+
+	private void saveApplyUser(Integer meetingId, Integer userId, String name, String part, int generation) {
+		User user = userRepository.save(User.builder()
+			.name(name)
+			.orgId(userId)
+			.activities(List.of(new UserActivityVO(part, generation)))
+			.profileImage("profile.jpg")
+			.phone("010-0000-0000")
+			.build());
+
+		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+		Apply apply = Apply.builder()
+			.type(EnApplyType.APPLY)
+			.meeting(meeting)
+			.meetingId(meetingId)
+			.user(user)
+			.userId(user.getId())
+			.content(part + " 신청합니다.")
+			.build();
+		applyRepository.save(apply);
+	}
+
 	@Nested
 	class 모임_생성 {
 		@ParameterizedTest
@@ -1195,7 +1220,7 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
-		@DisplayName("활동 기수가 아닌 조회자는 마지막 활동 파트 기준 같은 파트 참여 정보를 반환한다.")
+		@DisplayName("명예기수 조회자는 본인이 참여했던 기수 기준 신청중인 멤버 정보를 반환한다.")
 		void nonActiveGenerationUser_getMeetingById_participantPartInfo() {
 			// given
 			Integer meetingId = 1;
@@ -1206,15 +1231,25 @@ public class MeetingV2ServiceTest {
 
 			// then
 			Assertions.assertThat(responseDto.getParticipatingPartInfo().part()).isEqualTo("서버");
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(0);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(2);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().isActiveGeneration()).isFalse();
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(35);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().memberNames())
+				.containsExactly("승인신청자", "대기신청자");
 		}
 
 		@Test
-		@DisplayName("서버 조회자는 백엔드 신청자를 같은 파트 참여자로 집계한다.")
-		void serverUser_getMeetingById_backendApplicant_samePart() {
+		@DisplayName("활동 기수 서버 조회자는 백엔드 신청자를 같은 파트 참여자로 집계한다.")
+		void activeGenerationServerUser_getMeetingById_backendApplicant_samePart() {
 			// given
 			Integer meetingId = 1;
-			Integer userId = 1;
+			User activeGenerationServerUser = userRepository.save(User.builder()
+				.name("활동기수서버조회자")
+				.orgId(1004)
+				.activities(List.of(new UserActivityVO("서버", 35)))
+				.profileImage("active-server-profile.jpg")
+				.phone("010-1004-1004")
+				.build());
 
 			User backendUser = User.builder()
 				.name("백엔드신청자")
@@ -1237,11 +1272,47 @@ public class MeetingV2ServiceTest {
 			applyRepository.save(apply);
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId, userId);
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				activeGenerationServerUser.getId());
 
 			// then
 			Assertions.assertThat(responseDto.getParticipatingPartInfo().part()).isEqualTo("서버");
 			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(1);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().isActiveGeneration()).isTrue();
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(35);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().memberNames()).containsExactly("백엔드신청자");
+		}
+
+		@Test
+		@DisplayName("여러 명예기수 활동 이력이 있으면 해당 기수 신청자를 모두 반환한다.")
+		void honoraryGenerationUser_getMeetingById_sameHonoraryGenerationApplicantInfo() {
+			// given
+			Integer meetingId = 1;
+			User honoraryUser = userRepository.save(User.builder()
+				.name("명예기수조회자")
+				.orgId(1005)
+				.activities(List.of(
+					new UserActivityVO("서버", 36),
+					new UserActivityVO("디자인", 37)
+				))
+				.profileImage("honorary-profile.jpg")
+				.phone("010-1005-1005")
+				.build());
+
+			saveApplyUser(meetingId, 1006, "36기신청자", "기획", 36);
+			saveApplyUser(meetingId, 1007, "37기신청자", "웹", 37);
+			saveApplyUser(meetingId, 1008, "활동기수신청자", "디자인", 35);
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				honoraryUser.getId());
+
+			// then
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().isActiveGeneration()).isFalse();
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(35);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(2);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().memberNames())
+				.containsExactly("36기신청자", "37기신청자");
 		}
 
 		@Test
@@ -1418,26 +1489,6 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.memberNames()).containsExactly("프론트엔드신청자");
 		}
 
-		private void saveApplyUser(Integer meetingId, Integer userId, String name, String part) {
-			User user = userRepository.save(User.builder()
-				.name(name)
-				.orgId(userId)
-				.activities(List.of(new UserActivityVO(part, 38)))
-				.profileImage("profile.jpg")
-				.phone("010-0000-0000")
-				.build());
-
-			Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-			Apply apply = Apply.builder()
-				.type(EnApplyType.APPLY)
-				.meeting(meeting)
-				.meetingId(meetingId)
-				.user(user)
-				.userId(user.getId())
-				.content(part + " 신청합니다.")
-				.build();
-			applyRepository.save(apply);
-		}
 	}
 
 	@Nested
