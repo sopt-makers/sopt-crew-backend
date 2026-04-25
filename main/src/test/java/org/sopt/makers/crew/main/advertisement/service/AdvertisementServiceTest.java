@@ -64,9 +64,15 @@ class AdvertisementServiceTest {
 	private Time time;
 
 	private AdvertisementService advertisementService;
+	private AdvertisementValidator advertisementValidator;
+	private AdvertisementFactory advertisementFactory;
 
 	@BeforeEach
 	void setUp() {
+		advertisementValidator = new AdvertisementValidator(advertisementRepository);
+		advertisementFactory = new AdvertisementFactory(
+			new MeetingPartNormalizer()
+		);
 		advertisementService = new AdvertisementService(
 			advertisementRepository,
 			meetingRepository,
@@ -74,7 +80,9 @@ class AdvertisementServiceTest {
 			applyRepository,
 			activeGenerationProvider,
 			new MeetingPartNormalizer(),
-			time
+			time,
+			advertisementValidator,
+			advertisementFactory
 		);
 	}
 

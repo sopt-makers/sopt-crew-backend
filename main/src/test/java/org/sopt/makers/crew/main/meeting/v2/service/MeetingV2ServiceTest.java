@@ -648,38 +648,38 @@ public class MeetingV2ServiceTest {
 				.toList();
 
 			// then
-			Assertions.assertThat(meetings)
-				.extracting(
-					"title", "subTitle", "category", "canJoinOnlyActiveGeneration",
-					"mStartDate", "mEndDate",
-					"capacity", "isMentorNeeded", "targetActiveGeneration",
-					"joinableParts", "status", "approvedCount"
-				).containsExactly(
-					tuple("스터디 구합니다1", "스터디 부제목1", "행사", true,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, true, 35,
-						new MeetingJoinablePart[] {PM, SERVER}, 1, 2
-					),
-					tuple("스터디 구합니다 - 신청전", "스터디 부제목2", "스터디", false,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, false, null,
-						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
-					),
-					tuple("세미나 구합니다 - 신청후", "세미나 부제목4", "세미나", false,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						13, false, null,
-						new MeetingJoinablePart[] {WEB, IOS}, 2, 0
-					),
-					tuple("스터디 구합니다 - 신청후", "스터디 부제목3", "스터디", false,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, false, null,
-						new MeetingJoinablePart[] {PM, SERVER}, 2, 0
-					)
-				);
+				Assertions.assertThat(meetings)
+					.extracting(
+						"title", "subTitle", "category", "canJoinOnlyActiveGeneration",
+						"mStartDate", "mEndDate",
+						"capacity", "isMentorNeeded", "joinInfo", "targetActiveGeneration",
+						"joinableParts", "status", "approvedCount"
+					).containsExactly(
+						tuple("스터디 구합니다1", "스터디 부제목1", "행사", true,
+							LocalDateTime.of(2024, 5, 29, 0, 0),
+							LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+							10, true, new MeetingJoinInfo(MeetingType.ONLINE, MeetingFrequency.STEADY), 35,
+							new MeetingJoinablePart[] {PM, SERVER}, 1, 2
+						),
+						tuple("스터디 구합니다 - 신청전", "스터디 부제목2", "스터디", false,
+							LocalDateTime.of(2024, 5, 29, 0, 0),
+							LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+							10, false, new MeetingJoinInfo(MeetingType.OFFLINE, MeetingFrequency.LIGHT), null,
+							new MeetingJoinablePart[] {PM, SERVER}, 0, 0
+						),
+						tuple("세미나 구합니다 - 신청후", "세미나 부제목4", "세미나", false,
+							LocalDateTime.of(2024, 5, 29, 0, 0),
+							LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+							13, false, new MeetingJoinInfo(MeetingType.ONLINE, MeetingFrequency.LIGHT), null,
+							new MeetingJoinablePart[] {WEB, IOS}, 2, 0
+						),
+						tuple("스터디 구합니다 - 신청후", "스터디 부제목3", "스터디", false,
+							LocalDateTime.of(2024, 5, 29, 0, 0),
+							LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+							10, false, new MeetingJoinInfo(MeetingType.ONLINE_OFFLINE, MeetingFrequency.IMMERSIVE), null,
+							new MeetingJoinablePart[] {PM, SERVER}, 2, 0
+						)
+					);
 
 			Assertions.assertThat(meetingCreatorDtos)
 				.extracting("name", "profileImage", "activities", "phone")

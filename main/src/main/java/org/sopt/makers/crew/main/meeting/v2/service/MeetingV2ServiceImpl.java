@@ -182,9 +182,10 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 					applyRepository.findAllByUserIdAndStatus(existUser.getId(), EnApplyStatus.APPROVE)
 						.stream().map(Apply::getMeeting))
 				.map(meeting -> MeetingV2GetAllMeetingByOrgUserMeetingDto.of(meeting.getId(),
-					meeting.checkMeetingLeader(existUser.getId()), meeting.getTitle(),
+					meeting.checkMeetingLeader(existUser.getId()), meeting.getTitle(), meeting.getSubTitle(),
 					meeting.getImageURL().get(0).getUrl(), meeting.getCategory().getValue(),
-					meeting.getmStartDate(), meeting.getmEndDate(), checkActivityStatus(meeting)))
+					meeting.getmStartDate(), meeting.getmEndDate(), meeting.getJoinInfo(),
+					checkActivityStatus(meeting)))
 				.sorted(Comparator.comparing(MeetingV2GetAllMeetingByOrgUserMeetingDto::getId).reversed())
 				.collect(Collectors.toList());
 		}
