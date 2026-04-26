@@ -2240,7 +2240,7 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThatThrownBy(() ->
 					meetingV2Service.applyGeneralMeeting(applyDto, applicant.getId())
 				).isInstanceOf(BadRequestException.class)
-				.hasMessageContaining("모임 지원 기간이 아닙니다.");
+				.hasMessageContaining(INVALID_MEETING_CATEGORY.getErrorCode());
 		}
 
 		@ParameterizedTest
@@ -2298,7 +2298,7 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThatThrownBy(() ->
 					meetingV2Service.applyEventMeeting(applyDto, applicant.getId())
 				).isInstanceOf(BadRequestException.class)
-				.hasMessageContaining("모임 지원 기간이 아닙니다.");
+				.hasMessageContaining(INVALID_MEETING_CATEGORY.getErrorCode());
 		}
 
 	}

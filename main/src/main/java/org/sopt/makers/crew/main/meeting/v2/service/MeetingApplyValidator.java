@@ -65,13 +65,13 @@ public class MeetingApplyValidator {
 
 	private void validateMeetingCategoryNotEvent(Meeting meeting) {
 		if (meeting.getCategory() == MeetingCategory.EVENT) {
-			throw new BadRequestException(NOT_IN_APPLY_PERIOD.getErrorCode());
+			throw new BadRequestException(INVALID_MEETING_CATEGORY.getErrorCode());
 		}
 	}
 
 	private void validateMeetingCategoryEvent(Meeting meeting) {
 		if (meeting.getCategory() != MeetingCategory.EVENT) {
-			throw new BadRequestException(NOT_IN_APPLY_PERIOD.getErrorCode());
+			throw new BadRequestException(INVALID_MEETING_CATEGORY.getErrorCode());
 		}
 	}
 
