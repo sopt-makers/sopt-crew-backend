@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.advertisement;
 
 import java.security.Principal;
 
+import org.sopt.makers.crew.main.advertisement.dto.AdvertisementMeetingTopGetResponseDto;
 import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.springframework.http.HttpStatus;
@@ -25,5 +26,14 @@ public interface AdvertisementApi {
 	})
 	ResponseEntity<AdvertisementsGetResponseDto> getAdvertisement(@RequestParam(name = "category", required = true) AdvertisementCategory category,
 		Principal principal);
+
+	@Operation(summary = "모임 상단 광고 조회", description = "모임 탭 상단에 노출할 광고와 신청 모임 정보를 조회합니다.")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiResponses(value = {
+		@ApiResponse(
+			responseCode = "200",
+			description = "성공"),
+	})
+	ResponseEntity<AdvertisementMeetingTopGetResponseDto> getMeetingTopAdvertisement(Principal principal);
 
 }

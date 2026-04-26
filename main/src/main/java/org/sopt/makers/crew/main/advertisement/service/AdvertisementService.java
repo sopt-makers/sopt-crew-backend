@@ -1,14 +1,32 @@
 package org.sopt.makers.crew.main.advertisement.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import static org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory.*;
+import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
+import static org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus.*;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+
+import org.sopt.makers.crew.main.advertisement.dto.AdvertisementMeetingTopGetResponseDto;
 import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto;
-import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto.AdvertisementGetDto;
-import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.entity.advertisement.Advertisement;
 import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
+import org.sopt.makers.crew.main.entity.advertisement.enums.EventType;
+import org.sopt.makers.crew.main.entity.advertisement.enums.TargetGeneration;
+import org.sopt.makers.crew.main.entity.apply.Apply;
+import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
+import org.sopt.makers.crew.main.entity.meeting.Meeting;
+import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
+import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
+import org.sopt.makers.crew.main.global.util.Time;
+import org.sopt.makers.crew.main.meeting.v2.service.MeetingPartNormalizer;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,9 +40,18 @@ import lombok.RequiredArgsConstructor;
 public class AdvertisementService {
 
 	private final AdvertisementRepository advertisementRepository;
+	private final MeetingRepository meetingRepository;
+	private final UserRepository userRepository;
+	private final ApplyRepository applyRepository;
+	private final ActiveGenerationProvider activeGenerationProvider;
+	private final MeetingPartNormalizer meetingPartNormalizer;
 	private final Time time;
+	private final AdvertisementValidator advertisementValidator;
+	private final AdvertisementFactory advertisementFactory;
 
 	public AdvertisementsGetResponseDto getAdvertisement(AdvertisementCategory advertisementCategory) {
+		advertisementValidator.validateGeneralAdvertisementCategory(advertisementCategory);
+
 		LocalDateTime now = time.now();
 
 		int maxItems = advertisementCategory.getMaxItems();
@@ -37,7 +64,7 @@ public class AdvertisementService {
 			pageable);
 
 		if (!advertisements.isEmpty()) {
-			return createResponseDto(advertisements);
+			return advertisementFactory.createAdvertisementsResponse(advertisements);
 		}
 
 		advertisements = advertisementRepository.findAdvertisementsByCategory(
@@ -45,13 +72,96 @@ public class AdvertisementService {
 			false,
 			pageable);
 
-		return createResponseDto(advertisements);
+		return advertisementFactory.createAdvertisementsResponse(advertisements);
 	}
 
-	private AdvertisementsGetResponseDto createResponseDto(List<Advertisement> advertisements) {
-		List<AdvertisementGetDto> advertisementDtos = advertisements.stream()
-			.map(AdvertisementGetDto::of)
-			.toList();
-		return AdvertisementsGetResponseDto.of(advertisementDtos);
+	public AdvertisementMeetingTopGetResponseDto getMeetingTopAdvertisement(Integer userId) {
+		LocalDateTime now = time.now();
+		User user = userRepository.findByIdOrThrow(userId);
+
+		List<Advertisement> advertisements = advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, now);
+
+		return advertisements.stream()
+			.map(advertisement -> createMeetingTopResponse(advertisement, user, now))
+			.flatMap(Optional::stream)
+			.findFirst()
+			.orElseGet(AdvertisementMeetingTopGetResponseDto::notDisplay);
+	}
+
+	@Transactional
+	public Advertisement updateMeetingTopAdvertisementDisplay(Integer advertisementId, boolean isDisplay) {
+		Advertisement advertisement = advertisementRepository.findByIdOrThrow(advertisementId);
+
+		advertisementValidator.validateMeetingTopAdvertisement(advertisement);
+		advertisementValidator.validateSingleMeetingTopDisplay(advertisement, isDisplay);
+
+		advertisement.updateDisplay(isDisplay);
+
+		return advertisement;
+	}
+
+	private Optional<AdvertisementMeetingTopGetResponseDto> createMeetingTopResponse(Advertisement advertisement,
+		User user, LocalDateTime now) {
+		if (advertisement.getEventType() != EventType.SOPKATHON) {
+			return Optional.empty();
+		}
+
+		Optional<UserActivityVO> targetActivity = findTargetActivity(user, advertisement.getTargetGeneration());
+		if (targetActivity.isEmpty()) {
+			return Optional.empty();
+		}
+
+		Optional<MeetingJoinablePart> meetingJoinablePart = meetingPartNormalizer.findJoinablePart(
+			targetActivity.get().getPart());
+		if (meetingJoinablePart.isEmpty()) {
+			return Optional.empty();
+		}
+
+		String applyTitle = advertisementFactory.createSopkathonApplyTitle(targetActivity.get().getGeneration(),
+			meetingJoinablePart.get());
+		Optional<Meeting> meeting = meetingRepository.findFirstByTitleOrderByIdDesc(applyTitle);
+		if (meeting.isEmpty() || meeting.get().getMeetingStatus(now) == RECRUITMENT_COMPLETE) {
+			return Optional.empty();
+		}
+
+		List<Apply> participatingApplies = applyRepository.findAllByMeetingIdWithUser(meeting.get().getId(),
+			List.of(WAITING, APPROVE), "ASC");
+		return Optional.of(AdvertisementMeetingTopGetResponseDto.of(
+			advertisement,
+			meeting.get(),
+			targetActivity.get(),
+			advertisementFactory.createParticipatingPartInfo(targetActivity.get(), participatingApplies),
+			advertisementFactory.createSopkathonBrowseQuery(targetActivity.get().getGeneration()),
+			now
+		));
+	}
+
+	private Optional<UserActivityVO> findTargetActivity(User user, TargetGeneration targetGeneration) {
+		TargetGeneration resolvedTargetGeneration = targetGeneration == null ? TargetGeneration.ALL : targetGeneration;
+		return switch (resolvedTargetGeneration) {
+			case ACTIVE -> findActiveGenerationActivity(user);
+			case RECENT -> findRecentActivity(user);
+			case ALL -> findActiveGenerationActivity(user).or(() -> findRecentActivity(user));
+		};
+	}
+
+	private Optional<UserActivityVO> findActiveGenerationActivity(User user) {
+		return getActivities(user).stream()
+			.filter(activity -> activity.getGeneration() == activeGenerationProvider.getActiveGeneration())
+			.filter(activity -> meetingPartNormalizer.findJoinablePart(activity.getPart()).isPresent())
+			.findFirst();
+	}
+
+	private Optional<UserActivityVO> findRecentActivity(User user) {
+		return getActivities(user).stream()
+			.filter(activity -> meetingPartNormalizer.findJoinablePart(activity.getPart()).isPresent())
+			.max(Comparator.comparingInt(UserActivityVO::getGeneration));
+	}
+
+	private List<UserActivityVO> getActivities(User user) {
+		if (user.getActivities() == null) {
+			return List.of();
+		}
+		return user.getActivities();
 	}
 }

@@ -272,13 +272,22 @@ create table if not exists advertisement
     "advertisementCategory"        varchar(255)
     constraint "advertisement_advertisementCategory_check"
     check (("advertisementCategory")::text = ANY
-((ARRAY ['POST'::character varying, 'MEETING'::character varying])::text[])),
+((ARRAY ['POST'::character varying, 'MEETING'::character varying, 'MEETING_TOP'::character varying])::text[])),
     "advertisementDesktopImageUrl" varchar(255),
     "advertisementMobileImageUrl"  varchar(255),
     "isSponsoredContent"           boolean   default false not null,
-    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
-    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
-    );
+    "isDisplay"                    boolean   default true not null,
+    "eventType"                    varchar(255)
+    constraint "advertisement_eventType_check"
+    check (("eventType")::text = ANY
+((ARRAY ['SOPKATHON'::character varying, 'NETWORKING'::character varying])::text[])),
+	    "targetGeneration"             varchar(255) default 'ALL' not null
+	    constraint "advertisement_targetGeneration_check"
+	    check (("targetGeneration")::text = ANY
+	((ARRAY ['ALL'::character varying, 'ACTIVE'::character varying, 'RECENT'::character varying])::text[])),
+	    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+	    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
+	    );
 
 -- SoptMap Tables
 create table if not exists subway_station

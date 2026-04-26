@@ -2,19 +2,28 @@ package org.sopt.makers.crew.main.admin.v2;
 
 import java.util.Map;
 
+import org.sopt.makers.crew.main.admin.v2.dto.AdvertisementDisplayUpdateRequest;
+import org.sopt.makers.crew.main.admin.v2.dto.AdvertisementDisplayUpdateResponse;
 import org.sopt.makers.crew.main.admin.v2.dto.AdminPagePresenter;
+import org.sopt.makers.crew.main.advertisement.service.AdvertisementService;
 import org.sopt.makers.crew.main.admin.v2.service.AdminFacade;
 import org.sopt.makers.crew.main.admin.v2.service.AdminKeyProvider;
 import org.sopt.makers.crew.main.admin.v2.service.AdminService;
 import org.sopt.makers.crew.main.admin.v2.service.JsonPrettierService;
+import org.sopt.makers.crew.main.entity.advertisement.Advertisement;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -26,6 +35,7 @@ public class AdminV2Controller {
 	private final JsonPrettierService jsonPrettierService;
 	private final AdminKeyProvider adminKeyProvider;
 	private final AdminFacade adminFacade;
+	private final AdvertisementService advertisementService;
 
 	/**
 	 * propertyPage 조회
@@ -106,6 +116,16 @@ public class AdminV2Controller {
 			redirectAttributes.addFlashAttribute("error", "Property 삭제 중 오류가 발생했습니다: " + e.getMessage());
 		}
 		return getRedirectUrl();
+	}
+
+	@PatchMapping("/advertisement/meeting-top/{advertisementId}/display")
+	public ResponseEntity<AdvertisementDisplayUpdateResponse> updateMeetingTopAdvertisementDisplay(
+		@PathVariable Integer advertisementId,
+		@Valid @RequestBody AdvertisementDisplayUpdateRequest request
+	) {
+		Advertisement advertisement = advertisementService.updateMeetingTopAdvertisementDisplay(advertisementId,
+			request.isDisplay());
+		return ResponseEntity.ok(AdvertisementDisplayUpdateResponse.from(advertisement));
 	}
 
 	private String getRedirectUrl() {

@@ -9,6 +9,7 @@ import java.util.Objects;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
@@ -70,6 +71,9 @@ public class MeetingResponseDto {
 	@NotNull
 	private final Boolean isMentorNeeded;
 
+	@Schema(description = "모임 참여 정보")
+	private final MeetingJoinInfo joinInfo;
+
 	@Schema(description = "모임 모집 시작일", example = "2024-06-11T15:30:00")
 	@NotNull
 	private final LocalDateTime startDate;
@@ -128,6 +132,7 @@ public class MeetingResponseDto {
 			meeting.getMeetingStatusValue(now),
 			meeting.getImageURL(),
 			meeting.getIsMentorNeeded(),
+			meeting.getJoinInfo(),
 			meeting.getStartDate(),
 			meeting.getEndDate(),
 			meeting.getmStartDate(),

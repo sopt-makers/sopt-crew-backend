@@ -127,6 +127,31 @@ public class MeetingV2ServiceTest {
 		return new MeetingJoinInfo(MeetingType.ONLINE_OFFLINE, MeetingFrequency.STEADY);
 	}
 
+	private void saveApplyUser(Integer meetingId, Integer userId, String name, String part) {
+		saveApplyUser(meetingId, userId, name, part, 38);
+	}
+
+	private void saveApplyUser(Integer meetingId, Integer userId, String name, String part, int generation) {
+		User user = userRepository.save(User.builder()
+			.name(name)
+			.orgId(userId)
+			.activities(List.of(new UserActivityVO(part, generation)))
+			.profileImage("profile.jpg")
+			.phone("010-0000-0000")
+			.build());
+
+		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+		Apply apply = Apply.builder()
+			.type(EnApplyType.APPLY)
+			.meeting(meeting)
+			.meetingId(meetingId)
+			.user(user)
+			.userId(user.getId())
+			.content(part + " 신청합니다.")
+			.build();
+		applyRepository.save(apply);
+	}
+
 	@Nested
 	class 모임_생성 {
 		@ParameterizedTest
@@ -648,38 +673,38 @@ public class MeetingV2ServiceTest {
 				.toList();
 
 			// then
-			Assertions.assertThat(meetings)
-				.extracting(
-					"title", "subTitle", "category", "canJoinOnlyActiveGeneration",
-					"mStartDate", "mEndDate",
-					"capacity", "isMentorNeeded", "targetActiveGeneration",
-					"joinableParts", "status", "approvedCount"
-				).containsExactly(
-					tuple("스터디 구합니다1", "스터디 부제목1", "행사", true,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, true, 35,
-						new MeetingJoinablePart[] {PM, SERVER}, 1, 2
-					),
-					tuple("스터디 구합니다 - 신청전", "스터디 부제목2", "스터디", false,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, false, null,
-						new MeetingJoinablePart[] {PM, SERVER}, 0, 0
-					),
-					tuple("세미나 구합니다 - 신청후", "세미나 부제목4", "세미나", false,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						13, false, null,
-						new MeetingJoinablePart[] {WEB, IOS}, 2, 0
-					),
-					tuple("스터디 구합니다 - 신청후", "스터디 부제목3", "스터디", false,
-						LocalDateTime.of(2024, 5, 29, 0, 0),
-						LocalDateTime.of(2024, 5, 31, 23, 59, 59),
-						10, false, null,
-						new MeetingJoinablePart[] {PM, SERVER}, 2, 0
-					)
-				);
+				Assertions.assertThat(meetings)
+					.extracting(
+						"title", "subTitle", "category", "canJoinOnlyActiveGeneration",
+						"mStartDate", "mEndDate",
+						"capacity", "isMentorNeeded", "joinInfo", "targetActiveGeneration",
+						"joinableParts", "status", "approvedCount"
+					).containsExactly(
+						tuple("스터디 구합니다1", "스터디 부제목1", "행사", true,
+							LocalDateTime.of(2024, 5, 29, 0, 0),
+							LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+							10, true, new MeetingJoinInfo(MeetingType.ONLINE, MeetingFrequency.STEADY), 35,
+							new MeetingJoinablePart[] {PM, SERVER}, 1, 2
+						),
+						tuple("스터디 구합니다 - 신청전", "스터디 부제목2", "스터디", false,
+							LocalDateTime.of(2024, 5, 29, 0, 0),
+							LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+							10, false, new MeetingJoinInfo(MeetingType.OFFLINE, MeetingFrequency.LIGHT), null,
+							new MeetingJoinablePart[] {PM, SERVER}, 0, 0
+						),
+						tuple("세미나 구합니다 - 신청후", "세미나 부제목4", "세미나", false,
+							LocalDateTime.of(2024, 5, 29, 0, 0),
+							LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+							13, false, new MeetingJoinInfo(MeetingType.ONLINE, MeetingFrequency.LIGHT), null,
+							new MeetingJoinablePart[] {WEB, IOS}, 2, 0
+						),
+						tuple("스터디 구합니다 - 신청후", "스터디 부제목3", "스터디", false,
+							LocalDateTime.of(2024, 5, 29, 0, 0),
+							LocalDateTime.of(2024, 5, 31, 23, 59, 59),
+							10, false, new MeetingJoinInfo(MeetingType.ONLINE_OFFLINE, MeetingFrequency.IMMERSIVE), null,
+							new MeetingJoinablePart[] {PM, SERVER}, 2, 0
+						)
+					);
 
 			Assertions.assertThat(meetingCreatorDtos)
 				.extracting("name", "profileImage", "activities", "phone")
@@ -1195,7 +1220,7 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
-		@DisplayName("활동 기수가 아닌 조회자는 마지막 활동 파트 기준 같은 파트 참여 정보를 반환한다.")
+		@DisplayName("명예기수 조회자는 본인이 참여했던 가장 최신 기수 기준 신청중인 멤버 정보를 반환한다.")
 		void nonActiveGenerationUser_getMeetingById_participantPartInfo() {
 			// given
 			Integer meetingId = 1;
@@ -1206,15 +1231,25 @@ public class MeetingV2ServiceTest {
 
 			// then
 			Assertions.assertThat(responseDto.getParticipatingPartInfo().part()).isEqualTo("서버");
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(0);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(1);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().isActiveGeneration()).isFalse();
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(33);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().memberNames())
+				.containsExactly("승인신청자");
 		}
 
 		@Test
-		@DisplayName("서버 조회자는 백엔드 신청자를 같은 파트 참여자로 집계한다.")
-		void serverUser_getMeetingById_backendApplicant_samePart() {
+		@DisplayName("활동 기수 서버 조회자는 백엔드 신청자를 같은 파트 참여자로 집계한다.")
+		void activeGenerationServerUser_getMeetingById_backendApplicant_samePart() {
 			// given
 			Integer meetingId = 1;
-			Integer userId = 1;
+			User activeGenerationServerUser = userRepository.save(User.builder()
+				.name("활동기수서버조회자")
+				.orgId(1004)
+				.activities(List.of(new UserActivityVO("서버", 35)))
+				.profileImage("active-server-profile.jpg")
+				.phone("010-1004-1004")
+				.build());
 
 			User backendUser = User.builder()
 				.name("백엔드신청자")
@@ -1237,11 +1272,64 @@ public class MeetingV2ServiceTest {
 			applyRepository.save(apply);
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId, userId);
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				activeGenerationServerUser.getId());
 
 			// then
 			Assertions.assertThat(responseDto.getParticipatingPartInfo().part()).isEqualTo("서버");
 			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(1);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().isActiveGeneration()).isTrue();
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(35);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().memberNames()).containsExactly("백엔드신청자");
+		}
+
+		@Test
+		@DisplayName("여러 명예기수 활동 이력이 있으면 가장 최신 기수 신청자만 반환한다.")
+		void honoraryGenerationUser_getMeetingById_latestHonoraryGenerationApplicantInfo() {
+			// given
+			Integer meetingId = 1;
+			User honoraryUser = userRepository.save(User.builder()
+				.name("명예기수조회자")
+				.orgId(1005)
+				.activities(List.of(
+					new UserActivityVO("서버", 36),
+					new UserActivityVO("디자인", 37)
+				))
+				.profileImage("honorary-profile.jpg")
+				.phone("010-1005-1005")
+				.build());
+
+			saveApplyUser(meetingId, 1006, "36기신청자", "기획", 36);
+			saveApplyUser(meetingId, 1007, "37기신청자", "웹", 37);
+			saveApplyUser(meetingId, 1008, "활동기수신청자", "디자인", 35);
+
+			// when
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				honoraryUser.getId());
+
+			// then
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().isActiveGeneration()).isFalse();
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(37);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(1);
+			Assertions.assertThat(responseDto.getParticipatingPartInfo().memberNames())
+				.containsExactly("37기신청자");
+		}
+
+		@Test
+		@DisplayName("활동 이력이 없는 사용자가 상세 조회 시 예외가 발생한다.")
+		void noActivityUser_getMeetingById_throwException() {
+			Integer meetingId = 1;
+			User noActivityUser = userRepository.save(User.builder()
+				.name("활동없음조회자")
+				.orgId(2001)
+				.activities(null)
+				.profileImage("no-activity-profile.jpg")
+				.phone("010-2001-2001")
+				.build());
+
+			Assertions.assertThatThrownBy(() -> meetingV2Service.getMeetingDetail(meetingId, noActivityUser.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(MISSING_GENERATION_PART.getErrorCode());
 		}
 
 		@Test
@@ -1418,26 +1506,23 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.memberNames()).containsExactly("프론트엔드신청자");
 		}
 
-		private void saveApplyUser(Integer meetingId, Integer userId, String name, String part) {
-			User user = userRepository.save(User.builder()
-				.name(name)
-				.orgId(userId)
-				.activities(List.of(new UserActivityVO(part, 38)))
-				.profileImage("profile.jpg")
-				.phone("010-0000-0000")
+		@Test
+		@DisplayName("활동 이력이 없는 사용자가 모집현황 멤버 조회 시 예외가 발생한다.")
+		void noActivityUser_getMeetingPartMembers_throwException() {
+			Integer meetingId = 1;
+			User noActivityUser = userRepository.save(User.builder()
+				.name("활동없음조회자")
+				.orgId(2002)
+				.activities(null)
+				.profileImage("no-activity-profile.jpg")
+				.phone("010-2002-2002")
 				.build());
 
-			Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
-			Apply apply = Apply.builder()
-				.type(EnApplyType.APPLY)
-				.meeting(meeting)
-				.meetingId(meetingId)
-				.user(user)
-				.userId(user.getId())
-				.content(part + " 신청합니다.")
-				.build();
-			applyRepository.save(apply);
+			Assertions.assertThatThrownBy(() -> meetingV2Service.getMeetingPartMembers(meetingId, noActivityUser.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(MISSING_GENERATION_PART.getErrorCode());
 		}
+
 	}
 
 	@Nested
@@ -2155,7 +2240,7 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThatThrownBy(() ->
 					meetingV2Service.applyGeneralMeeting(applyDto, applicant.getId())
 				).isInstanceOf(BadRequestException.class)
-				.hasMessageContaining("모임 지원 기간이 아닙니다.");
+				.hasMessageContaining(INVALID_MEETING_CATEGORY.getErrorCode());
 		}
 
 		@ParameterizedTest
@@ -2213,7 +2298,7 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThatThrownBy(() ->
 					meetingV2Service.applyEventMeeting(applyDto, applicant.getId())
 				).isInstanceOf(BadRequestException.class)
-				.hasMessageContaining("모임 지원 기간이 아닙니다.");
+				.hasMessageContaining(INVALID_MEETING_CATEGORY.getErrorCode());
 		}
 
 	}
