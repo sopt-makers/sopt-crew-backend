@@ -1,37 +1,72 @@
 server:
   port: 4000
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
 
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: lambda-dev
     import: application-secret.properties
+
+  main:
+    lazy-initialization: true
+
+  cache:
+    type: redis
+  
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 3
+          max-idle: 2
+          min-idle: 0
+  
   datasource:
     driver-class-name: org.postgresql.Driver
     jdbc-url: jdbc:postgresql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_DB_NAME}?currentSchema=${DEV_DB_V2_SCHEMA}
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 1
+      minimum-idle: 0
+      connection-timeout: 5000
+      idle-timeout: 30000
+      max-lifetime: 60000
+      validation-timeout: 2000
+      leak-detection-threshold: 20000
+      connection-test-query: SELECT 1
+      register-mbeans: false
+
   playground-datasource:
     jdbc-url: jdbc:postgresql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_PLAYGROUND_DB_NAME}?currentSchema=${DEV_PLAYGROUND_DB_SCHEMA}
     username: ${DEV_PLAYGROUND_DB_USERNAME}
     password: ${DEV_PLAYGROUND_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 1
+      minimum-idle: 0
+      connection-timeout: 5000
+      validation-timeout: 2000
+
   jpa:
     open-in-view: false
     hibernate:
       naming:
         physical-strategy: org.sopt.makers.crew.main.global.config.CamelCaseNamingStrategy
-      ddl-auto: none
+      ddl-auto: validate
     properties:
       hibernate:
         show_sql: true
         format_sql: true
-      dialect: org.hibernate.dialect.PostgreSQLDialect
-      storage_engine: innodb
-  cache:
-    type: caffeine
-    caffeine:
-      spec: maximumSize=500,expireAfterWrite=24h
-
+        enable_lazy_load_no_trans: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 aws-property:
   aws-region: ${AWS_REGION}
@@ -72,17 +107,17 @@ jwt:
 
 external:
   auth:
-    url: https://auth.api.dev.sopt.org
+    url: https://auth-dev-api.sopt.org
     api-key: ${AUTH_API_KEY}
     service-name: ${OUR_SERVICE_NAME}
     jwk: ${MAKERS_AUTH_JWK_ENDPOINT}
     users: ${MAKERS_AUTH_USERS_ENDPOINT}
 
 management:
-  server:
-    port: ${ACTUATOR_PORT}
   health:
     redis:
+      enabled: true
+    diskspace:
       enabled: false
   endpoints:
     enabled-by-default: false
@@ -91,20 +126,12 @@ management:
         exclude: "*"
     web:
       exposure:
-        include: health, info, metrics, prometheus, caches, cachecontents
+        include: health, info
       base-path: ${ACTUATOR_PATH}
   endpoint:
     health:
       enabled: true
     info:
-      enabled: true
-    metrics:
-      enabled: true
-    prometheus:
-      enabled: true
-    caches:
-      enabled: true
-    cachecontents:
       enabled: true
 
 custom:
@@ -116,7 +143,6 @@ sentry:
   dsn: ${SENTRY_DSN}
   environment: ${DEV_SENTRY_ENVIRONMENT}
   servername: ${DEV_SENTRY_SERVERNAME}
-
 
 img:
   flash: ${FLASH_IMAGE}
