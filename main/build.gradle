@@ -132,6 +132,11 @@ dependencies {
     // Library for parsing JWT/JWK tokens and verifying their signatures
     implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
 
+    // AWS Lambda Dependencies (for Serverless deployment)
+    implementation 'com.amazonaws.serverless:aws-serverless-java-container-springboot3:2.1.5'
+    implementation 'com.amazonaws:aws-lambda-java-core:1.4.0'
+    implementation 'com.amazonaws:aws-lambda-java-events:3.16.1'
+
 }
 
 tasks.named('test') {
@@ -199,6 +204,37 @@ jacocoTestCoverageVerification {
                     '*.response'
                     // ...
             ]
+        }
+    }
+}
+
+// Lambda 배포를 위한 ZIP 패키징 태스크
+// 실행: ./gradlew clean lambdaJar -x test
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = true
+}
+
+task lambdaJar(type: Zip) {
+    dependsOn jar
+    archiveClassifier = 'lambda'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    zip64 = true
+
+    into('lib') {
+        from(jar)
+        from(configurations.runtimeClasspath) {
+            exclude "**/tomcat-embed-*.jar"
+            exclude "org/apache/tomcat/**"
+            exclude "META-INF/*.SF"
+            exclude "META-INF/*.DSA"
+            exclude "META-INF/*.RSA"
+            exclude "META-INF/MANIFEST.MF"
+            exclude "**/module-info.class"
         }
     }
 }
