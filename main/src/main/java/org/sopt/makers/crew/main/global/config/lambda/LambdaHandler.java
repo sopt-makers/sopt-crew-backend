@@ -14,16 +14,13 @@ import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class LambdaHandler implements RequestStreamHandler {
 
 	private static final SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
 
 	static {
 		try {
-			log.info("Lambda Handler 초기화 시작...");
+			System.setProperty("spring.main.web-application-type", "servlet");
 
 			handler = SpringBootLambdaContainerHandler.getAwsProxyHandler(MainApplication.class);
 
@@ -36,7 +33,6 @@ public class LambdaHandler implements RequestStreamHandler {
 		} catch (ContainerInitializationException e) {
 			throw new RuntimeException("Could not initialize Spring Boot application", e);
 		} catch (Exception e) {
-			log.error("Spring Boot 애플리케이션 초기화 실패", e);
 			throw new RuntimeException("Could not initialize Lambda handler", e);
 		}
 	}
