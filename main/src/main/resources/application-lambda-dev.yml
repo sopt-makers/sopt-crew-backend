@@ -13,6 +13,7 @@ spring:
     import: application-secret.properties
 
   main:
+    web-application-type: servlet
     lazy-initialization: true
 
   cache:
