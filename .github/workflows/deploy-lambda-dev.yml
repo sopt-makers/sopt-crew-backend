@@ -78,20 +78,23 @@ jobs:
           echo "=== lib/main.jar 내부 리소스 확인 ==="
           unzip -q "$ZIP_FILE" -d /tmp/lambda-check
           
-          if [ -f "/tmp/lambda-check/lib/main.jar" ]; then
-            echo "✅ lib/main.jar 존재"
-            
-            if unzip -l /tmp/lambda-check/lib/main.jar | grep -q "application-secret.properties"; then
+          JAR_FILE=$(find /tmp/lambda-check/lib -maxdepth 1 -name "main-*.jar" | head -n 1)
+          
+          
+          if [ -f "$JAR_FILE" ]; then
+            echo "✅ jar 존재"
+          
+            if unzip -l "$JAR_FILE" | grep -q "application-secret.properties"; then
               echo "✅ application-secret.properties가 main.jar에 포함되어 있습니다"
-              unzip -l /tmp/lambda-check/lib/main.jar | grep -E "\.properties|\.yml|\.yaml"
+              unzip -l "$JAR_FILE" | grep -E "\.properties|\.yml|\.yaml"
             else
               echo "❌ application-secret.properties가 main.jar에 포함되지 않았습니다!"
               echo "=== main.jar 내 리소스 파일 목록 ==="
-              unzip -l /tmp/lambda-check/lib/main.jar | grep -E "\.properties|\.yml|\.yaml" || echo "properties/yml 파일 없음"
+              unzip -l "$JAR_FILE" | grep -E "\.properties|\.yml|\.yaml" || echo "properties/yml 파일 없음"
               exit 1
             fi
           else
-            echo "❌ lib/main.jar를 찾을 수 없습니다"
+            echo "❌ lib/*.jar를 찾을 수 없습니다"
             ls -la /tmp/lambda-check/
             exit 1
           fi
@@ -139,11 +142,11 @@ jobs:
             --query "StackResources[?ResourceType=='AWS::Lambda::Function'].PhysicalResourceId" \
             --output text \
             --region ap-northeast-2)
-            
+          
           if [ -n "$FUNCTION_NAME" ] && [ "$FUNCTION_NAME" != "None" ]; then
             LOG_GROUP="/aws/lambda/$FUNCTION_NAME"
             echo "✅ 실제 로그 그룹: $LOG_GROUP"
-            
+          
             echo "=== 최근 에러 로그 확인 ==="
             aws logs tail "$LOG_GROUP" \
               --since 10m \
