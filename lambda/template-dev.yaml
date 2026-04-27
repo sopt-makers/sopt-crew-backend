@@ -14,6 +14,17 @@ Globals:
       - x86_64
 
 Resources:
+  CrewApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      EndpointConfiguration: REGIONAL
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'*'"
+        AllowMethods: "'*'"
+        AllowCredentials: "'false'"
+
   CrewApiFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -35,20 +46,22 @@ Resources:
       #     - subnet-xxxxxxxx  # TODO: Redis와 통신 가능한 Subnet ID로 변경
       Events:
         RootPath:
-          Type: HttpApi
+          Type: Api
           Properties:
+            RestApiId: !Ref CrewApiGateway
             Path: /
-            Method: any
+            Method: ANY
         ProxyPath:
-          Type: HttpApi
+          Type: Api
           Properties:
+            RestApiId: !Ref CrewApiGateway
             Path: /{proxy+}
-            Method: any
+            Method: ANY
 
 Outputs:
   CrewApiEndpoint:
     Description: "API Gateway endpoint URL for Dev environment"
-    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
+    Value: !Sub "https://${CrewApiGateway}.execute-api.${AWS::Region}.amazonaws.com/dev/"
   CrewApiFunctionArn:
     Description: "Lambda Function ARN"
     Value: !GetAtt CrewApiFunction.Arn
