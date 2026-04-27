@@ -25,6 +25,7 @@ Resources:
         ApplyOn: PublishedVersions
       Environment:
         Variables:
+          SPRING_MAIN_WEB_APPLICATION_TYPE: servlet
           SPRING_PROFILES_ACTIVE: lambda-dev
           JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
       # VpcConfig:
