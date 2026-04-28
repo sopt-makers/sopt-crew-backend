@@ -48,6 +48,19 @@ public class LambdaHandler implements RequestStreamHandler {
 	@Override
 	public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context)
 		throws IOException {
-		handler.proxyStream(inputStream, outputStream, context);
+
+		context.getLogger().log("lambda handler entered\n");
+
+		try {
+			handler.proxyStream(inputStream, outputStream, context);
+			context.getLogger().log("lambda handler completed\n");
+		} catch (Exception e) {
+			context.getLogger().log("lambda handler failed: " + e + "\n");
+			for (StackTraceElement element : e.getStackTrace()) {
+				context.getLogger().log(element.toString() + "\n");
+			}
+			throw e;
+		}
+
 	}
 }
