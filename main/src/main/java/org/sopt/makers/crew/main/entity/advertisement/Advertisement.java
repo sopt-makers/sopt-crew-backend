@@ -42,6 +42,16 @@ public class Advertisement extends BaseTimeEntity {
 	@NotNull
 	private String advertisementLink;
 
+	private String calendarImageUrl;
+
+	private String titlePrefix;
+
+	private String titleHighlight;
+
+	private String titleSuffix;
+
+	private String subTitle;
+
 	@NotNull
 	@Enumerated(EnumType.STRING)
 	private AdvertisementCategory advertisementCategory;
@@ -76,13 +86,19 @@ public class Advertisement extends BaseTimeEntity {
 
 	@Builder
 	private Advertisement(String advertisementDesktopImageUrl, String advertisementMobileImageUrl,
-		String advertisementLink,
+		String advertisementLink, String calendarImageUrl, String titlePrefix, String titleHighlight,
+		String titleSuffix, String subTitle,
 		AdvertisementCategory advertisementCategory, Long priority, LocalDateTime advertisementStartDate,
 		LocalDateTime advertisementEndDate, boolean isSponsoredContent, Boolean isDisplay, EventType eventType,
 		TargetGeneration targetGeneration) {
 		this.advertisementDesktopImageUrl = advertisementDesktopImageUrl;
 		this.advertisementMobileImageUrl = advertisementMobileImageUrl;
 		this.advertisementLink = advertisementLink;
+		this.calendarImageUrl = calendarImageUrl;
+		this.titlePrefix = titlePrefix;
+		this.titleHighlight = titleHighlight;
+		this.titleSuffix = titleSuffix;
+		this.subTitle = subTitle;
 		this.advertisementCategory = advertisementCategory;
 		this.priority = priority;
 		this.advertisementStartDate = advertisementStartDate;

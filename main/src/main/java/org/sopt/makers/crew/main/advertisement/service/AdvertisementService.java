@@ -1,8 +1,6 @@
 package org.sopt.makers.crew.main.advertisement.service;
 
 import static org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory.*;
-import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
-import static org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus.*;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -16,10 +14,6 @@ import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.sopt.makers.crew.main.entity.advertisement.enums.EventType;
 import org.sopt.makers.crew.main.entity.advertisement.enums.TargetGeneration;
-import org.sopt.makers.crew.main.entity.apply.Apply;
-import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
-import org.sopt.makers.crew.main.entity.meeting.Meeting;
-import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
@@ -40,9 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class AdvertisementService {
 
 	private final AdvertisementRepository advertisementRepository;
-	private final MeetingRepository meetingRepository;
 	private final UserRepository userRepository;
-	private final ApplyRepository applyRepository;
 	private final ActiveGenerationProvider activeGenerationProvider;
 	private final MeetingPartNormalizer meetingPartNormalizer;
 	private final Time time;
@@ -75,14 +67,16 @@ public class AdvertisementService {
 		return advertisementFactory.createAdvertisementsResponse(advertisements);
 	}
 
-	public AdvertisementMeetingTopGetResponseDto getMeetingTopAdvertisement(Integer userId) {
+	public AdvertisementMeetingTopGetResponseDto getMeetingTopAdvertisement(Integer userId, EventType eventType) {
 		LocalDateTime now = time.now();
 		User user = userRepository.findByIdOrThrow(userId);
+		EventType resolvedEventType = eventType == null ? EventType.SOPKATHON : eventType;
 
 		List<Advertisement> advertisements = advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, now);
 
 		return advertisements.stream()
-			.map(advertisement -> createMeetingTopResponse(advertisement, user, now))
+			.filter(advertisement -> advertisement.getEventType() == resolvedEventType)
+			.map(advertisement -> createMeetingTopResponse(advertisement, user))
 			.flatMap(Optional::stream)
 			.findFirst()
 			.orElseGet(AdvertisementMeetingTopGetResponseDto::notDisplay);
@@ -101,8 +95,8 @@ public class AdvertisementService {
 	}
 
 	private Optional<AdvertisementMeetingTopGetResponseDto> createMeetingTopResponse(Advertisement advertisement,
-		User user, LocalDateTime now) {
-		if (advertisement.getEventType() != EventType.SOPKATHON) {
+		User user) {
+		if (advertisement.getEventType() == null) {
 			return Optional.empty();
 		}
 
@@ -117,22 +111,10 @@ public class AdvertisementService {
 			return Optional.empty();
 		}
 
-		String applyTitle = advertisementFactory.createSopkathonApplyTitle(targetActivity.get().getGeneration(),
-			meetingJoinablePart.get());
-		Optional<Meeting> meeting = meetingRepository.findFirstByTitleOrderByIdDesc(applyTitle);
-		if (meeting.isEmpty() || meeting.get().getMeetingStatus(now) == RECRUITMENT_COMPLETE) {
-			return Optional.empty();
-		}
-
-		List<Apply> participatingApplies = applyRepository.findAllByMeetingIdWithUser(meeting.get().getId(),
-			List.of(WAITING, APPROVE), "ASC");
 		return Optional.of(AdvertisementMeetingTopGetResponseDto.of(
 			advertisement,
-			meeting.get(),
-			targetActivity.get(),
-			advertisementFactory.createParticipatingPartInfo(targetActivity.get(), participatingApplies),
-			advertisementFactory.createSopkathonBrowseQuery(targetActivity.get().getGeneration()),
-			now
+			activeGenerationProvider.getActiveGeneration(),
+			meetingJoinablePart.get().getDisplayName()
 		));
 	}
 

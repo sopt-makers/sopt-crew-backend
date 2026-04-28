@@ -3,12 +3,10 @@ package org.sopt.makers.crew.main.advertisement.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory.*;
-import static org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,16 +20,6 @@ import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.sopt.makers.crew.main.entity.advertisement.enums.EventType;
 import org.sopt.makers.crew.main.entity.advertisement.enums.TargetGeneration;
-import org.sopt.makers.crew.main.entity.apply.Apply;
-import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
-import org.sopt.makers.crew.main.entity.meeting.Meeting;
-import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingFrequency;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingType;
-import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
-import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserFixture;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
@@ -49,13 +37,7 @@ class AdvertisementServiceTest {
 	private AdvertisementRepository advertisementRepository;
 
 	@Mock
-	private MeetingRepository meetingRepository;
-
-	@Mock
 	private UserRepository userRepository;
-
-	@Mock
-	private ApplyRepository applyRepository;
 
 	@Mock
 	private ActiveGenerationProvider activeGenerationProvider;
@@ -75,9 +57,7 @@ class AdvertisementServiceTest {
 		);
 		advertisementService = new AdvertisementService(
 			advertisementRepository,
-			meetingRepository,
 			userRepository,
-			applyRepository,
 			activeGenerationProvider,
 			new MeetingPartNormalizer(),
 			time,
@@ -87,46 +67,59 @@ class AdvertisementServiceTest {
 	}
 
 	@Test
-	@DisplayName("모임 상단 광고 조회 시 부제목과 참여 정보 관련 필드를 반환한다.")
+	@DisplayName("모임 상단 광고 조회 시 배너 정보와 리스트 진입 링크를 반환한다.")
 	void getMeetingTopAdvertisement_returnsMeetingTopResponse() {
 		User requestUser = UserFixture.createUser(1, "서버", 38);
-		User participant = UserFixture.createUser(2, "백엔드", 38);
 		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL);
-		MeetingJoinInfo joinInfo = new MeetingJoinInfo(MeetingType.ONLINE_OFFLINE, MeetingFrequency.LIGHT);
-		Meeting meeting = createMeeting(joinInfo);
-		Apply apply = Apply.builder()
-			.meeting(meeting)
-			.meetingId(100)
-			.user(participant)
-			.userId(participant.getId())
-			.content("함께 참여하고 싶습니다.")
-			.build();
 
 		setField(advertisement, "id", 10);
-		setField(meeting, "id", 100);
 
 		when(time.now()).thenReturn(NOW);
 		when(activeGenerationProvider.getActiveGeneration()).thenReturn(38);
 		when(userRepository.findByIdOrThrow(requestUser.getId())).thenReturn(requestUser);
 		when(advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, NOW)).thenReturn(List.of(advertisement));
-		when(meetingRepository.findFirstByTitleOrderByIdDesc("[38기 솝커톤] 서버 파트 신청")).thenReturn(
-			Optional.of(meeting));
-		when(applyRepository.findAllByMeetingIdWithUser(100, List.of(WAITING, APPROVE), "ASC")).thenReturn(
-			List.of(apply));
 
 		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(
-			requestUser.getId());
+			requestUser.getId(), EventType.SOPKATHON);
 
 		assertThat(response.isDisplay()).isTrue();
+		assertThat(response.eventType()).isEqualTo(EventType.SOPKATHON);
 		assertThat(response.advertisementId()).isEqualTo(10);
-		assertThat(response.meetingId()).isEqualTo(100);
-		assertThat(response.title()).isEqualTo("[38기 솝커톤] 서버 파트 신청");
-		assertThat(response.subTitle()).isEqualTo("서버 파트 솝커톤");
-		assertThat(response.joinInfo()).isEqualTo(joinInfo);
-		assertThat(response.participatingPartInfo().part()).isEqualTo("서버");
-		assertThat(response.participatingPartInfo().participantCount()).isEqualTo(1);
-		assertThat(response.browseAction().query()).isEqualTo("38기 솝커톤");
-		assertThat(response.browseAction().page()).isEqualTo(1);
+		assertThat(response.desktopImageUrl()).isEqualTo("https://example.com/desktop.png");
+		assertThat(response.mobileImageUrl()).isEqualTo("https://example.com/mobile.png");
+		assertThat(response.calendarImageUrl()).isEqualTo("https://example.com/calendar.png");
+		assertThat(response.title().prefix()).isEqualTo("5월 4일 ");
+		assertThat(response.title().highlight()).isEqualTo("솝커톤 신청");
+		assertThat(response.title().suffix()).isEqualTo(" OPEN!");
+		assertThat(response.subTitle()).isEqualTo("우리만의 해커톤, 누구보다 빠르게 신청하세요!");
+		assertThat(response.bannerLink1()).isEqualTo("/list?search=38기+솝커톤&page=1");
+		assertThat(response.bannerLink2()).isEqualTo("/list?page=1&part=서버&search=솝커톤");
+	}
+
+	@Test
+	@DisplayName("모임 상단 광고 조회 시 요청 이벤트 타입의 텍스트로 리스트 진입 링크를 반환한다.")
+	void getMeetingTopAdvertisement_returnsLinksByRequestedEventType() {
+		User requestUser = UserFixture.createUser(1, "서버", 38);
+		Advertisement sopkathonAdvertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true,
+			EventType.SOPKATHON);
+		Advertisement networkingAdvertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true,
+			EventType.NETWORKING);
+
+		setField(networkingAdvertisement, "id", 11);
+
+		when(time.now()).thenReturn(NOW);
+		when(activeGenerationProvider.getActiveGeneration()).thenReturn(38);
+		when(userRepository.findByIdOrThrow(requestUser.getId())).thenReturn(requestUser);
+		when(advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, NOW)).thenReturn(
+			List.of(sopkathonAdvertisement, networkingAdvertisement));
+
+		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(
+			requestUser.getId(), EventType.NETWORKING);
+
+		assertThat(response.eventType()).isEqualTo(EventType.NETWORKING);
+		assertThat(response.advertisementId()).isEqualTo(11);
+		assertThat(response.bannerLink1()).isEqualTo("/list?search=38기+네트워킹&page=1");
+		assertThat(response.bannerLink2()).isEqualTo("/list?page=1&part=서버&search=네트워킹");
 	}
 
 	@Test
@@ -141,10 +134,9 @@ class AdvertisementServiceTest {
 		when(advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, NOW)).thenReturn(List.of(advertisement));
 
 		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(
-			requestUser.getId());
+			requestUser.getId(), EventType.SOPKATHON);
 
 		assertThat(response.isDisplay()).isFalse();
-		verify(meetingRepository, never()).findFirstByTitleOrderByIdDesc(anyString());
 	}
 
 	@Test
@@ -204,45 +196,28 @@ class AdvertisementServiceTest {
 
 	private Advertisement createAdvertisement(TargetGeneration targetGeneration, AdvertisementCategory advertisementCategory,
 		boolean isDisplay) {
+		return createAdvertisement(targetGeneration, advertisementCategory, isDisplay, EventType.SOPKATHON);
+	}
+
+	private Advertisement createAdvertisement(TargetGeneration targetGeneration, AdvertisementCategory advertisementCategory,
+		boolean isDisplay, EventType eventType) {
 		return Advertisement.builder()
 			.advertisementDesktopImageUrl("https://example.com/desktop.png")
 			.advertisementMobileImageUrl("https://example.com/mobile.png")
 			.advertisementLink("https://example.com")
+			.calendarImageUrl("https://example.com/calendar.png")
+			.titlePrefix("5월 4일 ")
+			.titleHighlight("솝커톤 신청")
+			.titleSuffix(" OPEN!")
+			.subTitle("우리만의 해커톤, 누구보다 빠르게 신청하세요!")
 			.advertisementCategory(advertisementCategory)
 			.priority(1L)
 			.advertisementStartDate(NOW.minusDays(1))
 			.advertisementEndDate(NOW.plusDays(1))
 			.isSponsoredContent(false)
 			.isDisplay(isDisplay)
-			.eventType(EventType.SOPKATHON)
+			.eventType(eventType)
 			.targetGeneration(targetGeneration)
-			.build();
-	}
-
-	private Meeting createMeeting(MeetingJoinInfo joinInfo) {
-		User leader = UserFixture.createUser(3, "서버", 38);
-		return Meeting.builder()
-			.user(leader)
-			.userId(leader.getId())
-			.title("[38기 솝커톤] 서버 파트 신청")
-			.subTitle("서버 파트 솝커톤")
-			.category(MeetingCategory.EVENT)
-			.imageURL(List.of(new ImageUrlVO(1, "https://example.com/meeting.png")))
-			.startDate(NOW.minusHours(1))
-			.endDate(NOW.plusHours(1))
-			.capacity(50)
-			.desc("솝커톤 신청 모임입니다.")
-			.processDesc("온오프라인으로 진행합니다.")
-			.mStartDate(NOW.plusDays(1))
-			.mEndDate(NOW.plusDays(2))
-			.leaderDesc("운영진")
-			.note("유의사항")
-			.isMentorNeeded(false)
-			.canJoinOnlyActiveGeneration(false)
-			.joinInfo(joinInfo)
-			.createdGeneration(38)
-			.targetActiveGeneration(38)
-			.joinableParts(MeetingJoinablePart.values())
 			.build();
 	}
 }
