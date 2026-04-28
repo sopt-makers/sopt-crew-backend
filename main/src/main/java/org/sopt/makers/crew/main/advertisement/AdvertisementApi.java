@@ -5,6 +5,7 @@ import java.security.Principal;
 import org.sopt.makers.crew.main.advertisement.dto.AdvertisementMeetingTopGetResponseDto;
 import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
+import org.sopt.makers.crew.main.entity.advertisement.enums.EventType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,6 +35,8 @@ public interface AdvertisementApi {
 			responseCode = "200",
 			description = "성공"),
 	})
-	ResponseEntity<AdvertisementMeetingTopGetResponseDto> getMeetingTopAdvertisement(Principal principal);
+	ResponseEntity<AdvertisementMeetingTopGetResponseDto> getMeetingTopAdvertisement(
+		@RequestParam(name = "eventType", defaultValue = "SOPKATHON") EventType eventType,
+		Principal principal);
 
 }

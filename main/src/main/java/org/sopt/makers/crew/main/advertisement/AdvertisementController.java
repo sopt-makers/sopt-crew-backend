@@ -6,6 +6,7 @@ import org.sopt.makers.crew.main.advertisement.dto.AdvertisementMeetingTopGetRes
 import org.sopt.makers.crew.main.advertisement.dto.AdvertisementsGetResponseDto;
 import org.sopt.makers.crew.main.advertisement.service.AdvertisementService;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
+import org.sopt.makers.crew.main.entity.advertisement.enums.EventType;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,9 +36,11 @@ public class AdvertisementController implements AdvertisementApi {
 
 	@Override
 	@GetMapping("/meeting/top")
-	public ResponseEntity<AdvertisementMeetingTopGetResponseDto> getMeetingTopAdvertisement(Principal principal) {
+	public ResponseEntity<AdvertisementMeetingTopGetResponseDto> getMeetingTopAdvertisement(
+		@RequestParam(name = "eventType", defaultValue = "SOPKATHON") EventType eventType,
+		Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
-		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(userId);
+		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(userId, eventType);
 		return ResponseEntity.ok().body(response);
 	}
 }

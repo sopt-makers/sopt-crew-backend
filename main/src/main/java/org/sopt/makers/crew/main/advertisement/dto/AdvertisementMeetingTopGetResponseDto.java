@@ -1,13 +1,7 @@
 package org.sopt.makers.crew.main.advertisement.dto;
 
-import java.time.LocalDateTime;
-
 import org.sopt.makers.crew.main.entity.advertisement.Advertisement;
 import org.sopt.makers.crew.main.entity.advertisement.enums.EventType;
-import org.sopt.makers.crew.main.entity.meeting.Meeting;
-import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
-import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ParticipatingPartInfoDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -30,63 +24,55 @@ public record AdvertisementMeetingTopGetResponseDto(
 	@Schema(description = "[Mobile] 배너 이미지 url", example = "[mobile 버전 url 형식]")
 	String mobileImageUrl,
 
-	@Schema(description = "배너 링크", example = "https://www.naver.com")
-	String advertisementLink,
+	@Schema(description = "달력 이미지 url", example = "[달력 이미지 url 형식]")
+	String calendarImageUrl,
 
-	@Schema(description = "조회 기준 기수", example = "38")
-	Integer generation,
+	@Schema(description = "배너 제목")
+	Title title,
 
-	@Schema(description = "조회 기준 파트", example = "서버")
-	String part,
-
-	@Schema(description = "신청 모임 id", example = "123")
-	Integer meetingId,
-
-	@Schema(description = "신청 모임 제목", example = "[38기 솝커톤] 서버 파트 신청")
-	String title,
-
-	@Schema(description = "신청 모임 부제목", example = "모임 부제목")
+	@Schema(description = "배너 부제목", example = "우리만의 해커톤, 누구보다 빠르게 신청하세요!")
 	String subTitle,
 
-	@Schema(description = "모임 신청 시작 시간", example = "2026-05-02T00:00:00")
-	LocalDateTime startDate,
+	@Schema(description = "배너 링크 1", example = "")
+	String bannerLink1,
 
-	@Schema(description = "모임 신청 종료 시간", example = "2026-05-02T23:59:59")
-	LocalDateTime endDate,
-
-	@Schema(description = "모임 상태, 0: 모집전, 1: 모집중, 2: 모집종료", example = "1")
-	Integer status,
-
-	@Schema(description = "참여 정보")
-	MeetingJoinInfo joinInfo,
-
-	@Schema(description = "조회자와 같은 파트 참여 정보")
-	MeetingV2ParticipatingPartInfoDto participatingPartInfo,
-
-	@Schema(description = "파트별 모임 둘러보기 액션")
-	BrowseActionDto browseAction
+	@Schema(description = "배너 링크 2", example = "")
+	String bannerLink2
 ) {
-	public static AdvertisementMeetingTopGetResponseDto of(Advertisement advertisement, Meeting meeting,
-		UserActivityVO userActivity, MeetingV2ParticipatingPartInfoDto participatingPartInfo, String browseQuery,
-		LocalDateTime now) {
+
+	@Schema(name = "AdvertisementMeetingTopTitleDto", description = "모임 상단 광고 제목 Dto")
+	public record Title(
+		@Schema(description = "배너 제목 prefix", example = "5월 4일 ")
+		String prefix,
+
+		@Schema(description = "배너 제목 highlight", example = "솝커톤 신청")
+		String highlight,
+
+		@Schema(description = "배너 제목 suffix", example = " OPEN!")
+		String suffix
+	) {
+		public static Title of(Advertisement advertisement) {
+			return new Title(
+				advertisement.getTitlePrefix(),
+				advertisement.getTitleHighlight(),
+				advertisement.getTitleSuffix()
+			);
+		}
+	}
+
+	public static AdvertisementMeetingTopGetResponseDto of(Advertisement advertisement, Integer activeGeneration,
+		String part) {
 		return new AdvertisementMeetingTopGetResponseDto(
-			true,
+			advertisement.isDisplay(),
 			advertisement.getEventType(),
 			advertisement.getId(),
 			advertisement.getAdvertisementDesktopImageUrl(),
 			advertisement.getAdvertisementMobileImageUrl(),
-			advertisement.getAdvertisementLink(),
-			userActivity.getGeneration(),
-			userActivity.getPart(),
-			meeting.getId(),
-			meeting.getTitle(),
-			meeting.getSubTitle(),
-			meeting.getStartDate(),
-			meeting.getEndDate(),
-			meeting.getMeetingStatusValue(now),
-			meeting.getJoinInfo(),
-			participatingPartInfo,
-			BrowseActionDto.of(browseQuery)
+			advertisement.getCalendarImageUrl(),
+			Title.of(advertisement),
+			advertisement.getSubTitle(),
+			createBannerLink1(activeGeneration, advertisement.getEventType()),
+			createBannerLink2(part, advertisement.getEventType())
 		);
 	}
 
@@ -101,31 +87,20 @@ public record AdvertisementMeetingTopGetResponseDto(
 			null,
 			null,
 			null,
-			null,
-			null,
-			null,
-			null,
-			null,
-			null,
-			null,
 			null
 		);
 	}
 
-	@Schema(name = "AdvertisementMeetingTopBrowseActionDto", description = "파트별 모임 둘러보기 Dto")
-	public record BrowseActionDto(
-		@Schema(description = "기존 모임 목록 조회 query", example = "38기 솝커톤")
-		@NotNull
-		String query,
+	private static final int FIXED_PAGE = 1;
+	private static final String MEETING_LIST_PATH = "/list";
 
-		@Schema(description = "기존 모임 목록 조회 page", example = "1")
-		@NotNull
-		Integer page
-	) {
-		private static final int FIRST_PAGE = 1;
+	private static String createBannerLink1(Integer activeGeneration, EventType eventType) {
+		return String.format("%s?search=%d기+%s&page=%d", MEETING_LIST_PATH, activeGeneration,
+			eventType.getDisplayName(), FIXED_PAGE);
+	}
 
-		public static BrowseActionDto of(String query) {
-			return new BrowseActionDto(query, FIRST_PAGE);
-		}
+	private static String createBannerLink2(String part, EventType eventType) {
+		return String.format("%s?page=%d&part=%s&search=%s", MEETING_LIST_PATH, FIXED_PAGE, part,
+			eventType.getDisplayName());
 	}
 }

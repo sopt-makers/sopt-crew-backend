@@ -275,6 +275,11 @@ create table if not exists advertisement
 ((ARRAY ['POST'::character varying, 'MEETING'::character varying, 'MEETING_TOP'::character varying])::text[])),
     "advertisementDesktopImageUrl" varchar(255),
     "advertisementMobileImageUrl"  varchar(255),
+    "calendarImageUrl"             varchar(255),
+    "titlePrefix"                  varchar(255),
+    "titleHighlight"               varchar(255),
+    "titleSuffix"                  varchar(255),
+    "subTitle"                     varchar(255),
     "isSponsoredContent"           boolean   default false not null,
     "isDisplay"                    boolean   default true not null,
     "eventType"                    varchar(255)
