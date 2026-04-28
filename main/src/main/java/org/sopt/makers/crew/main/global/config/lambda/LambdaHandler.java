@@ -1,8 +1,11 @@
 package org.sopt.makers.crew.main.global.config.lambda;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.sopt.makers.crew.main.MainApplication;
 
@@ -49,16 +52,29 @@ public class LambdaHandler implements RequestStreamHandler {
 	public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context)
 		throws IOException {
 
-		context.getLogger().log("lambda handler entered\n");
+		byte[] inputBytes = inputStream.readAllBytes();
+		String input = new String(inputBytes, StandardCharsets.UTF_8);
+
+		context.getLogger().log("lambda input=" + input + "\n");
+
+		ByteArrayOutputStream capturedOutput = new ByteArrayOutputStream();
 
 		try {
-			handler.proxyStream(inputStream, outputStream, context);
+			handler.proxyStream(
+				new ByteArrayInputStream(inputBytes),
+				capturedOutput,
+				context
+			);
+
+			String output = capturedOutput.toString(StandardCharsets.UTF_8);
+			context.getLogger().log("lambda output=" + output + "\n");
+
+			outputStream.write(capturedOutput.toByteArray());
+			outputStream.flush();
+
 			context.getLogger().log("lambda handler completed\n");
 		} catch (Exception e) {
 			context.getLogger().log("lambda handler failed: " + e + "\n");
-			for (StackTraceElement element : e.getStackTrace()) {
-				context.getLogger().log(element.toString() + "\n");
-			}
 			throw e;
 		}
 
