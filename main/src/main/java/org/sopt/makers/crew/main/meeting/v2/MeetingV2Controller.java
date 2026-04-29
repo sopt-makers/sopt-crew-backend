@@ -146,6 +146,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 		@ModelAttribute @Valid MeetingV2GetAllMeetingQueryDto queryCommand,
 		Principal principal) {
 
+		log.info("meeting getMeetings called principal={}", principal == null ? null : principal.getName());
 		MeetingV2GetAllMeetingDto meetings = meetingV2Service.getMeetings(queryCommand);
 		return ResponseEntity.ok().body(meetings);
 	}
