@@ -11,6 +11,8 @@ public enum MeetingFrequency {
 	STEADY("적당히"),
 	IMMERSIVE("집중형");
 
+	private static final String LEGACY_STEADY_VALUE = "꾸준히";
+
 	@JsonValue
 	private final String value;
 
@@ -20,6 +22,9 @@ public enum MeetingFrequency {
 
 	@JsonCreator
 	public static MeetingFrequency ofValue(String dbData) {
+		if (LEGACY_STEADY_VALUE.equals(dbData)) {
+			return STEADY;
+		}
 		for (MeetingFrequency meetingFrequency : MeetingFrequency.values()) {
 			if (meetingFrequency.getValue().equals(dbData)) {
 				return meetingFrequency;
