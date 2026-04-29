@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
 
 import org.sopt.makers.crew.main.MainApplication;
 
@@ -19,7 +18,6 @@ import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
 import com.amazonaws.serverless.proxy.spring.SpringBootProxyHandlerBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -66,8 +64,6 @@ public class LambdaHandler implements RequestStreamHandler {
 		throws IOException {
 		byte[] inputBytes = inputStream.readAllBytes();
 
-		context.getLogger().log("lambda input " + summarizeInput(inputBytes) + "\n");
-
 		ByteArrayOutputStream capturedOutput = new ByteArrayOutputStream();
 
 		try {
@@ -77,11 +73,8 @@ public class LambdaHandler implements RequestStreamHandler {
 				context
 			);
 
-			String output = capturedOutput.toString(StandardCharsets.UTF_8);
-			context.getLogger().log("lambda output=" + output + "\n");
-
-			outputStream.write(capturedOutput.toByteArray());
-			outputStream.flush();
+			// outputStream.write(capturedOutput.toByteArray());
+			// outputStream.flush();
 
 			context.getLogger().log("lambda handler completed\n");
 		} catch (Exception e) {
@@ -91,17 +84,5 @@ public class LambdaHandler implements RequestStreamHandler {
 			throw e;
 		}
 
-	}
-
-	private String summarizeInput(byte[] inputBytes) {
-		try {
-			JsonNode root = objectMapper.readTree(inputBytes);
-			String method = root.path("requestContext").path("http").path("method").asText("-");
-			String rawPath = root.path("rawPath").asText("-");
-			String routeKey = root.path("routeKey").asText("-");
-			return "method=" + method + " rawPath=" + rawPath + " routeKey=" + routeKey;
-		} catch (Exception e) {
-			return "unparseable length=" + inputBytes.length;
-		}
 	}
 }
