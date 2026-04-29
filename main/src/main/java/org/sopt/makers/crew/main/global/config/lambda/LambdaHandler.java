@@ -14,7 +14,6 @@ import com.amazonaws.serverless.exceptions.ContainerInitializationException;
 import com.amazonaws.serverless.proxy.internal.LambdaContainerHandler;
 import com.amazonaws.serverless.proxy.model.AwsProxyResponse;
 import com.amazonaws.serverless.proxy.model.HttpApiV2ProxyRequest;
-import com.amazonaws.serverless.proxy.spring.SpringBootProxyHandlerBuilder;
 import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
 import com.amazonaws.serverless.proxy.spring.SpringBootProxyHandlerBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -65,8 +64,6 @@ public class LambdaHandler implements RequestStreamHandler {
 		throws IOException {
 		byte[] inputBytes = inputStream.readAllBytes();
 
-
-
 		ByteArrayOutputStream capturedOutput = new ByteArrayOutputStream();
 
 		try {
@@ -76,8 +73,8 @@ public class LambdaHandler implements RequestStreamHandler {
 				context
 			);
 
-			// outputStream.write(capturedOutput.toByteArray());
-			// outputStream.flush();
+			outputStream.write(capturedOutput.toByteArray());
+			outputStream.flush();
 
 			context.getLogger().log("lambda handler completed\n");
 		} catch (Exception e) {
