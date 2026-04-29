@@ -1073,6 +1073,8 @@ public class MeetingV2ServiceTest {
 					"010-1234-5678"
 				);
 
+			Assertions.assertThat(responseDto.getCreatedTimestamp()).isNotNull();
+
 			Assertions.assertThat(responseDto.getAppliedInfo())
 				.extracting(
 					"id", "meetingId", "userId", "appliedDate", "status",
