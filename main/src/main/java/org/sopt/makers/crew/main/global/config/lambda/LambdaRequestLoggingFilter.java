@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.global.config.lambda;
 
 import java.io.IOException;
 
+
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,7 @@ public class LambdaRequestLoggingFilter extends OncePerRequestFilter {
 				+ " uri=" + request.getRequestURI()
 				+ " query=" + request.getQueryString()
 		);
+
 		log.info(
 			"lambda servlet request method={} uri={} query={}",
 			request.getMethod(),
@@ -37,6 +39,7 @@ public class LambdaRequestLoggingFilter extends OncePerRequestFilter {
 		);
 
 		filterChain.doFilter(request, response);
+
 
 		System.out.println(
 			"lambda servlet response method=" + request.getMethod()
