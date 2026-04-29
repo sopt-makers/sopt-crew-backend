@@ -9,7 +9,8 @@ import lombok.Getter;
 public enum MeetingFrequency {
 	LIGHT("가볍게"),
 	STEADY("적당히"),
-	IMMERSIVE("집중형");
+	IMMERSIVE("집중형"),
+	LEGACY_STEADY("꾸준히");
 
 	private static final String LEGACY_STEADY_VALUE = "꾸준히";
 
