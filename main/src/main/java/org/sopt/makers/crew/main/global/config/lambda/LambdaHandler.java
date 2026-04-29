@@ -16,6 +16,7 @@ import com.amazonaws.serverless.exceptions.ContainerInitializationException;
 import com.amazonaws.serverless.proxy.internal.LambdaContainerHandler;
 import com.amazonaws.serverless.proxy.model.AwsProxyResponse;
 import com.amazonaws.serverless.proxy.model.HttpApiV2ProxyRequest;
+import com.amazonaws.serverless.proxy.spring.SpringBootProxyHandlerBuilder;
 import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
@@ -38,7 +39,12 @@ public class LambdaHandler implements RequestStreamHandler {
 			System.out.println("lambda handler init started");
 			log.info("Lambda Handler 초기화 시작...");
 
-			handler = SpringBootLambdaContainerHandler.getHttpApiV2ProxyHandler(MainApplication.class);
+			handler = new SpringBootProxyHandlerBuilder<HttpApiV2ProxyRequest>()
+				.defaultHttpApiV2Proxy()
+				.servletApplication()
+				.springBootApplication(MainApplication.class)
+				.profiles("lambda-dev")
+				.buildAndInitialize();
 
 			LambdaContainerHandler.getContainerConfig().addBinaryContentTypes(
 				"image/png",
