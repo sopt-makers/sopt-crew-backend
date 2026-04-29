@@ -82,7 +82,7 @@ public class MeetingV2CreateMeetingBodyDto {
 	@Schema(example = """
 		{
 		  "meetingType": "온라인",
-		  "meetingFrequency": "적당히"
+		  "meetingFrequency": "꾸준히"
 		}
 		""", description = "참여 정보")
 	@NotNull

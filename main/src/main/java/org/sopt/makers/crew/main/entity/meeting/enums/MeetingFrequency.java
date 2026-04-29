@@ -8,11 +8,10 @@ import lombok.Getter;
 @Getter
 public enum MeetingFrequency {
 	LIGHT("가볍게"),
-	STEADY("적당히"),
-	IMMERSIVE("집중형"),
-	LEGACY_STEADY("꾸준히");
+	STEADY("꾸준히"),
+	IMMERSIVE("집중형");
 
-	private static final String LEGACY_STEADY_VALUE = "꾸준히";
+	private static final String LEGACY_STEADY_VALUE = "적당히";
 
 	@JsonValue
 	private final String value;
