@@ -30,4 +30,23 @@ class AdvertisementTest {
 
 		assertThat(advertisement.isDisplay()).isTrue();
 	}
+
+	@Test
+	@DisplayName("광고 링크는 null일 수 있다.")
+	void advertisementBuilder_allowsNullAdvertisementLink() {
+		Advertisement advertisement = Advertisement.builder()
+			.advertisementDesktopImageUrl("https://example.com/desktop.png")
+			.advertisementMobileImageUrl("https://example.com/mobile.png")
+			.advertisementLink(null)
+			.advertisementCategory(MEETING_TOP)
+			.priority(1L)
+			.advertisementStartDate(LocalDateTime.of(2026, 5, 1, 0, 0))
+			.advertisementEndDate(LocalDateTime.of(2026, 5, 10, 0, 0))
+			.isSponsoredContent(false)
+			.eventType(EventType.SOPKATHON)
+			.targetGeneration(TargetGeneration.ALL)
+			.build();
+
+		assertThat(advertisement.getAdvertisementLink()).isNull();
+	}
 }
