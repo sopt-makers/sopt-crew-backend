@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.global.config.lambda;
 
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -59,6 +60,7 @@ public class LambdaHandler implements RequestStreamHandler {
 	public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context)
 		throws IOException {
 		byte[] inputBytes = inputStream.readAllBytes();
+
 
 		context.getLogger().log("lambda input " + summarizeInput(inputBytes) + "\n");
 

@@ -35,6 +35,10 @@ public class MeetingCacheDto {
 	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
 	private final LocalDateTime endDate;
 
+	@JsonSerialize(using = LocalDateTimeSerializer.class)
+	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
+	private final LocalDateTime createdTimestamp;
+
 	private final Integer capacity;
 	private final String desc;
 	private final String processDesc;
@@ -66,6 +70,7 @@ public class MeetingCacheDto {
 		@JsonProperty("imageURL") List<ImageUrlVO> imageURL,
 		@JsonProperty("startDate") LocalDateTime startDate,
 		@JsonProperty("endDate") LocalDateTime endDate,
+		@JsonProperty("createdTimestamp") LocalDateTime createdTimestamp,
 		@JsonProperty("capacity") Integer capacity,
 		@JsonProperty("desc") String desc,
 		@JsonProperty("processDesc") String processDesc,
@@ -87,6 +92,7 @@ public class MeetingCacheDto {
 		this.imageURL = imageURL;
 		this.startDate = startDate;
 		this.endDate = endDate;
+		this.createdTimestamp = createdTimestamp;
 		this.capacity = capacity;
 		this.desc = desc;
 		this.processDesc = processDesc;
@@ -105,15 +111,15 @@ public class MeetingCacheDto {
 	public static MeetingCacheDto from(Meeting meeting) {
 		return new MeetingCacheDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(), meeting.getSubTitle(),
 			meeting.getCategory(),
-			meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(), meeting.getCapacity(),
-			meeting.getDesc(), meeting.getProcessDesc(), meeting.getmStartDate(), meeting.getmEndDate(),
-			meeting.getLeaderDesc(), meeting.getNote(), meeting.getIsMentorNeeded(),
+			meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(), meeting.createdTimestamp,
+			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getmStartDate(),
+			meeting.getmEndDate(), meeting.getLeaderDesc(), meeting.getNote(), meeting.getIsMentorNeeded(),
 			meeting.getCanJoinOnlyActiveGeneration(), meeting.getJoinInfo(), meeting.getCreatedGeneration(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts());
 	}
 
 	public Meeting toEntity() {
-		return Meeting.builder()
+		Meeting meeting = Meeting.builder()
 			.userId(userId)
 			.title(title)
 			.subTitle(subTitle)
@@ -135,6 +141,9 @@ public class MeetingCacheDto {
 			.targetActiveGeneration(targetActiveGeneration)
 			.joinableParts(joinableParts)
 			.build();
+
+		meeting.createdTimestamp = createdTimestamp;
+		return meeting;
 	}
 
 	public LocalDateTime getmStartDate() {

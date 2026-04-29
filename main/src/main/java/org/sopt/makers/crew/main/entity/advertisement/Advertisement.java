@@ -39,7 +39,6 @@ public class Advertisement extends BaseTimeEntity {
 	@NotNull
 	private String advertisementMobileImageUrl;
 
-	@NotNull
 	private String advertisementLink;
 
 	private String calendarImageUrl;

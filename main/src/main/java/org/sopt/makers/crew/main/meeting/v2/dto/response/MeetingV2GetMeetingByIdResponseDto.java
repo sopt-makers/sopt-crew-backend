@@ -60,6 +60,10 @@ public class MeetingV2GetMeetingByIdResponseDto {
 	@NotNull
 	private final int capacity;
 
+	@Schema(description = "모임 생성 시간", example = "2024-07-10T15:30:00")
+	@NotNull
+	private final LocalDateTime createdTimestamp;
+
 	@Schema(description = "모임 소개", example = "모임 소개 입니다.")
 	@NotNull
 	private final String desc;
@@ -197,6 +201,7 @@ public class MeetingV2GetMeetingByIdResponseDto {
 			.startDate(meeting.getStartDate())
 			.endDate(meeting.getEndDate())
 			.capacity(meeting.getCapacity())
+			.createdTimestamp(meeting.createdTimestamp)
 			.desc(meeting.getDesc())
 			.processDesc(meeting.getProcessDesc())
 			.mStartDate(meeting.getmStartDate())
