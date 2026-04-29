@@ -21,8 +21,8 @@ Resources:
       CodeUri: ../main/build/distributions/main-lambda.zip
       Handler: org.sopt.makers.crew.main.global.config.lambda.LambdaHandler::handleRequest
       AutoPublishAlias: live
-      #      SnapStart:
-      #        ApplyOn: PublishedVersions
+      SnapStart:
+        ApplyOn: PublishedVersions
       Environment:
         Variables:
           SPRING_MAIN_WEB_APPLICATION_TYPE: servlet

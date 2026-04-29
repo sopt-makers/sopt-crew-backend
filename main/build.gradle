@@ -233,6 +233,8 @@ task lambdaJar(type: Zip) {
     into('lib') {
         from(jar)
         from(configurations.runtimeClasspath) {
+            exclude "**/tomcat-embed-*.jar"
+            exclude "org/apache/tomcat/**"
             exclude "META-INF/*.SF"
             exclude "META-INF/*.DSA"
             exclude "META-INF/*.RSA"
