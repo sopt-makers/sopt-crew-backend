@@ -70,7 +70,7 @@ public class MeetingV2UpdateMeetingBodyDto {
 	@Schema(example = """
 		{
 		  "meetingType": "온라인",
-		  "meetingFrequency": "꾸준히"
+		  "meetingFrequency": "적당히"
 		}
 		""", description = "참여 정보")
 	private MeetingJoinInfo joinInfo;
