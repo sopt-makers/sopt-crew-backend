@@ -2,7 +2,7 @@ package org.sopt.makers.crew.main.global.config.lambda;
 
 import java.io.IOException;
 
-import org.springframework.context.annotation.Profile;
+
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@Profile("lambda-dev")
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class LambdaRequestLoggingFilter extends OncePerRequestFilter {
 
@@ -26,6 +25,12 @@ public class LambdaRequestLoggingFilter extends OncePerRequestFilter {
 		HttpServletResponse response,
 		FilterChain filterChain
 	) throws ServletException, IOException {
+		System.out.println(
+			"lambda servlet request method=" + request.getMethod()
+				+ " uri=" + request.getRequestURI()
+				+ " query=" + request.getQueryString()
+		);
+
 		log.info(
 			"lambda servlet request method={} uri={} query={}",
 			request.getMethod(),
@@ -35,6 +40,13 @@ public class LambdaRequestLoggingFilter extends OncePerRequestFilter {
 
 		filterChain.doFilter(request, response);
 
+
+		System.out.println(
+			"lambda servlet response method=" + request.getMethod()
+				+ " uri=" + request.getRequestURI()
+				+ " status=" + response.getStatus()
+				+ " committed=" + response.isCommitted()
+		);
 		log.info(
 			"lambda servlet response method={} uri={} status={} committed={}",
 			request.getMethod(),
