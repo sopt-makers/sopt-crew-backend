@@ -1323,8 +1323,8 @@ public class MeetingV2ServiceTest {
 		}
 
 		@Test
-		@DisplayName("활동 이력이 없는 사용자가 상세 조회 시 예외가 발생한다.")
-		void noActivityUser_getMeetingById_throwException() {
+		@DisplayName("활동 이력이 없는 사용자도 상세 조회 시 모임 데이터를 반환한다.")
+		void noActivityUser_getMeetingById_success() {
 			Integer meetingId = 1;
 			User noActivityUser = userRepository.save(User.builder()
 				.name("활동없음조회자")
@@ -1334,9 +1334,10 @@ public class MeetingV2ServiceTest {
 				.phone("010-2001-2001")
 				.build());
 
-			Assertions.assertThatThrownBy(() -> meetingV2Service.getMeetingDetail(meetingId, noActivityUser.getId()))
-				.isInstanceOf(BadRequestException.class)
-				.hasMessageContaining(MISSING_GENERATION_PART.getErrorCode());
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				noActivityUser.getId());
+
+			Assertions.assertThat(responseDto.getId()).isEqualTo(meetingId);
 		}
 
 		@Test
