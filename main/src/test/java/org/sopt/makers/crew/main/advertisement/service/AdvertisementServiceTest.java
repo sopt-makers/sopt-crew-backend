@@ -7,6 +7,7 @@ import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +21,8 @@ import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.sopt.makers.crew.main.entity.advertisement.enums.EventType;
 import org.sopt.makers.crew.main.entity.advertisement.enums.TargetGeneration;
+import org.sopt.makers.crew.main.entity.meeting.Meeting;
+import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserFixture;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
@@ -35,6 +38,9 @@ class AdvertisementServiceTest {
 
 	@Mock
 	private AdvertisementRepository advertisementRepository;
+
+	@Mock
+	private MeetingRepository meetingRepository;
 
 	@Mock
 	private UserRepository userRepository;
@@ -57,6 +63,7 @@ class AdvertisementServiceTest {
 		);
 		advertisementService = new AdvertisementService(
 			advertisementRepository,
+			meetingRepository,
 			userRepository,
 			activeGenerationProvider,
 			new MeetingPartNormalizer(),
@@ -71,6 +78,7 @@ class AdvertisementServiceTest {
 	void getMeetingTopAdvertisement_returnsMeetingTopResponse() {
 		User requestUser = UserFixture.createUser(1, "서버", 38);
 		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL);
+		Meeting applicationMeeting = createMeeting(715);
 
 		setField(advertisement, "id", 10);
 
@@ -78,6 +86,8 @@ class AdvertisementServiceTest {
 		when(activeGenerationProvider.getActiveGeneration()).thenReturn(38);
 		when(userRepository.findByIdOrThrow(requestUser.getId())).thenReturn(requestUser);
 		when(advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, NOW)).thenReturn(List.of(advertisement));
+		when(meetingRepository.findFirstByTitleOrderByIdDesc("[38기 솝커톤] 서버 파트 신청"))
+			.thenReturn(Optional.of(applicationMeeting));
 
 		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(
 			requestUser.getId(), EventType.SOPKATHON);
@@ -93,17 +103,18 @@ class AdvertisementServiceTest {
 		assertThat(response.title().suffix()).isEqualTo(" OPEN!");
 		assertThat(response.subTitle()).isEqualTo("우리만의 해커톤, 누구보다 빠르게 신청하세요!");
 		assertThat(response.bannerLink1()).isEqualTo("/list?search=38기+솝커톤&page=1");
-		assertThat(response.bannerLink2()).isEqualTo("/list?page=1&part=서버&search=솝커톤");
+		assertThat(response.bannerLink2()).isEqualTo("/detail?id=715");
 	}
 
 	@Test
-	@DisplayName("모임 상단 광고 조회 시 요청 이벤트 타입의 텍스트로 리스트 진입 링크를 반환한다.")
+	@DisplayName("모임 상단 광고 조회 시 요청 이벤트 타입의 텍스트로 상세 진입 링크를 반환한다.")
 	void getMeetingTopAdvertisement_returnsLinksByRequestedEventType() {
 		User requestUser = UserFixture.createUser(1, "서버", 38);
 		Advertisement sopkathonAdvertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true,
 			EventType.SOPKATHON);
 		Advertisement networkingAdvertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true,
 			EventType.NETWORKING);
+		Meeting applicationMeeting = createMeeting(716);
 
 		setField(networkingAdvertisement, "id", 11);
 
@@ -112,6 +123,8 @@ class AdvertisementServiceTest {
 		when(userRepository.findByIdOrThrow(requestUser.getId())).thenReturn(requestUser);
 		when(advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, NOW)).thenReturn(
 			List.of(sopkathonAdvertisement, networkingAdvertisement));
+		when(meetingRepository.findFirstByTitleOrderByIdDesc("[38기 네트워킹] 서버 파트 신청"))
+			.thenReturn(Optional.of(applicationMeeting));
 
 		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(
 			requestUser.getId(), EventType.NETWORKING);
@@ -119,7 +132,30 @@ class AdvertisementServiceTest {
 		assertThat(response.eventType()).isEqualTo(EventType.NETWORKING);
 		assertThat(response.advertisementId()).isEqualTo(11);
 		assertThat(response.bannerLink1()).isEqualTo("/list?search=38기+네트워킹&page=1");
-		assertThat(response.bannerLink2()).isEqualTo("/list?page=1&part=서버&search=네트워킹");
+		assertThat(response.bannerLink2()).isEqualTo("/detail?id=716");
+	}
+
+	@Test
+	@DisplayName("파트 신청 모임이 없으면 배너를 노출하되 배너 링크 2는 반환하지 않는다.")
+	void getMeetingTopAdvertisement_returnsNullBannerLink2WhenApplicationMeetingMissing() {
+		User requestUser = UserFixture.createUser(1, "서버", 38);
+		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL);
+
+		setField(advertisement, "id", 10);
+
+		when(time.now()).thenReturn(NOW);
+		when(activeGenerationProvider.getActiveGeneration()).thenReturn(38);
+		when(userRepository.findByIdOrThrow(requestUser.getId())).thenReturn(requestUser);
+		when(advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, NOW)).thenReturn(List.of(advertisement));
+		when(meetingRepository.findFirstByTitleOrderByIdDesc("[38기 솝커톤] 서버 파트 신청"))
+			.thenReturn(Optional.empty());
+
+		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(
+			requestUser.getId(), EventType.SOPKATHON);
+
+		assertThat(response.isDisplay()).isTrue();
+		assertThat(response.bannerLink1()).isEqualTo("/list?search=38기+솝커톤&page=1");
+		assertThat(response.bannerLink2()).isNull();
 	}
 
 	@Test
@@ -219,5 +255,11 @@ class AdvertisementServiceTest {
 			.eventType(eventType)
 			.targetGeneration(targetGeneration)
 			.build();
+	}
+
+	private Meeting createMeeting(Integer id) {
+		Meeting meeting = mock(Meeting.class);
+		when(meeting.getId()).thenReturn(id);
+		return meeting;
 	}
 }
