@@ -4,7 +4,6 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.user.User;
@@ -26,30 +25,15 @@ public class MeetingParticipationFactory {
 
 	public MeetingV2ParticipatingPartInfoDto createParticipatingPartInfo(User requestUser,
 		List<Apply> participatingApplies) {
-		UserActivityVO requestUserActivity = getRequiredRequestUserActivity(requestUser);
-		int latestActiveGeneration = activeGenerationProvider.getActiveGeneration();
-		boolean isActiveGeneration = isActiveGenerationUser(requestUser, latestActiveGeneration);
+		int activeGeneration = activeGenerationProvider.getActiveGeneration();
+		UserActivityVO requestUserActivity = getRequiredRequestUserActivity(requestUser, activeGeneration);
+		boolean isActiveGeneration = isActiveGenerationUser(requestUser, activeGeneration);
 		String requestUserPart = requestUserActivity.getPart();
-		if (!isActiveGeneration) {
-			Integer latestHonoraryGeneration = getLatestHonoraryGeneration(requestUser, latestActiveGeneration)
-				.orElseThrow(() -> new BadRequestException(MISSING_GENERATION_PART.getErrorCode()));
-			List<String> memberNames = participatingApplies.stream()
-				.filter(apply -> isSameHonoraryGenerationParticipatingApply(apply, latestHonoraryGeneration))
-				.map(apply -> apply.getUser().getName())
-				.toList();
-			return MeetingV2ParticipatingPartInfoDto.of(requestUserPart, memberNames.size(), false,
-				latestHonoraryGeneration,
-				memberNames);
-		}
+		List<String> memberNames = getParticipatingPartMemberNames(participatingApplies, requestUserActivity,
+			isActiveGeneration);
 
-		String normalizedRequestUserPart = meetingPartNormalizer.normalize(requestUserPart);
-		List<String> memberNames = participatingApplies.stream()
-			.filter(apply -> isSamePartParticipatingApply(apply, normalizedRequestUserPart))
-			.map(apply -> apply.getUser().getName())
-			.toList();
-
-		return MeetingV2ParticipatingPartInfoDto.of(requestUserPart, memberNames.size(), true, latestActiveGeneration,
-			memberNames);
+		return MeetingV2ParticipatingPartInfoDto.of(requestUserPart, memberNames.size(), isActiveGeneration,
+			requestUserActivity.getGeneration(), memberNames);
 	}
 
 	public MeetingV2GetMeetingPartMembersResponseDto createMeetingPartMembersResponse(User requestUser,
@@ -75,13 +59,40 @@ public class MeetingParticipationFactory {
 		return Objects.equals(normalizedParticipatingUserPart, normalizedRequestUserPart);
 	}
 
-	private boolean isSameHonoraryGenerationParticipatingApply(Apply apply, int honoraryGeneration) {
-		if (apply.getUser().getActivities() == null) {
+	private List<String> getParticipatingPartMemberNames(List<Apply> participatingApplies,
+		UserActivityVO requestUserActivity, boolean isActiveGeneration) {
+		return participatingApplies.stream()
+			.filter(apply -> isParticipatingPartMember(apply, requestUserActivity, isActiveGeneration))
+			.map(apply -> apply.getUser().getName())
+			.toList();
+	}
+
+	private boolean isParticipatingPartMember(Apply apply, UserActivityVO requestUserActivity,
+		boolean isActiveGeneration) {
+		if (apply.getUser().getActivities() == null || apply.getUser().getActivities().isEmpty()) {
 			return false;
 		}
 
+		if (!isActiveGeneration) {
+			return isSameGenerationParticipatingApply(apply, requestUserActivity.getGeneration());
+		}
+
+		String normalizedRequestUserPart = meetingPartNormalizer.normalize(requestUserActivity.getPart());
 		return apply.getUser().getActivities().stream()
-			.anyMatch(userActivityVO -> userActivityVO.getGeneration() == honoraryGeneration);
+			.anyMatch(activity -> isSameGenerationAndPartActivity(activity, requestUserActivity.getGeneration(),
+				normalizedRequestUserPart));
+	}
+
+	private boolean isSameGenerationParticipatingApply(Apply apply, int generation) {
+		return apply.getUser().getActivities().stream()
+			.anyMatch(userActivityVO -> userActivityVO.getGeneration() == generation);
+	}
+
+	private boolean isSameGenerationAndPartActivity(UserActivityVO activity, int generation,
+		String normalizedRequestUserPart) {
+		String normalizedParticipatingUserPart = meetingPartNormalizer.normalize(activity.getPart());
+		return activity.getGeneration() == generation
+			&& Objects.equals(normalizedParticipatingUserPart, normalizedRequestUserPart);
 	}
 
 	private boolean isActiveGenerationUser(User requestUser, int activeGeneration) {
@@ -93,26 +104,19 @@ public class MeetingParticipationFactory {
 			.anyMatch(userActivityVO -> userActivityVO.getGeneration() == activeGeneration);
 	}
 
-	private Optional<Integer> getLatestHonoraryGeneration(User requestUser, int activeGeneration) {
-		if (requestUser.getActivities() == null) {
-			return Optional.empty();
-		}
-
-		return requestUser.getActivities().stream()
-			.map(UserActivityVO::getGeneration)
-			.filter(generation -> generation != activeGeneration)
-			.max(Integer::compareTo);
-	}
-
-	private UserActivityVO getRequiredRequestUserActivity(User requestUser) {
+	private UserActivityVO getRequiredRequestUserActivity(User requestUser, int activeGeneration) {
 		if (requestUser.getActivities() == null || requestUser.getActivities().isEmpty()) {
 			throw new BadRequestException(MISSING_GENERATION_PART.getErrorCode());
 		}
 
 		return requestUser.getActivities().stream()
-			.filter(userActivityVO -> userActivityVO.getGeneration() == activeGenerationProvider.getActiveGeneration())
+			.filter(userActivityVO -> userActivityVO.getGeneration() == activeGeneration)
 			.findFirst()
 			.orElseGet(requestUser::getRecentActivityVO);
+	}
+
+	private UserActivityVO getRequiredRequestUserActivity(User requestUser) {
+		return getRequiredRequestUserActivity(requestUser, activeGenerationProvider.getActiveGeneration());
 	}
 
 	private UserActivityVO getParticipatingUserActivity(User participatingUser) {
