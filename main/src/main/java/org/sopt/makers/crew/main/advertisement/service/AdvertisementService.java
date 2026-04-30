@@ -14,6 +14,8 @@ import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.sopt.makers.crew.main.entity.advertisement.enums.EventType;
 import org.sopt.makers.crew.main.entity.advertisement.enums.TargetGeneration;
+import org.sopt.makers.crew.main.entity.meeting.Meeting;
+import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
@@ -34,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class AdvertisementService {
 
 	private final AdvertisementRepository advertisementRepository;
+	private final MeetingRepository meetingRepository;
 	private final UserRepository userRepository;
 	private final ActiveGenerationProvider activeGenerationProvider;
 	private final MeetingPartNormalizer meetingPartNormalizer;
@@ -111,11 +114,25 @@ public class AdvertisementService {
 			return Optional.empty();
 		}
 
+		Integer activeGeneration = activeGenerationProvider.getActiveGeneration();
+		String part = meetingJoinablePart.get().getDisplayName();
+		Integer bannerLink2MeetingId = findEventApplicationMeetingId(
+			activeGeneration,
+			advertisement.getEventType(),
+			part
+		).orElse(null);
+
 		return Optional.of(AdvertisementMeetingTopGetResponseDto.of(
 			advertisement,
-			activeGenerationProvider.getActiveGeneration(),
-			meetingJoinablePart.get().getDisplayName()
+			activeGeneration,
+			bannerLink2MeetingId
 		));
+	}
+
+	private Optional<Integer> findEventApplicationMeetingId(Integer activeGeneration, EventType eventType, String part) {
+		String title = String.format("[%d기 %s] %s 파트 신청", activeGeneration, eventType.getDisplayName(), part);
+		return meetingRepository.findFirstByTitleOrderByIdDesc(title)
+			.map(Meeting::getId);
 	}
 
 	private Optional<UserActivityVO> findTargetActivity(User user, TargetGeneration targetGeneration) {

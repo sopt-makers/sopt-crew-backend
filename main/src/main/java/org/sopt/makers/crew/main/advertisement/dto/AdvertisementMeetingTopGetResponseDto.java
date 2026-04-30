@@ -61,7 +61,7 @@ public record AdvertisementMeetingTopGetResponseDto(
 	}
 
 	public static AdvertisementMeetingTopGetResponseDto of(Advertisement advertisement, Integer activeGeneration,
-		String part) {
+		Integer bannerLink2MeetingId) {
 		return new AdvertisementMeetingTopGetResponseDto(
 			advertisement.isDisplay(),
 			advertisement.getEventType(),
@@ -72,7 +72,7 @@ public record AdvertisementMeetingTopGetResponseDto(
 			Title.of(advertisement),
 			advertisement.getSubTitle(),
 			createBannerLink1(activeGeneration, advertisement.getEventType()),
-			createBannerLink2(part, advertisement.getEventType())
+			createBannerLink2(bannerLink2MeetingId)
 		);
 	}
 
@@ -93,14 +93,17 @@ public record AdvertisementMeetingTopGetResponseDto(
 
 	private static final int FIXED_PAGE = 1;
 	private static final String MEETING_LIST_PATH = "/list";
+	private static final String MEETING_DETAIL_PATH = "/detail";
 
 	private static String createBannerLink1(Integer activeGeneration, EventType eventType) {
 		return String.format("%s?search=%d기+%s&page=%d", MEETING_LIST_PATH, activeGeneration,
 			eventType.getDisplayName(), FIXED_PAGE);
 	}
 
-	private static String createBannerLink2(String part, EventType eventType) {
-		return String.format("%s?page=%d&part=%s&search=%s", MEETING_LIST_PATH, FIXED_PAGE, part,
-			eventType.getDisplayName());
+	private static String createBannerLink2(Integer meetingId) {
+		if (meetingId == null) {
+			return null;
+		}
+		return String.format("%s?id=%d", MEETING_DETAIL_PATH, meetingId);
 	}
 }
