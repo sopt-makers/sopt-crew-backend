@@ -1256,7 +1256,7 @@ public class MeetingV2ServiceTest {
 			User backendUser = User.builder()
 				.name("백엔드신청자")
 				.orgId(999)
-				.activities(List.of(new UserActivityVO("백엔드", 38)))
+				.activities(List.of(new UserActivityVO("백엔드", 35)))
 				.profileImage("backend-profile.jpg")
 				.phone("010-9999-9999")
 				.build();
