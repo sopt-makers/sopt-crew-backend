@@ -146,8 +146,8 @@ public interface MeetingV2Api {
 	ResponseEntity<MeetingV2GetMeetingByIdResponseDto> getMeetingById(@PathVariable Integer meetingId,
 		Principal principal);
 
-	@Operation(summary = "모임 내 같은 파트 참여 멤버 리스트 조회", description = "조회자와 같은 파트 기준으로 참여중인 멤버 리스트를 조회합니다.")
-	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 내 같은 파트 참여 멤버 리스트 조회 성공"),
+	@Operation(summary = "모임 내 같은 파트/기수 멤버 리스트 조회", description = "조회자 기준 파트/기수 조건에 맞는 참여중인 멤버 리스트를 조회합니다.")
+	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 내 같은 파트/기수 멤버 리스트 조회 성공"),
 		@ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
 	ResponseEntity<MeetingV2GetMeetingPartMembersResponseDto> getMeetingPartMembers(@PathVariable Integer meetingId,
 		Principal principal);

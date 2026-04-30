@@ -1229,15 +1229,17 @@ public class MeetingV2ServiceTest {
 			Integer userId = 1;
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId, userId);
+			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
+				userId);
 
 			// then
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().part()).isEqualTo("서버");
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(1);
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().isActiveGeneration()).isFalse();
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(33);
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().memberNames())
-				.containsExactly("승인신청자");
+			Assertions.assertThat(responseDto.part()).isEqualTo("서버");
+			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
+			Assertions.assertThat(responseDto.isActiveGeneration()).isFalse();
+			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(33);
+			Assertions.assertThat(responseDto.memberIds()).containsExactly(1);
+			Assertions.assertThat(responseDto.memberNames()).containsExactly("승인신청자");
+			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile2.jpg");
 		}
 
 		@Test
@@ -1274,15 +1276,17 @@ public class MeetingV2ServiceTest {
 			applyRepository.save(apply);
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
 				activeGenerationServerUser.getId());
 
 			// then
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().part()).isEqualTo("서버");
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(1);
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().isActiveGeneration()).isTrue();
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(35);
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().memberNames()).containsExactly("백엔드신청자");
+			Assertions.assertThat(responseDto.part()).isEqualTo("서버");
+			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
+			Assertions.assertThat(responseDto.isActiveGeneration()).isTrue();
+			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(35);
+			Assertions.assertThat(responseDto.memberIds()).containsExactly(1);
+			Assertions.assertThat(responseDto.memberNames()).containsExactly("백엔드신청자");
+			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("backend-profile.jpg");
 		}
 
 		@Test
@@ -1306,20 +1310,21 @@ public class MeetingV2ServiceTest {
 			saveApplyUser(meetingId, 1008, "활동기수신청자", "디자인", 35);
 
 			// when
-			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
 				honoraryUser.getId());
 
 			// then
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().isActiveGeneration()).isFalse();
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().activeGeneration()).isEqualTo(37);
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().participantCount()).isEqualTo(1);
-			Assertions.assertThat(responseDto.getParticipatingPartInfo().memberNames())
-				.containsExactly("37기신청자");
+			Assertions.assertThat(responseDto.isActiveGeneration()).isFalse();
+			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(37);
+			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
+			Assertions.assertThat(responseDto.memberIds()).containsExactly(1);
+			Assertions.assertThat(responseDto.memberNames()).containsExactly("37기신청자");
+			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile.jpg");
 		}
 
 		@Test
-		@DisplayName("활동 이력이 없는 사용자가 상세 조회 시 예외가 발생한다.")
-		void noActivityUser_getMeetingById_throwException() {
+		@DisplayName("활동 이력이 없는 사용자도 상세 조회 시 모임 데이터를 반환한다.")
+		void noActivityUser_getMeetingById_success() {
 			Integer meetingId = 1;
 			User noActivityUser = userRepository.save(User.builder()
 				.name("활동없음조회자")
@@ -1329,9 +1334,10 @@ public class MeetingV2ServiceTest {
 				.phone("010-2001-2001")
 				.build());
 
-			Assertions.assertThatThrownBy(() -> meetingV2Service.getMeetingDetail(meetingId, noActivityUser.getId()))
-				.isInstanceOf(BadRequestException.class)
-				.hasMessageContaining(MISSING_GENERATION_PART.getErrorCode());
+			MeetingV2GetMeetingByIdResponseDto responseDto = meetingV2Service.getMeetingDetail(meetingId,
+				noActivityUser.getId());
+
+			Assertions.assertThat(responseDto.getId()).isEqualTo(meetingId);
 		}
 
 		@Test
@@ -1434,6 +1440,7 @@ public class MeetingV2ServiceTest {
 			// given
 			Integer meetingId = 1;
 			Integer userId = 5;
+			saveApplyUser(meetingId, 1009, "35기iOS신청자", "iOS", 35);
 
 			// when
 			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
@@ -1441,18 +1448,22 @@ public class MeetingV2ServiceTest {
 
 			// then
 			Assertions.assertThat(responseDto.part()).isEqualTo("iOS");
+			Assertions.assertThat(responseDto.isActiveGeneration()).isTrue();
+			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(35);
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
-			Assertions.assertThat(responseDto.memberNames()).containsExactly("대기신청자");
+			Assertions.assertThat(responseDto.memberIds()).containsExactly(1);
+			Assertions.assertThat(responseDto.memberNames()).containsExactly("35기iOS신청자");
+			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile.jpg");
 		}
 
 		@Test
-		@DisplayName("서버 조회자는 백엔드 신청자를 같은 파트 멤버로 조회한다.")
+		@DisplayName("명예기수 조회자는 마지막 활동 기수 신청자를 멤버로 조회한다.")
 		void serverUser_getMeetingPartMembers_backendApplicant_samePart() {
 			// given
 			Integer meetingId = 1;
 			Integer userId = 1;
 
-			saveApplyUser(meetingId, 1000, "백엔드신청자", "백엔드");
+			saveApplyUser(meetingId, 1000, "33기백엔드신청자", "백엔드", 33);
 
 			// when
 			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
@@ -1460,8 +1471,12 @@ public class MeetingV2ServiceTest {
 
 			// then
 			Assertions.assertThat(responseDto.part()).isEqualTo("서버");
-			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
-			Assertions.assertThat(responseDto.memberNames()).containsExactly("백엔드신청자");
+			Assertions.assertThat(responseDto.isActiveGeneration()).isFalse();
+			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(33);
+			Assertions.assertThat(responseDto.participantCount()).isEqualTo(2);
+			Assertions.assertThat(responseDto.memberIds()).containsExactly(1, 2);
+			Assertions.assertThat(responseDto.memberNames()).containsExactly("승인신청자", "33기백엔드신청자");
+			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile2.jpg", "profile.jpg");
 		}
 
 		@Test
@@ -1471,7 +1486,7 @@ public class MeetingV2ServiceTest {
 			Integer meetingId = 1;
 			Integer userId = 2;
 
-			saveApplyUser(meetingId, 1001, "PM신청자", "PM");
+			saveApplyUser(meetingId, 1001, "PM신청자", "PM", 33);
 
 			// when
 			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
@@ -1479,8 +1494,12 @@ public class MeetingV2ServiceTest {
 
 			// then
 			Assertions.assertThat(responseDto.part()).isEqualTo("기획");
+			Assertions.assertThat(responseDto.isActiveGeneration()).isFalse();
+			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(33);
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(2);
+			Assertions.assertThat(responseDto.memberIds()).containsExactly(1, 2);
 			Assertions.assertThat(responseDto.memberNames()).containsExactly("승인신청자", "PM신청자");
+			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile2.jpg", "profile.jpg");
 		}
 
 		@Test
@@ -1496,7 +1515,7 @@ public class MeetingV2ServiceTest {
 				.phone("010-0000-0000")
 				.build());
 
-			saveApplyUser(meetingId, 1003, "프론트엔드신청자", "프론트엔드");
+			saveApplyUser(meetingId, 1003, "프론트엔드신청자", "프론트엔드", 35);
 
 			// when
 			MeetingV2GetMeetingPartMembersResponseDto responseDto = meetingV2Service.getMeetingPartMembers(meetingId,
@@ -1504,8 +1523,12 @@ public class MeetingV2ServiceTest {
 
 			// then
 			Assertions.assertThat(responseDto.part()).isEqualTo("웹");
+			Assertions.assertThat(responseDto.isActiveGeneration()).isTrue();
+			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(35);
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
+			Assertions.assertThat(responseDto.memberIds()).containsExactly(1);
 			Assertions.assertThat(responseDto.memberNames()).containsExactly("프론트엔드신청자");
+			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile.jpg");
 		}
 
 		@Test

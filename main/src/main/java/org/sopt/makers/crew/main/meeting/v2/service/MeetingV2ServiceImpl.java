@@ -97,7 +97,6 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBann
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseUserDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ParticipatingPartInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
@@ -602,15 +601,12 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		List<Apply> meetingApplies = applyRepository.findAllByMeetingIdWithUser(meetingId, List.of(WAITING, APPROVE,
 			REJECT), ORDER_ASC);
 		Applies applies = new Applies(meetingApplies);
-		List<Apply> participatingApplies = filterParticipatingApplies(meetingApplies);
 
 		Boolean isHost = meeting.checkMeetingLeader(user.getId());
 		Boolean isApply = applies.isApply(meetingId, user.getId());
 		Boolean isApproved = applies.isApproved(meetingId, user.getId());
 		boolean isCoLeader = coLeaders.isCoLeader(meetingId, userId);
 		long approvedCount = applies.getApprovedCount(meetingId);
-		MeetingV2ParticipatingPartInfoDto participatingPartInfo = meetingParticipationFactory.createParticipatingPartInfo(
-			user, participatingApplies);
 
 		List<ApplyWholeInfoDto> applyWholeInfoDtos = new ArrayList<>();
 		if (applies.hasApplies(meetingId)) {
@@ -626,8 +622,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		List<MeetingKeywordType> meetingKeywordTypes = tagV2Service.getMeetingKeywordsTypesByMeetingId(meetingId);
 
 		return MeetingV2GetMeetingByIdResponseDto.of(meetingId, meeting, coLeaders.getCoLeaders(meetingId), isCoLeader,
-			approvedCount, isHost, isApply, isApproved, participatingPartInfo,
-			meetingLeader, applyWholeInfoDtos, welcomeMessageTypes, meetingKeywordTypes, time.now());
+			approvedCount, isHost, isApply, isApproved, meetingLeader, applyWholeInfoDtos, welcomeMessageTypes,
+			meetingKeywordTypes, time.now());
 	}
 
 	@Override
