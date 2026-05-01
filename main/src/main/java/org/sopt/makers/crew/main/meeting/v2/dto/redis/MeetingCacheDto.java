@@ -7,6 +7,7 @@ import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,6 +23,7 @@ public class MeetingCacheDto {
 	private final Integer id;
 	private final Integer userId;
 	private final String title;
+	private final String subTitle;
 	private final MeetingCategory category;
 	private final List<ImageUrlVO> imageURL;
 
@@ -32,6 +34,10 @@ public class MeetingCacheDto {
 	@JsonSerialize(using = LocalDateTimeSerializer.class)
 	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
 	private final LocalDateTime endDate;
+
+	@JsonSerialize(using = LocalDateTimeSerializer.class)
+	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
+	private final LocalDateTime createdTimestamp;
 
 	private final Integer capacity;
 	private final String desc;
@@ -49,6 +55,7 @@ public class MeetingCacheDto {
 	private final String note;
 	private final Boolean isMentorNeeded;
 	private final Boolean canJoinOnlyActiveGeneration;
+	private final MeetingJoinInfo joinInfo;
 	private final Integer createdGeneration;
 	private final Integer targetActiveGeneration;
 	private final MeetingJoinablePart[] joinableParts;
@@ -58,10 +65,12 @@ public class MeetingCacheDto {
 		@JsonProperty("id") Integer id,
 		@JsonProperty("userId") Integer userId,
 		@JsonProperty("title") String title,
+		@JsonProperty("subTitle") String subTitle,
 		@JsonProperty("category") MeetingCategory category,
 		@JsonProperty("imageURL") List<ImageUrlVO> imageURL,
 		@JsonProperty("startDate") LocalDateTime startDate,
 		@JsonProperty("endDate") LocalDateTime endDate,
+		@JsonProperty("createdTimestamp") LocalDateTime createdTimestamp,
 		@JsonProperty("capacity") Integer capacity,
 		@JsonProperty("desc") String desc,
 		@JsonProperty("processDesc") String processDesc,
@@ -71,16 +80,19 @@ public class MeetingCacheDto {
 		@JsonProperty("note") String note,
 		@JsonProperty("isMentorNeeded") Boolean isMentorNeeded,
 		@JsonProperty("canJoinOnlyActiveGeneration") Boolean canJoinOnlyActiveGeneration,
+		@JsonProperty("joinInfo") MeetingJoinInfo joinInfo,
 		@JsonProperty("createdGeneration") Integer createdGeneration,
 		@JsonProperty("targetActiveGeneration") Integer targetActiveGeneration,
 		@JsonProperty("joinableParts") MeetingJoinablePart[] joinableParts) {
 		this.id = id;
 		this.userId = userId;
 		this.title = title;
+		this.subTitle = subTitle;
 		this.category = category;
 		this.imageURL = imageURL;
 		this.startDate = startDate;
 		this.endDate = endDate;
+		this.createdTimestamp = createdTimestamp;
 		this.capacity = capacity;
 		this.desc = desc;
 		this.processDesc = processDesc;
@@ -90,24 +102,27 @@ public class MeetingCacheDto {
 		this.note = note;
 		this.isMentorNeeded = isMentorNeeded;
 		this.canJoinOnlyActiveGeneration = canJoinOnlyActiveGeneration;
+		this.joinInfo = joinInfo;
 		this.createdGeneration = createdGeneration;
 		this.targetActiveGeneration = targetActiveGeneration;
 		this.joinableParts = joinableParts;
 	}
 
 	public static MeetingCacheDto from(Meeting meeting) {
-		return new MeetingCacheDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(), meeting.getCategory(),
-			meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(), meeting.getCapacity(),
-			meeting.getDesc(), meeting.getProcessDesc(), meeting.getmStartDate(), meeting.getmEndDate(),
-			meeting.getLeaderDesc(), meeting.getNote(), meeting.getIsMentorNeeded(),
-			meeting.getCanJoinOnlyActiveGeneration(), meeting.getCreatedGeneration(),
+		return new MeetingCacheDto(meeting.getId(), meeting.getUserId(), meeting.getTitle(), meeting.getSubTitle(),
+			meeting.getCategory(),
+			meeting.getImageURL(), meeting.getStartDate(), meeting.getEndDate(), meeting.createdTimestamp,
+			meeting.getCapacity(), meeting.getDesc(), meeting.getProcessDesc(), meeting.getmStartDate(),
+			meeting.getmEndDate(), meeting.getLeaderDesc(), meeting.getNote(), meeting.getIsMentorNeeded(),
+			meeting.getCanJoinOnlyActiveGeneration(), meeting.getJoinInfo(), meeting.getCreatedGeneration(),
 			meeting.getTargetActiveGeneration(), meeting.getJoinableParts());
 	}
 
 	public Meeting toEntity() {
-		return Meeting.builder()
+		Meeting meeting = Meeting.builder()
 			.userId(userId)
 			.title(title)
+			.subTitle(subTitle)
 			.category(category)
 			.imageURL(imageURL)
 			.startDate(startDate)
@@ -121,10 +136,14 @@ public class MeetingCacheDto {
 			.note(note)
 			.isMentorNeeded(isMentorNeeded)
 			.canJoinOnlyActiveGeneration(canJoinOnlyActiveGeneration)
+			.joinInfo(joinInfo)
 			.createdGeneration(createdGeneration)
 			.targetActiveGeneration(targetActiveGeneration)
 			.joinableParts(joinableParts)
 			.build();
+
+		meeting.createdTimestamp = createdTimestamp;
+		return meeting;
 	}
 
 	public LocalDateTime getmStartDate() {
