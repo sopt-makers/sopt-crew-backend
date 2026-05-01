@@ -121,6 +121,17 @@ public class TagV2ServiceImpl implements TagV2Service {
 
 	@Override
 	@Transactional
+	public void updateGeneralMeetingWelcomeMessageTypes(List<String> welcomeMessageTypes, Integer meetingId) {
+		List<WelcomeMessageType> welcomeMessageTypeEnums = toWelcomeMessageTypes(welcomeMessageTypes);
+
+		Tag tag = tagRepository.findTagByMeetingId(meetingId)
+			.orElseGet(() -> tagRepository.save(Tag.createGeneralMeetingTag(meetingId, welcomeMessageTypeEnums, null)));
+
+		tag.updateWelcomeMessageTypes(welcomeMessageTypeEnums);
+	}
+
+	@Override
+	@Transactional
 	public void updateFlashMeetingTag(List<String> welcomeMessageTypes,
 		List<String> meetingKeywordTypes, Integer flashId) {
 		Tag tag = tagRepository.findTagByFlashId(flashId)
