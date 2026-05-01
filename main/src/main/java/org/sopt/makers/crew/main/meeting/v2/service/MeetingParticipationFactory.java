@@ -34,7 +34,7 @@ public class MeetingParticipationFactory {
 			isActiveGeneration);
 		AtomicInteger applyNumber = new AtomicInteger(1);
 		List<ApplyMemberInfoDto> appliedInfo = participatingPartApplies.stream()
-			.map(apply -> ApplyMemberInfoDto.of(apply, apply.getUser(), applyNumber.getAndIncrement()))
+			.map(apply -> ApplyMemberInfoDto.of(apply, applyNumber.getAndIncrement()))
 			.toList();
 
 		return MeetingV2GetMeetingPartMembersResponseDto.of(requestUserPart, participatingPartApplies.size(),

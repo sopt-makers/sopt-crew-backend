@@ -3,7 +3,6 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 import java.time.LocalDateTime;
 
 import org.sopt.makers.crew.main.entity.apply.Apply;
-import org.sopt.makers.crew.main.entity.user.User;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -47,8 +46,8 @@ public class ApplyMemberInfoDto {
 	@NotNull
 	private final ApplicantByMeetingDto user;
 
-	public static ApplyMemberInfoDto of(Apply apply, User user, Integer applyNumber) {
-		ApplicantByMeetingDto applicantByMeetingDto = ApplicantByMeetingDto.of(user);
+	public static ApplyMemberInfoDto of(Apply apply, Integer applyNumber) {
+		ApplicantByMeetingDto applicantByMeetingDto = ApplicantByMeetingDto.of(apply.getUser());
 
 		return new ApplyMemberInfoDto(apply.getId(), applyNumber, apply.getType().getValue(), apply.getMeetingId(),
 			apply.getUserId(), apply.getAppliedDate(), apply.getStatus().getValue(), applicantByMeetingDto);
