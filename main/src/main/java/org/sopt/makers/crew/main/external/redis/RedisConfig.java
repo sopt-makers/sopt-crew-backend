@@ -1,9 +1,15 @@
 package org.sopt.makers.crew.main.external.redis;
 
+
+import java.time.Duration;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 //@EnableCaching
+@Profile("lambda-dev")
 public class RedisConfig {
 
 	// @Bean
