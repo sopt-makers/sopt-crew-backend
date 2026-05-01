@@ -1,8 +1,13 @@
 package org.sopt.makers.crew.main.internal.service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.sopt.makers.crew.main.entity.apply.Apply;
@@ -11,6 +16,7 @@ import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
@@ -21,6 +27,7 @@ import org.sopt.makers.crew.main.internal.dto.InternalMeetingForWritingPostDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllMeetingDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingGetAllWritingPostResponseDto;
 import org.sopt.makers.crew.main.internal.dto.InternalMeetingResponseDto;
+import org.sopt.makers.crew.main.internal.dto.InternalWithMeetingUserIdsDto;
 import org.sopt.makers.crew.main.internal.dto.UserAppliedMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.springframework.data.domain.Page;
@@ -42,6 +49,7 @@ public class InternalMeetingService {
 	private final Time time;
 	private final CoLeaderRepository coLeaderRepository;
 	private final ApplyRepository applyRepository;
+	private final UserRepository userRepository;
 
 	/**
 	 * [for. APP BE] 모일 리스트 페이지네이션 조회 (10개)
@@ -118,5 +126,37 @@ public class InternalMeetingService {
 				return UserAppliedMeetingDto.of(meeting.getId(), category, title, meetingStartTIme, meetingEndTIme,
 					isUserCoLeader, imgUrl);
 			}).toList();
+	}
+
+	public InternalWithMeetingUserIdsDto retrieveWithMeetingUserIds(Integer orgUserId) {
+
+		List<Meeting> myMeetings = meetingRepository.findAllByUserId(orgUserId);
+		List<Apply> myApprovedApplies = applyRepository.findAllByUserIdAndStatus(orgUserId, EnApplyStatus.APPROVE);
+
+		// 내가 개설한 모임 + 내가 신청(승인)된 모임
+		List<Integer> allMeetingIds = Stream.concat(
+				myMeetings.stream().map(Meeting::getId),
+				myApprovedApplies.stream().map(Apply::getMeetingId))
+			.distinct()
+			.toList();
+
+		Map<Boolean, List<Integer>> appliedGrouped = applyRepository
+			.findAllByMeetingIdInAndStatus(allMeetingIds, EnApplyStatus.APPROVE)
+			.stream()
+			.filter(apply -> !apply.getUserId().equals(orgUserId))
+			.sorted(Comparator.comparing(Apply::getMeetingId).reversed())
+			.collect(Collectors.groupingBy(
+				apply -> apply.getMeeting().getCreatedGeneration() == activeGenerationProvider.getActiveGeneration(),
+				LinkedHashMap::new,
+				Collectors.mapping(Apply::getUserId, Collectors.toList())
+			));
+
+		List<Integer> currentUserIds = new LinkedHashSet<>(appliedGrouped.getOrDefault(true, Collections.emptyList()))
+			.stream().toList();
+
+		List<Integer> previousUserIds = new LinkedHashSet<>(appliedGrouped.getOrDefault(false, Collections.emptyList()))
+			.stream().toList();
+
+		return InternalWithMeetingUserIdsDto.of(currentUserIds, previousUserIds);
 	}
 }

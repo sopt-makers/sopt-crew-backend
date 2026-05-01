@@ -149,6 +149,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private final ImageSettingProperties imageSettingProperties;
 	private final ActiveGenerationProvider activeGenerationProvider;
+	private final AdvertisementPageableStrategy advertisementPageableStrategy;
+	private final DefaultPageableStrategy defaultPageableStrategy;
 
 	private final Time time;
 
@@ -409,10 +411,23 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Override
 	public MeetingV2GetAllMeetingDto getMeetings(MeetingV2GetAllMeetingQueryDto queryCommand) {
 		PageableStrategy pageableStrategy = getPageableStrategy(queryCommand);
-		Pageable pageable = pageableStrategy.createPageable(queryCommand);
-
-		Page<Meeting> meetings = meetingRepository.findAllByQuery(queryCommand, pageable, time,
-			activeGenerationProvider.getActiveGeneration());
+		int totalMeetingCount = (int)meetingRepository.countMeetingsByQuery(
+			queryCommand,
+			time,
+			activeGenerationProvider.getActiveGeneration()
+		);
+		MeetingV2GetAllMeetingQueryDto effectiveQueryCommand = adjustPageWhenOutOfRange(
+			queryCommand,
+			totalMeetingCount,
+			pageableStrategy
+		);
+		Pageable pageable = pageableStrategy.createPageable(effectiveQueryCommand);
+		List<Meeting> meetings = meetingRepository.findMeetingsByQuery(
+			effectiveQueryCommand,
+			pageable,
+			time,
+			activeGenerationProvider.getActiveGeneration()
+		);
 
 		List<Integer> meetingIds = meetings.stream()
 			.map(Meeting::getId)
@@ -423,7 +438,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
 			meetingIds);
 
-		List<MeetingResponseDto> meetingResponseDtos = meetings.getContent().stream()
+		List<MeetingResponseDto> meetingResponseDtos = meetings.stream()
 			.map(meeting -> MeetingResponseDto.of(
 				meeting,
 				meeting.getUser(),
@@ -434,9 +449,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			)
 			.toList();
 
-		PageOptionsDto pageOptionsDto = new PageOptionsDto(meetings.getPageable().getPageNumber() + 1,
-			meetings.getPageable().getPageSize());
-		PageMetaDto pageMetaDto = new PageMetaDto(pageOptionsDto, (int)meetings.getTotalElements());
+		PageMetaDto pageMetaDto = pageableStrategy.createPageMeta(
+			pageable,
+			totalMeetingCount,
+			effectiveQueryCommand.getTake()
+		);
 
 		return MeetingV2GetAllMeetingDto.of(meetingResponseDtos, pageMetaDto);
 	}
@@ -691,11 +708,38 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private PageableStrategy getPageableStrategy(MeetingV2GetAllMeetingQueryDto queryCommand) {
-		if (queryCommand.getPaginationType().equals(PaginationType.ADVERTISEMENT)) {
-			return new AdvertisementPageableStrategy();
-		} else {
-			return new DefaultPageableStrategy();
+		if (queryCommand.getPaginationType() == PaginationType.ADVERTISEMENT) {
+			return advertisementPageableStrategy;
 		}
+
+		return defaultPageableStrategy;
+	}
+
+	private MeetingV2GetAllMeetingQueryDto adjustPageWhenOutOfRange(MeetingV2GetAllMeetingQueryDto queryCommand,
+		int itemCount, PageableStrategy pageableStrategy) {
+		if (itemCount == 0 && queryCommand.getPage() > 1) {
+			return copyQueryWithPage(queryCommand, 1);
+		}
+
+		int normalizedPage = pageableStrategy.normalizePage(queryCommand, itemCount);
+
+		if (normalizedPage == queryCommand.getPage()) {
+			return queryCommand;
+		}
+
+		return copyQueryWithPage(queryCommand, normalizedPage);
+	}
+
+	private MeetingV2GetAllMeetingQueryDto copyQueryWithPage(MeetingV2GetAllMeetingQueryDto source, int page) {
+		MeetingV2GetAllMeetingQueryDto queryDto = new MeetingV2GetAllMeetingQueryDto(page, source.getTake());
+		queryDto.setCategory(source.getCategory());
+		queryDto.setKeyword(source.getKeyword());
+		queryDto.setStatus(source.getStatus());
+		queryDto.setIsOnlyActiveGeneration(source.getIsOnlyActiveGeneration());
+		queryDto.setJoinableParts(source.getJoinableParts());
+		queryDto.setQuery(source.getQuery());
+		queryDto.setPaginationType(source.getPaginationType());
+		return queryDto;
 	}
 
 	private Page<ApplyInfoDetailDto> madeApplyInfoDetails(MeetingGetAppliesQueryDto queryCommand, Integer meetingId,
