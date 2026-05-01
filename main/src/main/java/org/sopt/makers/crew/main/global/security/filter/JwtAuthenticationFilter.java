@@ -16,9 +16,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -33,8 +31,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		throws ServletException, IOException {
 		String authorizationToken = getAuthorizationToken(request);
 		if (!StringUtils.hasText(authorizationToken)) {
-			log.info("jwt authentication skipped method={} uri={} reason=missing_authorization",
-				request.getMethod(), request.getRequestURI());
 			filterChain.doFilter(request, response);
 			return;
 		}
@@ -42,8 +38,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		MakersAuthentication authentication = jwtAuthenticator.authenticate(authorizationToken);
 		authentication.setAuthenticated(true);
 		SecurityContextHolder.getContext().setAuthentication(authentication);
-		log.info("jwt authentication success method={} uri={} userId={} roles={}",
-			request.getMethod(), request.getRequestURI(), authentication.getUserId(), authentication.getRoles());
 		filterChain.doFilter(request, response);
 	}
 
@@ -57,3 +51,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		return header.substring(ACCESS_TOKEN_PREFIX.length()).trim();
 	}
 }
+

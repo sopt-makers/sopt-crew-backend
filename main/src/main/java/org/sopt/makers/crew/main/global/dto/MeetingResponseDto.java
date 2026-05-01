@@ -9,7 +9,6 @@ import java.util.Objects;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
-import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
 import org.sopt.makers.crew.main.entity.user.User;
@@ -33,9 +32,6 @@ public class MeetingResponseDto {
 	@Schema(description = "모임 제목", example = "모임 제목입니다")
 	@NotNull
 	private final String title;
-
-	@Schema(description = "모임 부제목", example = "모임 부제목입니다")
-	private final String subTitle;
 
 	@Schema(description = "대상 기수", example = "33")
 	@NotNull
@@ -70,9 +66,6 @@ public class MeetingResponseDto {
 	@Schema(example = "false", description = "멘토 필요 여부")
 	@NotNull
 	private final Boolean isMentorNeeded;
-
-	@Schema(description = "모임 참여 정보")
-	private final MeetingJoinInfo joinInfo;
 
 	@Schema(description = "모임 모집 시작일", example = "2024-06-11T15:30:00")
 	@NotNull
@@ -124,7 +117,6 @@ public class MeetingResponseDto {
 		return new MeetingResponseDto(
 			meeting.getId(),
 			meeting.getTitle(),
-			meeting.getSubTitle(),
 			meeting.getTargetActiveGeneration(),
 			meeting.getJoinableParts(),
 			meeting.getCategory().getValue(),
@@ -132,7 +124,6 @@ public class MeetingResponseDto {
 			meeting.getMeetingStatusValue(now),
 			meeting.getImageURL(),
 			meeting.getIsMentorNeeded(),
-			meeting.getJoinInfo(),
 			meeting.getStartDate(),
 			meeting.getEndDate(),
 			meeting.getmStartDate(),

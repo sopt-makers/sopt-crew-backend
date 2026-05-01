@@ -9,8 +9,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOr
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2UpdateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
@@ -19,12 +18,10 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingB
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -60,7 +57,7 @@ public interface MeetingV2Api {
 	@ApiResponses(value = {@ApiResponse(responseCode = "201", description = "성공"),
 		@ApiResponse(responseCode = "400", description = "\"이미지 파일이 없습니다.\" or \"한 개 이상의 파트를 입력해주세요\" or \"프로필을 입력해주세요\"", content = @Content),})
 	ResponseEntity<MeetingV2CreateMeetingResponseDto> createMeeting(
-		@Valid @RequestBody MeetingV2CreateMeetingBodyDto requestBody,
+		@Valid @RequestBody MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
 		Principal principal);
 
 	@Operation(summary = "일반 모임 지원")
@@ -118,10 +115,9 @@ public interface MeetingV2Api {
 	@Operation(summary = "모임 삭제", description = "모임 삭제합니다.")
 	ResponseEntity<Void> deleteMeeting(@PathVariable Integer meetingId, Principal principal);
 
-	@Operation(summary = "모임 수정", description = "모임 내용을 부분 수정합니다.")
-	@PatchMapping("/{meetingId}")
+	@Operation(summary = "모임 수정", description = "모임 내용을 수정합니다.")
 	ResponseEntity<Void> updateMeeting(@PathVariable Integer meetingId,
-		@RequestBody @Valid MeetingV2UpdateMeetingBodyDto requestBody, Principal principal);
+		@RequestBody @Valid MeetingV2CreateAndUpdateMeetingBodyDto requestBody, Principal principal);
 
 	@Operation(summary = "모임 지원자 상태 변경", description = "모임 지원자의 지원 상태를 변경합니다.")
 	ResponseEntity<Void> updateApplyStatus(@PathVariable Integer meetingId,
@@ -144,12 +140,6 @@ public interface MeetingV2Api {
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 상세 조회 성공"),
 		@ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
 	ResponseEntity<MeetingV2GetMeetingByIdResponseDto> getMeetingById(@PathVariable Integer meetingId,
-		Principal principal);
-
-	@Operation(summary = "모임 내 같은 파트/기수 멤버 리스트 조회", description = "조회자 기준 파트/기수 조건에 맞는 참여중인 멤버 리스트를 조회합니다.")
-	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "모임 내 같은 파트/기수 멤버 리스트 조회 성공"),
-		@ApiResponse(responseCode = "400", description = "모임이 없습니다.", content = @Content),})
-	ResponseEntity<MeetingV2GetMeetingPartMembersResponseDto> getMeetingPartMembers(@PathVariable Integer meetingId,
 		Principal principal);
 
 	@Operation(summary = "추천 모임 목록 조회", description = "추천 모임 목록 조회, 쿼리파라미터가 없는 경우 '지금 모집중인 모임' 반환")

@@ -11,8 +11,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingByOr
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingV2GetAllMeetingQueryDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.ApplyV2UpdateStatusBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2UpdateMeetingBodyDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateAndUpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.AppliesCsvFileUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
@@ -21,7 +20,6 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingB
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetAllMeetingDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBannerResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
-import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
@@ -31,7 +29,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -78,7 +75,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 	@Override
 	@PostMapping
 	public ResponseEntity<MeetingV2CreateMeetingResponseDto> createMeeting(
-		@Valid @RequestBody MeetingV2CreateMeetingBodyDto requestBody,
+		@Valid @RequestBody MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
 		Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.status(HttpStatus.CREATED).body(meetingV2Service.createMeeting(requestBody, userId));
@@ -146,7 +143,6 @@ public class MeetingV2Controller implements MeetingV2Api {
 		@ModelAttribute @Valid MeetingV2GetAllMeetingQueryDto queryCommand,
 		Principal principal) {
 
-		log.info("meeting getMeetings called principal={}", principal == null ? null : principal.getName());
 		MeetingV2GetAllMeetingDto meetings = meetingV2Service.getMeetings(queryCommand);
 		return ResponseEntity.ok().body(meetings);
 	}
@@ -161,10 +157,10 @@ public class MeetingV2Controller implements MeetingV2Api {
 	}
 
 	@Override
-	@PatchMapping("/{meetingId}")
+	@PutMapping("/{meetingId}")
 	public ResponseEntity<Void> updateMeeting(
 		@PathVariable Integer meetingId,
-		@RequestBody @Valid MeetingV2UpdateMeetingBodyDto requestBody,
+		@RequestBody @Valid MeetingV2CreateAndUpdateMeetingBodyDto requestBody,
 		Principal principal) {
 
 		Integer userId = UserUtil.getUserId(principal);
@@ -220,15 +216,6 @@ public class MeetingV2Controller implements MeetingV2Api {
 		Integer userId = UserUtil.getUserId(principal);
 
 		return ResponseEntity.ok(meetingV2Service.getMeetingDetail(meetingId, userId));
-	}
-
-	@Override
-	@GetMapping("/{meetingId}/members")
-	public ResponseEntity<MeetingV2GetMeetingPartMembersResponseDto> getMeetingPartMembers(
-		@PathVariable Integer meetingId, Principal principal) {
-		Integer userId = UserUtil.getUserId(principal);
-
-		return ResponseEntity.ok(meetingV2Service.getMeetingPartMembers(meetingId, userId));
 	}
 
 	@Override
