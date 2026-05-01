@@ -10,7 +10,6 @@ public class UserPartUtil {
     public static MeetingJoinablePart getMeetingJoinablePart(UserPart userPart) {
         switch (userPart) {
             case PLAN:
-            case PM:
             case PM_LEADER:
                 return MeetingJoinablePart.PM;
             case DESIGN:
@@ -23,11 +22,9 @@ public class UserPartUtil {
             case ANDROID_LEADER:
                 return MeetingJoinablePart.ANDROID;
             case SERVER:
-            case BACKEND:
             case SERVER_LEADER:
                 return MeetingJoinablePart.SERVER;
             case WEB:
-            case FRONTEND:
             case WEB_LEADER:
                 return MeetingJoinablePart.WEB;
             default:

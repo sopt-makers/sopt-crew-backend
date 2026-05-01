@@ -13,7 +13,6 @@ import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
-import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
@@ -65,13 +64,6 @@ public class Meeting extends BaseTimeEntity {
 	 */
 	@Column(nullable = false)
 	private String title;
-
-	/**
-	 * 모임 부제목
-	 */
-	@Size(min = 1, max = 30)
-	@Column(name = "subTitle", length = 30)
-	private String subTitle;
 
 	/**
 	 * 모임 카테고리
@@ -157,13 +149,6 @@ public class Meeting extends BaseTimeEntity {
 	private Boolean canJoinOnlyActiveGeneration;
 
 	/**
-	 * 참여 정보
-	 */
-	@Column(name = "joinInfo", columnDefinition = "jsonb")
-	@Type(JsonBinaryType.class)
-	private MeetingJoinInfo joinInfo;
-
-	/**
 	 * 모임 기수
 	 */
 	@Column(name = "createdGeneration", nullable = false)
@@ -185,16 +170,15 @@ public class Meeting extends BaseTimeEntity {
 	private MeetingJoinablePart[] joinableParts;
 
 	@Builder
-	public Meeting(User user, Integer userId, String title, String subTitle, MeetingCategory category,
+	public Meeting(User user, Integer userId, String title, MeetingCategory category,
 		List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
 		String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
 		String leaderDesc, String note, Boolean isMentorNeeded,
-		Boolean canJoinOnlyActiveGeneration, MeetingJoinInfo joinInfo, Integer createdGeneration,
+		Boolean canJoinOnlyActiveGeneration, Integer createdGeneration,
 		Integer targetActiveGeneration, MeetingJoinablePart[] joinableParts) {
 		this.user = user;
 		this.userId = userId;
 		this.title = title;
-		this.subTitle = subTitle;
 		this.category = category;
 		this.imageURL = imageURL;
 		this.startDate = startDate;
@@ -208,7 +192,6 @@ public class Meeting extends BaseTimeEntity {
 		this.note = note;
 		this.isMentorNeeded = isMentorNeeded;
 		this.canJoinOnlyActiveGeneration = canJoinOnlyActiveGeneration;
-		this.joinInfo = joinInfo;
 		this.createdGeneration = createdGeneration;
 		this.targetActiveGeneration = targetActiveGeneration;
 		this.joinableParts = joinableParts;
@@ -258,7 +241,6 @@ public class Meeting extends BaseTimeEntity {
 	public void updateMeeting(Meeting updateMeeting) {
 
 		this.title = updateMeeting.getTitle();
-		this.subTitle = updateMeeting.getSubTitle();
 		this.category = updateMeeting.getCategory();
 		this.imageURL = updateMeeting.getImageURL();
 		this.startDate = updateMeeting.getStartDate();
@@ -272,70 +254,8 @@ public class Meeting extends BaseTimeEntity {
 		this.note = updateMeeting.getNote();
 		this.isMentorNeeded = updateMeeting.getIsMentorNeeded();
 		this.canJoinOnlyActiveGeneration = updateMeeting.getCanJoinOnlyActiveGeneration();
-		this.joinInfo = updateMeeting.getJoinInfo();
 		this.targetActiveGeneration = updateMeeting.getTargetActiveGeneration();
 		this.joinableParts = updateMeeting.getJoinableParts();
-	}
-
-	public void patchMeeting(String title, String subTitle, MeetingCategory category,
-		List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
-		String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
-		String leaderDesc, String note, Boolean isMentorNeeded,
-		Boolean canJoinOnlyActiveGeneration, Integer targetActiveGeneration,
-		MeetingJoinInfo joinInfo, MeetingJoinablePart[] joinableParts) {
-
-		if (title != null) {
-			this.title = title;
-		}
-		if (subTitle != null) {
-			this.subTitle = subTitle;
-		}
-		if (category != null) {
-			this.category = category;
-		}
-		if (imageURL != null) {
-			this.imageURL = imageURL;
-		}
-		if (startDate != null) {
-			this.startDate = startDate;
-		}
-		if (endDate != null) {
-			this.endDate = endDate;
-		}
-		if (capacity != null) {
-			this.capacity = capacity;
-		}
-		if (desc != null) {
-			this.desc = desc;
-		}
-		if (processDesc != null) {
-			this.processDesc = processDesc;
-		}
-		if (mStartDate != null) {
-			this.mStartDate = mStartDate;
-		}
-		if (mEndDate != null) {
-			this.mEndDate = mEndDate;
-		}
-		if (leaderDesc != null) {
-			this.leaderDesc = leaderDesc;
-		}
-		if (note != null) {
-			this.note = note;
-		}
-		if (isMentorNeeded != null) {
-			this.isMentorNeeded = isMentorNeeded;
-		}
-		if (canJoinOnlyActiveGeneration != null) {
-			this.canJoinOnlyActiveGeneration = canJoinOnlyActiveGeneration;
-			this.targetActiveGeneration = targetActiveGeneration;
-		}
-		if (joinInfo != null) {
-			this.joinInfo = joinInfo;
-		}
-		if (joinableParts != null) {
-			this.joinableParts = joinableParts;
-		}
 	}
 
 	public LocalDateTime getmStartDate() {
