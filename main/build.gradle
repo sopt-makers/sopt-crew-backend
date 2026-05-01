@@ -215,31 +215,31 @@ jacocoTestCoverageVerification {
 // Lambda 배포를 위한 ZIP 패키징 태스크
 // 실행: ./gradlew clean lambdaJar -x test
 jar {
-    enabled = true
-    archiveClassifier = ''
+    enabled = false
 }
 
 bootJar {
-    enabled = true
+    enabled = false
 }
 
-task lambdaJar(type: Zip) {
-    dependsOn jar
-    archiveClassifier = 'lambda'
-    archiveFileName = 'main-lambda.zip'
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    zip64 = true
-
-    into('lib') {
-        from(jar)
-        from(configurations.runtimeClasspath) {
-            exclude "**/tomcat-embed-*.jar"
-            exclude "org/apache/tomcat/**"
-            exclude "META-INF/*.SF"
-            exclude "META-INF/*.DSA"
-            exclude "META-INF/*.RSA"
-            exclude "META-INF/MANIFEST.MF"
-            exclude "**/module-info.class"
-        }
-    }
-}
+// lambda 환경에서만 활성화
+//task lambdaJar(type: Zip) {
+//    dependsOn jar
+//    archiveClassifier = 'lambda'
+//    archiveFileName = 'main-lambda.zip'
+//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//    zip64 = true
+//
+//    into('lib') {
+//        from(jar)
+//        from(configurations.runtimeClasspath) {
+//            exclude "**/tomcat-embed-*.jar"
+//            exclude "org/apache/tomcat/**"
+//            exclude "META-INF/*.SF"
+//            exclude "META-INF/*.DSA"
+//            exclude "META-INF/*.RSA"
+//            exclude "META-INF/MANIFEST.MF"
+//            exclude "**/module-info.class"
+//        }
+//    }
+//}
