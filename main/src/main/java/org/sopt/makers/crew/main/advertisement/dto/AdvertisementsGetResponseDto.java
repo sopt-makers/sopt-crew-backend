@@ -30,7 +30,6 @@ public record AdvertisementsGetResponseDto(
 		String mobileImageUrl,
 
 		@Schema(description = "광고 구좌 링크", example = "https://www.naver.com")
-		@NotNull
 		String advertisementLink,
 
 		@Schema(description = "광고 게시 시작일", example = "2024-07-31T00:00:00")

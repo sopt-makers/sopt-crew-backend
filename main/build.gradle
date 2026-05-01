@@ -26,7 +26,11 @@ dependencies {
     // Spring Boot Dependencies
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux:3.1.5'
+    //implementation 'org.springframework.boot:spring-boot-starter-webflux:3.1.5'
+    // WebClient만 유지
+    implementation 'org.springframework:spring-webflux'
+    implementation 'io.projectreactor.netty:reactor-netty-http'
+
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -131,6 +135,11 @@ dependencies {
 
     // Library for parsing JWT/JWK tokens and verifying their signatures
     implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
+
+    // AWS Lambda Dependencies (for Serverless deployment)
+    implementation 'com.amazonaws.serverless:aws-serverless-java-container-springboot3:2.1.5'
+    implementation 'com.amazonaws:aws-lambda-java-core:1.4.0'
+    implementation 'com.amazonaws:aws-lambda-java-events:3.16.1'
 
 }
 
