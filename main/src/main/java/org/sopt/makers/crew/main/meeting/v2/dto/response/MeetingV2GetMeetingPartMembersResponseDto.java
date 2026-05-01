@@ -14,17 +14,12 @@ public record MeetingV2GetMeetingPartMembersResponseDto(
 	boolean isActiveGeneration,
 	@Schema(description = "참여 정보 기준 기수", example = "38")
 	Integer activeGeneration,
-	@Schema(description = "유저 리스트의 index id", example = "[1, 2]")
-	List<Integer> memberIds,
-	@Schema(description = "유저 이름 리스트", example = "[\"이지훈\", \"김효준\"]")
-	List<String> memberNames,
-	@Schema(description = "유저 프로필 이미지 리스트", example = "[\"https://example.com/profile.png\", null]")
-	List<String> memberProfileImages
+	@Schema(description = "조건에 맞는 신청 정보 목록", example = "")
+	List<ApplyMemberInfoDto> appliedInfo
 ) {
 	public static MeetingV2GetMeetingPartMembersResponseDto of(String part, int participantCount,
-		boolean isActiveGeneration, Integer activeGeneration, List<Integer> memberIds, List<String> memberNames,
-		List<String> memberProfileImages) {
+		boolean isActiveGeneration, Integer activeGeneration, List<ApplyMemberInfoDto> appliedInfo) {
 		return new MeetingV2GetMeetingPartMembersResponseDto(part, participantCount, isActiveGeneration,
-			activeGeneration, memberIds, memberNames, memberProfileImages);
+			activeGeneration, appliedInfo);
 	}
 }

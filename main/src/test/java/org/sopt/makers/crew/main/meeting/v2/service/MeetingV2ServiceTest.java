@@ -51,6 +51,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2ApplyMeetingDto
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2CreateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.request.MeetingV2UpdateMeetingBodyDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyInfoDto;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyMemberInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyWholeInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingGetApplyListResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2ApplyMeetingResponseDto;
@@ -150,6 +151,19 @@ public class MeetingV2ServiceTest {
 			.content(part + " 신청합니다.")
 			.build();
 		applyRepository.save(apply);
+	}
+
+	private void assertAppliedInfoMembers(MeetingV2GetMeetingPartMembersResponseDto responseDto,
+		List<Integer> applyNumbers, List<String> memberNames, List<String> memberProfileImages) {
+		Assertions.assertThat(responseDto.appliedInfo())
+			.extracting(ApplyMemberInfoDto::getApplyNumber)
+			.containsExactlyElementsOf(applyNumbers);
+		Assertions.assertThat(responseDto.appliedInfo())
+			.extracting(applyInfo -> applyInfo.getUser().getName())
+			.containsExactlyElementsOf(memberNames);
+		Assertions.assertThat(responseDto.appliedInfo())
+			.extracting(applyInfo -> applyInfo.getUser().getProfileImage())
+			.containsExactlyElementsOf(memberProfileImages);
 	}
 
 	@Nested
@@ -1237,9 +1251,7 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
 			Assertions.assertThat(responseDto.isActiveGeneration()).isFalse();
 			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(33);
-			Assertions.assertThat(responseDto.memberIds()).containsExactly(1);
-			Assertions.assertThat(responseDto.memberNames()).containsExactly("승인신청자");
-			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile2.jpg");
+			assertAppliedInfoMembers(responseDto, List.of(1), List.of("승인신청자"), List.of("profile2.jpg"));
 		}
 
 		@Test
@@ -1284,9 +1296,7 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
 			Assertions.assertThat(responseDto.isActiveGeneration()).isTrue();
 			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(35);
-			Assertions.assertThat(responseDto.memberIds()).containsExactly(1);
-			Assertions.assertThat(responseDto.memberNames()).containsExactly("백엔드신청자");
-			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("backend-profile.jpg");
+			assertAppliedInfoMembers(responseDto, List.of(1), List.of("백엔드신청자"), List.of("backend-profile.jpg"));
 		}
 
 		@Test
@@ -1317,9 +1327,7 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.isActiveGeneration()).isFalse();
 			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(37);
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
-			Assertions.assertThat(responseDto.memberIds()).containsExactly(1);
-			Assertions.assertThat(responseDto.memberNames()).containsExactly("37기신청자");
-			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile.jpg");
+			assertAppliedInfoMembers(responseDto, List.of(1), List.of("37기신청자"), List.of("profile.jpg"));
 		}
 
 		@Test
@@ -1451,9 +1459,7 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.isActiveGeneration()).isTrue();
 			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(35);
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
-			Assertions.assertThat(responseDto.memberIds()).containsExactly(1);
-			Assertions.assertThat(responseDto.memberNames()).containsExactly("35기iOS신청자");
-			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile.jpg");
+			assertAppliedInfoMembers(responseDto, List.of(1), List.of("35기iOS신청자"), List.of("profile.jpg"));
 		}
 
 		@Test
@@ -1474,9 +1480,8 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.isActiveGeneration()).isFalse();
 			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(33);
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(2);
-			Assertions.assertThat(responseDto.memberIds()).containsExactly(1, 2);
-			Assertions.assertThat(responseDto.memberNames()).containsExactly("승인신청자", "33기백엔드신청자");
-			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile2.jpg", "profile.jpg");
+			assertAppliedInfoMembers(responseDto, List.of(1, 2), List.of("승인신청자", "33기백엔드신청자"),
+				List.of("profile2.jpg", "profile.jpg"));
 		}
 
 		@Test
@@ -1497,9 +1502,8 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.isActiveGeneration()).isFalse();
 			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(33);
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(2);
-			Assertions.assertThat(responseDto.memberIds()).containsExactly(1, 2);
-			Assertions.assertThat(responseDto.memberNames()).containsExactly("승인신청자", "PM신청자");
-			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile2.jpg", "profile.jpg");
+			assertAppliedInfoMembers(responseDto, List.of(1, 2), List.of("승인신청자", "PM신청자"),
+				List.of("profile2.jpg", "profile.jpg"));
 		}
 
 		@Test
@@ -1526,9 +1530,7 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(responseDto.isActiveGeneration()).isTrue();
 			Assertions.assertThat(responseDto.activeGeneration()).isEqualTo(35);
 			Assertions.assertThat(responseDto.participantCount()).isEqualTo(1);
-			Assertions.assertThat(responseDto.memberIds()).containsExactly(1);
-			Assertions.assertThat(responseDto.memberNames()).containsExactly("프론트엔드신청자");
-			Assertions.assertThat(responseDto.memberProfileImages()).containsExactly("profile.jpg");
+			assertAppliedInfoMembers(responseDto, List.of(1), List.of("프론트엔드신청자"), List.of("profile.jpg"));
 		}
 
 		@Test

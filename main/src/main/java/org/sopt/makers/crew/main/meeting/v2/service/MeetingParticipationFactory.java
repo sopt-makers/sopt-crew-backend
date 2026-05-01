@@ -4,13 +4,14 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.IntStream;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
+import org.sopt.makers.crew.main.meeting.v2.dto.response.ApplyMemberInfoDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
 import org.springframework.stereotype.Component;
 
@@ -31,18 +32,13 @@ public class MeetingParticipationFactory {
 		String requestUserPart = requestUserActivity.getPart();
 		List<Apply> participatingPartApplies = getParticipatingPartApplies(participatingApplies, requestUserActivity,
 			isActiveGeneration);
-		List<Integer> memberIds = IntStream.rangeClosed(1, participatingPartApplies.size())
-			.boxed()
-			.toList();
-		List<String> memberNames = participatingPartApplies.stream()
-			.map(apply -> apply.getUser().getName())
-			.toList();
-		List<String> memberProfileImages = participatingPartApplies.stream()
-			.map(apply -> apply.getUser().getProfileImage())
+		AtomicInteger applyNumber = new AtomicInteger(1);
+		List<ApplyMemberInfoDto> appliedInfo = participatingPartApplies.stream()
+			.map(apply -> ApplyMemberInfoDto.of(apply, apply.getUser(), applyNumber.getAndIncrement()))
 			.toList();
 
 		return MeetingV2GetMeetingPartMembersResponseDto.of(requestUserPart, participatingPartApplies.size(),
-			isActiveGeneration, requestUserActivity.getGeneration(), memberIds, memberNames, memberProfileImages);
+			isActiveGeneration, requestUserActivity.getGeneration(), appliedInfo);
 	}
 
 	private List<Apply> getParticipatingPartApplies(List<Apply> participatingApplies,
