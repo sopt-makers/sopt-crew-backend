@@ -3,6 +3,7 @@ package org.sopt.makers.crew.main.entity.meeting;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -32,4 +33,6 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 	List<Meeting> findTop20ByOrderByIdDesc();
 
 	Integer countAllByCreatedGeneration(Integer generation);
+
+	Optional<Meeting> findFirstByTitleOrderByIdDesc(String title);
 }

@@ -47,6 +47,7 @@ create table if not exists meeting
     references "user"
     on delete cascade,
     title                         varchar   not null,
+    "subTitle"                    varchar,
     category                      varchar   not null,
     "imageURL"                    jsonb     not null,
     "startDate"                   timestamp not null,
@@ -60,6 +61,7 @@ create table if not exists meeting
     note                          varchar,
     "isMentorNeeded"              boolean   not null,
     "canJoinOnlyActiveGeneration" boolean   not null,
+    "joinInfo"                    jsonb,
     "targetActiveGeneration"      integer,
     "joinableParts"               meeting_joinableparts_enum[],
     "createdGeneration"           integer   default 32,
@@ -270,13 +272,27 @@ create table if not exists advertisement
     "advertisementCategory"        varchar(255)
     constraint "advertisement_advertisementCategory_check"
     check (("advertisementCategory")::text = ANY
-((ARRAY ['POST'::character varying, 'MEETING'::character varying])::text[])),
+((ARRAY ['POST'::character varying, 'MEETING'::character varying, 'MEETING_TOP'::character varying])::text[])),
     "advertisementDesktopImageUrl" varchar(255),
     "advertisementMobileImageUrl"  varchar(255),
+    "calendarImageUrl"             varchar(255),
+    "titlePrefix"                  varchar(255),
+    "titleHighlight"               varchar(255),
+    "titleSuffix"                  varchar(255),
+    "subTitle"                     varchar(255),
     "isSponsoredContent"           boolean   default false not null,
-    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
-    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
-    );
+    "isDisplay"                    boolean   default true not null,
+    "eventType"                    varchar(255)
+    constraint "advertisement_eventType_check"
+    check (("eventType")::text = ANY
+((ARRAY ['SOPKATHON'::character varying, 'NETWORKING'::character varying])::text[])),
+	    "targetGeneration"             varchar(255) default 'ALL' not null
+	    constraint "advertisement_targetGeneration_check"
+	    check (("targetGeneration")::text = ANY
+	((ARRAY ['ALL'::character varying, 'ACTIVE'::character varying, 'RECENT'::character varying])::text[])),
+	    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+	    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
+	    );
 
 -- SoptMap Tables
 create table if not exists subway_station
