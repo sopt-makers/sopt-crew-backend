@@ -2,7 +2,8 @@ package org.sopt.makers.crew.main.meeting.v2.dto.response;
 
 import java.time.LocalDateTime;
 
-import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -25,9 +26,6 @@ public class MeetingV2GetAllMeetingByOrgUserMeetingDto {
 	@NotNull
 	private String title;
 
-	@Schema(description = "모임 부제목", example = "모임 부제목입니다")
-	private String subTitle;
-
 	@Schema(description = "모임 사진", example = "[url] 형식")
 	@NotNull
 	private String imageUrl;
@@ -43,9 +41,6 @@ public class MeetingV2GetAllMeetingByOrgUserMeetingDto {
 	@Schema(description = "활동 종료 날짜", example = "2024-08-15T15:30:00")
 	@NotNull
 	private LocalDateTime mEndDate;
-
-	@Schema(description = "모임 참여 정보")
-	private MeetingJoinInfo joinInfo;
 
 	@Schema(description = "모임 활성 여부", example = "true")
 	@NotNull

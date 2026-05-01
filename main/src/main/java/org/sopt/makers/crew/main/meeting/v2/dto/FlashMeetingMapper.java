@@ -34,8 +34,6 @@ public interface FlashMeetingMapper {
 	@Mapping(target = "note", constant = "") // null 대신 빈 문자열로 NPE 방지
 	@Mapping(target = "isMentorNeeded", constant = "false") // 번쩍 정책에 맞게 false
 	@Mapping(target = "canJoinOnlyActiveGeneration", constant = "false") // 번쩍 정책에 맞게 false
-	@Mapping(target = "subTitle", ignore = true)
-	@Mapping(target = "joinInfo", ignore = true)
 	@Mapping(target = "targetActiveGeneration", expression = "java(null)") // 번쩍 정책에 맞게 null
 	@Mapping(target = "joinableParts", expression = "java(org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart.values())")
 		// 번쩍 정책에 맞게 모든 파트 허용

@@ -37,7 +37,7 @@ jwt:
 
 external:
   auth:
-    url: https://auth-dev-api.sopt.org
+    url: https://auth.api.dev.sopt.org
     api-key: ${AUTH_API_KEY}
     service-name: ${OUR_SERVICE_NAME}
     endpoints:

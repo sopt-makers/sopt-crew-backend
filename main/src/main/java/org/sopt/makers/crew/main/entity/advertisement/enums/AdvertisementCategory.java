@@ -6,10 +6,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum AdvertisementCategory {
-	POST(6, true),
-	MEETING(1, true),
-	MEETING_TOP(1, false);
+	POST(6),
+	MEETING(1);
 
 	private final int maxItems;
-	private final boolean generalAdvertisement;
 }
