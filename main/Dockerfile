@@ -7,6 +7,7 @@ RUN ./gradlew build -x test
 # Runtime stage
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
+COPY --from=build /app/build/libs/app.jar app.jar
 
 # 빌드 인자 및 런타임 환경 변수 설정
 ARG SPRING_PROFILES_ACTIVE=default
