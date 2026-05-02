@@ -64,8 +64,8 @@ class MeetingV2ConcurrencyTest {
 	@DisplayName("모임 지원 락킹 테스트")
 	class 모임_지원_락킹_테스트 {
 		@Test
-		@DisplayName("동일 사용자가 동시에 여러 신청을 시도할 경우 오직 하나만 성공해야 한다")
-		void applyMeetingWithLock_WhenMultipleRequestsFromSameUser_ShouldProcessOnlyOne() throws InterruptedException {
+		@DisplayName("이미 신청한 동일 사용자가 동시에 여러 신청을 시도할 경우 모두 실패해야 한다")
+		void applyMeetingWithLock_WhenAppliedUserRequestsConcurrently_ShouldRejectAll() throws InterruptedException {
 			// given
 			User leader = User.builder()
 				.name("모임장")
@@ -113,14 +113,18 @@ class MeetingV2ConcurrencyTest {
 
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
 
-			int concurrentRequests = 5;
+			MeetingV2ApplyMeetingResponseDto firstResponse = meetingV2Service.applyEventMeetingWithLock(applyDto,
+				applicant.getId());
+			assertThat(firstResponse.getApplyId()).isNotNull();
+
+			int concurrentRequests = 4;
 			ExecutorService executorService = Executors.newFixedThreadPool(concurrentRequests);
 			CountDownLatch startLatch = new CountDownLatch(1);
 			CountDownLatch readyLatch = new CountDownLatch(concurrentRequests);
 			CountDownLatch finishLatch = new CountDownLatch(concurrentRequests);
 
-			AtomicInteger successCount = new AtomicInteger(0);
-			AtomicInteger failCount = new AtomicInteger(0);
+			AtomicInteger duplicateSuccessCount = new AtomicInteger(0);
+			AtomicInteger duplicateFailCount = new AtomicInteger(0);
 
 			// when
 			for (int i = 0; i < concurrentRequests; i++) {
@@ -133,19 +137,18 @@ class MeetingV2ConcurrencyTest {
 							applicant.getId());
 
 						if (response != null && response.getApplyId() != null) {
-							successCount.incrementAndGet();
+							duplicateSuccessCount.incrementAndGet();
 						}
 					} catch (Exception e) {
-						failCount.incrementAndGet();
+						duplicateFailCount.incrementAndGet();
 					} finally {
 						finishLatch.countDown();
 					}
 				});
 			}
 
-			readyLatch.await();
-
-			Thread.sleep(5000);
+			boolean readyInTime = readyLatch.await(5, TimeUnit.SECONDS);
+			assertThat(readyInTime).isTrue();
 
 			startLatch.countDown();
 			boolean completedInTime = finishLatch.await(10, TimeUnit.SECONDS);
@@ -154,8 +157,8 @@ class MeetingV2ConcurrencyTest {
 
 			// then
 			assertThat(completedInTime).isTrue();
-			assertThat(successCount.get()).isEqualTo(1);
-			assertThat(failCount.get()).isEqualTo(concurrentRequests - 1);
+			assertThat(duplicateSuccessCount.get()).isZero();
+			assertThat(duplicateFailCount.get()).isEqualTo(concurrentRequests);
 
 			List<Apply> allApplies = applyRepository.findAllByMeetingId(meeting.getId());
 			List<Apply> userApplies = allApplies.stream()
