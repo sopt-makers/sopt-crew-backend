@@ -216,12 +216,10 @@ jacocoTestCoverageVerification {
 // 실행: ./gradlew clean lambdaJar -x test
 jar {
     enabled = true
-    archiveClassifier = 'plain'
 }
 
 bootJar {
     enabled = true
-    archiveFileName = 'app.jar'
 }
 
 task lambdaJar(type: Zip) {
