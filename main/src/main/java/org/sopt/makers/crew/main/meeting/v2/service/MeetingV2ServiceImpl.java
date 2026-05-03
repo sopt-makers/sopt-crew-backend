@@ -536,8 +536,9 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			requestBody.getJoinableParts()
 		);
 
-		if (requestBody.getWelcomeMessageTypes() != null) {
-			tagV2Service.updateGeneralMeetingWelcomeMessageTypes(requestBody.getWelcomeMessageTypes(), meetingId);
+		if (requestBody.getWelcomeMessageTypes() != null || requestBody.getMeetingKeywordTypes() != null) {
+			tagV2Service.updateGeneralMeetingTag(requestBody.getWelcomeMessageTypes(), requestBody.getMeetingKeywordTypes(),
+				meetingId);
 		}
 	}
 

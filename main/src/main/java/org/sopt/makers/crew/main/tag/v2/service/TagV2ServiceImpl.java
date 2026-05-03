@@ -109,14 +109,30 @@ public class TagV2ServiceImpl implements TagV2Service {
 	@Transactional
 	public void updateGeneralMeetingTag(List<String> welcomeMessageTypes,
 		List<String> meetingKeywordTypes, Integer meetingId) {
+		if (meetingId == null) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		List<WelcomeMessageType> welcomeMessageTypeEnums = welcomeMessageTypes != null
+			? toWelcomeMessageTypes(welcomeMessageTypes)
+			: null;
+		List<MeetingKeywordType> meetingKeywordTypeEnums = meetingKeywordTypes != null
+			? toMeetingKeywordTypes(meetingKeywordTypes)
+			: null;
+
 		Tag tag = tagRepository.findTagByMeetingId(meetingId)
-			.orElseThrow(() -> new NotFoundException(NOT_FOUND_TAG.getErrorCode()));
+			.orElseGet(() -> tagRepository.save(
+				Tag.createGeneralMeetingTag(meetingId,
+					welcomeMessageTypeEnums != null ? welcomeMessageTypeEnums : List.of(),
+					meetingKeywordTypeEnums)
+			));
 
-		List<WelcomeMessageType> welcomeMessageTypeEnums = toWelcomeMessageTypes(welcomeMessageTypes);
-		List<MeetingKeywordType> meetingKeywordTypeEnums = toMeetingKeywordTypes(meetingKeywordTypes);
-
-		tag.updateWelcomeMessageTypes(welcomeMessageTypeEnums);
-		tag.updateMeetingKeywordTypeEnums(meetingKeywordTypeEnums);
+		if (welcomeMessageTypeEnums != null) {
+			tag.updateWelcomeMessageTypes(welcomeMessageTypeEnums);
+		}
+		if (meetingKeywordTypeEnums != null) {
+			tag.updateMeetingKeywordTypeEnums(meetingKeywordTypeEnums);
+		}
 	}
 
 	@Override
