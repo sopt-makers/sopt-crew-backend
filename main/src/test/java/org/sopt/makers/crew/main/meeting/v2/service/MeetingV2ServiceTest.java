@@ -2384,7 +2384,8 @@ public class MeetingV2ServiceTest {
 				null, // joinInfo
 				null, // joinableParts
 				null, // coLeaderUserIds
-				List.of("초면 환영") // welcomeMessageTypes
+				List.of("초면 환영"), // welcomeMessageTypes
+				null // meetingKeywordTypes
 			);
 			// when, then
 			Assertions.assertThatThrownBy(
@@ -2421,7 +2422,8 @@ public class MeetingV2ServiceTest {
 				joinInfo, // joinInfo (참여 정보)
 				null, // joinableParts
 				null, // coLeaderUserIds
-				null // welcomeMessageTypes
+				null, // welcomeMessageTypes
+				null // meetingKeywordTypes
 			);
 
 			// when
@@ -2432,6 +2434,12 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(meeting)
 				.extracting("title", "subTitle", "joinInfo", "category")
 				.containsExactly("스터디 구합니다1", "수정 부제목", joinInfo, MeetingCategory.EVENT);
+			Assertions.assertThat(tagV2Service.getWelcomeMessageTypesByMeetingId(meetingId))
+				.extracting("value")
+				.containsExactly("YB 환영", "OB 환영");
+			Assertions.assertThat(tagV2Service.getMeetingKeywordsTypesByMeetingId(meetingId))
+				.extracting("value")
+				.containsExactly("기타");
 
 			List<CoLeader> coLeaders = coLeaderRepository.findAllByMeetingId(meetingId);
 			Assertions.assertThat(coLeaders).hasSize(1);
@@ -2466,7 +2474,8 @@ public class MeetingV2ServiceTest {
 				null, // joinInfo
 				null, // joinableParts
 				null, // coLeaderUserIds
-				List.of("초면 환영") // welcomeMessageTypes
+				List.of("초면 환영"), // welcomeMessageTypes
+				null // meetingKeywordTypes
 			);
 
 			// when
@@ -2476,11 +2485,56 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(tagV2Service.getWelcomeMessageTypesByMeetingId(meetingId))
 				.extracting("value")
 				.containsExactly("초면 환영");
+			Assertions.assertThat(tagV2Service.getMeetingKeywordsTypesByMeetingId(meetingId))
+				.extracting("value")
+				.containsExactly("기타");
 
 			Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 			Assertions.assertThat(meeting.getSubTitle()).isEqualTo("스터디 부제목1");
 			Assertions.assertThat(meeting.getJoinInfo()).isEqualTo(
 				new MeetingJoinInfo(MeetingType.ONLINE, MeetingFrequency.STEADY));
+		}
+
+		@Test
+		@DisplayName("새로운 모임 수정 페이지는 모임 키워드 태그를 수정할 수 있다.")
+		void patchMeeting_newPage_updatesMeetingKeywords() {
+			// given
+			Integer userId = 1;
+			Integer meetingId = 1;
+
+			MeetingV2UpdateMeetingBodyDto dto = new MeetingV2UpdateMeetingBodyDto(
+				null, // title
+				null, // subTitle
+				null, // files
+				null, // category
+				null, // startDate
+				null, // endDate
+				null, // capacity
+				null, // desc
+				null, // processDesc
+				null, // mStartDate
+				null, // mEndDate
+				null, // leaderDesc
+				null, // note
+				null, // isMentorNeeded
+				null, // canJoinOnlyActiveGeneration
+				null, // joinInfo
+				null, // joinableParts
+				null, // coLeaderUserIds
+				null, // welcomeMessageTypes
+				List.of("운동", "먹방") // meetingKeywordTypes
+			);
+
+			// when
+			meetingV2Service.updateMeeting(meetingId, dto, userId);
+
+			// then
+			Assertions.assertThat(tagV2Service.getWelcomeMessageTypesByMeetingId(meetingId))
+				.extracting("value")
+				.containsExactly("YB 환영", "OB 환영");
+			Assertions.assertThat(tagV2Service.getMeetingKeywordsTypesByMeetingId(meetingId))
+				.extracting("value")
+				.containsExactly("운동", "먹방");
 		}
 	}
 
