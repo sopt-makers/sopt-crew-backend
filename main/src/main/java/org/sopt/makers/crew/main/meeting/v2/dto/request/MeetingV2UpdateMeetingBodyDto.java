@@ -91,6 +91,12 @@ public class MeetingV2UpdateMeetingBodyDto {
 		""", description = "환영 메시지 타입 리스트")
 	private List<String> welcomeMessageTypes;
 
+	@Schema(example = """
+		["운동", "먹방"]
+		""", description = "모임 키워드 타입 리스트")
+	@Size(min = 1, max = 2)
+	private List<String> meetingKeywordTypes;
+
 	public String getmStartDate() {
 		return mStartDate;
 	}
