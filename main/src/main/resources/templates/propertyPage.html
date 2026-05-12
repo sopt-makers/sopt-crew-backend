@@ -75,6 +75,85 @@
             background-color: #dc3545;
         }
 
+        .meeting-top-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 26px;
+        }
+
+        .meeting-top-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .meeting-top-card {
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .meeting-top-meta {
+            color: #6c757d;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .meeting-top-status {
+            border-radius: 999px;
+            color: white;
+            display: inline-block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+            padding: 3px 8px;
+        }
+
+        .status-on {
+            background-color: #198754;
+        }
+
+        .status-off {
+            background-color: #6c757d;
+        }
+
+        .meeting-top-images {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-top: 14px;
+        }
+
+        .meeting-top-image-box {
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: #f8f9fa;
+        }
+
+        .meeting-top-image-label {
+            color: #495057;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 8px;
+        }
+
+        .meeting-top-image-box img {
+            aspect-ratio: 16 / 9;
+            display: block;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .image-empty {
+            color: #6c757d;
+            font-size: 13px;
+            padding: 28px 8px;
+            text-align: center;
+        }
+
         .empty-message {
             text-align: center;
             color: #6c757d;
@@ -201,6 +280,91 @@
             cursor: pointer;
         }
 
+        .meeting-top-modal {
+            display: none;
+            position: fixed;
+            z-index: 2;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .meeting-top-modal-content {
+            background-color: #fefefe;
+            margin: 6% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 58%;
+            border-radius: 8px;
+        }
+
+        .meeting-top-form-row {
+            margin-bottom: 14px;
+        }
+
+        .meeting-top-form-row label {
+            color: #2c3e50;
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .meeting-top-form-row input[type="datetime-local"],
+        .meeting-top-form-row input[type="url"] {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            padding: 8px;
+            width: 100%;
+        }
+
+        .meeting-top-form-row input[type="file"] {
+            margin-top: 6px;
+            width: 100%;
+        }
+
+        .meeting-top-checkbox-row {
+            align-items: center;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .meeting-top-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 18px;
+        }
+
+        .btn-save {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .meeting-top-card {
+                padding-top: 54px;
+            }
+
+            .meeting-top-images {
+                grid-template-columns: 1fr;
+            }
+
+            .meeting-top-modal-content {
+                margin: 24px auto;
+                width: calc(100% - 32px);
+            }
+        }
+
         /* 삭제 확인 모달 */
         .delete-modal {
             display: none;
@@ -267,6 +431,69 @@
         오류가 발생했습니다.
     </div>
 
+    <div class="meeting-top-section">
+        <div class="section-title">모임 상단 배너 관리</div>
+
+        <div class="empty-message" th:if="${#lists.isEmpty(meetingTopAdvertisements)}">
+            등록된 모임 상단 배너가 없습니다.
+        </div>
+
+        <div class="meeting-top-list" th:unless="${#lists.isEmpty(meetingTopAdvertisements)}">
+            <div class="meeting-top-card" th:each="advertisement : ${meetingTopAdvertisements}">
+                <div class="card-actions">
+                    <button class="btn btn-edit"
+                            onclick="openMeetingTopEditModal(this)"
+                            th:attr="data-id=${advertisement.advertisementId},
+                                     data-display=${advertisement.display},
+                                     data-start-date=${advertisement.advertisementStartDateTime},
+                                     data-end-date=${advertisement.advertisementEndDateTime},
+                                     data-desktop-url=${advertisement.desktopImageUrl},
+                                     data-mobile-url=${advertisement.mobileImageUrl},
+                                     data-calendar-url=${advertisement.calendarImageUrl}">
+                        수정
+                    </button>
+                </div>
+
+                <div class="property-key">
+                    <span th:text="'#' + ${advertisement.advertisementId}">#1</span>
+                    <span th:text="${advertisement.eventType}">SOPKATHON</span>
+                    <span class="meeting-top-status"
+                          th:classappend="${advertisement.display} ? ' status-on' : ' status-off'"
+                          th:text="${advertisement.display} ? '노출 중' : '미노출'">노출 중</span>
+                </div>
+                <div class="meeting-top-meta">
+                    <span th:text="'대상: ' + ${advertisement.targetGeneration}">대상: ALL</span>
+                    <span th:text="' | 우선순위: ' + ${advertisement.priority}"> | 우선순위: 1</span>
+                    <span th:text="' | 기간: ' + ${advertisement.advertisementStartDateTime} + ' ~ ' + ${advertisement.advertisementEndDateTime}">
+                        | 기간: 2026-05-01T00:00 ~ 2026-05-31T23:59
+                    </span>
+                </div>
+                <div class="property-json">
+                    <pre th:text="${advertisement.title}">배너 제목</pre>
+                    <pre th:text="${advertisement.subTitle}">배너 부제목</pre>
+                </div>
+
+                <div class="meeting-top-images">
+                    <div class="meeting-top-image-box">
+                        <div class="meeting-top-image-label">Desktop</div>
+                        <img alt="Desktop banner image" th:src="${advertisement.desktopImageUrl}">
+                    </div>
+                    <div class="meeting-top-image-box">
+                        <div class="meeting-top-image-label">Mobile</div>
+                        <img alt="Mobile banner image" th:src="${advertisement.mobileImageUrl}">
+                    </div>
+                    <div class="meeting-top-image-box">
+                        <div class="meeting-top-image-label">Calendar</div>
+                        <img alt="Calendar banner image"
+                             th:if="${advertisement.calendarImageUrl}"
+                             th:src="${advertisement.calendarImageUrl}">
+                        <div class="image-empty" th:unless="${advertisement.calendarImageUrl}">이미지 없음</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="empty-message" th:if="${#lists.isEmpty(allProperties)}">
         등록된 Property가 없습니다.
     </div>
@@ -326,6 +553,60 @@
     </div>
 </div>
 
+<!-- 모임 상단 배너 수정 모달 -->
+<div class="meeting-top-modal" id="meetingTopEditModal">
+    <div class="meeting-top-modal-content">
+        <div class="modal-header">
+            <div class="modal-title">모임 상단 배너 수정</div>
+            <span class="close" onclick="closeMeetingTopEditModal()">&times;</span>
+        </div>
+        <form id="meetingTopEditForm">
+            <input id="meetingTopAdvertisementId" type="hidden">
+
+            <div class="meeting-top-checkbox-row">
+                <input id="meetingTopDisplay" type="checkbox">
+                <label for="meetingTopDisplay">노출 여부</label>
+            </div>
+
+            <div class="meeting-top-form-row">
+                <label for="meetingTopStartDate">노출 시작일</label>
+                <input id="meetingTopStartDate" required type="datetime-local">
+            </div>
+
+            <div class="meeting-top-form-row">
+                <label for="meetingTopEndDate">노출 종료일</label>
+                <input id="meetingTopEndDate" required type="datetime-local">
+            </div>
+
+            <div class="meeting-top-form-row">
+                <label for="meetingTopDesktopImageUrl">Desktop 이미지 URL</label>
+                <input id="meetingTopDesktopImageUrl" required type="url">
+                <input accept="image/*" onchange="uploadMeetingTopImage(this, 'meetingTopDesktopImageUrl')"
+                       type="file">
+            </div>
+
+            <div class="meeting-top-form-row">
+                <label for="meetingTopMobileImageUrl">Mobile 이미지 URL</label>
+                <input id="meetingTopMobileImageUrl" required type="url">
+                <input accept="image/*" onchange="uploadMeetingTopImage(this, 'meetingTopMobileImageUrl')"
+                       type="file">
+            </div>
+
+            <div class="meeting-top-form-row">
+                <label for="meetingTopCalendarImageUrl">Calendar 이미지 URL</label>
+                <input id="meetingTopCalendarImageUrl" required type="url">
+                <input accept="image/*" onchange="uploadMeetingTopImage(this, 'meetingTopCalendarImageUrl')"
+                       type="file">
+            </div>
+
+            <div class="meeting-top-modal-actions">
+                <button class="btn-cancel" onclick="closeMeetingTopEditModal()" type="button">취소</button>
+                <button class="btn-save" type="submit">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- 삭제 확인 모달 -->
 <div class="delete-modal" id="deleteModal">
     <div class="delete-modal-content">
@@ -343,7 +624,9 @@
     </div>
 </div>
 
-<script>
+<script th:inline="javascript">
+    const adminKey = /*[[${adminKey}]]*/ '';
+
     function openEditModal(button) {
         var key = button.getAttribute('data-key');
         var jsonStr = button.getAttribute('data-json');
@@ -368,10 +651,26 @@
         document.getElementById('deleteModal').style.display = 'none';
     }
 
+    function openMeetingTopEditModal(button) {
+        document.getElementById('meetingTopAdvertisementId').value = button.getAttribute('data-id');
+        document.getElementById('meetingTopDisplay').checked = button.getAttribute('data-display') === 'true';
+        document.getElementById('meetingTopStartDate').value = button.getAttribute('data-start-date');
+        document.getElementById('meetingTopEndDate').value = button.getAttribute('data-end-date');
+        document.getElementById('meetingTopDesktopImageUrl').value = button.getAttribute('data-desktop-url') || '';
+        document.getElementById('meetingTopMobileImageUrl').value = button.getAttribute('data-mobile-url') || '';
+        document.getElementById('meetingTopCalendarImageUrl').value = button.getAttribute('data-calendar-url') || '';
+        document.getElementById('meetingTopEditModal').style.display = 'block';
+    }
+
+    function closeMeetingTopEditModal() {
+        document.getElementById('meetingTopEditModal').style.display = 'none';
+    }
+
     window.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
             closeEditModal();
             closeDeleteModal();
+            closeMeetingTopEditModal();
         }
     });
 
@@ -381,6 +680,9 @@
         }
         if (event.target === document.getElementById('deleteModal')) {
             closeDeleteModal();
+        }
+        if (event.target === document.getElementById('meetingTopEditModal')) {
+            closeMeetingTopEditModal();
         }
     }
 
@@ -393,6 +695,82 @@
             alert('유효한 JSON 형식이 아닙니다: ' + e.message);
             return false;
         }
+    }
+
+    document.getElementById('meetingTopEditForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const advertisementId = document.getElementById('meetingTopAdvertisementId').value;
+        const requestBody = {
+            isDisplay: document.getElementById('meetingTopDisplay').checked,
+            advertisementStartDate: document.getElementById('meetingTopStartDate').value,
+            advertisementEndDate: document.getElementById('meetingTopEndDate').value,
+            desktopImageUrl: document.getElementById('meetingTopDesktopImageUrl').value.trim(),
+            mobileImageUrl: document.getElementById('meetingTopMobileImageUrl').value.trim(),
+            calendarImageUrl: document.getElementById('meetingTopCalendarImageUrl').value.trim()
+        };
+
+        if (!requestBody.desktopImageUrl || !requestBody.mobileImageUrl || !requestBody.calendarImageUrl) {
+            alert('이미지 URL은 비워둘 수 없습니다.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/v2/${adminKey}/advertisement/meeting-top/${advertisementId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                throw new Error(await extractErrorMessage(response));
+            }
+
+            window.location.reload();
+        } catch (error) {
+            alert('모임 상단 배너 수정 중 오류가 발생했습니다: ' + error.message);
+        }
+    });
+
+    async function uploadMeetingTopImage(fileInput, targetInputId) {
+        const file = fileInput.files[0];
+        if (!file) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        fileInput.disabled = true;
+
+        try {
+            const response = await fetch(`/admin/v2/${adminKey}/advertisement/meeting-top/image`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(await extractErrorMessage(response));
+            }
+
+            const data = await response.json();
+            document.getElementById(targetInputId).value = data.publicUrl;
+        } catch (error) {
+            alert('이미지 업로드 중 오류가 발생했습니다: ' + error.message);
+            fileInput.value = '';
+        } finally {
+            fileInput.disabled = false;
+        }
+    }
+
+    async function extractErrorMessage(response) {
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            const data = await response.json();
+            return data.message || data.errorCode || '요청 처리 중 오류가 발생했습니다.';
+        }
+        return await response.text();
     }
 </script>
 </body>
