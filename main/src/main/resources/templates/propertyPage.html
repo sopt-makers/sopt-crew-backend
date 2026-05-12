@@ -314,6 +314,7 @@
         }
 
         .meeting-top-form-row input[type="datetime-local"],
+        .meeting-top-form-row input[type="text"],
         .meeting-top-form-row input[type="url"] {
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -449,7 +450,11 @@
                                      data-end-date=${advertisement.advertisementEndDateTime},
                                      data-desktop-url=${advertisement.desktopImageUrl},
                                      data-mobile-url=${advertisement.mobileImageUrl},
-                                     data-calendar-url=${advertisement.calendarImageUrl}">
+                                     data-calendar-url=${advertisement.calendarImageUrl},
+                                     data-title-prefix=${advertisement.titlePrefix},
+                                     data-title-highlight=${advertisement.titleHighlight},
+                                     data-title-suffix=${advertisement.titleSuffix},
+                                     data-sub-title=${advertisement.subTitle}">
                         수정
                     </button>
                 </div>
@@ -579,22 +584,42 @@
             </div>
 
             <div class="meeting-top-form-row">
+                <label for="meetingTopTitlePrefix">제목 prefix</label>
+                <input id="meetingTopTitlePrefix" required type="text">
+            </div>
+
+            <div class="meeting-top-form-row">
+                <label for="meetingTopTitleHighlight">제목 highlight</label>
+                <input id="meetingTopTitleHighlight" required type="text">
+            </div>
+
+            <div class="meeting-top-form-row">
+                <label for="meetingTopTitleSuffix">제목 suffix</label>
+                <input id="meetingTopTitleSuffix" required type="text">
+            </div>
+
+            <div class="meeting-top-form-row">
+                <label for="meetingTopSubTitle">부제목</label>
+                <input id="meetingTopSubTitle" required type="text">
+            </div>
+
+            <div class="meeting-top-form-row">
                 <label for="meetingTopDesktopImageUrl">Desktop 이미지 URL</label>
-                <input id="meetingTopDesktopImageUrl" required type="url">
+                <input id="meetingTopDesktopImageUrl" type="url">
                 <input accept="image/*" onchange="uploadMeetingTopImage(this, 'meetingTopDesktopImageUrl')"
                        type="file">
             </div>
 
             <div class="meeting-top-form-row">
                 <label for="meetingTopMobileImageUrl">Mobile 이미지 URL</label>
-                <input id="meetingTopMobileImageUrl" required type="url">
+                <input id="meetingTopMobileImageUrl" type="url">
                 <input accept="image/*" onchange="uploadMeetingTopImage(this, 'meetingTopMobileImageUrl')"
                        type="file">
             </div>
 
             <div class="meeting-top-form-row">
                 <label for="meetingTopCalendarImageUrl">Calendar 이미지 URL</label>
-                <input id="meetingTopCalendarImageUrl" required type="url">
+                <input id="meetingTopCalendarImageUrl" type="url">
                 <input accept="image/*" onchange="uploadMeetingTopImage(this, 'meetingTopCalendarImageUrl')"
                        type="file">
             </div>
@@ -659,6 +684,10 @@
         document.getElementById('meetingTopDesktopImageUrl').value = button.getAttribute('data-desktop-url') || '';
         document.getElementById('meetingTopMobileImageUrl').value = button.getAttribute('data-mobile-url') || '';
         document.getElementById('meetingTopCalendarImageUrl').value = button.getAttribute('data-calendar-url') || '';
+        document.getElementById('meetingTopTitlePrefix').value = button.getAttribute('data-title-prefix') || '';
+        document.getElementById('meetingTopTitleHighlight').value = button.getAttribute('data-title-highlight') || '';
+        document.getElementById('meetingTopTitleSuffix').value = button.getAttribute('data-title-suffix') || '';
+        document.getElementById('meetingTopSubTitle').value = button.getAttribute('data-sub-title') || '';
         document.getElementById('meetingTopEditModal').style.display = 'block';
     }
 
@@ -705,13 +734,17 @@
             isDisplay: document.getElementById('meetingTopDisplay').checked,
             advertisementStartDate: document.getElementById('meetingTopStartDate').value,
             advertisementEndDate: document.getElementById('meetingTopEndDate').value,
-            desktopImageUrl: document.getElementById('meetingTopDesktopImageUrl').value.trim(),
-            mobileImageUrl: document.getElementById('meetingTopMobileImageUrl').value.trim(),
-            calendarImageUrl: document.getElementById('meetingTopCalendarImageUrl').value.trim()
+            desktopImageUrl: nullableTrim('meetingTopDesktopImageUrl'),
+            mobileImageUrl: nullableTrim('meetingTopMobileImageUrl'),
+            calendarImageUrl: nullableTrim('meetingTopCalendarImageUrl'),
+            titlePrefix: document.getElementById('meetingTopTitlePrefix').value.trim(),
+            titleHighlight: document.getElementById('meetingTopTitleHighlight').value.trim(),
+            titleSuffix: document.getElementById('meetingTopTitleSuffix').value.trim(),
+            subTitle: document.getElementById('meetingTopSubTitle').value.trim()
         };
 
-        if (!requestBody.desktopImageUrl || !requestBody.mobileImageUrl || !requestBody.calendarImageUrl) {
-            alert('이미지 URL은 비워둘 수 없습니다.');
+        if (!requestBody.titlePrefix || !requestBody.titleHighlight || !requestBody.titleSuffix || !requestBody.subTitle) {
+            alert('제목과 부제목은 비워둘 수 없습니다.');
             return;
         }
 
@@ -733,6 +766,11 @@
             alert('모임 상단 배너 수정 중 오류가 발생했습니다: ' + error.message);
         }
     });
+
+    function nullableTrim(inputId) {
+        const value = document.getElementById(inputId).value.trim();
+        return value === '' ? null : value;
+    }
 
     async function uploadMeetingTopImage(fileInput, targetInputId) {
         const file = fileInput.files[0];

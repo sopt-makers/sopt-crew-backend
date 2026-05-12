@@ -110,7 +110,7 @@ public class Advertisement extends BaseTimeEntity {
 
 	public void updateMeetingTopAdvertisement(Boolean isDisplay, LocalDateTime advertisementStartDate,
 		LocalDateTime advertisementEndDate, String advertisementDesktopImageUrl, String advertisementMobileImageUrl,
-		String calendarImageUrl) {
+		String calendarImageUrl, String titlePrefix, String titleHighlight, String titleSuffix, String subTitle) {
 		if (isDisplay != null) {
 			this.isDisplay = isDisplay;
 		}
@@ -128,6 +128,18 @@ public class Advertisement extends BaseTimeEntity {
 		}
 		if (calendarImageUrl != null) {
 			this.calendarImageUrl = calendarImageUrl;
+		}
+		if (titlePrefix != null) {
+			this.titlePrefix = titlePrefix;
+		}
+		if (titleHighlight != null) {
+			this.titleHighlight = titleHighlight;
+		}
+		if (titleSuffix != null) {
+			this.titleSuffix = titleSuffix;
+		}
+		if (subTitle != null) {
+			this.subTitle = subTitle;
 		}
 	}
 }

@@ -11,7 +11,11 @@ public record AdvertisementMeetingTopUpdateResponse(
 	LocalDateTime advertisementEndDate,
 	String desktopImageUrl,
 	String mobileImageUrl,
-	String calendarImageUrl
+	String calendarImageUrl,
+	String titlePrefix,
+	String titleHighlight,
+	String titleSuffix,
+	String subTitle
 ) {
 	public static AdvertisementMeetingTopUpdateResponse from(Advertisement advertisement) {
 		return new AdvertisementMeetingTopUpdateResponse(
@@ -21,7 +25,11 @@ public record AdvertisementMeetingTopUpdateResponse(
 			advertisement.getAdvertisementEndDate(),
 			advertisement.getAdvertisementDesktopImageUrl(),
 			advertisement.getAdvertisementMobileImageUrl(),
-			advertisement.getCalendarImageUrl()
+			advertisement.getCalendarImageUrl(),
+			advertisement.getTitlePrefix(),
+			advertisement.getTitleHighlight(),
+			advertisement.getTitleSuffix(),
+			advertisement.getSubTitle()
 		);
 	}
 }

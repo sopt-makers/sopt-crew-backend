@@ -240,7 +240,11 @@ class AdvertisementServiceTest {
 			newEndDate,
 			"https://example.com/new-desktop.png",
 			null,
-			"https://example.com/new-calendar.png"
+			"https://example.com/new-calendar.png",
+			null,
+			null,
+			null,
+			null
 		);
 
 		doReturn(advertisement).when(advertisementRepository).findByIdOrThrow(13);
@@ -266,6 +270,10 @@ class AdvertisementServiceTest {
 			null,
 			" ",
 			null,
+			null,
+			null,
+			null,
+			null,
 			null
 		);
 
@@ -286,6 +294,10 @@ class AdvertisementServiceTest {
 			null,
 			NOW.plusDays(5),
 			NOW.plusDays(2),
+			null,
+			null,
+			null,
+			null,
 			null,
 			null,
 			null
@@ -312,6 +324,60 @@ class AdvertisementServiceTest {
 		assertThat(advertisementService.getMeetingTopAdvertisementsForAdmin())
 			.extracting("advertisementId")
 			.containsExactly(16, 17);
+	}
+
+	@Test
+	@DisplayName("어드민에서 모임 상단 광고 제목과 부제목을 부분 수정한다.")
+	void updateMeetingTopAdvertisement_updatesTitleFieldsPartially() {
+		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true);
+		setField(advertisement, "id", 18);
+		AdvertisementMeetingTopUpdateRequest request = new AdvertisementMeetingTopUpdateRequest(
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			"6월 1일 ",
+			"네트워킹 신청",
+			" START!",
+			"새로운 사람들과 가볍게 연결돼요!"
+		);
+
+		doReturn(advertisement).when(advertisementRepository).findByIdOrThrow(18);
+
+		Advertisement updatedAdvertisement = advertisementService.updateMeetingTopAdvertisement(18, request);
+
+		assertThat(updatedAdvertisement.getTitlePrefix()).isEqualTo("6월 1일 ");
+		assertThat(updatedAdvertisement.getTitleHighlight()).isEqualTo("네트워킹 신청");
+		assertThat(updatedAdvertisement.getTitleSuffix()).isEqualTo(" START!");
+		assertThat(updatedAdvertisement.getSubTitle()).isEqualTo("새로운 사람들과 가볍게 연결돼요!");
+	}
+
+	@Test
+	@DisplayName("어드민 수정 시 제목과 부제목을 빈 값으로 변경할 수 없다.")
+	void updateMeetingTopAdvertisement_rejectsBlankTitleFields() {
+		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true);
+		setField(advertisement, "id", 19);
+		AdvertisementMeetingTopUpdateRequest request = new AdvertisementMeetingTopUpdateRequest(
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			" ",
+			null,
+			null
+		);
+
+		doReturn(advertisement).when(advertisementRepository).findByIdOrThrow(19);
+
+		assertThatThrownBy(() -> advertisementService.updateMeetingTopAdvertisement(19, request))
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("제목 highlight은 비워둘 수 없습니다.");
+		assertThat(advertisement.getTitleHighlight()).isEqualTo("솝커톤 신청");
 	}
 
 	private Advertisement createAdvertisement(TargetGeneration targetGeneration) {

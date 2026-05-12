@@ -114,7 +114,11 @@ public class AdvertisementService {
 			request.advertisementEndDate(),
 			request.desktopImageUrl(),
 			request.mobileImageUrl(),
-			request.calendarImageUrl()
+			request.calendarImageUrl(),
+			request.titlePrefix(),
+			request.titleHighlight(),
+			request.titleSuffix(),
+			request.subTitle()
 		);
 
 		return advertisement;

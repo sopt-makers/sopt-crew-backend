@@ -61,11 +61,19 @@ public class AdvertisementValidator {
 		validateImageUrl(request.desktopImageUrl(), "데스크톱 이미지 URL");
 		validateImageUrl(request.mobileImageUrl(), "모바일 이미지 URL");
 		validateImageUrl(request.calendarImageUrl(), "달력 이미지 URL");
+		validateNotBlank(request.titlePrefix(), "제목 prefix");
+		validateNotBlank(request.titleHighlight(), "제목 highlight");
+		validateNotBlank(request.titleSuffix(), "제목 suffix");
+		validateNotBlank(request.subTitle(), "부제목");
 		validateAdvertisementPeriod(advertisement, request);
 	}
 
 	private void validateImageUrl(String imageUrl, String fieldName) {
-		if (imageUrl != null && !StringUtils.hasText(imageUrl)) {
+		validateNotBlank(imageUrl, fieldName);
+	}
+
+	private void validateNotBlank(String value, String fieldName) {
+		if (value != null && !StringUtils.hasText(value)) {
 			throw new BadRequestException(fieldName + "은 비워둘 수 없습니다.");
 		}
 	}

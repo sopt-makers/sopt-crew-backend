@@ -8,10 +8,14 @@ public record AdvertisementMeetingTopUpdateRequest(
 	LocalDateTime advertisementEndDate,
 	String desktopImageUrl,
 	String mobileImageUrl,
-	String calendarImageUrl
+	String calendarImageUrl,
+	String titlePrefix,
+	String titleHighlight,
+	String titleSuffix,
+	String subTitle
 ) {
 	public static AdvertisementMeetingTopUpdateRequest display(Boolean isDisplay) {
-		return new AdvertisementMeetingTopUpdateRequest(isDisplay, null, null, null, null, null);
+		return new AdvertisementMeetingTopUpdateRequest(isDisplay, null, null, null, null, null, null, null, null, null);
 	}
 
 	public boolean hasUpdateField() {
@@ -20,6 +24,10 @@ public record AdvertisementMeetingTopUpdateRequest(
 			|| advertisementEndDate != null
 			|| desktopImageUrl != null
 			|| mobileImageUrl != null
-			|| calendarImageUrl != null;
+			|| calendarImageUrl != null
+			|| titlePrefix != null
+			|| titleHighlight != null
+			|| titleSuffix != null
+			|| subTitle != null;
 	}
 }
