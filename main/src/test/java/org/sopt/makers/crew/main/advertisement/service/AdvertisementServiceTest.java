@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.sopt.makers.crew.main.admin.v2.dto.AdvertisementMeetingTopUpdateRequest;
 import org.sopt.makers.crew.main.advertisement.dto.AdvertisementMeetingTopGetResponseDto;
 import org.sopt.makers.crew.main.entity.advertisement.Advertisement;
 import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
@@ -224,6 +225,93 @@ class AdvertisementServiceTest {
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage("모임 상단 광고는 하나만 노출할 수 있습니다.");
 		assertThat(advertisement.isDisplay()).isFalse();
+	}
+
+	@Test
+	@DisplayName("어드민에서 모임 상단 광고 날짜와 이미지 URL을 부분 수정한다.")
+	void updateMeetingTopAdvertisement_updatesDateAndImageFieldsPartially() {
+		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true);
+		setField(advertisement, "id", 13);
+		LocalDateTime newStartDate = NOW.plusDays(2);
+		LocalDateTime newEndDate = NOW.plusDays(5);
+		AdvertisementMeetingTopUpdateRequest request = new AdvertisementMeetingTopUpdateRequest(
+			null,
+			newStartDate,
+			newEndDate,
+			"https://example.com/new-desktop.png",
+			null,
+			"https://example.com/new-calendar.png"
+		);
+
+		doReturn(advertisement).when(advertisementRepository).findByIdOrThrow(13);
+
+		Advertisement updatedAdvertisement = advertisementService.updateMeetingTopAdvertisement(13, request);
+
+		assertThat(updatedAdvertisement.isDisplay()).isTrue();
+		assertThat(updatedAdvertisement.getAdvertisementStartDate()).isEqualTo(newStartDate);
+		assertThat(updatedAdvertisement.getAdvertisementEndDate()).isEqualTo(newEndDate);
+		assertThat(updatedAdvertisement.getAdvertisementDesktopImageUrl()).isEqualTo("https://example.com/new-desktop.png");
+		assertThat(updatedAdvertisement.getAdvertisementMobileImageUrl()).isEqualTo("https://example.com/mobile.png");
+		assertThat(updatedAdvertisement.getCalendarImageUrl()).isEqualTo("https://example.com/new-calendar.png");
+	}
+
+	@Test
+	@DisplayName("어드민 수정 시 이미지 URL을 빈 값으로 변경할 수 없다.")
+	void updateMeetingTopAdvertisement_rejectsBlankImageUrl() {
+		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true);
+		setField(advertisement, "id", 14);
+		AdvertisementMeetingTopUpdateRequest request = new AdvertisementMeetingTopUpdateRequest(
+			null,
+			null,
+			null,
+			" ",
+			null,
+			null
+		);
+
+		doReturn(advertisement).when(advertisementRepository).findByIdOrThrow(14);
+
+		assertThatThrownBy(() -> advertisementService.updateMeetingTopAdvertisement(14, request))
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("데스크톱 이미지 URL은 비워둘 수 없습니다.");
+		assertThat(advertisement.getAdvertisementDesktopImageUrl()).isEqualTo("https://example.com/desktop.png");
+	}
+
+	@Test
+	@DisplayName("어드민 수정 시 광고 시작일은 종료일보다 이후일 수 없다.")
+	void updateMeetingTopAdvertisement_rejectsInvalidAdvertisementPeriod() {
+		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true);
+		setField(advertisement, "id", 15);
+		AdvertisementMeetingTopUpdateRequest request = new AdvertisementMeetingTopUpdateRequest(
+			null,
+			NOW.plusDays(5),
+			NOW.plusDays(2),
+			null,
+			null,
+			null
+		);
+
+		doReturn(advertisement).when(advertisementRepository).findByIdOrThrow(15);
+
+		assertThatThrownBy(() -> advertisementService.updateMeetingTopAdvertisement(15, request))
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("광고 시작일은 종료일보다 이후일 수 없습니다.");
+	}
+
+	@Test
+	@DisplayName("어드민 페이지에서 모임 상단 광고 전체 목록을 조회한다.")
+	void getMeetingTopAdvertisementsForAdmin_returnsAllMeetingTopAdvertisements() {
+		Advertisement displayedAdvertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true);
+		Advertisement hiddenAdvertisement = createAdvertisement(TargetGeneration.ACTIVE, MEETING_TOP, false);
+		setField(displayedAdvertisement, "id", 16);
+		setField(hiddenAdvertisement, "id", 17);
+
+		doReturn(List.of(displayedAdvertisement, hiddenAdvertisement)).when(advertisementRepository)
+			.findAdvertisementsByCategoryForAdmin(MEETING_TOP);
+
+		assertThat(advertisementService.getMeetingTopAdvertisementsForAdmin())
+			.extracting("advertisementId")
+			.containsExactly(16, 17);
 	}
 
 	private Advertisement createAdvertisement(TargetGeneration targetGeneration) {
