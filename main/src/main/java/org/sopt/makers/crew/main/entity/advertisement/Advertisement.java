@@ -108,7 +108,26 @@ public class Advertisement extends BaseTimeEntity {
 		this.targetGeneration = targetGeneration == null ? TargetGeneration.ALL : targetGeneration;
 	}
 
-	public void updateDisplay(boolean isDisplay) {
-		this.isDisplay = isDisplay;
+	public void updateMeetingTopAdvertisement(Boolean isDisplay, LocalDateTime advertisementStartDate,
+		LocalDateTime advertisementEndDate, String advertisementDesktopImageUrl, String advertisementMobileImageUrl,
+		String calendarImageUrl) {
+		if (isDisplay != null) {
+			this.isDisplay = isDisplay;
+		}
+		if (advertisementStartDate != null) {
+			this.advertisementStartDate = advertisementStartDate;
+		}
+		if (advertisementEndDate != null) {
+			this.advertisementEndDate = advertisementEndDate;
+		}
+		if (advertisementDesktopImageUrl != null) {
+			this.advertisementDesktopImageUrl = advertisementDesktopImageUrl;
+		}
+		if (advertisementMobileImageUrl != null) {
+			this.advertisementMobileImageUrl = advertisementMobileImageUrl;
+		}
+		if (calendarImageUrl != null) {
+			this.calendarImageUrl = calendarImageUrl;
+		}
 	}
 }

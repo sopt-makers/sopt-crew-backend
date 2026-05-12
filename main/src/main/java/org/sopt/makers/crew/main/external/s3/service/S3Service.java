@@ -20,11 +20,13 @@ import java.util.UUID;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.external.s3.config.AwsProperties;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlFieldResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -40,6 +42,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
 @Slf4j
 public class S3Service {
 	private static final String MEETING_PATH = "meeting";
+	private static final String MEETING_TOP_PATH = "meeting_top";
 	private static final String S3_SERVCIE = "s3";
 	private static final String PRE_SIGNED_URL_PREFIX = "https://s3.ap-northeast-2.amazonaws.com";
 
@@ -68,6 +71,31 @@ public class S3Service {
 			throw new ServerException(S3_STORAGE_ERROR.getErrorCode());
 		}
 
+	}
+
+	public String uploadMeetingTopImage(MultipartFile imageFile) {
+		validateImageFile(imageFile);
+
+		try {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+			String curDate = LocalDateTime.now().format(formatter);
+			String objectKey = MEETING_TOP_PATH + "/" + curDate + "/" + UUID.randomUUID() + "."
+				+ getImageExtension(imageFile.getContentType());
+
+			PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+				.bucket(awsProperties.getS3BucketName())
+				.key(objectKey)
+				.contentType(imageFile.getContentType())
+				.build();
+
+			s3Client.putObject(putObjectRequest,
+				RequestBody.fromInputStream(imageFile.getInputStream(), imageFile.getSize()));
+			log.info("Meeting top image uploaded successfully to S3: {}", objectKey);
+
+			return createPublicUrl(objectKey);
+		} catch (Exception e) {
+			throw new ServerException(S3_STORAGE_ERROR.getErrorCode());
+		}
 	}
 
 	public PreSignedUrlResponseDto generatePreSignedUrl(String contentType) {
@@ -113,6 +141,39 @@ public class S3Service {
 		String curDate = LocalDateTime.now().format(formatter);
 
 		return MEETING_PATH + "/" + curDate + "/" + uuid + "." + contentType;
+	}
+
+	private void validateImageFile(MultipartFile imageFile) {
+		if (imageFile == null || imageFile.isEmpty()) {
+			throw new BadRequestException("업로드할 이미지 파일이 없습니다.");
+		}
+		if (imageFile.getSize() < awsProperties.getFileMinSize()
+			|| imageFile.getSize() > awsProperties.getFileMaxSize()) {
+			throw new BadRequestException("이미지 파일 크기가 허용 범위를 벗어났습니다.");
+		}
+
+		getImageExtension(imageFile.getContentType());
+	}
+
+	private String getImageExtension(String contentType) {
+		if (contentType == null) {
+			throw new BadRequestException("이미지 파일의 Content-Type이 없습니다.");
+		}
+
+		return switch (contentType) {
+			case "image/jpeg", "image/jpg" -> "jpg";
+			case "image/png" -> "png";
+			case "image/gif" -> "gif";
+			case "image/webp" -> "webp";
+			default -> throw new BadRequestException("이미지 파일만 업로드할 수 있습니다.");
+		};
+	}
+
+	private String createPublicUrl(String objectKey) {
+		if (awsProperties.getObjectUrl().endsWith("/")) {
+			return awsProperties.getObjectUrl() + objectKey;
+		}
+		return awsProperties.getObjectUrl() + "/" + objectKey;
 	}
 
 	/**
