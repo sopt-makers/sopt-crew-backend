@@ -37,7 +37,7 @@ public class AdvertisementController implements AdvertisementApi {
 	@Override
 	@GetMapping("/meeting/top")
 	public ResponseEntity<AdvertisementMeetingTopGetResponseDto> getMeetingTopAdvertisement(
-		@RequestParam(name = "eventType", defaultValue = "SOPKATHON") EventType eventType,
+		@RequestParam(name = "eventType") EventType eventType,
 		Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
 		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(userId, eventType);

@@ -36,7 +36,7 @@ public interface AdvertisementApi {
 			description = "성공"),
 	})
 	ResponseEntity<AdvertisementMeetingTopGetResponseDto> getMeetingTopAdvertisement(
-		@RequestParam(name = "eventType", defaultValue = "SOPKATHON") EventType eventType,
+		@RequestParam(name = "eventType") EventType eventType,
 		Principal principal);
 
 }
