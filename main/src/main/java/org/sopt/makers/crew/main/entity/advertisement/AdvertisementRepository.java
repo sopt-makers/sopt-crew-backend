@@ -55,4 +55,10 @@ public interface AdvertisementRepository extends JpaRepository<Advertisement, In
 	List<Advertisement> findMeetingTopAdvertisements(
 		@Param("category") AdvertisementCategory category,
 		@Param("now") LocalDateTime now);
+
+	@Query("SELECT a FROM Advertisement a " +
+		"WHERE a.advertisementCategory = :category " +
+		"ORDER BY a.priority ASC, a.id DESC")
+	List<Advertisement> findAdvertisementsByCategoryForAdmin(
+		@Param("category") AdvertisementCategory category);
 }
