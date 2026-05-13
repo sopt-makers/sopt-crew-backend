@@ -108,8 +108,21 @@ class AdvertisementServiceTest {
 	}
 
 	@Test
-	@DisplayName("모임 상단 광고 조회 시 요청 이벤트 타입의 텍스트로 상세 진입 링크를 반환한다.")
-	void getMeetingTopAdvertisement_returnsLinksByRequestedEventType() {
+	@DisplayName("이벤트 타입이 없으면 모임 상단 광고를 노출하지 않는다.")
+	void getMeetingTopAdvertisement_returnsNotDisplayWhenEventTypeMissing() {
+		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(1, null);
+
+		assertThat(response.isDisplay()).isFalse();
+		assertThat(response.eventType()).isNull();
+		assertThat(response.advertisementId()).isNull();
+		assertThat(response.bannerLink1()).isNull();
+		assertThat(response.bannerLink2()).isNull();
+		verifyNoInteractions(time, userRepository, advertisementRepository, meetingRepository, activeGenerationProvider);
+	}
+
+	@Test
+	@DisplayName("네트워킹 광고 조회 시 활동 기수 네트워킹 데이 신청 모임 링크를 반환한다.")
+	void getMeetingTopAdvertisement_returnsNetworkingMeetingLinkByActiveGeneration() {
 		User requestUser = UserFixture.createUser(1, "서버", 38);
 		Advertisement sopkathonAdvertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true,
 			EventType.SOPKATHON);
@@ -121,10 +134,9 @@ class AdvertisementServiceTest {
 
 		when(time.now()).thenReturn(NOW);
 		when(activeGenerationProvider.getActiveGeneration()).thenReturn(38);
-		when(userRepository.findByIdOrThrow(requestUser.getId())).thenReturn(requestUser);
 		when(advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, NOW)).thenReturn(
 			List.of(sopkathonAdvertisement, networkingAdvertisement));
-		when(meetingRepository.findFirstByTitleOrderByIdDesc("[38기 네트워킹] 서버 파트 신청"))
+		when(meetingRepository.findFirstByTitleOrderByIdDesc("[38기 네트워킹 데이] 신청"))
 			.thenReturn(Optional.of(applicationMeeting));
 
 		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(
@@ -132,8 +144,35 @@ class AdvertisementServiceTest {
 
 		assertThat(response.eventType()).isEqualTo(EventType.NETWORKING);
 		assertThat(response.advertisementId()).isEqualTo(11);
-		assertThat(response.bannerLink1()).isEqualTo("/list?search=38기+네트워킹&page=1");
+		assertThat(response.bannerLink1()).isNull();
 		assertThat(response.bannerLink2()).isEqualTo("/detail?id=716");
+		verifyNoInteractions(userRepository);
+	}
+
+	@Test
+	@DisplayName("네트워킹 신청 모임이 없으면 배너를 노출하되 배너 링크 2는 반환하지 않는다.")
+	void getMeetingTopAdvertisement_returnsNullNetworkingBannerLink2WhenApplicationMeetingMissing() {
+		User requestUser = UserFixture.createUser(1, "서버", 38);
+		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true,
+			EventType.NETWORKING);
+
+		setField(advertisement, "id", 12);
+
+		when(time.now()).thenReturn(NOW);
+		when(activeGenerationProvider.getActiveGeneration()).thenReturn(38);
+		when(advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, NOW)).thenReturn(List.of(advertisement));
+		when(meetingRepository.findFirstByTitleOrderByIdDesc("[38기 네트워킹 데이] 신청"))
+			.thenReturn(Optional.empty());
+
+		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(
+			requestUser.getId(), EventType.NETWORKING);
+
+		assertThat(response.isDisplay()).isTrue();
+		assertThat(response.eventType()).isEqualTo(EventType.NETWORKING);
+		assertThat(response.advertisementId()).isEqualTo(12);
+		assertThat(response.bannerLink1()).isNull();
+		assertThat(response.bannerLink2()).isNull();
+		verifyNoInteractions(userRepository);
 	}
 
 	@Test
