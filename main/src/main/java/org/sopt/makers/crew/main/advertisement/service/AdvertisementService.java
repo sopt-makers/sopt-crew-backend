@@ -73,15 +73,17 @@ public class AdvertisementService {
 	}
 
 	public AdvertisementMeetingTopGetResponseDto getMeetingTopAdvertisement(Integer userId, EventType eventType) {
+		if (eventType == null) {
+			return AdvertisementMeetingTopGetResponseDto.notDisplay();
+		}
+
 		LocalDateTime now = time.now();
-		User user = userRepository.findByIdOrThrow(userId);
-		EventType resolvedEventType = eventType == null ? EventType.SOPKATHON : eventType;
 
 		List<Advertisement> advertisements = advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, now);
 
 		return advertisements.stream()
-			.filter(advertisement -> advertisement.getEventType() == resolvedEventType)
-			.map(advertisement -> createMeetingTopResponse(advertisement, user))
+			.filter(advertisement -> advertisement.getEventType() == eventType)
+			.map(advertisement -> createMeetingTopResponse(advertisement, userId))
 			.flatMap(Optional::stream)
 			.findFirst()
 			.orElseGet(AdvertisementMeetingTopGetResponseDto::notDisplay);
@@ -131,11 +133,20 @@ public class AdvertisementService {
 	}
 
 	private Optional<AdvertisementMeetingTopGetResponseDto> createMeetingTopResponse(Advertisement advertisement,
-		User user) {
+		Integer userId) {
 		if (advertisement.getEventType() == null) {
 			return Optional.empty();
 		}
 
+		return switch (advertisement.getEventType()) {
+			case SOPKATHON -> createSopkathonMeetingTopResponse(advertisement, userId);
+			case NETWORKING -> Optional.of(createNetworkingMeetingTopResponse(advertisement));
+		};
+	}
+
+	private Optional<AdvertisementMeetingTopGetResponseDto> createSopkathonMeetingTopResponse(Advertisement advertisement,
+		Integer userId) {
+		User user = userRepository.findByIdOrThrow(userId);
 		Optional<UserActivityVO> targetActivity = findTargetActivity(user, advertisement.getTargetGeneration());
 		if (targetActivity.isEmpty()) {
 			return Optional.empty();
@@ -148,11 +159,9 @@ public class AdvertisementService {
 		}
 
 		Integer activeGeneration = activeGenerationProvider.getActiveGeneration();
-		String part = meetingJoinablePart.get().getDisplayName();
-		Integer bannerLink2MeetingId = findEventApplicationMeetingId(
+		Integer bannerLink2MeetingId = findSopkathonApplicationMeetingId(
 			activeGeneration,
-			advertisement.getEventType(),
-			part
+			meetingJoinablePart.get()
 		).orElse(null);
 
 		return Optional.of(AdvertisementMeetingTopGetResponseDto.of(
@@ -162,8 +171,24 @@ public class AdvertisementService {
 		));
 	}
 
-	private Optional<Integer> findEventApplicationMeetingId(Integer activeGeneration, EventType eventType, String part) {
-		String title = String.format("[%d기 %s] %s 파트 신청", activeGeneration, eventType.getDisplayName(), part);
+	private AdvertisementMeetingTopGetResponseDto createNetworkingMeetingTopResponse(Advertisement advertisement) {
+		Integer activeGeneration = activeGenerationProvider.getActiveGeneration();
+		Integer bannerLink2MeetingId = findNetworkingApplicationMeetingId(activeGeneration).orElse(null);
+
+		return AdvertisementMeetingTopGetResponseDto.ofNetworking(
+			advertisement,
+			bannerLink2MeetingId
+		);
+	}
+
+	private Optional<Integer> findSopkathonApplicationMeetingId(Integer activeGeneration, MeetingJoinablePart part) {
+		String title = advertisementFactory.createSopkathonApplyTitle(activeGeneration, part);
+		return meetingRepository.findFirstByTitleOrderByIdDesc(title)
+			.map(Meeting::getId);
+	}
+
+	private Optional<Integer> findNetworkingApplicationMeetingId(Integer activeGeneration) {
+		String title = advertisementFactory.createNetworkingApplyTitle(activeGeneration);
 		return meetingRepository.findFirstByTitleOrderByIdDesc(title)
 			.map(Meeting::getId);
 	}

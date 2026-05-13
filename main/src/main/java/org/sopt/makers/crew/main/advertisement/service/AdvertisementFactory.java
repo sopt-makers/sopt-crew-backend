@@ -24,6 +24,7 @@ public class AdvertisementFactory {
 
 	private static final String SOPKATHON_APPLY_TITLE_FORMAT = "[%d기 솝커톤] %s 파트 신청";
 	private static final String SOPKATHON_BROWSE_QUERY_FORMAT = "%d기 솝커톤";
+	private static final String NETWORKING_APPLY_TITLE_FORMAT = "[%d기 네트워킹 데이] 신청";
 
 	private final MeetingPartNormalizer meetingPartNormalizer;
 
@@ -40,6 +41,10 @@ public class AdvertisementFactory {
 
 	public String createSopkathonBrowseQuery(Integer generation) {
 		return String.format(SOPKATHON_BROWSE_QUERY_FORMAT, generation);
+	}
+
+	public String createNetworkingApplyTitle(Integer generation) {
+		return String.format(NETWORKING_APPLY_TITLE_FORMAT, generation);
 	}
 
 	public MeetingV2ParticipatingPartInfoDto createParticipatingPartInfo(UserActivityVO requestUserActivity,
