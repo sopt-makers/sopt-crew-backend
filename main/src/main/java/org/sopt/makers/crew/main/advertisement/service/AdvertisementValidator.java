@@ -2,11 +2,15 @@ package org.sopt.makers.crew.main.advertisement.service;
 
 import static org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory.*;
 
+import java.time.LocalDateTime;
+
+import org.sopt.makers.crew.main.admin.v2.dto.AdvertisementMeetingTopUpdateRequest;
 import org.sopt.makers.crew.main.entity.advertisement.Advertisement;
 import org.sopt.makers.crew.main.entity.advertisement.AdvertisementRepository;
 import org.sopt.makers.crew.main.entity.advertisement.enums.AdvertisementCategory;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,5 +47,48 @@ public class AdvertisementValidator {
 
 	private boolean shouldTurnOn(Advertisement advertisement, boolean isDisplay) {
 		return isDisplay && !advertisement.isDisplay();
+	}
+
+	public void validateMeetingTopUpdateRequest(Advertisement advertisement,
+		AdvertisementMeetingTopUpdateRequest request) {
+		if (request == null) {
+			throw new BadRequestException("수정할 모임 상단 광고 필드가 없습니다.");
+		}
+		if (!request.hasUpdateField()) {
+			throw new BadRequestException("수정할 모임 상단 광고 필드가 없습니다.");
+		}
+
+		validateImageUrl(request.desktopImageUrl(), "데스크톱 이미지 URL");
+		validateImageUrl(request.mobileImageUrl(), "모바일 이미지 URL");
+		validateImageUrl(request.calendarImageUrl(), "달력 이미지 URL");
+		validateNotBlank(request.titlePrefix(), "제목 prefix");
+		validateNotBlank(request.titleHighlight(), "제목 highlight");
+		validateNotBlank(request.titleSuffix(), "제목 suffix");
+		validateNotBlank(request.subTitle(), "부제목");
+		validateAdvertisementPeriod(advertisement, request);
+	}
+
+	private void validateImageUrl(String imageUrl, String fieldName) {
+		validateNotBlank(imageUrl, fieldName);
+	}
+
+	private void validateNotBlank(String value, String fieldName) {
+		if (value != null && !StringUtils.hasText(value)) {
+			throw new BadRequestException(fieldName + "은 비워둘 수 없습니다.");
+		}
+	}
+
+	private void validateAdvertisementPeriod(Advertisement advertisement,
+		AdvertisementMeetingTopUpdateRequest request) {
+		LocalDateTime startDate = request.advertisementStartDate() == null
+			? advertisement.getAdvertisementStartDate()
+			: request.advertisementStartDate();
+		LocalDateTime endDate = request.advertisementEndDate() == null
+			? advertisement.getAdvertisementEndDate()
+			: request.advertisementEndDate();
+
+		if (startDate.isAfter(endDate)) {
+			throw new BadRequestException("광고 시작일은 종료일보다 이후일 수 없습니다.");
+		}
 	}
 }

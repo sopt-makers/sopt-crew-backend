@@ -86,6 +86,7 @@ public class UserV2Controller implements UserV2Api {
 		@RequestBody UpdateUserInterestKeywordRequestDto dto) {
 		Integer userId = UserUtil.getUserId(principal);
 		userV2Service.updateInterestedKeywords(userId, dto.keywords());
+
 		return ResponseEntity.status(HttpStatus.OK).build();
 	}
 
@@ -93,6 +94,7 @@ public class UserV2Controller implements UserV2Api {
 	@GetMapping("/interestedKeywords")
 	public ResponseEntity<UserV2GetInterestedKeywordsResponseDto> getUserInterestedKeyword(Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
+
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(userV2Service.getInterestedKeywords(userId));
 	}

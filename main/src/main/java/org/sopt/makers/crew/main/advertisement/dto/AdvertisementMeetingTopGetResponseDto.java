@@ -62,6 +62,24 @@ public record AdvertisementMeetingTopGetResponseDto(
 
 	public static AdvertisementMeetingTopGetResponseDto of(Advertisement advertisement, Integer activeGeneration,
 		Integer bannerLink2MeetingId) {
+		return ofWithBannerLinks(
+			advertisement,
+			createBannerLink1(activeGeneration, advertisement.getEventType()),
+			bannerLink2MeetingId
+		);
+	}
+
+	public static AdvertisementMeetingTopGetResponseDto ofNetworking(Advertisement advertisement,
+		Integer bannerLink2MeetingId) {
+		return ofWithBannerLinks(
+			advertisement,
+			null,
+			bannerLink2MeetingId
+		);
+	}
+
+	private static AdvertisementMeetingTopGetResponseDto ofWithBannerLinks(Advertisement advertisement, String bannerLink1,
+		Integer bannerLink2MeetingId) {
 		return new AdvertisementMeetingTopGetResponseDto(
 			advertisement.isDisplay(),
 			advertisement.getEventType(),
@@ -71,7 +89,7 @@ public record AdvertisementMeetingTopGetResponseDto(
 			advertisement.getCalendarImageUrl(),
 			Title.of(advertisement),
 			advertisement.getSubTitle(),
-			createBannerLink1(activeGeneration, advertisement.getEventType()),
+			bannerLink1,
 			createBannerLink2(bannerLink2MeetingId)
 		);
 	}
