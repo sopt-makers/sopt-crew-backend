@@ -188,8 +188,8 @@ public class AdvertisementService {
 	}
 
 	private Optional<Integer> findNetworkingApplicationMeetingId(Integer activeGeneration) {
-		String title = advertisementFactory.createNetworkingApplyTitle(activeGeneration);
-		return meetingRepository.findFirstByTitleOrderByIdDesc(title)
+		String titleQuery = advertisementFactory.createNetworkingTitleQuery(activeGeneration);
+		return meetingRepository.findFirstByTitleContainingOrderByIdDesc(titleQuery)
 			.map(Meeting::getId);
 	}
 

@@ -121,7 +121,7 @@ class AdvertisementServiceTest {
 	}
 
 	@Test
-	@DisplayName("네트워킹 광고 조회 시 활동 기수 네트워킹 데이 신청 모임 링크를 반환한다.")
+	@DisplayName("네트워킹 광고 조회 시 활동 기수 네트워킹 데이를 포함하는 최신 모임 링크를 반환한다.")
 	void getMeetingTopAdvertisement_returnsNetworkingMeetingLinkByActiveGeneration() {
 		User requestUser = UserFixture.createUser(1, "서버", 38);
 		Advertisement sopkathonAdvertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true,
@@ -136,7 +136,7 @@ class AdvertisementServiceTest {
 		when(activeGenerationProvider.getActiveGeneration()).thenReturn(38);
 		when(advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, NOW)).thenReturn(
 			List.of(sopkathonAdvertisement, networkingAdvertisement));
-		when(meetingRepository.findFirstByTitleOrderByIdDesc("[38기 네트워킹 데이] 신청"))
+		when(meetingRepository.findFirstByTitleContainingOrderByIdDesc("[38기 네트워킹 데이]"))
 			.thenReturn(Optional.of(applicationMeeting));
 
 		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(
@@ -150,7 +150,7 @@ class AdvertisementServiceTest {
 	}
 
 	@Test
-	@DisplayName("네트워킹 신청 모임이 없으면 배너를 노출하되 배너 링크 2는 반환하지 않는다.")
+	@DisplayName("네트워킹 데이를 포함하는 모임이 없으면 배너를 노출하되 배너 링크 2는 반환하지 않는다.")
 	void getMeetingTopAdvertisement_returnsNullNetworkingBannerLink2WhenApplicationMeetingMissing() {
 		User requestUser = UserFixture.createUser(1, "서버", 38);
 		Advertisement advertisement = createAdvertisement(TargetGeneration.ALL, MEETING_TOP, true,
@@ -161,7 +161,7 @@ class AdvertisementServiceTest {
 		when(time.now()).thenReturn(NOW);
 		when(activeGenerationProvider.getActiveGeneration()).thenReturn(38);
 		when(advertisementRepository.findMeetingTopAdvertisements(MEETING_TOP, NOW)).thenReturn(List.of(advertisement));
-		when(meetingRepository.findFirstByTitleOrderByIdDesc("[38기 네트워킹 데이] 신청"))
+		when(meetingRepository.findFirstByTitleContainingOrderByIdDesc("[38기 네트워킹 데이]"))
 			.thenReturn(Optional.empty());
 
 		AdvertisementMeetingTopGetResponseDto response = advertisementService.getMeetingTopAdvertisement(
