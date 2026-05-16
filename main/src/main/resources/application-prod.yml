@@ -27,7 +27,7 @@ spring:
       dialect: org.hibernate.dialect.PostgreSQLDialect
       storage_engine: innodb
   cache:
-    type: caffeine
+    type: ${PROD_CACHE_TYPE}
     caffeine:
       spec: maximumSize=500,expireAfterWrite=24h
 
@@ -38,7 +38,7 @@ jwt:
 
 external:
   auth:
-    url: https://auth.api.sopt.org
+    url: ${PROD_EXTERNAL_AUTH_URL}
     api-key: ${AUTH_API_KEY}
     service-name: ${OUR_SERVICE_NAME}
     jwk: ${MAKERS_AUTH_JWK_ENDPOINT}
