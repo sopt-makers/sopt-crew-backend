@@ -14,7 +14,7 @@ import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Profile({"dev"})
+@Profile({"prod"})
 @Component
 @Slf4j
 @RequiredArgsConstructor
