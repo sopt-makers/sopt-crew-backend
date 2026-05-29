@@ -27,7 +27,8 @@ Resources:
         Variables:
           SPRING_MAIN_WEB_APPLICATION_TYPE: servlet
           SPRING_PROFILES_ACTIVE: lambda-dev
-          JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+          TZ: Asia/Seoul
+          JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Duser.timezone=Asia/Seoul"
       # VpcConfig:
       #   SecurityGroupIds:
       #     - sg-xxxxxxxx  # TODO: Redis 접근 가능한 Security Group ID로 변경
