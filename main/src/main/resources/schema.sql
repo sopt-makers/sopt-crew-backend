@@ -142,11 +142,11 @@ create table if not exists apply
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
-create index if not exists "meetingId_index"
+create index if not exists "apply_meetingid_idx"
     on apply ("meetingId");
 
-create index if not exists "userId_index"
-    on apply ("userId");
+create unique index if not exists "meetingid_userid_unique"
+    on apply ("meetingId", "userId");
 
 create table if not exists notice
 (
