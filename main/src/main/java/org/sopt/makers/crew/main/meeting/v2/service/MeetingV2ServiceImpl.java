@@ -113,6 +113,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.opencsv.CSVWriter;
@@ -299,6 +300,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public MeetingV2ApplyMeetingResponseDto applyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 		return meetingApplySentinel.guard(userId,
@@ -306,6 +308,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public MeetingV2ApplyMeetingResponseDto testApplyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 		return meetingApplySentinel.guard(userId,
@@ -313,6 +316,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
 		return meetingApplySentinel.guard(userId,
