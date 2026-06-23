@@ -3,8 +3,10 @@ package org.sopt.makers.crew.main.post.v2.service;
 import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.entity.apply.Apply;
@@ -18,7 +20,10 @@ import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
+import org.sopt.makers.crew.main.entity.post.PostCategory;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
+import org.sopt.makers.crew.main.entity.property.Property;
+import org.sopt.makers.crew.main.entity.property.PropertyRepository;
 import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
@@ -37,6 +42,7 @@ import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
@@ -51,6 +57,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -75,6 +83,8 @@ public class PostV2ServiceImpl implements PostV2Service {
 	private final PushNotificationProperties pushNotificationProperties;
 
 	private final Time time;
+	private final PropertyRepository propertyRepository;
+	private final ObjectMapper objectMapper;
 
 	/**
 	 * 모임 게시글 작성
@@ -105,6 +115,8 @@ public class PostV2ServiceImpl implements PostV2Service {
 			.contents(requestBody.getContents())
 			.images(requestBody.getImages())
 			.meeting(meeting)
+			.category(
+				Objects.isNull(requestBody.getPostCategory()) ? PostCategory.NORMAL : requestBody.getPostCategory())
 			.build();
 
 		Post savedPost = postRepository.save(post);
@@ -319,6 +331,41 @@ public class PostV2ServiceImpl implements PostV2Service {
 		post.decreaseLikeCount();
 
 		return PostV2SwitchPostLikeResponseDto.of(false);
+	}
+
+	@Override
+	public MumuPostHomeResponseDto retrieveMumuHomeInfo(Integer userId) {
+
+		String text = extractMumuText();
+		List<Apply> allByUserIdAndStatus = applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE);
+		if (allByUserIdAndStatus.isEmpty()) {
+			return MumuPostHomeResponseDto.emptyAppliedMeeting(text);
+		}
+
+		boolean existedTodayMumuPost = postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(userId,
+			PostCategory.RELATED_MUMU, LocalDate.now().atStartOfDay());
+		if (!existedTodayMumuPost) {
+			return MumuPostHomeResponseDto.emptyHasWrittenTodayMumuPost(text);
+		}
+
+		List<Meeting> meetings = allByUserIdAndStatus.stream().map(
+			Apply::getMeeting
+		).toList();
+
+		List<Integer> meetingIds = meetings.stream()
+			.map(Meeting::getId)
+			.toList();
+
+		List<Post> allByMeetingId = postRepository.findAllByMeetingIdIn(meetingIds);
+
+		return MumuPostHomeResponseDto.from(allByMeetingId, text);
+	}
+
+	public String extractMumuText() {
+		Property mumuText = propertyRepository.findByKey("mumuText").orElseThrow(IllegalArgumentException::new);
+		Map<String, Object> properties = mumuText.getProperties();
+		String text = objectMapper.convertValue(properties.get("text"), String.class);
+		return text;
 	}
 
 	private PostDetailResponseDto toPostDetailResponseDto(PostDetailResponseDto postDetail,

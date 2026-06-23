@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.post.v2.dto.request;
 
+import org.sopt.makers.crew.main.entity.post.PostCategory;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -28,5 +30,8 @@ public class PostV2CreatePostBodyDto {
 	@Schema(example = "api 가 터졌다고? 깃이 터졌다고?", required = true, description = "게시글 내용")
 	@NotEmpty
 	private String contents;
+
+	@Schema(example = "NORMAL 이거나 RELATED_MUMU 여야 합니다.", required = false, description = "피드 카테고리")
+	private PostCategory postCategory;
 
 }

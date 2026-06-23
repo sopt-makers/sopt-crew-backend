@@ -186,6 +186,7 @@ create table if not exists post
     "viewCount"    integer   default 0 not null,
     images         text[],
     "commentCount" integer   default 0 not null,
+    category       varchar   default 'NORMAL' not null,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
