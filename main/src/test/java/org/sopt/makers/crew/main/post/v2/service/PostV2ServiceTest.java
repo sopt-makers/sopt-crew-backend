@@ -1,25 +1,35 @@
 package org.sopt.makers.crew.main.post.v2.service;
 
+import static org.instancio.Select.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.sopt.makers.crew.main.entity.apply.Apply;
+import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
+import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.post.MumuText;
+import org.sopt.makers.crew.main.entity.post.MumuTextResolver;
 import org.sopt.makers.crew.main.entity.post.Post;
+import org.sopt.makers.crew.main.entity.post.PostCategory;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
@@ -29,6 +39,7 @@ import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
@@ -44,6 +55,10 @@ public class PostV2ServiceTest {
 	private ReportRepository reportRepository;
 	@Mock
 	private LikeRepository likeRepository;
+	@Mock
+	private ApplyRepository applyRepository;
+	@Mock
+	private MumuTextResolver mumuTextResolver;
 
 	@Mock
 	private Time time;
@@ -190,4 +205,93 @@ public class PostV2ServiceTest {
 		}
 	}
 
+	@Nested
+	class 무무_홈_정보_반환_여부{
+
+
+		/**
+		 * case 1 : 유저가 신청한 정보가 없다면!
+		 */
+		@Test
+		@DisplayName("유저가 모임에 한 번도 참여 안했다면?")
+		void 유저_한_번도_참여하지_않은_경우(){
+			Integer userId = 1;
+			//given
+			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
+
+			when(applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE)).thenReturn(List.of());
+
+			//when
+			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
+
+			//then
+			verify(postRepository, never()).existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class));
+			Assertions.assertThat(mumuPostHomeResponseDto).isNotNull();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
+			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isTrue();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isFalse();
+		}
+
+		/**
+		 * case2 : 오늘 mumu post를 보낸 적이 없다면
+		 */
+		@Test
+		@DisplayName("오늘 mumu post를 보낸 적이 없다면")
+		void 오늘_mumu_post_를_보낸_적이_없다면(){
+			Integer userId = 1;
+			//given
+			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
+			when(applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE)).thenReturn(List.of(testApplySampleData()));
+			when(postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class))).thenReturn(false);
+
+			//when
+			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
+
+			//then
+			verify(postRepository, never()).findAllByMeetingIdIn(anyList());
+			Assertions.assertThat(mumuPostHomeResponseDto).isNotNull();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
+			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isFalse();
+		}
+
+		/**
+		 * case 3 : 오늘 무무 피드 보낸 경우
+		 */
+		@Test
+		@DisplayName("오늘 무무 피드 보낸 경우")
+		void 오늘_무무_피드_보낸_경우(){
+			Integer userId = 1;
+			//given
+			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
+			when(applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE)).thenReturn(List.of(testApplySampleData()));
+			when(postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class))).thenReturn(true);
+			when(postRepository.findAllByMeetingIdIn(anyList())).thenReturn(List.of(testPostData(), testPostData()));
+
+			//when
+			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
+
+			//then
+			Assertions.assertThat(mumuPostHomeResponseDto).isNotNull();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
+			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isTrue();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuPostHomeDtos()).hasSize(2);
+		}
+
+	}
+
+	private MumuText testMumuTextData(String text){
+		return Instancio.of(MumuText.class)
+			.set(field(MumuText::getText), text)
+			.create();
+	}
+
+	private Apply testApplySampleData(){
+		return Instancio.create(Apply.class);
+	}
+
+	private Post testPostData(){
+		return Instancio.create(Post.class);
+	}
 }
