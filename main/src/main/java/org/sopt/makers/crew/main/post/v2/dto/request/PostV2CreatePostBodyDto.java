@@ -31,7 +31,7 @@ public class PostV2CreatePostBodyDto {
 	@NotEmpty
 	private String contents;
 
-	@Schema(example = "NORMAL 이거나 RELATED_MUMU 여야 합니다.", required = false, description = "피드 카테고리")
+	@Schema(example = "NORMAL 이거나 MUMU 여야 합니다.", required = false, description = "피드 카테고리")
 	private PostCategory postCategory;
 
 }

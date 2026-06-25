@@ -4,6 +4,7 @@ import static org.sopt.makers.crew.main.external.notification.PushNotificationEn
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,11 +20,10 @@ import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.post.MumuTextResolver;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostCategory;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
-import org.sopt.makers.crew.main.entity.property.Property;
-import org.sopt.makers.crew.main.entity.property.PropertyRepository;
 import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
@@ -58,8 +58,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -83,8 +81,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	private final PushNotificationProperties pushNotificationProperties;
 
 	private final Time time;
-	private final PropertyRepository propertyRepository;
-	private final ObjectMapper objectMapper;
+	private final MumuTextResolver mumuTextResolver;
 
 	/**
 	 * 모임 게시글 작성
@@ -343,7 +340,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 		}
 
 		boolean existedTodayMumuPost = postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(userId,
-			PostCategory.RELATED_MUMU, LocalDate.now().atStartOfDay());
+			PostCategory.MUMU, LocalDate.now().atStartOfDay());
 		if (!existedTodayMumuPost) {
 			return MumuPostHomeResponseDto.emptyHasWrittenTodayMumuPost(text);
 		}
@@ -362,10 +359,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	}
 
 	public String extractMumuText() {
-		Property mumuText = propertyRepository.findByKey("mumuText").orElseThrow(IllegalArgumentException::new);
-		Map<String, Object> properties = mumuText.getProperties();
-		String text = objectMapper.convertValue(properties.get("text"), String.class);
-		return text;
+		return mumuTextResolver.resolveMumuText(LocalDateTime.now()).getText();
 	}
 
 	private PostDetailResponseDto toPostDetailResponseDto(PostDetailResponseDto postDetail,
@@ -383,6 +377,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 			postDetail.getViewCount(),
 			postDetail.getCommentCount(),
 			postDetail.getMeeting(),
+			postDetail.getCategory(),
 			postDetail.getCommenterThumbnails(),
 			isBlockedPost
 		);
