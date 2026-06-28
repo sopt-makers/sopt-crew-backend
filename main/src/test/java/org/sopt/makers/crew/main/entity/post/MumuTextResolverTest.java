@@ -64,6 +64,26 @@ class MumuTextResolverTest {
 
 	}
 
+	@Test
+	@DisplayName("날짜 차이가 텍스트 개수보다 커도 순환해서 조회한다")
+	void resolveMumuText_repeatByModulo() {
+		LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 7, 26), LocalTime.of(11, 0));
+		MumuText firstText = testSetLocalDate(LocalDate.of(2026, 6, 25));
+		MumuText secondText = testSetLocalDate(LocalDate.of(2026, 6, 26));
+
+		//given
+		when(mumuTextRepository.findByInDateTimeText(dateTime)).thenReturn(Optional.empty());
+		when(mumuTextRepository.findAllByOrderByShowStartDateAsc()).thenReturn(
+			List.of(firstText, secondText)
+		);
+
+		//when
+		MumuText mumuText = mumuTextResolver.resolveMumuText(dateTime);
+
+		//then
+		Assertions.assertThat(mumuText).isSameAs(secondText);
+	}
+
 	private MumuText testCompletelyData(){
 		return Instancio.of(MumuText.class).create();
 	}
