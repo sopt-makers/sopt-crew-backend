@@ -24,6 +24,8 @@ public interface PostRepository extends JpaRepository<Post, Integer>, PostSearch
 
 	List<Post> findAllByMeetingIdIn(List<Integer> meetingIds);
 
+	List<Post> findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List<Integer> meetingIds, Integer userId);
+
 	@Modifying(clearAutomatically = true)
 	@Transactional
 	@Query("DELETE FROM Post p WHERE p.meetingId = :meetingId")

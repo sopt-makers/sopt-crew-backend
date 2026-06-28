@@ -1,6 +1,5 @@
 package org.sopt.makers.crew.main.post.v2.dto.response;
 
-import java.util.Comparator;
 import java.util.List;
 
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -68,7 +67,6 @@ public class MumuPostHomeResponseDto {
 
 	private static List<MumuPostHomeDto> convertMumuPostHomeDtos(List<Post> posts) {
 		return posts.stream()
-			.sorted(Comparator.comparing(Post::getCreatedDate, Comparator.reverseOrder()))
 			.map(MumuPostHomeDto::from)
 			.toList();
 	}

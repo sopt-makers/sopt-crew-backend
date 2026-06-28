@@ -249,13 +249,14 @@ public class PostV2ServiceTest {
 			when(apply.getMeeting()).thenReturn(appliedMeeting);
 			when(appliedMeeting.getId()).thenReturn(100);
 			when(postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class))).thenReturn(false);
-			when(postRepository.findAllByMeetingIdIn(List.of(100))).thenReturn(List.of(oldPost, latestPost));
+			when(postRepository.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List.of(100), userId))
+				.thenReturn(List.of(latestPost, oldPost));
 
 			//when
 			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
 
 			//then
-			verify(postRepository).findAllByMeetingIdIn(List.of(100));
+			verify(postRepository).findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List.of(100), userId);
 			Assertions.assertThat(mumuPostHomeResponseDto).isNotNull();
 			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
 			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isFalse();
@@ -283,7 +284,8 @@ public class PostV2ServiceTest {
 			when(apply.getMeeting()).thenReturn(appliedMeeting);
 			when(appliedMeeting.getId()).thenReturn(100);
 			when(postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class))).thenReturn(true);
-			when(postRepository.findAllByMeetingIdIn(List.of(100))).thenReturn(List.of(oldPost, latestPost));
+			when(postRepository.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List.of(100), userId))
+				.thenReturn(List.of(latestPost, oldPost));
 
 			//when
 			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);

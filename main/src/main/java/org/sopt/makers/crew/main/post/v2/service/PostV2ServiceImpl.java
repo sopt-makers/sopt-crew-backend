@@ -350,13 +350,14 @@ public class PostV2ServiceImpl implements PostV2Service {
 			.map(Meeting::getId)
 			.toList();
 
-		List<Post> findPostsByMeetingIds = postRepository.findAllByMeetingIdIn(meetingIds);
+		List<Post> findPostsByMeetingIdsExceptSelf = postRepository
+			.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(meetingIds, userId);
 
 		if (!existedTodayMumuPost) {
-			return MumuPostHomeResponseDto.notWrittenTodayMumuPost(findPostsByMeetingIds, text);
+			return MumuPostHomeResponseDto.notWrittenTodayMumuPost(findPostsByMeetingIdsExceptSelf, text);
 		}
 
-		return MumuPostHomeResponseDto.from(findPostsByMeetingIds, text);
+		return MumuPostHomeResponseDto.from(findPostsByMeetingIdsExceptSelf, text);
 	}
 
 	public String extractMumuText() {
