@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.post.v2.dto.response;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -42,20 +43,20 @@ public class MumuPostHomeResponseDto {
 			.build();
 	}
 
-	public static MumuPostHomeResponseDto emptyHasWrittenTodayMumuPost(String mumuText) {
+	public static MumuPostHomeResponseDto notWrittenTodayMumuPost(List<Post> posts, String mumuText) {
+		List<MumuPostHomeDto> mumuPostHomeDtos = convertMumuPostHomeDtos(posts);
+
 		return MumuPostHomeResponseDto
 			.builder()
 			.isEmptyAppliedMeeting(false)
 			.hasWrittenTodayMumuPost(false)
 			.mumuText(mumuText)
-			.mumuPostHomeDtos(List.of())
+			.mumuPostHomeDtos(mumuPostHomeDtos)
 			.build();
 	}
 
-	public static MumuPostHomeResponseDto from(List<Post> post, String mumuText) {
-		List<MumuPostHomeDto> mumuPostHomeDtos = post.stream()
-			.map(MumuPostHomeDto::from)
-			.toList();
+	public static MumuPostHomeResponseDto from(List<Post> posts, String mumuText) {
+		List<MumuPostHomeDto> mumuPostHomeDtos = convertMumuPostHomeDtos(posts);
 
 		return MumuPostHomeResponseDto.builder()
 			.isEmptyAppliedMeeting(false)
@@ -63,5 +64,12 @@ public class MumuPostHomeResponseDto {
 			.mumuText(mumuText)
 			.mumuPostHomeDtos(mumuPostHomeDtos)
 			.build();
+	}
+
+	private static List<MumuPostHomeDto> convertMumuPostHomeDtos(List<Post> posts) {
+		return posts.stream()
+			.sorted(Comparator.comparing(Post::getCreatedDate, Comparator.reverseOrder()))
+			.map(MumuPostHomeDto::from)
+			.toList();
 	}
 }

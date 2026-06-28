@@ -341,9 +341,6 @@ public class PostV2ServiceImpl implements PostV2Service {
 
 		boolean existedTodayMumuPost = postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(userId,
 			PostCategory.MUMU, LocalDate.now().atStartOfDay());
-		if (!existedTodayMumuPost) {
-			return MumuPostHomeResponseDto.emptyHasWrittenTodayMumuPost(text);
-		}
 
 		List<Meeting> meetings = allByUserIdAndStatus.stream().map(
 			Apply::getMeeting
@@ -353,9 +350,13 @@ public class PostV2ServiceImpl implements PostV2Service {
 			.map(Meeting::getId)
 			.toList();
 
-		List<Post> allByMeetingId = postRepository.findAllByMeetingIdIn(meetingIds);
+		List<Post> findPostsByMeetingIds = postRepository.findAllByMeetingIdIn(meetingIds);
 
-		return MumuPostHomeResponseDto.from(allByMeetingId, text);
+		if (!existedTodayMumuPost) {
+			return MumuPostHomeResponseDto.notWrittenTodayMumuPost(findPostsByMeetingIds, text);
+		}
+
+		return MumuPostHomeResponseDto.from(findPostsByMeetingIds, text);
 	}
 
 	public String extractMumuText() {

@@ -206,15 +206,14 @@ public class PostV2ServiceTest {
 	}
 
 	@Nested
-	class 무무_홈_정보_반환_여부{
-
+	class 무무_홈_정보_반환_여부 {
 
 		/**
 		 * case 1 : 유저가 신청한 정보가 없다면!
 		 */
 		@Test
 		@DisplayName("유저가 모임에 한 번도 참여 안했다면?")
-		void 유저_한_번도_참여하지_않은_경우(){
+		void 유저_한_번도_참여하지_않은_경우() {
 			Integer userId = 1;
 			//given
 			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
@@ -237,22 +236,33 @@ public class PostV2ServiceTest {
 		 */
 		@Test
 		@DisplayName("오늘 mumu post를 보낸 적이 없다면")
-		void 오늘_mumu_post_를_보낸_적이_없다면(){
+		void 오늘_mumu_post_를_보낸_적이_없다면() {
 			Integer userId = 1;
+			Apply apply = mock(Apply.class);
+			Meeting appliedMeeting = mock(Meeting.class);
+			Post oldPost = testPostData(1, LocalDateTime.of(2026, 6, 25, 11, 0));
+			Post latestPost = testPostData(2, LocalDateTime.of(2026, 6, 25, 12, 0));
+
 			//given
 			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
-			when(applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE)).thenReturn(List.of(testApplySampleData()));
+			when(applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE)).thenReturn(List.of(apply));
+			when(apply.getMeeting()).thenReturn(appliedMeeting);
+			when(appliedMeeting.getId()).thenReturn(100);
 			when(postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class))).thenReturn(false);
+			when(postRepository.findAllByMeetingIdIn(List.of(100))).thenReturn(List.of(oldPost, latestPost));
 
 			//when
 			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
 
 			//then
-			verify(postRepository, never()).findAllByMeetingIdIn(anyList());
+			verify(postRepository).findAllByMeetingIdIn(List.of(100));
 			Assertions.assertThat(mumuPostHomeResponseDto).isNotNull();
 			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
 			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isFalse();
 			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuPostHomeDtos())
+				.extracting("postId")
+				.containsExactly(2, 1);
 		}
 
 		/**
@@ -260,13 +270,20 @@ public class PostV2ServiceTest {
 		 */
 		@Test
 		@DisplayName("오늘 무무 피드 보낸 경우")
-		void 오늘_무무_피드_보낸_경우(){
+		void 오늘_무무_피드_보낸_경우() {
 			Integer userId = 1;
+			Apply apply = mock(Apply.class);
+			Meeting appliedMeeting = mock(Meeting.class);
+			Post oldPost = testPostData(1, LocalDateTime.of(2026, 6, 25, 11, 0));
+			Post latestPost = testPostData(2, LocalDateTime.of(2026, 6, 25, 12, 0));
+
 			//given
 			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
-			when(applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE)).thenReturn(List.of(testApplySampleData()));
+			when(applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE)).thenReturn(List.of(apply));
+			when(apply.getMeeting()).thenReturn(appliedMeeting);
+			when(appliedMeeting.getId()).thenReturn(100);
 			when(postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class))).thenReturn(true);
-			when(postRepository.findAllByMeetingIdIn(anyList())).thenReturn(List.of(testPostData(), testPostData()));
+			when(postRepository.findAllByMeetingIdIn(List.of(100))).thenReturn(List.of(oldPost, latestPost));
 
 			//when
 			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
@@ -276,22 +293,24 @@ public class PostV2ServiceTest {
 			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
 			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isFalse();
 			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isTrue();
-			Assertions.assertThat(mumuPostHomeResponseDto.getMumuPostHomeDtos()).hasSize(2);
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuPostHomeDtos())
+				.extracting("postId")
+				.containsExactly(2, 1);
 		}
 
 	}
 
-	private MumuText testMumuTextData(String text){
+	private MumuText testMumuTextData(String text) {
 		return Instancio.of(MumuText.class)
 			.set(field(MumuText::getText), text)
 			.create();
 	}
 
-	private Apply testApplySampleData(){
-		return Instancio.create(Apply.class);
-	}
-
-	private Post testPostData(){
-		return Instancio.create(Post.class);
+	private Post testPostData(Integer id, LocalDateTime createdDate) {
+		return Instancio.of(Post.class)
+			.set(field(Post::getId), id)
+			.set(field(Post::getCreatedDate), createdDate)
+			.set(field(Post::getMeeting), meeting)
+			.create();
 	}
 }
