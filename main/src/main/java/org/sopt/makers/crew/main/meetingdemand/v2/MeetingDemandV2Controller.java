@@ -8,6 +8,7 @@ import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2Cre
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2CreateMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2SwitchMeetingDemandWaitResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.service.MeetingDemandV2Service;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -61,5 +62,13 @@ public class MeetingDemandV2Controller implements MeetingDemandV2Api {
 		Integer userId = UserUtil.getUserId(principal);
 		meetingDemandV2Service.deleteMeetingDemand(meetingDemandId, userId);
 		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	@PostMapping("/{meetingDemandId}/wait")
+	public ResponseEntity<MeetingDemandV2SwitchMeetingDemandWaitResponseDto> switchMeetingDemandWait(
+		@PathVariable Integer meetingDemandId, Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(meetingDemandV2Service.switchMeetingDemandWait(meetingDemandId, userId));
 	}
 }

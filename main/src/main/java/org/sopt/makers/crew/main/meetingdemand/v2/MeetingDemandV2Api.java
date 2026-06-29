@@ -7,6 +7,7 @@ import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2Cre
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2CreateMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2SwitchMeetingDemandWaitResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,4 +47,9 @@ public interface MeetingDemandV2Api {
 	@Operation(summary = "모임 수요 삭제", description = "모임 수요 삭제 API")
 	@ApiResponse(responseCode = "200", description = "성공")
 	ResponseEntity<Void> deleteMeetingDemand(@PathVariable Integer meetingDemandId, Principal principal);
+
+	@Operation(summary = "모임 수요 기다려요 토글", description = "모임 수요의 기다려요 상태를 토글합니다.")
+	@ApiResponse(responseCode = "200", description = "성공")
+	ResponseEntity<MeetingDemandV2SwitchMeetingDemandWaitResponseDto> switchMeetingDemandWait(
+		@PathVariable Integer meetingDemandId, Principal principal);
 }

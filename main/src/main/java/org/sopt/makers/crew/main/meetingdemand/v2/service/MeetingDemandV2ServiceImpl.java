@@ -22,6 +22,7 @@ import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2Cre
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2CreateMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2SwitchMeetingDemandWaitResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -107,6 +108,32 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 		meetingDemand.validateBeforeOpen();
 
 		meetingDemandRepository.delete(meetingDemand);
+	}
+
+	@Override
+	@Transactional
+	public MeetingDemandV2SwitchMeetingDemandWaitResponseDto switchMeetingDemandWait(
+		Integer meetingDemandId, Integer userId) {
+		MeetingDemand meetingDemand = meetingDemandRepository.findByIdOrThrow(meetingDemandId);
+
+		meetingDemand.validateNotWriter(userId);
+
+		int deletedWaits = meetingDemandWaitRepository.deleteByMeetingDemandIdAndUserId(meetingDemandId, userId);
+		if (deletedWaits == 0) {
+			MeetingDemandWait meetingDemandWait = MeetingDemandWait.builder()
+				.meetingDemandId(meetingDemandId)
+				.userId(userId)
+				.build();
+
+			meetingDemandWaitRepository.save(meetingDemandWait);
+			meetingDemand.increaseWaitCount();
+
+			return MeetingDemandV2SwitchMeetingDemandWaitResponseDto.of(meetingDemand.getWaitCount(), true);
+		}
+
+		meetingDemand.decreaseWaitCount();
+
+		return MeetingDemandV2SwitchMeetingDemandWaitResponseDto.of(meetingDemand.getWaitCount(), false);
 	}
 
 	private Set<Integer> getWaitingMeetingDemandIds(List<MeetingDemand> meetingDemands, Integer userId) {
