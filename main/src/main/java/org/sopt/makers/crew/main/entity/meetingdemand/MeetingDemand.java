@@ -4,11 +4,12 @@ import java.util.List;
 
 import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
-import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.meetingdemand.enums.MeetingDemandStatus;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
@@ -26,6 +27,9 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.OPENED_MEETING_DEMAND;
 
 @Entity
 @Getter
@@ -50,9 +54,6 @@ public class MeetingDemand extends BaseTimeEntity {
 	@Column(nullable = false)
 	private MeetingDemandStatus status;
 
-	@Column(insertable = false, updatable = false)
-	private Integer meetingId;
-
 	@Column(nullable = false, columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
 	private List<MeetingKeywordType> meetingKeywordTypes;
@@ -71,10 +72,6 @@ public class MeetingDemand extends BaseTimeEntity {
 	@JoinColumn(name = "userId", nullable = false)
 	private User user;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "meetingId")
-	private Meeting meeting;
-
 	@Builder
 	public MeetingDemand(User user, String shortIntro, String expectation,
 		List<MeetingKeywordType> meetingKeywordTypes, MeetingJoinInfo joinInfo) {
@@ -89,10 +86,20 @@ public class MeetingDemand extends BaseTimeEntity {
 		this.commentCount = 0;
 	}
 
-	public void open(Meeting openedMeeting) {
-		this.meeting = openedMeeting;
-		this.meetingId = openedMeeting.getId();
+	public void open() {
 		this.status = MeetingDemandStatus.OPENED;
+	}
+
+	public void validateWriter(Integer userId) {
+		if (!this.userId.equals(userId)) {
+			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+	}
+
+	public void validateBeforeOpen() {
+		if (MeetingDemandStatus.OPENED.equals(this.status)) {
+			throw new BadRequestException(OPENED_MEETING_DEMAND.getErrorCode());
+		}
 	}
 
 	public void increaseWaitCount() {

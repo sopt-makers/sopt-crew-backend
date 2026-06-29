@@ -34,6 +34,8 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 
 	Integer countAllByCreatedGeneration(Integer generation);
 
+	int countByMeetingDemandId(Integer meetingDemandId);
+
 	Optional<Meeting> findFirstByTitleOrderByIdDesc(String title);
 
 	Optional<Meeting> findFirstByTitleContainingOrderByIdDesc(String title);

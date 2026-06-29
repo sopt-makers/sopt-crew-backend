@@ -48,17 +48,15 @@ public class Meeting extends BaseTimeEntity {
 	private Integer id;
 
 	/**
-	 * 개설한 유저
-	 */
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "userId", nullable = false)
-	private User user;
-
-	/**
 	 * 유저 id
 	 */
 	@Column(insertable = false, updatable = false)
 	private Integer userId;
+
+	/**
+	 * 개설 기반 모임 수요 id
+	 */
+	private Integer meetingDemandId;
 
 	/**
 	 * 모임 제목
@@ -184,15 +182,23 @@ public class Meeting extends BaseTimeEntity {
 	@Column(name = "joinableParts", columnDefinition = "meeting_joinableparts_enum[]")
 	private MeetingJoinablePart[] joinableParts;
 
+	/**
+	 * 개설한 유저
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "userId", nullable = false)
+	private User user;
+
 	@Builder
-	public Meeting(User user, Integer userId, String title, String subTitle, MeetingCategory category,
-		List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
-		String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
+	public Meeting(User user, Integer userId, Integer meetingDemandId, String title, String subTitle,
+		MeetingCategory category, List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate,
+		Integer capacity, String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
 		String leaderDesc, String note, Boolean isMentorNeeded,
 		Boolean canJoinOnlyActiveGeneration, MeetingJoinInfo joinInfo, Integer createdGeneration,
 		Integer targetActiveGeneration, MeetingJoinablePart[] joinableParts) {
 		this.user = user;
 		this.userId = userId;
+		this.meetingDemandId = meetingDemandId;
 		this.title = title;
 		this.subTitle = subTitle;
 		this.category = category;
