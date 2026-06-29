@@ -9,7 +9,6 @@ import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2Cr
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.service.MeetingDemandV2Service;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,8 +52,7 @@ public class MeetingDemandV2Controller implements MeetingDemandV2Api {
 	public ResponseEntity<MeetingDemandV2CreateMeetingDemandResponseDto> createMeetingDemand(
 		@Valid @RequestBody MeetingDemandV2CreateMeetingDemandBodyDto requestBody, Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
-		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(meetingDemandV2Service.createMeetingDemand(requestBody, userId));
+		return ResponseEntity.ok(meetingDemandV2Service.createMeetingDemand(requestBody, userId));
 	}
 
 	@Override
@@ -62,6 +60,6 @@ public class MeetingDemandV2Controller implements MeetingDemandV2Api {
 	public ResponseEntity<Void> deleteMeetingDemand(@PathVariable Integer meetingDemandId, Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
 		meetingDemandV2Service.deleteMeetingDemand(meetingDemandId, userId);
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok().build();
 	}
 }
