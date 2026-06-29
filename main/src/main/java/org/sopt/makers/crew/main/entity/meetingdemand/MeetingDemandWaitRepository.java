@@ -8,5 +8,7 @@ public interface MeetingDemandWaitRepository extends JpaRepository<MeetingDemand
 
 	boolean existsByMeetingDemandIdAndUserId(Integer meetingDemandId, Integer userId);
 
+	int deleteByMeetingDemandIdAndUserId(Integer meetingDemandId, Integer userId);
+
 	List<MeetingDemandWait> findAllByMeetingDemandIdInAndUserId(List<Integer> meetingDemandIds, Integer userId);
 }
