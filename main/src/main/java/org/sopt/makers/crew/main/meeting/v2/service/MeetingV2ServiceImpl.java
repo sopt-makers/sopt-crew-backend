@@ -43,6 +43,8 @@ import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
@@ -126,6 +128,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final ApplyRepository applyRepository;
 	private final ApplyTestRepository applyTestRepository;
 	private final MeetingRepository meetingRepository;
+	private final MeetingDemandRepository meetingDemandRepository;
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
@@ -228,12 +231,16 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
 
+		MeetingDemand meetingDemand = findMeetingDemandIfRequested(requestBody.getMeetingDemandId());
 		Meeting meeting = meetingMapper.toMeetingEntity(requestBody,
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()),
 			activeGenerationProvider.getActiveGeneration(), user,
 			user.getId());
 
 		Meeting savedMeeting = meetingRepository.save(meeting);
+		if (meetingDemand != null) {
+			meetingDemand.open();
+		}
 
 		List<Integer> coLeaderUserIds = requestBody.getCoLeaderUserIds();
 		if (coLeaderUserIds != null && !coLeaderUserIds.isEmpty()) {
@@ -250,6 +257,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId(), tagResponseDto.tagId());
+	}
+
+	private MeetingDemand findMeetingDemandIfRequested(Integer meetingDemandId) {
+		if (meetingDemandId == null) {
+			return null;
+		}
+
+		return meetingDemandRepository.findByIdOrThrow(meetingDemandId);
 	}
 
 	private void publishMeetingEvent(MeetingV2CreateMeetingBodyDto requestBody, Meeting meeting) {

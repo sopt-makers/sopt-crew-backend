@@ -217,6 +217,7 @@ public class MeetingV2ServiceTest {
 				canJoinOnlyActiveGeneration, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
+				null, // meetingDemandId (개설 기반 모임 수요 id)
 				null, // coLeaders (공동모임장 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
@@ -337,6 +338,7 @@ public class MeetingV2ServiceTest {
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
+				null, // meetingDemandId (개설 기반 모임 수요 id)
 				List.of(savedJointLeader1.getId(), savedJointLeader2.getId()), // coLeaders (공동모임장 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
@@ -412,6 +414,7 @@ public class MeetingV2ServiceTest {
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
+				null, // meetingDemandId (개설 기반 모임 수요 id)
 				List.of(0, Integer.MAX_VALUE), // coLeaders (공동모임장 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
@@ -475,6 +478,7 @@ public class MeetingV2ServiceTest {
 				true, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
+				null, // meetingDemandId (개설 기반 모임 수요 id)
 				List.of(savedUser.getId()), // coLeaders (공동모임장 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
@@ -538,6 +542,7 @@ public class MeetingV2ServiceTest {
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
+				null, // meetingDemandId (개설 기반 모임 수요 id)
 				null, // coLeaders (공동모임장 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
@@ -595,6 +600,7 @@ public class MeetingV2ServiceTest {
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
+				null, // meetingDemandId (개설 기반 모임 수요 id)
 				null, // coLeaders (공동모임장 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
@@ -653,6 +659,7 @@ public class MeetingV2ServiceTest {
 				false, // canJoinOnlyActiveGeneration (활동기수만 지원 가능 여부)
 				joinInfo, // joinInfo (참여 정보)
 				joinableParts, // joinableParts (대상 파트 목록)
+				null, // meetingDemandId (개설 기반 모임 수요 id)
 				null, // coLeaders (공동모임장 리스트)
 				meetingKeywordTypes // meetingKeywordTypes (모임 키워드 태그 리스트)
 			);
