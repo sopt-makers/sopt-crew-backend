@@ -38,6 +38,7 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
+import org.sopt.makers.crew.main.meeting.v2.service.UserRelatedMeetingExtractor;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
@@ -79,6 +80,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	private final UserV2Service userV2Service;
 
 	private final PushNotificationProperties pushNotificationProperties;
+	private final UserRelatedMeetingExtractor userRelatedMeetingExtractor;
 
 	private final Time time;
 	private final MumuTextResolver mumuTextResolver;
@@ -334,24 +336,18 @@ public class PostV2ServiceImpl implements PostV2Service {
 	public MumuPostHomeResponseDto retrieveMumuHomeInfo(Integer userId) {
 
 		String text = extractMumuText();
-		List<Apply> allByUserIdAndStatus = applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE);
-		if (allByUserIdAndStatus.isEmpty()) {
+
+		List<Integer> relatedMeetingIds = userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId);
+
+		if (relatedMeetingIds.isEmpty()) {
 			return MumuPostHomeResponseDto.emptyAppliedMeeting(text);
 		}
 
 		boolean existedTodayMumuPost = postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(userId,
 			PostCategory.MUMU, LocalDate.now().atStartOfDay());
 
-		List<Meeting> meetings = allByUserIdAndStatus.stream().map(
-			Apply::getMeeting
-		).toList();
-
-		List<Integer> meetingIds = meetings.stream()
-			.map(Meeting::getId)
-			.toList();
-
 		List<Post> findPostsByMeetingIdsExceptSelf = postRepository
-			.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(meetingIds, userId);
+			.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(relatedMeetingIds, userId);
 
 		if (!existedTodayMumuPost) {
 			return MumuPostHomeResponseDto.notWrittenTodayMumuPost(findPostsByMeetingIdsExceptSelf, text);

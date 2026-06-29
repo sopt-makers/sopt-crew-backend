@@ -19,9 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
-import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
@@ -38,6 +36,7 @@ import org.sopt.makers.crew.main.entity.user.UserFixture;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.util.Time;
+import org.sopt.makers.crew.main.meeting.v2.service.UserRelatedMeetingExtractor;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
@@ -59,6 +58,8 @@ public class PostV2ServiceTest {
 	private ApplyRepository applyRepository;
 	@Mock
 	private MumuTextResolver mumuTextResolver;
+	@Mock
+	private UserRelatedMeetingExtractor userRelatedMeetingExtractor;
 
 	@Mock
 	private Time time;
@@ -217,8 +218,7 @@ public class PostV2ServiceTest {
 			Integer userId = 1;
 			//given
 			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
-
-			when(applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE)).thenReturn(List.of());
+			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of());
 
 			//when
 			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
@@ -238,16 +238,12 @@ public class PostV2ServiceTest {
 		@DisplayName("오늘 mumu post를 보낸 적이 없다면")
 		void 오늘_mumu_post_를_보낸_적이_없다면() {
 			Integer userId = 1;
-			Apply apply = mock(Apply.class);
-			Meeting appliedMeeting = mock(Meeting.class);
 			Post oldPost = testPostData(1, LocalDateTime.of(2026, 6, 25, 11, 0));
 			Post latestPost = testPostData(2, LocalDateTime.of(2026, 6, 25, 12, 0));
 
 			//given
 			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
-			when(applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE)).thenReturn(List.of(apply));
-			when(apply.getMeeting()).thenReturn(appliedMeeting);
-			when(appliedMeeting.getId()).thenReturn(100);
+			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of(100));
 			when(postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class))).thenReturn(false);
 			when(postRepository.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List.of(100), userId))
 				.thenReturn(List.of(latestPost, oldPost));
@@ -273,16 +269,12 @@ public class PostV2ServiceTest {
 		@DisplayName("오늘 무무 피드 보낸 경우")
 		void 오늘_무무_피드_보낸_경우() {
 			Integer userId = 1;
-			Apply apply = mock(Apply.class);
-			Meeting appliedMeeting = mock(Meeting.class);
 			Post oldPost = testPostData(1, LocalDateTime.of(2026, 6, 25, 11, 0));
 			Post latestPost = testPostData(2, LocalDateTime.of(2026, 6, 25, 12, 0));
 
 			//given
 			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
-			when(applyRepository.findAllByUserIdAndStatus(userId, EnApplyStatus.APPROVE)).thenReturn(List.of(apply));
-			when(apply.getMeeting()).thenReturn(appliedMeeting);
-			when(appliedMeeting.getId()).thenReturn(100);
+			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of(100));
 			when(postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class))).thenReturn(true);
 			when(postRepository.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List.of(100), userId))
 				.thenReturn(List.of(latestPost, oldPost));
