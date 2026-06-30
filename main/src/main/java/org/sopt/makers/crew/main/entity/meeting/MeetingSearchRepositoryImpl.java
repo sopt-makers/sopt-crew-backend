@@ -2,7 +2,6 @@ package org.sopt.makers.crew.main.entity.meeting;
 
 import static org.sopt.makers.crew.main.entity.meeting.QMeeting.*;
 import static org.sopt.makers.crew.main.entity.tag.QTag.*;
-import static org.sopt.makers.crew.main.entity.user.QUser.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -122,9 +121,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	@Override
 	public List<Meeting> findRecommendMeetings(List<Integer> meetingIds, Time time) {
 		LocalDateTime now = time.now();
-		JPAQuery<Meeting> query = queryFactory.selectFrom(meeting)
-			.innerJoin(meeting.user, user)
-			.fetchJoin();
+		JPAQuery<Meeting> query = queryFactory.selectFrom(meeting);
 
 		if (meetingIds == null) {
 			query.where(eqStatus(List.of(String.valueOf(EnMeetingStatus.APPLY_ABLE.getValue())), now));
@@ -190,8 +187,6 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 				eqJoinableParts(queryCommand.getJoinableParts()),
 				eqQuery(queryCommand.getQuery())
 			)
-			.innerJoin(meeting.user, user)
-			.fetchJoin()
 			.orderBy(
 				statusOrder.asc(),
 				meeting.id.desc()
@@ -218,8 +213,6 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 				eqJoinableParts(queryCommand.getJoinableParts()),
 				eqQuery(queryCommand.getQuery())
 			)
-			.innerJoin(meeting.user, user)
-			.fetchJoin()
 			.orderBy(
 				statusOrder.asc(),  //  모집 마감은 가장 마지막, 모집 중 & 모집 전은 동일 우선순위
 				meeting.mStartDate.asc(), //  모집 중 & 모집 전 내부에서는 mStartDate(번쩍 진행일)이 가장 가까운 날짜부터 오름차순 정렬

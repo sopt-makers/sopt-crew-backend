@@ -75,12 +75,11 @@ public class MeetingRepositoryTest {
 		Assertions.assertThat(savedMeeting)
 			.isNotNull()
 			.extracting(
-				"user", "userId", "title", "category", "imageURL", "startDate", "endDate", "capacity", "desc",
+				"userId", "title", "category", "imageURL", "startDate", "endDate", "capacity", "desc",
 				"processDesc", "mStartDate", "mEndDate", "leaderDesc", "note", "isMentorNeeded",
 				"canJoinOnlyActiveGeneration", "createdGeneration", "targetActiveGeneration", "joinableParts"
 			)
 			.containsExactly(
-				savedUser,  // user 필드
 				savedUser.getId(),  // userId 필드
 				"Backend 개발 스터디",  // title 필드
 				MeetingCategory.STUDY,  // category 필드
