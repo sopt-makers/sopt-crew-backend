@@ -233,12 +233,11 @@ public class MeetingV2ServiceTest {
 			Assertions.assertThat(foundMeeting)
 				.isNotNull()
 				.extracting(
-					"user", "userId", "title", "subTitle", "category", "startDate", "endDate", "capacity", "desc",
+					"userId", "title", "subTitle", "category", "startDate", "endDate", "capacity", "desc",
 					"processDesc", "mStartDate", "mEndDate", "leaderDesc", "note", "isMentorNeeded",
 					"canJoinOnlyActiveGeneration", "joinInfo", "createdGeneration", "targetActiveGeneration", "joinableParts"
 				)
 				.containsExactly(
-					savedUser,  // user 필드
 					savedUser.getId(),  // userId 필드
 					"알고보면 쓸데있는 개발 프로세스",  // title 필드
 					"백엔드 실전 설계부터 배포까지", // subTitle 필드
