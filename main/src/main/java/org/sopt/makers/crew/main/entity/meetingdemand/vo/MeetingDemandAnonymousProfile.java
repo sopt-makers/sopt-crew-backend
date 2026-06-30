@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.entity.meetingdemand.vo;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import lombok.AccessLevel;
@@ -8,6 +9,10 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MeetingDemandAnonymousProfile {
+
+	private static final int MIN_IMAGE_NUMBER = 1;
+	private static final int MAX_IMAGE_NUMBER = 5;
+	private static final int DEFAULT_IMAGE_NUMBER = 1;
 
 	private static final List<String> ADJECTIVES = List.of(
 		"열정적인",
@@ -79,12 +84,12 @@ public class MeetingDemandAnonymousProfile {
 		"쿠키"
 	);
 
-	private static final List<String> IMAGE_URLS = List.of(
-		"https://sopt-makers-mds.s3.ap-northeast-2.amazonaws.com/anonymousImage/avatar_m.png",
-		"https://sopt-makers-mds.s3.ap-northeast-2.amazonaws.com/anonymousImage/avatar_o.png",
-		"https://sopt-makers-mds.s3.ap-northeast-2.amazonaws.com/anonymousImage/avatar_p.png",
-		"https://sopt-makers-mds.s3.ap-northeast-2.amazonaws.com/anonymousImage/avatar_s.png",
-		"https://sopt-makers-mds.s3.ap-northeast-2.amazonaws.com/anonymousImage/avatar_t.png"
+	private static final Map<Integer, String> IMAGE_URLS = Map.of(
+		1, "https://sopt-makers-mds.s3.ap-northeast-2.amazonaws.com/anonymousImage/avatar_m.png",
+		2, "https://sopt-makers-mds.s3.ap-northeast-2.amazonaws.com/anonymousImage/avatar_o.png",
+		3, "https://sopt-makers-mds.s3.ap-northeast-2.amazonaws.com/anonymousImage/avatar_p.png",
+		4, "https://sopt-makers-mds.s3.ap-northeast-2.amazonaws.com/anonymousImage/avatar_s.png",
+		5, "https://sopt-makers-mds.s3.ap-northeast-2.amazonaws.com/anonymousImage/avatar_t.png"
 	);
 
 	public static String generateNickname() {
@@ -92,14 +97,11 @@ public class MeetingDemandAnonymousProfile {
 	}
 
 	public static int generateImageNumber() {
-		return ThreadLocalRandom.current().nextInt(1, IMAGE_URLS.size() + 1);
+		return ThreadLocalRandom.current().nextInt(MIN_IMAGE_NUMBER, MAX_IMAGE_NUMBER + 1);
 	}
 
 	public static String getImageUrl(int imageNumber) {
-		if (imageNumber < 1 || imageNumber > IMAGE_URLS.size()) {
-			return IMAGE_URLS.get(0);
-		}
-		return IMAGE_URLS.get(imageNumber - 1);
+		return IMAGE_URLS.getOrDefault(imageNumber, IMAGE_URLS.get(DEFAULT_IMAGE_NUMBER));
 	}
 
 	private static String getRandomValue(List<String> values) {
