@@ -22,7 +22,6 @@ public interface ApplyTestRepository extends JpaRepository<ApplyTest, Integer> {
 	@Query("select a "
 		+ "from ApplyTest a "
 		+ "join fetch a.meeting m "
-		+ "join fetch m.user u "
 		+ "where a.userId = :userId "
 		+ "ORDER BY a.id DESC ")
 	List<ApplyTest> findAllByUserIdOrderByIdDesc(@Param("userId") Integer userId);

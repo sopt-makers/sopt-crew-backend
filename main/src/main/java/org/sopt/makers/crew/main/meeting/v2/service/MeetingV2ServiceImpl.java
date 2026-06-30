@@ -213,8 +213,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			.collect(Collectors.toMap(post -> post.getMeeting().getId(), post -> post));
 
 		Applies applies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
+		Map<Integer, User> userMap = getUsersById(meetings.stream()
+			.map(Meeting::getUserId)
+			.toList());
 
-		return getResponseDto(meetings, postMap, applies);
+		return getResponseDto(meetings, postMap, applies, userMap);
 	}
 
 	@Override
@@ -238,7 +241,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			user.getId());
 
 		if (meetingDemand != null) {
-			meeting.connectMeetingDemand(meetingDemand);
 			meetingDemand.open();
 		}
 
@@ -425,11 +427,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
 			meetingIds);
+		Map<Integer, User> userMap = getUsersById(meetings.stream()
+			.map(Meeting::getUserId)
+			.toList());
 
 		List<MeetingResponseDto> meetingResponseDtos = meetings.stream()
 			.map(meeting -> MeetingResponseDto.of(
 				meeting,
-				meeting.getUser(),
+				userMap.get(meeting.getUserId()),
 				allApplies.getApprovedCount(meeting.getId()),
 				time.now(),
 				activeGenerationProvider.getActiveGeneration(),
@@ -666,11 +671,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
 			meetingIds);
+		Map<Integer, User> userMap = getUsersById(meetings.stream()
+			.map(Meeting::getUserId)
+			.toList());
 
 		List<MeetingResponseDto> meetingResponseDtos = meetings.stream()
 			.map(meeting -> MeetingResponseDto.of(
 				meeting,
-				meeting.getUser(),
+				userMap.get(meeting.getUserId()),
 				allApplies.getApprovedCount(meeting.getId()),
 				time.now(),
 				activeGenerationProvider.getActiveGeneration(),
@@ -809,11 +817,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private List<MeetingV2GetMeetingBannerResponseDto> getResponseDto(List<Meeting> meetings,
-		Map<Integer, Post> postMap, Applies applies) {
+		Map<Integer, Post> postMap, Applies applies, Map<Integer, User> userMap) {
 		return meetings.stream()
 			.map(meeting -> {
 				MeetingV2GetMeetingBannerResponseUserDto meetingCreatorDto = MeetingV2GetMeetingBannerResponseUserDto.of(
-					meeting.getUser());
+					userMap.get(meeting.getUserId()));
 
 				LocalDateTime recentActivityDate = null;
 				if (postMap.containsKey(meeting.getId())) {
@@ -824,6 +832,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 					applies.getAppliedCount(meeting.getId()), applies.getApprovedCount(meeting.getId()),
 					meetingCreatorDto, time.now());
 			}).toList();
+	}
+
+	private Map<Integer, User> getUsersById(List<Integer> userIds) {
+		return userRepository.findAllById(userIds.stream()
+				.distinct()
+				.toList())
+			.stream()
+			.collect(Collectors.toMap(User::getId, user -> user));
 	}
 
 	private void deleteCsvFile(String filePath) {

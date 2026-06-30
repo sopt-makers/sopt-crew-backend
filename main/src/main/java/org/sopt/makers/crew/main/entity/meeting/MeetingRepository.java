@@ -18,8 +18,7 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 	 * **/
 	@Query("SELECT m "
 		+ "FROM Meeting m "
-		+ "JOIN fetch m.user "
-		+ "WHERE m.user.id =:userId "
+		+ "WHERE m.userId =:userId "
 		+ "OR m.id IN (:coLeaderMeetingIds)"
 		+ "ORDER BY m.id DESC ")
 	List<Meeting> findAllByUserIdOrIdInWithUser(Integer userId, List<Integer> coLeaderMeetingIds);
@@ -29,7 +28,6 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_MEETING.getErrorCode()));
 	}
 
-	@Query("SELECT m FROM Meeting m JOIN FETCH m.user ORDER BY m.id DESC LIMIT 20")
 	List<Meeting> findTop20ByOrderByIdDesc();
 
 	Integer countAllByCreatedGeneration(Integer generation);
