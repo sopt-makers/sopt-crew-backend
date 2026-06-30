@@ -102,11 +102,12 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 	@Override
 	@Transactional
 	public void deleteMeetingDemand(Integer meetingDemandId, Integer userId) {
-		MeetingDemand meetingDemand = meetingDemandRepository.findByIdOrThrow(meetingDemandId);
+		MeetingDemand meetingDemand = meetingDemandRepository.findByIdWithPessimisticWriteLockOrThrow(meetingDemandId);
 
 		meetingDemand.validateWriter(userId);
 		meetingDemand.validateBeforeOpen();
 
+		meetingDemandWaitRepository.deleteAllByMeetingDemandId(meetingDemandId);
 		meetingDemandRepository.delete(meetingDemand);
 	}
 
@@ -114,26 +115,27 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 	@Transactional
 	public MeetingDemandV2SwitchMeetingDemandWaitResponseDto switchMeetingDemandWait(
 		Integer meetingDemandId, Integer userId) {
-		MeetingDemand meetingDemand = meetingDemandRepository.findByIdOrThrow(meetingDemandId);
+		MeetingDemand meetingDemand = meetingDemandRepository.findByIdWithPessimisticWriteLockOrThrow(meetingDemandId);
 
 		meetingDemand.validateNotWriter(userId);
 
-		int deletedWaits = meetingDemandWaitRepository.deleteByMeetingDemandIdAndUserId(meetingDemandId, userId);
-		if (deletedWaits == 0) {
+		boolean isWaiting = meetingDemandWaitRepository.existsByMeetingDemandIdAndUserId(meetingDemandId, userId);
+		if (isWaiting) {
+			meetingDemandWaitRepository.deleteByMeetingDemandIdAndUserId(meetingDemandId, userId);
+		} else {
 			MeetingDemandWait meetingDemandWait = MeetingDemandWait.builder()
 				.meetingDemandId(meetingDemandId)
 				.userId(userId)
 				.build();
 
 			meetingDemandWaitRepository.save(meetingDemandWait);
-			meetingDemand.increaseWaitCount();
-
-			return MeetingDemandV2SwitchMeetingDemandWaitResponseDto.of(meetingDemand.getWaitCount(), true);
 		}
 
-		meetingDemand.decreaseWaitCount();
+		meetingDemandWaitRepository.flush();
+		long waitCount = meetingDemandWaitRepository.countByMeetingDemandId(meetingDemandId);
+		meetingDemand.syncWaitCount((int)waitCount);
 
-		return MeetingDemandV2SwitchMeetingDemandWaitResponseDto.of(meetingDemand.getWaitCount(), false);
+		return MeetingDemandV2SwitchMeetingDemandWaitResponseDto.of(meetingDemand.getWaitCount(), !isWaiting);
 	}
 
 	private Set<Integer> getWaitingMeetingDemandIds(List<MeetingDemand> meetingDemands, Integer userId) {

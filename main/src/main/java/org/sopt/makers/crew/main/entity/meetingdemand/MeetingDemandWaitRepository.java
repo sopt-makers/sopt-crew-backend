@@ -10,5 +10,9 @@ public interface MeetingDemandWaitRepository extends JpaRepository<MeetingDemand
 
 	int deleteByMeetingDemandIdAndUserId(Integer meetingDemandId, Integer userId);
 
+	void deleteAllByMeetingDemandId(Integer meetingDemandId);
+
+	long countByMeetingDemandId(Integer meetingDemandId);
+
 	List<MeetingDemandWait> findAllByMeetingDemandIdInAndUserId(List<Integer> meetingDemandIds, Integer userId);
 }

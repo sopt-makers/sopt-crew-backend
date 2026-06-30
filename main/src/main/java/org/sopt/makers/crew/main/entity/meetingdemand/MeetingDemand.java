@@ -119,11 +119,17 @@ public class MeetingDemand extends BaseTimeEntity {
 		}
 	}
 
+	public void syncWaitCount(int waitCount) {
+		this.waitCount = waitCount;
+	}
+
 	public void increaseCommentCount() {
 		this.commentCount++;
 	}
 
 	public void decreaseCommentCount() {
-		this.commentCount--;
+		if (this.commentCount > 0) {
+			this.commentCount--;
+		}
 	}
 }
