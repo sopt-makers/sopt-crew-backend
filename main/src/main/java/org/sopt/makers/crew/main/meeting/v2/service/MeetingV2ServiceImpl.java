@@ -268,7 +268,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			return null;
 		}
 
-		return meetingDemandRepository.findByIdWithPessimisticWriteLockOrThrow(meetingDemandId);
+		return meetingDemandRepository.findByIdOrThrow(meetingDemandId);
 	}
 
 	private void publishMeetingEvent(MeetingV2CreateMeetingBodyDto requestBody, Meeting meeting) {
