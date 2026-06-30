@@ -6,6 +6,7 @@ import org.hibernate.annotations.Type;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.meetingdemand.enums.MeetingDemandStatus;
+import org.sopt.makers.crew.main.entity.meetingdemand.vo.MeetingDemandAnonymousProfile;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
@@ -55,6 +56,12 @@ public class MeetingDemand extends BaseTimeEntity {
 	@Column(nullable = false)
 	private MeetingDemandStatus status;
 
+	@Column(nullable = false, length = 30)
+	private String anonymousNickname;
+
+	@Column(nullable = false)
+	private Integer anonymousImageNumber;
+
 	@Column(nullable = false, columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
 	private List<MeetingKeywordType> meetingKeywordTypes;
@@ -81,6 +88,8 @@ public class MeetingDemand extends BaseTimeEntity {
 		this.shortIntro = shortIntro;
 		this.expectation = expectation;
 		this.status = MeetingDemandStatus.BEFORE_OPEN;
+		this.anonymousNickname = MeetingDemandAnonymousProfile.generateNickname();
+		this.anonymousImageNumber = MeetingDemandAnonymousProfile.generateImageNumber();
 		this.meetingKeywordTypes = meetingKeywordTypes;
 		this.joinInfo = joinInfo;
 		this.waitCount = 0;
@@ -92,13 +101,17 @@ public class MeetingDemand extends BaseTimeEntity {
 	}
 
 	public void validateWriter(Integer userId) {
-		if (!this.userId.equals(userId)) {
+		if (!isWriter(userId)) {
 			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
 		}
 	}
 
+	public boolean isWriter(Integer userId) {
+		return this.userId.equals(userId);
+	}
+
 	public void validateNotWriter(Integer userId) {
-		if (this.userId.equals(userId)) {
+		if (isWriter(userId)) {
 			throw new BadRequestException(WRITER_CANNOT_WAIT_MEETING_DEMAND.getErrorCode());
 		}
 	}
