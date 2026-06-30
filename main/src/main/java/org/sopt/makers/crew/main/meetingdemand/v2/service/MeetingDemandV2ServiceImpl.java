@@ -61,6 +61,7 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 			.map(meetingDemand -> MeetingDemandV2GetMeetingDemandResponseDto.of(
 				meetingDemand,
 				waitingMeetingDemandIds.contains(meetingDemand.getId()),
+				meetingDemand.isWriter(userId),
 				meetingRepository.countByMeetingDemandId(meetingDemand.getId())
 			))
 			.toList();
@@ -76,7 +77,8 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 		boolean isWaiting = meetingDemandWaitRepository.existsByMeetingDemandIdAndUserId(meetingDemandId, userId);
 		int openedMeetingCount = meetingRepository.countByMeetingDemandId(meetingDemandId);
 
-		return MeetingDemandV2GetMeetingDemandResponseDto.of(meetingDemand, isWaiting, openedMeetingCount);
+		return MeetingDemandV2GetMeetingDemandResponseDto.of(meetingDemand, isWaiting, meetingDemand.isWriter(userId),
+			openedMeetingCount);
 	}
 
 	@Override

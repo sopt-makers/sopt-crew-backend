@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
+import org.sopt.makers.crew.main.entity.meetingdemand.vo.MeetingDemandAnonymousProfile;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -32,6 +33,18 @@ public class MeetingDemandV2GetMeetingDemandResponseDto {
 	@Schema(description = "모임 수요 상태", example = "BEFORE_OPEN")
 	@NotNull
 	private String status;
+
+	@Schema(description = "본인이 작성한 모임 수요인지 여부", example = "true")
+	@NotNull
+	private Boolean isMine;
+
+	@Schema(description = "익명 닉네임", example = "성실한 판다")
+	@NotNull
+	private String anonymousNickname;
+
+	@Schema(description = "익명 이미지 URL", example = "https://sopt-makers-mds.s3.ap-northeast-2.amazonaws.com/anonymousImage/avatar_m.png")
+	@NotNull
+	private String anonymousImageUrl;
 
 	@Schema(description = "개설된 모임 수", example = "1")
 	@NotNull
@@ -62,12 +75,15 @@ public class MeetingDemandV2GetMeetingDemandResponseDto {
 	private LocalDateTime createdDate;
 
 	public static MeetingDemandV2GetMeetingDemandResponseDto of(MeetingDemand meetingDemand, boolean isWaiting,
-		int openedMeetingCount) {
+		boolean isMine, int openedMeetingCount) {
 		return MeetingDemandV2GetMeetingDemandResponseDto.of(
 			meetingDemand.getId(),
 			meetingDemand.getShortIntro(),
 			meetingDemand.getExpectation(),
 			meetingDemand.getStatus().name(),
+			isMine,
+			meetingDemand.getAnonymousNickname(),
+			MeetingDemandAnonymousProfile.getImageUrl(meetingDemand.getAnonymousImageNumber()),
 			openedMeetingCount,
 			meetingDemand.getMeetingKeywordTypes().stream()
 				.map(MeetingKeywordType::getValue)
