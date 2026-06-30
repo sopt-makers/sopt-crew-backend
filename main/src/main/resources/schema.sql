@@ -48,6 +48,8 @@ create table if not exists meeting_demand
     "shortIntro"          varchar(30)          not null,
     expectation           varchar(1000)        not null,
     status                varchar              not null default 'BEFORE_OPEN',
+    "anonymousNickname"   varchar(30)          not null,
+    "anonymousImageNumber" integer             not null,
     "meetingKeywordTypes" jsonb                not null,
     "joinInfo"            jsonb                not null,
     "waitCount"           integer              not null default 0,
