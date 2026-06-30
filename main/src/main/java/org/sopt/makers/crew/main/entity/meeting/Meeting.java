@@ -14,6 +14,7 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
@@ -56,6 +57,7 @@ public class Meeting extends BaseTimeEntity {
 	/**
 	 * 개설 기반 모임 수요 id
 	 */
+	@Column(insertable = false, updatable = false)
 	private Integer meetingDemandId;
 
 	/**
@@ -189,16 +191,24 @@ public class Meeting extends BaseTimeEntity {
 	@JoinColumn(name = "userId", nullable = false)
 	private User user;
 
+	/**
+	 * 개설 기반 모임 수요
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "meetingDemandId")
+	private MeetingDemand meetingDemand;
+
 	@Builder
-	public Meeting(User user, Integer userId, Integer meetingDemandId, String title, String subTitle,
-		MeetingCategory category, List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate,
-		Integer capacity, String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
-		String leaderDesc, String note, Boolean isMentorNeeded,
+	public Meeting(User user, Integer userId, MeetingDemand meetingDemand, Integer meetingDemandId, String title,
+		String subTitle, MeetingCategory category, List<ImageUrlVO> imageURL, LocalDateTime startDate,
+		LocalDateTime endDate, Integer capacity, String desc, String processDesc, LocalDateTime mStartDate,
+		LocalDateTime mEndDate, String leaderDesc, String note, Boolean isMentorNeeded,
 		Boolean canJoinOnlyActiveGeneration, MeetingJoinInfo joinInfo, Integer createdGeneration,
 		Integer targetActiveGeneration, MeetingJoinablePart[] joinableParts) {
 		this.user = user;
-		this.userId = userId;
-		this.meetingDemandId = meetingDemandId;
+		this.userId = user != null ? user.getId() : userId;
+		this.meetingDemand = meetingDemand;
+		this.meetingDemandId = meetingDemand != null ? meetingDemand.getId() : meetingDemandId;
 		this.title = title;
 		this.subTitle = subTitle;
 		this.category = category;
@@ -218,6 +228,11 @@ public class Meeting extends BaseTimeEntity {
 		this.createdGeneration = createdGeneration;
 		this.targetActiveGeneration = targetActiveGeneration;
 		this.joinableParts = joinableParts;
+	}
+
+	public void connectMeetingDemand(MeetingDemand meetingDemand) {
+		this.meetingDemand = meetingDemand;
+		this.meetingDemandId = meetingDemand.getId();
 	}
 
 	/**

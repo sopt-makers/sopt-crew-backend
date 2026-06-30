@@ -237,10 +237,12 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			activeGenerationProvider.getActiveGeneration(), user,
 			user.getId());
 
-		Meeting savedMeeting = meetingRepository.save(meeting);
 		if (meetingDemand != null) {
+			meeting.connectMeetingDemand(meetingDemand);
 			meetingDemand.open();
 		}
+
+		Meeting savedMeeting = meetingRepository.save(meeting);
 
 		List<Integer> coLeaderUserIds = requestBody.getCoLeaderUserIds();
 		if (coLeaderUserIds != null && !coLeaderUserIds.isEmpty()) {

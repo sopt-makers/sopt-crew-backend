@@ -56,7 +56,8 @@ public interface MeetingMapper {
 	@Mapping(source = "requestBody.mStartDate", target = "mStartDate", qualifiedByName = "getStartDate")
 	@Mapping(source = "requestBody.mEndDate", target = "mEndDate", qualifiedByName = "getEndDate")
 	@Mapping(source = "requestBody.joinInfo", target = "joinInfo")
-	@Mapping(source = "requestBody.meetingDemandId", target = "meetingDemandId")
+	@Mapping(target = "meetingDemandId", ignore = true)
+	@Mapping(target = "meetingDemand", ignore = true)
 	Meeting toMeetingEntity(MeetingV2CreateMeetingBodyDto requestBody, Integer targetActiveGeneration,
 		Integer createdGeneration, User user, Integer userId);
 }
