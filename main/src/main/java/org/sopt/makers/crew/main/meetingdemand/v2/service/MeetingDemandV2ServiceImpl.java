@@ -1,6 +1,5 @@
 package org.sopt.makers.crew.main.meetingdemand.v2.service;
 
-import static org.sopt.makers.crew.main.entity.meetingdemand.enums.MeetingDemandStatus.BEFORE_OPEN;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.ALREADY_REPORTED_MEETING_DEMAND;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
 
@@ -59,9 +58,9 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 	public MeetingDemandV2GetMeetingDemandsResponseDto getMeetingDemands(
 		MeetingDemandV2GetMeetingDemandsQueryDto queryDto, Integer userId) {
 
-		int totalCount = meetingDemandRepository.countByStatus(BEFORE_OPEN);
+		int totalCount = Math.toIntExact(meetingDemandRepository.count());
 		PageOptionsDto effectiveQueryDto = meetingDemandPageNormalizer.normalize(queryDto, totalCount);
-		Page<MeetingDemand> meetingDemands = meetingDemandRepository.findAllByStatus(BEFORE_OPEN,
+		Page<MeetingDemand> meetingDemands = meetingDemandRepository.findAll(
 			PageRequest.of(
 				effectiveQueryDto.getPage() - 1,
 				effectiveQueryDto.getTake(),

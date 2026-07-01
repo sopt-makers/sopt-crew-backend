@@ -18,6 +18,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingFrequency;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingType;
@@ -36,6 +38,8 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2CreateMeetingDemandBodyDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.query.MeetingDemandV2GetMeetingDemandsQueryDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2CreateMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2ReportResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2SwitchMeetingDemandWaitResponseDto;
@@ -82,6 +86,42 @@ class MeetingDemandV2ServiceTest {
 		writer = UserFixture.createUser(WRITER_ID, "서버", 36);
 		meetingDemand = createMeetingDemand(writer);
 		setField(meetingDemand, "id", MEETING_DEMAND_ID);
+	}
+
+	@Nested
+	class 모임_수요_목록_조회 {
+
+		@Test
+		@DisplayName("개설 전과 개설 완료 상태를 모두 최신순 목록으로 조회한다.")
+		void getMeetingDemands_returnsAllStatuses() {
+			MeetingDemand openedMeetingDemand = createMeetingDemand(writer);
+			setField(openedMeetingDemand, "id", MEETING_DEMAND_ID + 1);
+			openedMeetingDemand.open();
+			MeetingDemandWait wait = MeetingDemandWait.builder()
+				.meetingDemandId(openedMeetingDemand.getId())
+				.userId(REQUEST_USER_ID)
+				.build();
+			given(meetingDemandRepository.count()).willReturn(2L);
+			given(meetingDemandRepository.findAll(any(Pageable.class)))
+				.willReturn(new PageImpl<>(List.of(meetingDemand, openedMeetingDemand)));
+			given(meetingDemandWaitRepository.findAllByMeetingDemandIdInAndUserId(
+				List.of(meetingDemand.getId(), openedMeetingDemand.getId()), REQUEST_USER_ID))
+				.willReturn(List.of(wait));
+
+			MeetingDemandV2GetMeetingDemandsResponseDto response = meetingDemandV2Service.getMeetingDemands(
+				new MeetingDemandV2GetMeetingDemandsQueryDto(1, 3), REQUEST_USER_ID);
+
+			assertThat(response.meetingDemands()).hasSize(2);
+			assertThat(response.meetingDemands().get(0).id()).isEqualTo(MEETING_DEMAND_ID);
+			assertThat(response.meetingDemands().get(0).status()).isEqualTo(MeetingDemandStatus.BEFORE_OPEN.name());
+			assertThat(response.meetingDemands().get(0).isWaiting()).isFalse();
+			assertThat(response.meetingDemands().get(1).id()).isEqualTo(MEETING_DEMAND_ID + 1);
+			assertThat(response.meetingDemands().get(1).status()).isEqualTo(MeetingDemandStatus.OPENED.name());
+			assertThat(response.meetingDemands().get(1).isWaiting()).isTrue();
+			assertThat(response.meta().getItemCount()).isEqualTo(2);
+			verify(meetingDemandRepository, never()).countByStatus(any(MeetingDemandStatus.class));
+			verify(meetingDemandRepository, never()).findAllByStatus(any(MeetingDemandStatus.class), any());
+		}
 	}
 
 	@Nested
