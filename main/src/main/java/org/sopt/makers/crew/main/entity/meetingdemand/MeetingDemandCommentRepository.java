@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ErrorStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,6 +23,9 @@ public interface MeetingDemandCommentRepository extends JpaRepository<MeetingDem
 
 	List<MeetingDemandComment> findAllByParentIdAndDepthOrderByOrderDesc(Integer parentId, int depth);
 
+	List<MeetingDemandComment> findAllByParentIdInAndDepthOrderByParentIdAscOrderAsc(List<Integer> parentIds,
+		int depth);
+
 	Optional<MeetingDemandComment> findByIdAndMeetingDemandId(Integer id, Integer meetingDemandId);
 
 	default MeetingDemandComment findByIdAndMeetingDemandIdOrThrow(Integer id, Integer meetingDemandId) {
@@ -29,6 +34,10 @@ public interface MeetingDemandCommentRepository extends JpaRepository<MeetingDem
 	}
 
 	List<MeetingDemandComment> findAllByMeetingDemandIdOrderByCreatedTimestampAsc(Integer meetingDemandId);
+
+	Page<MeetingDemandComment> findAllByMeetingDemandIdAndDepth(Integer meetingDemandId, int depth, Pageable pageable);
+
+	int countByMeetingDemandIdAndDepth(Integer meetingDemandId, int depth);
 
 	@Modifying(clearAutomatically = true)
 	@Transactional
