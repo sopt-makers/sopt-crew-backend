@@ -6,6 +6,11 @@ drop table if exists "tag" cascade;
 drop table if exists "flash" cascade;
 drop table if exists "post" cascade;
 drop table if exists "mumu_text" cascade;
+
+drop table if exists "mumu_text" cascade;
+
+drop table if exists "meeting_demand_wait" cascade;
+drop table if exists "meeting_demand" cascade;
 drop table if exists "meeting" cascade;
 drop table if exists "notice" cascade;
 drop table if exists "report" cascade;
@@ -36,6 +41,51 @@ create table if not exists "user"
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
 
+create table if not exists meeting_demand
+(
+    id                    serial
+    primary key,
+    "userId"              integer              not null
+    constraint fk_meeting_demand_user
+    references "user"
+    on delete cascade,
+    "shortIntro"          varchar(30)          not null,
+    expectation           varchar(1000)        not null,
+    status                varchar              not null default 'BEFORE_OPEN',
+    "anonymousNickname"   varchar(30)          not null,
+    "anonymousImageNumber" integer             not null,
+    "meetingKeywordTypes" jsonb                not null,
+    "joinInfo"            jsonb                not null,
+    "waitCount"           integer              not null default 0,
+    "commentCount"        integer              not null default 0,
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"   timestamp default CURRENT_TIMESTAMP
+);
+
+create table if not exists meeting_demand_wait
+(
+    id                 serial
+    primary key,
+    "meetingDemandId"  integer              not null
+    constraint fk_meeting_demand_wait_demand
+    references meeting_demand
+    on delete cascade,
+    "userId"           integer              not null
+    constraint fk_meeting_demand_wait_user
+    references "user"
+    on delete cascade,
+    "createdTimestamp" timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP,
+    constraint "UQ_meeting_demand_wait_demand_user"
+    unique ("meetingDemandId", "userId")
+);
+
+create index if not exists "meeting_demand_status_created_index"
+    on meeting_demand (status, "createdTimestamp" desc, id desc);
+
+create index if not exists "meeting_demand_wait_user_index"
+    on meeting_demand_wait ("userId");
+
 create table if not exists meeting
 (
     id                            serial
@@ -47,6 +97,9 @@ create table if not exists meeting
     constraint "FK_854982a74818bb6307419e0e6b8"
     references "user"
     on delete cascade,
+    "meetingDemandId"             integer
+    constraint fk_meeting_meeting_demand
+    references meeting_demand,
     title                         varchar   not null,
     "subTitle"                    varchar,
     category                      varchar   not null,
@@ -69,6 +122,9 @@ create table if not exists meeting
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
+
+create index if not exists "meeting_meeting_demand_index"
+    on meeting ("meetingDemandId");
 
 create table if not exists co_leader
 (
