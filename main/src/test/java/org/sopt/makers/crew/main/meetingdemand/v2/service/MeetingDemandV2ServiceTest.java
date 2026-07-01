@@ -27,14 +27,17 @@ import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWait;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWaitRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.enums.MeetingDemandStatus;
+import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserFixture;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2CreateMeetingDemandBodyDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2CreateMeetingDemandResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2ReportResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2SwitchMeetingDemandWaitResponseDto;
 
 @ExtendWith(MockitoExtension.class)
@@ -204,6 +207,59 @@ class MeetingDemandV2ServiceTest {
 
 			verify(meetingDemandWaitRepository, never()).save(any());
 			verify(meetingDemandWaitRepository, never()).deleteByMeetingDemandIdAndUserId(any(), any());
+		}
+	}
+
+	@Nested
+	class 모임_수요_신고 {
+
+		@Test
+		@DisplayName("다른 사람이 작성한 모임 수요를 신고한다.")
+		void reportMeetingDemand_success() {
+			Report report = Report.builder()
+				.meetingDemand(meetingDemand)
+				.meetingDemandId(MEETING_DEMAND_ID)
+				.userId(REQUEST_USER_ID)
+				.build();
+			setField(report, "id", 30);
+			given(meetingDemandRepository.findByIdOrThrow(MEETING_DEMAND_ID)).willReturn(meetingDemand);
+			given(reportRepository.existsByMeetingDemandIdAndUserId(MEETING_DEMAND_ID, REQUEST_USER_ID))
+				.willReturn(false);
+			given(reportRepository.save(any(Report.class))).willReturn(report);
+
+			MeetingDemandV2ReportResponseDto response = meetingDemandV2Service.reportMeetingDemand(MEETING_DEMAND_ID,
+				REQUEST_USER_ID);
+
+			ArgumentCaptor<Report> captor = ArgumentCaptor.forClass(Report.class);
+			verify(reportRepository).save(captor.capture());
+			assertThat(response.getReportId()).isEqualTo(30);
+			assertThat(captor.getValue().getMeetingDemand()).isEqualTo(meetingDemand);
+			assertThat(captor.getValue().getMeetingDemandId()).isEqualTo(MEETING_DEMAND_ID);
+			assertThat(captor.getValue().getUserId()).isEqualTo(REQUEST_USER_ID);
+		}
+
+		@Test
+		@DisplayName("작성자는 자신의 모임 수요를 신고할 수 없다.")
+		void reportMeetingDemand_rejectsWriter() {
+			given(meetingDemandRepository.findByIdOrThrow(MEETING_DEMAND_ID)).willReturn(meetingDemand);
+
+			assertThatThrownBy(() -> meetingDemandV2Service.reportMeetingDemand(MEETING_DEMAND_ID, WRITER_ID))
+				.isInstanceOf(ForbiddenException.class);
+
+			verify(reportRepository, never()).save(any());
+		}
+
+		@Test
+		@DisplayName("이미 신고한 모임 수요는 중복 신고할 수 없다.")
+		void reportMeetingDemand_rejectsDuplicatedReport() {
+			given(meetingDemandRepository.findByIdOrThrow(MEETING_DEMAND_ID)).willReturn(meetingDemand);
+			given(reportRepository.existsByMeetingDemandIdAndUserId(MEETING_DEMAND_ID, REQUEST_USER_ID))
+				.willReturn(true);
+
+			assertThatThrownBy(() -> meetingDemandV2Service.reportMeetingDemand(MEETING_DEMAND_ID, REQUEST_USER_ID))
+				.isInstanceOf(BadRequestException.class);
+
+			verify(reportRepository, never()).save(any());
 		}
 	}
 

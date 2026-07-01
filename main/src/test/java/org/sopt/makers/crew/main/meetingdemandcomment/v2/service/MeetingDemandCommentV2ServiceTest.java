@@ -30,16 +30,19 @@ import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommen
 import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentLikeRepository;
 import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentProfile;
 import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentRepository;
+import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserFixture;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meetingdemand.v2.service.MeetingDemandPageNormalizer;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2CreateCommentBodyDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2CreateCommentResponseDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2UpdateCommentResponseDto;
 
@@ -304,6 +307,59 @@ class MeetingDemandCommentV2ServiceTest {
 			verify(meetingDemandCommentLikeRepository, never()).save(any());
 			assertThat(response.getIsLiked()).isFalse();
 			assertThat(parentComment.getLikeCount()).isZero();
+		}
+	}
+
+	@Nested
+	class 모임_수요_댓글_신고 {
+
+		@Test
+		@DisplayName("다른 사람이 작성한 모임 수요 댓글을 신고한다.")
+		void reportComment_success() {
+			Report report = Report.builder()
+				.meetingDemandComment(parentComment)
+				.meetingDemandCommentId(COMMENT_ID)
+				.userId(REQUEST_USER_ID)
+				.build();
+			setField(report, "id", 40);
+			given(meetingDemandCommentRepository.findByIdOrThrow(COMMENT_ID)).willReturn(parentComment);
+			given(reportRepository.existsByMeetingDemandCommentIdAndUserId(COMMENT_ID, REQUEST_USER_ID))
+				.willReturn(false);
+			given(reportRepository.save(any(Report.class))).willReturn(report);
+
+			MeetingDemandCommentV2ReportCommentResponseDto response = meetingDemandCommentV2Service.reportComment(
+				COMMENT_ID, REQUEST_USER_ID);
+
+			ArgumentCaptor<Report> captor = ArgumentCaptor.forClass(Report.class);
+			verify(reportRepository).save(captor.capture());
+			assertThat(response.getReportId()).isEqualTo(40);
+			assertThat(captor.getValue().getMeetingDemandComment()).isEqualTo(parentComment);
+			assertThat(captor.getValue().getMeetingDemandCommentId()).isEqualTo(COMMENT_ID);
+			assertThat(captor.getValue().getUserId()).isEqualTo(REQUEST_USER_ID);
+		}
+
+		@Test
+		@DisplayName("작성자는 자신의 모임 수요 댓글을 신고할 수 없다.")
+		void reportComment_rejectsWriter() {
+			given(meetingDemandCommentRepository.findByIdOrThrow(COMMENT_ID)).willReturn(parentComment);
+
+			assertThatThrownBy(() -> meetingDemandCommentV2Service.reportComment(COMMENT_ID, WRITER_ID))
+				.isInstanceOf(ForbiddenException.class);
+
+			verify(reportRepository, never()).save(any());
+		}
+
+		@Test
+		@DisplayName("이미 신고한 모임 수요 댓글은 중복 신고할 수 없다.")
+		void reportComment_rejectsDuplicatedReport() {
+			given(meetingDemandCommentRepository.findByIdOrThrow(COMMENT_ID)).willReturn(parentComment);
+			given(reportRepository.existsByMeetingDemandCommentIdAndUserId(COMMENT_ID, REQUEST_USER_ID))
+				.willReturn(true);
+
+			assertThatThrownBy(() -> meetingDemandCommentV2Service.reportComment(COMMENT_ID, REQUEST_USER_ID))
+				.isInstanceOf(BadRequestException.class);
+
+			verify(reportRepository, never()).save(any());
 		}
 	}
 
