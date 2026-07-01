@@ -3,10 +3,12 @@ package org.sopt.makers.crew.main.meetingdemand.v2;
 import java.security.Principal;
 
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.query.MeetingDemandV2GetMeetingDemandsQueryDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.query.MeetingDemandV2GetOpenedMeetingsQueryDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2CreateMeetingDemandBodyDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2CreateMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetOpenedMeetingsResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2ReportResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2SwitchMeetingDemandWaitResponseDto;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +41,16 @@ public interface MeetingDemandV2Api {
 	@ApiResponse(responseCode = "200", description = "성공")
 	ResponseEntity<MeetingDemandV2GetMeetingDemandResponseDto> getMeetingDemand(
 		@PathVariable Integer meetingDemandId, Principal principal);
+
+	@Operation(summary = "모임 수요 기반 개설 모임 목록 조회", description = "모임 수요를 기반으로 개설된 모임 카드 목록을 최신순으로 조회")
+	@ApiResponse(responseCode = "200", description = "성공")
+	@Parameters({
+		@Parameter(name = "page", description = "페이지, default = 1", example = "1", schema = @Schema(type = "integer", format = "int32")),
+		@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "12", schema = @Schema(type = "integer", format = "int32"))
+	})
+	ResponseEntity<MeetingDemandV2GetOpenedMeetingsResponseDto> getOpenedMeetings(
+		@PathVariable Integer meetingDemandId,
+		@Valid @ModelAttribute @Parameter(hidden = true) MeetingDemandV2GetOpenedMeetingsQueryDto queryDto);
 
 	@Operation(summary = "모임 수요 제안하기", description = "모임 수요 생성 API")
 	@ApiResponse(responseCode = "200", description = "성공")

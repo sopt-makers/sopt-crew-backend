@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -33,6 +35,8 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 	Integer countAllByCreatedGeneration(Integer generation);
 
 	int countByMeetingDemandId(Integer meetingDemandId);
+
+	Page<Meeting> findAllByMeetingDemandId(Integer meetingDemandId, Pageable pageable);
 
 	Optional<Meeting> findFirstByTitleOrderByIdDesc(String title);
 
