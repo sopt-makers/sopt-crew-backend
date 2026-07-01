@@ -5,7 +5,6 @@ drop table if exists "like" cascade;
 drop table if exists "tag" cascade;
 drop table if exists "flash" cascade;
 drop table if exists "post" cascade;
-drop table if exists "mumu_text" cascade;
 
 drop table if exists "mumu_text" cascade;
 
