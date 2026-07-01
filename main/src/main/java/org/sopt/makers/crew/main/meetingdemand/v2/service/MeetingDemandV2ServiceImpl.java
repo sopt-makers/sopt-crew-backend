@@ -28,6 +28,7 @@ import org.sopt.makers.crew.main.meetingdemand.v2.dto.query.MeetingDemandV2GetOp
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2CreateMeetingDemandBodyDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2CreateMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandSummaryResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetOpenedMeetingResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetOpenedMeetingsResponseDto;
@@ -68,12 +69,10 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 			));
 
 		Set<Integer> waitingMeetingDemandIds = getWaitingMeetingDemandIds(meetingDemands.getContent(), userId);
-		List<MeetingDemandV2GetMeetingDemandResponseDto> responseDtos = meetingDemands.getContent().stream()
-			.map(meetingDemand -> MeetingDemandV2GetMeetingDemandResponseDto.of(
+		List<MeetingDemandV2GetMeetingDemandSummaryResponseDto> responseDtos = meetingDemands.getContent().stream()
+			.map(meetingDemand -> MeetingDemandV2GetMeetingDemandSummaryResponseDto.of(
 				meetingDemand,
-				waitingMeetingDemandIds.contains(meetingDemand.getId()),
-				meetingDemand.isWriter(userId),
-				meetingRepository.countByMeetingDemandId(meetingDemand.getId())
+				waitingMeetingDemandIds.contains(meetingDemand.getId())
 			))
 			.toList();
 
