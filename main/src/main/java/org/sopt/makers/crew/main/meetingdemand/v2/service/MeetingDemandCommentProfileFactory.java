@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandComment;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandCommentProfile;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandCommentProfileRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -21,10 +22,19 @@ public class MeetingDemandCommentProfileFactory {
 
 	public MeetingDemandCommentProfile findOrCreate(Integer meetingDemandId, Integer userId) {
 		return meetingDemandCommentProfileRepository.findByMeetingDemandIdAndUserId(meetingDemandId, userId)
-			.orElseGet(() -> meetingDemandCommentProfileRepository.save(MeetingDemandCommentProfile.builder()
+			.orElseGet(() -> createProfile(meetingDemandId, userId));
+	}
+
+	private MeetingDemandCommentProfile createProfile(Integer meetingDemandId, Integer userId) {
+		try {
+			return meetingDemandCommentProfileRepository.saveAndFlush(MeetingDemandCommentProfile.builder()
 				.meetingDemandId(meetingDemandId)
 				.userId(userId)
-				.build()));
+				.build());
+		} catch (DataIntegrityViolationException exception) {
+			return meetingDemandCommentProfileRepository.findByMeetingDemandIdAndUserId(meetingDemandId, userId)
+				.orElseThrow(() -> exception);
+		}
 	}
 
 	public Map<Integer, MeetingDemandCommentProfile> createProfileMap(Integer meetingDemandId,
