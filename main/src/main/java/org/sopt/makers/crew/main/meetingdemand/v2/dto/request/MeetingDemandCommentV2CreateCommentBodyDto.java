@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.meetingdemand.v2.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -23,4 +24,9 @@ public class MeetingDemandCommentV2CreateCommentBodyDto {
 
 	@Schema(example = "3", description = "대댓글인 경우 부모 댓글 id")
 	private Integer parentCommentId;
+
+	@AssertTrue(message = "대댓글 작성 시 부모 댓글 id는 필수입니다.")
+	public boolean isValidParentCommentId() {
+		return Boolean.TRUE.equals(isParent) || parentCommentId != null;
+	}
 }
