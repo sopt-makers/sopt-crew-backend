@@ -114,7 +114,8 @@ create table if not exists meeting_demand_comment
     "order"             integer   default 0  not null,
     "userId"            integer
     constraint fk_meeting_demand_comment_user
-    references "user",
+    references "user"
+    on delete set null,
     "meetingDemandId"   integer              not null
     constraint fk_meeting_demand_comment_demand
     references meeting_demand
@@ -148,6 +149,9 @@ create index if not exists "meeting_demand_comment_demand_created_index"
 
 create index if not exists "meeting_demand_comment_parent_index"
     on meeting_demand_comment ("parentId");
+
+create index if not exists "meeting_demand_comment_user_index"
+    on meeting_demand_comment ("userId");
 
 create index if not exists "meeting_demand_comment_like_user_index"
     on meeting_demand_comment_like ("userId");
