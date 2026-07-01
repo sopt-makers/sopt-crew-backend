@@ -125,10 +125,14 @@ public class UserV2ServiceImpl implements UserV2Service {
 
 		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
 			myMeetingIds);
+		Map<Integer, User> userMap = getUsersById(myMeetings.stream()
+			.map(Meeting::getUserId)
+			.toList());
 
 		List<MeetingV2GetCreatedMeetingByUserResponseDto> meetingByUserDtos = myMeetings.stream()
 			.map(meeting -> MeetingV2GetCreatedMeetingByUserResponseDto.of(
 				meeting,
+				userMap.get(meeting.getUserId()),
 				coLeaders.isCoLeader(meeting.getId(), userId),
 				applies.getApprovedCount(meeting.getId()),
 				time.now(),
@@ -151,6 +155,12 @@ public class UserV2ServiceImpl implements UserV2Service {
 
 		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
 			meetingIds);
+		List<Meeting> appliedMeetings = myApplies.stream()
+			.map(Apply::getMeeting)
+			.toList();
+		Map<Integer, User> userMap = getUsersById(appliedMeetings.stream()
+			.map(Meeting::getUserId)
+			.toList());
 
 		List<ApplyV2GetAppliedMeetingByUserResponseDto> appliedMeetingByUserDtos = myApplies.stream()
 			.map(apply -> ApplyV2GetAppliedMeetingByUserResponseDto.of(
@@ -158,6 +168,7 @@ public class UserV2ServiceImpl implements UserV2Service {
 				apply.getStatus().getValue(),
 				MeetingV2GetCreatedMeetingByUserResponseDto.of(
 					apply.getMeeting(),
+					userMap.get(apply.getMeeting().getUserId()),
 					false,
 					allApplies.getApprovedCount(apply.getMeetingId()),
 					time.now(),
@@ -167,6 +178,14 @@ public class UserV2ServiceImpl implements UserV2Service {
 			.toList();
 
 		return UserV2GetAppliedMeetingByUserResponseDto.from(appliedMeetingByUserDtos);
+	}
+
+	private Map<Integer, User> getUsersById(List<Integer> userIds) {
+		return userRepository.findAllById(userIds.stream()
+				.distinct()
+				.toList())
+			.stream()
+			.collect(Collectors.toMap(User::getId, user -> user));
 	}
 
 	@Override

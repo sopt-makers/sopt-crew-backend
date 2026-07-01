@@ -12,9 +12,11 @@ import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Schema(description = "모임 생성 request body dto")
 public class MeetingV2CreateMeetingBodyDto {
 
@@ -94,6 +96,9 @@ public class MeetingV2CreateMeetingBodyDto {
 	@NotNull
 	@Size(min = 1, max = 6)
 	private MeetingJoinablePart[] joinableParts;
+
+	@Schema(example = "1", description = "개설 기반 모임 수요 id")
+	private Integer meetingDemandId;
 
 	@Schema(example = """
 		[1304, 1305]
