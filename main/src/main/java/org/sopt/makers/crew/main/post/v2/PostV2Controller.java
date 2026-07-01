@@ -7,6 +7,8 @@ import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeResponseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuTextResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
@@ -83,6 +85,20 @@ public class PostV2Controller implements PostV2Api {
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<PostViewCountResponseDto> addViewCount(@PathVariable Integer postId, Principal principal) {
 		return ResponseEntity.ok(postV2Service.addViewCount(postId));
+	}
+
+	@Override
+	@GetMapping("/mumu/home")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<MumuPostHomeResponseDto> mumuPostHome(Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(postV2Service.retrieveMumuHomeInfo(userId));
+	}
+
+	@GetMapping("/mumuText")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<MumuTextResponseDto> retrieveMumuText() {
+		return ResponseEntity.ok(MumuTextResponseDto.from(postV2Service.extractMumuText()));
 	}
 
 	@Override

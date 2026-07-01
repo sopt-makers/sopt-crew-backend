@@ -104,7 +104,8 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 					JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists(),
 					"isLiked"), post.viewCount, post.commentCount,
 					new QPostMeetingDto(post.meeting.id, post.meeting.title, post.meeting.category, post.meeting.imageURL,
-						post.meeting.desc)))
+						post.meeting.desc),
+					post.category))
 			.from(post)
 			.innerJoin(post.meeting, meeting)
 			.innerJoin(post.user, user)
@@ -126,7 +127,8 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 					JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists(),
 					"isLiked"), post.viewCount, post.commentCount,
 					new QPostMeetingDto(post.meeting.id, post.meeting.title, post.meeting.category, post.meeting.imageURL,
-						post.meeting.desc)))
+						post.meeting.desc),
+					post.category))
 			.from(post)
 			.innerJoin(post.user, user)
 			.innerJoin(post.meeting, meeting)

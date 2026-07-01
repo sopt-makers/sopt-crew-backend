@@ -3,8 +3,11 @@ package org.sopt.makers.crew.main.post.v2.service;
 import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.entity.apply.Apply;
@@ -17,7 +20,9 @@ import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.post.MumuTextResolver;
 import org.sopt.makers.crew.main.entity.post.Post;
+import org.sopt.makers.crew.main.entity.post.PostCategory;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
@@ -33,10 +38,12 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
+import org.sopt.makers.crew.main.meeting.v2.service.UserRelatedMeetingExtractor;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
@@ -73,8 +80,10 @@ public class PostV2ServiceImpl implements PostV2Service {
 	private final UserV2Service userV2Service;
 
 	private final PushNotificationProperties pushNotificationProperties;
+	private final UserRelatedMeetingExtractor userRelatedMeetingExtractor;
 
 	private final Time time;
+	private final MumuTextResolver mumuTextResolver;
 
 	/**
 	 * 모임 게시글 작성
@@ -105,6 +114,8 @@ public class PostV2ServiceImpl implements PostV2Service {
 			.contents(requestBody.getContents())
 			.images(requestBody.getImages())
 			.meeting(meeting)
+			.category(
+				Objects.isNull(requestBody.getPostCategory()) ? PostCategory.NORMAL : requestBody.getPostCategory())
 			.build();
 
 		Post savedPost = postRepository.save(post);
@@ -321,6 +332,34 @@ public class PostV2ServiceImpl implements PostV2Service {
 		return PostV2SwitchPostLikeResponseDto.of(false);
 	}
 
+	@Override
+	public MumuPostHomeResponseDto retrieveMumuHomeInfo(Integer userId) {
+
+		String text = extractMumuText();
+
+		List<Integer> relatedMeetingIds = userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId);
+
+		if (relatedMeetingIds.isEmpty()) {
+			return MumuPostHomeResponseDto.emptyAppliedMeeting(text);
+		}
+
+		boolean existedTodayMumuPost = postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(userId,
+			PostCategory.MUMU, LocalDate.now().atStartOfDay());
+
+		List<Post> findPostsByMeetingIdsExceptSelf = postRepository
+			.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(relatedMeetingIds, userId);
+
+		if (!existedTodayMumuPost) {
+			return MumuPostHomeResponseDto.notWrittenTodayMumuPost(findPostsByMeetingIdsExceptSelf, text);
+		}
+
+		return MumuPostHomeResponseDto.from(findPostsByMeetingIdsExceptSelf, text);
+	}
+
+	public String extractMumuText() {
+		return mumuTextResolver.resolveMumuText(LocalDateTime.now()).getText();
+	}
+
 	private PostDetailResponseDto toPostDetailResponseDto(PostDetailResponseDto postDetail,
 		Map<Long, Boolean> blockedPostMap) {
 		boolean isBlockedPost = blockedPostMap.getOrDefault(postDetail.getUser().getOrgId().longValue(), false);
@@ -336,6 +375,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 			postDetail.getViewCount(),
 			postDetail.getCommentCount(),
 			postDetail.getMeeting(),
+			postDetail.getCategory(),
 			postDetail.getCommenterThumbnails(),
 			isBlockedPost
 		);

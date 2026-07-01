@@ -1,7 +1,8 @@
 package org.sopt.makers.crew.main.entity.post;
 
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.NOT_FOUND_POST;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
@@ -23,8 +24,16 @@ public interface PostRepository extends JpaRepository<Post, Integer>, PostSearch
 
 	List<Post> findAllByMeetingIdIn(List<Integer> meetingIds);
 
+	List<Post> findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List<Integer> meetingIds, Integer userId);
+
 	@Modifying(clearAutomatically = true)
 	@Transactional
 	@Query("DELETE FROM Post p WHERE p.meetingId = :meetingId")
 	void deleteAllByMeetingIdQuery(Integer meetingId);
+
+	boolean existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(
+		Integer userId,
+		PostCategory category,
+		LocalDateTime createdDate
+	);
 }
