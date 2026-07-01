@@ -5,9 +5,10 @@ drop table if exists "like" cascade;
 drop table if exists "tag" cascade;
 drop table if exists "flash" cascade;
 drop table if exists "post" cascade;
-
+drop table if exists "meeting_demand_comment_like" cascade;
+drop table if exists "meeting_demand_comment_profile" cascade;
+drop table if exists "meeting_demand_comment" cascade;
 drop table if exists "mumu_text" cascade;
-
 drop table if exists "meeting_demand_wait" cascade;
 drop table if exists "meeting_demand" cascade;
 drop table if exists "meeting" cascade;
@@ -84,6 +85,77 @@ create index if not exists "meeting_demand_status_created_index"
 
 create index if not exists "meeting_demand_wait_user_index"
     on meeting_demand_wait ("userId");
+
+create table if not exists meeting_demand_comment_profile
+(
+    id                     serial
+    primary key,
+    "meetingDemandId"      integer              not null
+    constraint fk_meeting_demand_comment_profile_demand
+    references meeting_demand
+    on delete cascade,
+    "userId"               integer              not null
+    constraint fk_meeting_demand_comment_profile_user
+    references "user"
+    on delete cascade,
+    "anonymousNickname"    varchar(30)          not null,
+    "anonymousImageNumber" integer              not null,
+    "createdTimestamp"     timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    constraint "UQ_meeting_demand_comment_profile_demand_user"
+    unique ("meetingDemandId", "userId")
+);
+
+create table if not exists meeting_demand_comment
+(
+    id                  serial
+    primary key,
+    contents            varchar              not null,
+    depth               integer   default 0  not null,
+    "order"             integer   default 0  not null,
+    "userId"            integer
+    constraint fk_meeting_demand_comment_user
+    references "user"
+    on delete set null,
+    "meetingDemandId"   integer              not null
+    constraint fk_meeting_demand_comment_demand
+    references meeting_demand
+    on delete cascade,
+    "likeCount"         integer   default 0  not null,
+    "parentId"          integer,
+    "createdTimestamp"  timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP
+);
+
+create table if not exists meeting_demand_comment_like
+(
+    id                       serial
+    primary key,
+    "meetingDemandCommentId" integer              not null
+    constraint fk_meeting_demand_comment_like_comment
+    references meeting_demand_comment
+    on delete cascade,
+    "userId"                 integer              not null
+    constraint fk_meeting_demand_comment_like_user
+    references "user"
+    on delete cascade,
+    "createdTimestamp"       timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"      timestamp default CURRENT_TIMESTAMP,
+    constraint "UQ_meeting_demand_comment_like_comment_user"
+    unique ("meetingDemandCommentId", "userId")
+);
+
+create index if not exists "meeting_demand_comment_demand_created_index"
+    on meeting_demand_comment ("meetingDemandId", "createdTimestamp" asc);
+
+create index if not exists "meeting_demand_comment_parent_index"
+    on meeting_demand_comment ("parentId");
+
+create index if not exists "meeting_demand_comment_user_index"
+    on meeting_demand_comment ("userId");
+
+create index if not exists "meeting_demand_comment_like_user_index"
+    on meeting_demand_comment_like ("userId");
 
 create table if not exists meeting
 (
@@ -324,6 +396,14 @@ create table if not exists report
     "postId"      integer
     constraint "FK_4b6fe2df37305bc075a4a16d3ea"
     references post
+    on delete cascade,
+    "meetingDemandId" integer
+    constraint fk_report_meeting_demand
+    references meeting_demand
+    on delete cascade,
+    "meetingDemandCommentId" integer
+    constraint fk_report_meeting_demand_comment
+    references meeting_demand_comment
     on delete cascade,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP

@@ -22,6 +22,8 @@ public enum ErrorStatus {
 	ALREADY_APPLIED_MEETING("이미 지원한 모임입니다."),
 	ALREADY_REPORTED_COMMENT("이미 신고한 댓글입니다."),
 	ALREADY_REPORTED_POST("이미 신고한 게시글입니다."),
+	ALREADY_REPORTED_MEETING_DEMAND("이미 신고한 모임 수요입니다."),
+	ALREADY_REPORTED_MEETING_DEMAND_COMMENT("이미 신고한 모임 수요 댓글입니다."),
 	NOT_IN_APPLY_PERIOD("모임 지원 기간이 아닙니다."),
 	INVALID_MEETING_CATEGORY("유효하지 않은 모임 카테고리입니다."),
 	MISSING_GENERATION_PART("내 프로필에서 기수/파트 정보를 입력해주세요."),

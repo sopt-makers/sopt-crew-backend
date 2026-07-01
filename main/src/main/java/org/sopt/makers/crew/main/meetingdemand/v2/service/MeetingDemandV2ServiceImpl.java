@@ -1,27 +1,38 @@
 package org.sopt.makers.crew.main.meetingdemand.v2.service;
 
 import static org.sopt.makers.crew.main.entity.meetingdemand.enums.MeetingDemandStatus.BEFORE_OPEN;
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.INVALID_MEETING_KEYWORD_SIZE;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.ALREADY_REPORTED_MEETING_DEMAND;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.sopt.makers.crew.main.entity.meeting.Meeting;
+import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWait;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWaitRepository;
-import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
-import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
+import org.sopt.makers.crew.main.entity.report.Report;
+import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
+import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.query.MeetingDemandV2GetMeetingDemandsQueryDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.query.MeetingDemandV2GetOpenedMeetingsQueryDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2CreateMeetingDemandBodyDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2CreateMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandSummaryResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetOpenedMeetingResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetOpenedMeetingsResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2ReportResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2SwitchMeetingDemandWaitResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,19 +47,20 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 
-	private static final int MAX_MEETING_KEYWORD_SIZE = 2;
-
 	private final UserRepository userRepository;
 	private final MeetingDemandRepository meetingDemandRepository;
 	private final MeetingDemandWaitRepository meetingDemandWaitRepository;
 	private final MeetingRepository meetingRepository;
+	private final ReportRepository reportRepository;
+	private final MeetingDemandFactory meetingDemandFactory;
+	private final MeetingDemandPageNormalizer meetingDemandPageNormalizer;
 
 	@Override
 	public MeetingDemandV2GetMeetingDemandsResponseDto getMeetingDemands(
 		MeetingDemandV2GetMeetingDemandsQueryDto queryDto, Integer userId) {
 
 		int totalCount = meetingDemandRepository.countByStatus(BEFORE_OPEN);
-		MeetingDemandV2GetMeetingDemandsQueryDto effectiveQueryDto = adjustPageWhenOutOfRange(queryDto, totalCount);
+		PageOptionsDto effectiveQueryDto = meetingDemandPageNormalizer.normalize(queryDto, totalCount);
 		Page<MeetingDemand> meetingDemands = meetingDemandRepository.findAllByStatus(BEFORE_OPEN,
 			PageRequest.of(
 				effectiveQueryDto.getPage() - 1,
@@ -57,12 +69,10 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 			));
 
 		Set<Integer> waitingMeetingDemandIds = getWaitingMeetingDemandIds(meetingDemands.getContent(), userId);
-		List<MeetingDemandV2GetMeetingDemandResponseDto> responseDtos = meetingDemands.getContent().stream()
-			.map(meetingDemand -> MeetingDemandV2GetMeetingDemandResponseDto.of(
+		List<MeetingDemandV2GetMeetingDemandSummaryResponseDto> responseDtos = meetingDemands.getContent().stream()
+			.map(meetingDemand -> MeetingDemandV2GetMeetingDemandSummaryResponseDto.of(
 				meetingDemand,
-				waitingMeetingDemandIds.contains(meetingDemand.getId()),
-				meetingDemand.isWriter(userId),
-				meetingRepository.countByMeetingDemandId(meetingDemand.getId())
+				waitingMeetingDemandIds.contains(meetingDemand.getId())
 			))
 			.toList();
 
@@ -82,20 +92,34 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 	}
 
 	@Override
+	public MeetingDemandV2GetOpenedMeetingsResponseDto getOpenedMeetings(
+		Integer meetingDemandId, MeetingDemandV2GetOpenedMeetingsQueryDto queryDto) {
+		meetingDemandRepository.findByIdOrThrow(meetingDemandId);
+
+		int totalCount = meetingRepository.countByMeetingDemandId(meetingDemandId);
+		PageOptionsDto effectiveQueryDto = meetingDemandPageNormalizer.normalize(queryDto, totalCount);
+		Page<Meeting> meetings = meetingRepository.findAllByMeetingDemandId(meetingDemandId,
+			PageRequest.of(
+				effectiveQueryDto.getPage() - 1,
+				effectiveQueryDto.getTake(),
+				Sort.by(Sort.Order.desc("createdTimestamp"), Sort.Order.desc("id"))
+			));
+
+		Map<Integer, User> userMap = getUsersById(meetings.getContent());
+		List<MeetingDemandV2GetOpenedMeetingResponseDto> responseDtos = meetings.getContent().stream()
+			.map(meeting -> MeetingDemandV2GetOpenedMeetingResponseDto.of(meeting, userMap.get(meeting.getUserId())))
+			.toList();
+		PageMetaDto pageMetaDto = new PageMetaDto(effectiveQueryDto, totalCount);
+
+		return MeetingDemandV2GetOpenedMeetingsResponseDto.of(totalCount, responseDtos, pageMetaDto);
+	}
+
+	@Override
 	@Transactional
 	public MeetingDemandV2CreateMeetingDemandResponseDto createMeetingDemand(
 		MeetingDemandV2CreateMeetingDemandBodyDto requestBody, Integer userId) {
 		User user = userRepository.findByIdOrThrow(userId);
-		List<MeetingKeywordType> meetingKeywordTypes = toMeetingKeywordTypes(requestBody.getMeetingKeywordTypes());
-
-		MeetingDemand meetingDemand = MeetingDemand.builder()
-			.user(user)
-			.shortIntro(requestBody.getShortIntro())
-			.expectation(requestBody.getExpectation())
-			.meetingKeywordTypes(meetingKeywordTypes)
-			.joinInfo(requestBody.getJoinInfo())
-			.build();
-
+		MeetingDemand meetingDemand = meetingDemandFactory.create(user, requestBody);
 		MeetingDemand savedMeetingDemand = meetingDemandRepository.save(meetingDemand);
 
 		return MeetingDemandV2CreateMeetingDemandResponseDto.of(savedMeetingDemand.getId());
@@ -140,6 +164,29 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 		return MeetingDemandV2SwitchMeetingDemandWaitResponseDto.of(meetingDemand.getWaitCount(), !isWaiting);
 	}
 
+	@Override
+	@Transactional
+	public MeetingDemandV2ReportResponseDto reportMeetingDemand(Integer meetingDemandId, Integer userId) {
+		MeetingDemand meetingDemand = meetingDemandRepository.findByIdOrThrow(meetingDemandId);
+
+		if (meetingDemand.isWriter(userId)) {
+			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+		if (reportRepository.existsByMeetingDemandIdAndUserId(meetingDemandId, userId)) {
+			throw new BadRequestException(ALREADY_REPORTED_MEETING_DEMAND.getErrorCode());
+		}
+
+		Report report = Report.builder()
+			.meetingDemand(meetingDemand)
+			.meetingDemandId(meetingDemandId)
+			.userId(userId)
+			.build();
+
+		Report savedReport = reportRepository.save(report);
+
+		return MeetingDemandV2ReportResponseDto.of(savedReport.getId());
+	}
+
 	private Set<Integer> getWaitingMeetingDemandIds(List<MeetingDemand> meetingDemands, Integer userId) {
 		if (meetingDemands.isEmpty()) {
 			return Set.of();
@@ -154,25 +201,17 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 			.collect(Collectors.toSet());
 	}
 
-	private MeetingDemandV2GetMeetingDemandsQueryDto adjustPageWhenOutOfRange(
-		MeetingDemandV2GetMeetingDemandsQueryDto queryDto, int totalCount) {
-		if (totalCount == 0) {
-			return new MeetingDemandV2GetMeetingDemandsQueryDto(1, queryDto.getTake());
+	private Map<Integer, User> getUsersById(List<Meeting> meetings) {
+		if (meetings.isEmpty()) {
+			return Map.of();
 		}
 
-		int pageCount = (int)Math.ceil((double)totalCount / queryDto.getTake());
-		int normalizedPage = Math.min(queryDto.getPage(), pageCount);
-
-		return new MeetingDemandV2GetMeetingDemandsQueryDto(normalizedPage, queryDto.getTake());
-	}
-
-	private List<MeetingKeywordType> toMeetingKeywordTypes(List<String> values) {
-		if (values == null || values.isEmpty() || values.size() > MAX_MEETING_KEYWORD_SIZE) {
-			throw new BadRequestException(INVALID_MEETING_KEYWORD_SIZE.getErrorCode());
-		}
-
-		return values.stream()
-			.map(MeetingKeywordType::ofValue)
+		List<Integer> userIds = meetings.stream()
+			.map(Meeting::getUserId)
+			.distinct()
 			.toList();
+
+		return userRepository.findAllById(userIds).stream()
+			.collect(Collectors.toMap(User::getId, user -> user));
 	}
 }

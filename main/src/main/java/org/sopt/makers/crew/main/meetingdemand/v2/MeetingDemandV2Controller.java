@@ -4,10 +4,13 @@ import java.security.Principal;
 
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.query.MeetingDemandV2GetMeetingDemandsQueryDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.query.MeetingDemandV2GetOpenedMeetingsQueryDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2CreateMeetingDemandBodyDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2CreateMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetOpenedMeetingsResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2ReportResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2SwitchMeetingDemandWaitResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.service.MeetingDemandV2Service;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +52,14 @@ public class MeetingDemandV2Controller implements MeetingDemandV2Api {
 	}
 
 	@Override
+	@GetMapping("/{meetingDemandId}/meetings")
+	public ResponseEntity<MeetingDemandV2GetOpenedMeetingsResponseDto> getOpenedMeetings(
+		@PathVariable Integer meetingDemandId,
+		@Valid @ModelAttribute @Parameter(hidden = true) MeetingDemandV2GetOpenedMeetingsQueryDto queryDto) {
+		return ResponseEntity.ok(meetingDemandV2Service.getOpenedMeetings(meetingDemandId, queryDto));
+	}
+
+	@Override
 	@PostMapping
 	public ResponseEntity<MeetingDemandV2CreateMeetingDemandResponseDto> createMeetingDemand(
 		@Valid @RequestBody MeetingDemandV2CreateMeetingDemandBodyDto requestBody, Principal principal) {
@@ -70,5 +81,13 @@ public class MeetingDemandV2Controller implements MeetingDemandV2Api {
 		@PathVariable Integer meetingDemandId, Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.ok(meetingDemandV2Service.switchMeetingDemandWait(meetingDemandId, userId));
+	}
+
+	@Override
+	@PostMapping("/{meetingDemandId}/report")
+	public ResponseEntity<MeetingDemandV2ReportResponseDto> reportMeetingDemand(
+		@PathVariable Integer meetingDemandId, Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(meetingDemandV2Service.reportMeetingDemand(meetingDemandId, userId));
 	}
 }

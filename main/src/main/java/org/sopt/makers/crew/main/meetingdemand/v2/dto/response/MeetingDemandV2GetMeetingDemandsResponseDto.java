@@ -11,14 +11,14 @@ import jakarta.validation.constraints.NotNull;
 public record MeetingDemandV2GetMeetingDemandsResponseDto(
 	@Schema(description = "모임 수요 목록")
 	@NotNull
-	List<MeetingDemandV2GetMeetingDemandResponseDto> meetingDemands,
+	List<MeetingDemandV2GetMeetingDemandSummaryResponseDto> meetingDemands,
 
 	@Schema(description = "페이지네이션 객체")
 	@NotNull
 	PageMetaDto meta
 ) {
 	public static MeetingDemandV2GetMeetingDemandsResponseDto of(
-		List<MeetingDemandV2GetMeetingDemandResponseDto> meetingDemands, PageMetaDto meta) {
+		List<MeetingDemandV2GetMeetingDemandSummaryResponseDto> meetingDemands, PageMetaDto meta) {
 		return new MeetingDemandV2GetMeetingDemandsResponseDto(meetingDemands, meta);
 	}
 }
