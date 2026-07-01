@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.entity.meetingdemand;
+package org.sopt.makers.crew.main.entity.meetingdemandcomment;
 
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
 

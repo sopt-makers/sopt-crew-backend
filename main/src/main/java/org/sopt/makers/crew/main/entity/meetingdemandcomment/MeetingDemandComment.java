@@ -1,8 +1,9 @@
-package org.sopt.makers.crew.main.entity.meetingdemand;
+package org.sopt.makers.crew.main.entity.meetingdemandcomment;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
 
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 

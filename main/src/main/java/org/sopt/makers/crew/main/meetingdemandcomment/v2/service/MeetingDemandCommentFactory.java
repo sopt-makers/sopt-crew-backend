@@ -1,12 +1,12 @@
-package org.sopt.makers.crew.main.meetingdemand.v2.service;
+package org.sopt.makers.crew.main.meetingdemandcomment.v2.service;
 
 import java.util.Optional;
 
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandComment;
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandCommentRepository;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandComment;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentRepository;
 import org.sopt.makers.crew.main.entity.user.User;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandCommentV2CreateCommentBodyDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2CreateCommentBodyDto;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;

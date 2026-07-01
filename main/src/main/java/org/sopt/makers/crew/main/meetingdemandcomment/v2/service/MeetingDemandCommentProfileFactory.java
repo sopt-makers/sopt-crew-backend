@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.meetingdemand.v2.service;
+package org.sopt.makers.crew.main.meetingdemandcomment.v2.service;
 
 import java.util.List;
 import java.util.Map;
@@ -6,9 +6,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandComment;
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandCommentProfile;
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandCommentProfileRepository;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandComment;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentProfile;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentProfileRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 

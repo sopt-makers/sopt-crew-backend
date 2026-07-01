@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.meetingdemand.v2.service;
+package org.sopt.makers.crew.main.meetingdemandcomment.v2.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,15 +8,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandComment;
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandCommentLike;
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandCommentLikeRepository;
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandCommentProfile;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandComment;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentLike;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentLikeRepository;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentProfile;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandCommentDto;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandReplyDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandReplyDto;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;

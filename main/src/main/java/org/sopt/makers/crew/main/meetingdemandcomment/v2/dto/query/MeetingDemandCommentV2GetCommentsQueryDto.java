@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.meetingdemand.v2.dto.query;
+package org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.query;
 
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 

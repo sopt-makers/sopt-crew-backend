@@ -1,10 +1,10 @@
-package org.sopt.makers.crew.main.meetingdemand.v2.dto.response;
+package org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandComment;
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandCommentProfile;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandComment;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentProfile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

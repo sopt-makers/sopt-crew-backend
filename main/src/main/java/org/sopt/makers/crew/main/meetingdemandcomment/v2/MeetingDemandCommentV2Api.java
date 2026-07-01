@@ -1,15 +1,15 @@
-package org.sopt.makers.crew.main.meetingdemand.v2;
+package org.sopt.makers.crew.main.meetingdemandcomment.v2;
 
 import java.security.Principal;
 
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.query.MeetingDemandCommentV2GetCommentsQueryDto;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandCommentV2CreateCommentBodyDto;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandCommentV2MentionUserInCommentRequestDto;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandCommentV2UpdateCommentBodyDto;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandCommentV2CreateCommentResponseDto;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandCommentV2GetCommentsResponseDto;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandCommentV2SwitchCommentLikeResponseDto;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandCommentV2UpdateCommentResponseDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.query.MeetingDemandCommentV2GetCommentsQueryDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2CreateCommentBodyDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2MentionUserInCommentRequestDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2UpdateCommentBodyDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2CreateCommentResponseDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2GetCommentsResponseDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2SwitchCommentLikeResponseDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2UpdateCommentResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;

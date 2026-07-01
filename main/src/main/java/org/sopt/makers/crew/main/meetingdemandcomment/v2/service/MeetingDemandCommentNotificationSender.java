@@ -1,16 +1,16 @@
-package org.sopt.makers.crew.main.meetingdemand.v2.service;
+package org.sopt.makers.crew.main.meetingdemandcomment.v2.service;
 
 import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.PUSH_NOTIFICATION_CATEGORY;
 
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandComment;
-import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandCommentProfile;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandComment;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentProfile;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
 import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.global.config.PushNotificationProperties;
 import org.sopt.makers.crew.main.global.util.MentionSecretStringRemover;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandCommentV2CreateCommentBodyDto;
-import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandCommentV2MentionUserInCommentRequestDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2CreateCommentBodyDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2MentionUserInCommentRequestDto;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;

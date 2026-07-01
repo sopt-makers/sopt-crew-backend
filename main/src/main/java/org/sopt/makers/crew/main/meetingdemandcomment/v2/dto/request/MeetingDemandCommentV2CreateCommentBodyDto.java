@@ -1,4 +1,4 @@
-package org.sopt.makers.crew.main.meetingdemand.v2.dto.request;
+package org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
