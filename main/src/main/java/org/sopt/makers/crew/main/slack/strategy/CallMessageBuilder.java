@@ -22,6 +22,6 @@ public class CallMessageBuilder implements SlackMessageBuilder {
 
 	@Override
 	public boolean isSelectedBuilder(String templateCd) {
-		return templateCd.equals(TEMPLATE_CODE);
+		return TEMPLATE_CODE.equals(templateCd);
 	}
 }

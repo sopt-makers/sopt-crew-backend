@@ -15,7 +15,8 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 
 	/**
 	 * @implSpec : 특정 유저가 모임장이거나 공동모임장인 모임을 최근에 만들어진 순으로 조회한다.
-	 * **/
+	 *
+	 **/
 	@Query("SELECT m "
 		+ "FROM Meeting m "
 		+ "WHERE m.userId =:userId "
@@ -37,4 +38,6 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 	Optional<Meeting> findFirstByTitleOrderByIdDesc(String title);
 
 	Optional<Meeting> findFirstByTitleContainingOrderByIdDesc(String title);
+
+	long countMeetingsByUser_Id(Integer userId);
 }

@@ -70,4 +70,6 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 		@Param("orgId") Integer orgId);
 
 	List<Apply> findByUser(User user);
+
+	long countAllByUser_IdAndStatus(Integer userId, EnApplyStatus status);
 }

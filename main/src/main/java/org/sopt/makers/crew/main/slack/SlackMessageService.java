@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.slack;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 import org.sopt.makers.crew.main.entity.slack.MakersUserSlack;
 import org.sopt.makers.crew.main.entity.slack.MakersUserSlackRepository;
@@ -112,14 +113,11 @@ public class SlackMessageService {
 	}
 
 	private String extractTemplateCd(List<MakersUserSlack> slackUser) {
-		if (slackUser.size() > 1) {
-			return slackUser.stream()
-				.map(MakersUserSlack::getSlackTemplateCd)
-				.findFirst().orElseThrow(() -> new CustomSlackException("templateCd not found"));
-
-		}
-
-		return slackUser.get(0).getSlackTemplateCd();
+		return slackUser.stream()
+			.map(MakersUserSlack::getSlackTemplateCd)
+			.filter(Objects::nonNull)
+			.findFirst()
+			.orElseThrow(() -> new CustomSlackException("templateCd not found"));
 	}
 
 }

@@ -5,6 +5,9 @@ drop table if exists "like" cascade;
 drop table if exists "tag" cascade;
 drop table if exists "flash" cascade;
 drop table if exists "post" cascade;
+
+drop table if exists "mumu_text" cascade;
+
 drop table if exists "meeting_demand_wait" cascade;
 drop table if exists "meeting_demand" cascade;
 drop table if exists "meeting" cascade;
@@ -239,8 +242,20 @@ create table if not exists post
     "viewCount"    integer   default 0 not null,
     images         text[],
     "commentCount" integer   default 0 not null,
+    category       varchar   default 'NORMAL' not null,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
+);
+
+create table if not exists mumu_text
+(
+    id                 bigserial
+    primary key,
+    text               varchar(255),
+    show_start_date    timestamp,
+    show_end_date      timestamp,
+    "createdTimestamp" timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists comment
