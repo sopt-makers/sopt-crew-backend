@@ -1,5 +1,8 @@
 package org.sopt.makers.crew.main.meetingdemandcomment.v2.service;
 
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.ALREADY_REPORTED_MEETING_DEMAND_COMMENT;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
+
 import java.util.List;
 
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
@@ -9,8 +12,12 @@ import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommen
 import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentProfile;
 import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandRepository;
+import org.sopt.makers.crew.main.entity.report.Report;
+import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.MentionSecretStringRemover;
@@ -22,6 +29,7 @@ import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDema
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2GetCommentsResponseDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2UpdateCommentResponseDto;
 import org.springframework.data.domain.Page;
@@ -43,6 +51,7 @@ public class MeetingDemandCommentV2ServiceImpl implements MeetingDemandCommentV2
 	private final MeetingDemandRepository meetingDemandRepository;
 	private final MeetingDemandCommentRepository meetingDemandCommentRepository;
 	private final MeetingDemandCommentLikeRepository meetingDemandCommentLikeRepository;
+	private final ReportRepository reportRepository;
 	private final UserRepository userRepository;
 	private final MeetingDemandPageNormalizer meetingDemandPageNormalizer;
 	private final MeetingDemandCommentFactory meetingDemandCommentFactory;
@@ -166,6 +175,29 @@ public class MeetingDemandCommentV2ServiceImpl implements MeetingDemandCommentV2
 		MeetingDemandCommentProfile writerProfile = meetingDemandCommentProfileFactory.findOrCreate(
 			requestBody.getMeetingDemandId(), userId);
 		meetingDemandCommentNotificationSender.sendMentionNotification(requestBody, writerProfile);
+	}
+
+	@Override
+	@Transactional
+	public MeetingDemandCommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId) {
+		MeetingDemandComment comment = meetingDemandCommentRepository.findByIdOrThrow(commentId);
+
+		if (comment.isWriter(userId)) {
+			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+		if (reportRepository.existsByMeetingDemandCommentIdAndUserId(commentId, userId)) {
+			throw new BadRequestException(ALREADY_REPORTED_MEETING_DEMAND_COMMENT.getErrorCode());
+		}
+
+		Report report = Report.builder()
+			.meetingDemandComment(comment)
+			.meetingDemandCommentId(commentId)
+			.userId(userId)
+			.build();
+
+		Report savedReport = reportRepository.save(report);
+
+		return MeetingDemandCommentV2ReportCommentResponseDto.of(savedReport.getId());
 	}
 
 	private List<MeetingDemandComment> getReplyComments(List<Integer> parentCommentIds) {

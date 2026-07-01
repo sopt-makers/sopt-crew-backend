@@ -8,6 +8,7 @@ import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDema
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2UpdateCommentBodyDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2GetCommentsResponseDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2UpdateCommentResponseDto;
 import org.springframework.http.ResponseEntity;
@@ -65,4 +66,9 @@ public interface MeetingDemandCommentV2Api {
 	ResponseEntity<Void> mentionUserInComment(
 		@Valid @RequestBody MeetingDemandCommentV2MentionUserInCommentRequestDto requestBody,
 		Principal principal);
+
+	@Operation(summary = "모임 수요 댓글 신고", description = "다른 사람이 작성한 모임 수요 댓글을 신고")
+	@ApiResponse(responseCode = "200", description = "성공")
+	ResponseEntity<MeetingDemandCommentV2ReportCommentResponseDto> reportComment(
+		@PathVariable Integer commentId, Principal principal);
 }

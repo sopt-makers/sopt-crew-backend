@@ -5,6 +5,7 @@ import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2Cre
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2CreateMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2ReportResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2SwitchMeetingDemandWaitResponseDto;
 
 public interface MeetingDemandV2Service {
@@ -20,4 +21,6 @@ public interface MeetingDemandV2Service {
 	void deleteMeetingDemand(Integer meetingDemandId, Integer userId);
 
 	MeetingDemandV2SwitchMeetingDemandWaitResponseDto switchMeetingDemandWait(Integer meetingDemandId, Integer userId);
+
+	MeetingDemandV2ReportResponseDto reportMeetingDemand(Integer meetingDemandId, Integer userId);
 }

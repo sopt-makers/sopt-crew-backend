@@ -7,4 +7,8 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
 	boolean existsByCommentIdAndUserId(Integer commentId, Integer userId);
 
 	boolean existsByPostIdAndUserId(Integer postId, Integer userId);
+
+	boolean existsByMeetingDemandIdAndUserId(Integer meetingDemandId, Integer userId);
+
+	boolean existsByMeetingDemandCommentIdAndUserId(Integer meetingDemandCommentId, Integer userId);
 }

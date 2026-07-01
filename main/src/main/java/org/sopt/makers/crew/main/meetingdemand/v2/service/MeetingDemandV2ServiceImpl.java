@@ -1,6 +1,8 @@
 package org.sopt.makers.crew.main.meetingdemand.v2.service;
 
 import static org.sopt.makers.crew.main.entity.meetingdemand.enums.MeetingDemandStatus.BEFORE_OPEN;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.ALREADY_REPORTED_MEETING_DEMAND;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
 
 import java.util.List;
 import java.util.Set;
@@ -11,8 +13,12 @@ import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWait;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWaitRepository;
+import org.sopt.makers.crew.main.entity.report.Report;
+import org.sopt.makers.crew.main.entity.report.ReportRepository;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.global.exception.BadRequestException;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.query.MeetingDemandV2GetMeetingDemandsQueryDto;
@@ -20,6 +26,7 @@ import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2Cre
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2CreateMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2ReportResponseDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2SwitchMeetingDemandWaitResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,6 +45,7 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 	private final MeetingDemandRepository meetingDemandRepository;
 	private final MeetingDemandWaitRepository meetingDemandWaitRepository;
 	private final MeetingRepository meetingRepository;
+	private final ReportRepository reportRepository;
 	private final MeetingDemandFactory meetingDemandFactory;
 	private final MeetingDemandPageNormalizer meetingDemandPageNormalizer;
 
@@ -127,6 +135,29 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 		meetingDemand.syncWaitCount((int)waitCount);
 
 		return MeetingDemandV2SwitchMeetingDemandWaitResponseDto.of(meetingDemand.getWaitCount(), !isWaiting);
+	}
+
+	@Override
+	@Transactional
+	public MeetingDemandV2ReportResponseDto reportMeetingDemand(Integer meetingDemandId, Integer userId) {
+		MeetingDemand meetingDemand = meetingDemandRepository.findByIdOrThrow(meetingDemandId);
+
+		if (meetingDemand.isWriter(userId)) {
+			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
+		}
+		if (reportRepository.existsByMeetingDemandIdAndUserId(meetingDemandId, userId)) {
+			throw new BadRequestException(ALREADY_REPORTED_MEETING_DEMAND.getErrorCode());
+		}
+
+		Report report = Report.builder()
+			.meetingDemand(meetingDemand)
+			.meetingDemandId(meetingDemandId)
+			.userId(userId)
+			.build();
+
+		Report savedReport = reportRepository.save(report);
+
+		return MeetingDemandV2ReportResponseDto.of(savedReport.getId());
 	}
 
 	private Set<Integer> getWaitingMeetingDemandIds(List<MeetingDemand> meetingDemands, Integer userId) {

@@ -5,6 +5,7 @@ import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDema
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2MentionUserInCommentRequestDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2GetCommentsResponseDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2UpdateCommentResponseDto;
 
@@ -23,4 +24,6 @@ public interface MeetingDemandCommentV2Service {
 	MeetingDemandCommentV2SwitchCommentLikeResponseDto switchCommentLike(Integer commentId, Integer userId);
 
 	void mentionUserInComment(MeetingDemandCommentV2MentionUserInCommentRequestDto requestBody, Integer userId);
+
+	MeetingDemandCommentV2ReportCommentResponseDto reportComment(Integer commentId, Integer userId);
 }

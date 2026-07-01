@@ -384,6 +384,14 @@ create table if not exists report
     constraint "FK_4b6fe2df37305bc075a4a16d3ea"
     references post
     on delete cascade,
+    "meetingDemandId" integer
+    constraint fk_report_meeting_demand
+    references meeting_demand
+    on delete cascade,
+    "meetingDemandCommentId" integer
+    constraint fk_report_meeting_demand_comment
+    references meeting_demand_comment
+    on delete cascade,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );

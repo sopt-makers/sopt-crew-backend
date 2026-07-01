@@ -9,6 +9,7 @@ import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDema
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2UpdateCommentBodyDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2GetCommentsResponseDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2SwitchCommentLikeResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2UpdateCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.service.MeetingDemandCommentV2Service;
@@ -89,5 +90,13 @@ public class MeetingDemandCommentV2Controller implements MeetingDemandCommentV2A
 		Integer userId = UserUtil.getUserId(principal);
 		meetingDemandCommentV2Service.mentionUserInComment(requestBody, userId);
 		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	@PostMapping("/comments/{commentId}/report")
+	public ResponseEntity<MeetingDemandCommentV2ReportCommentResponseDto> reportComment(
+		@PathVariable Integer commentId, Principal principal) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(meetingDemandCommentV2Service.reportComment(commentId, userId));
 	}
 }
