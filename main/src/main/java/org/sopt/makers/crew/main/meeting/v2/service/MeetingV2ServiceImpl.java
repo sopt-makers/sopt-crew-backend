@@ -303,7 +303,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public MeetingV2ApplyMeetingResponseDto applyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
-		return meetingApplySentinel.guard(userId,
+		return meetingApplySentinel.guard(requestBody.getMeetingId(), userId,
 			() -> meetingApplyTransactionalService.applyGeneral(requestBody, userId));
 	}
 
@@ -311,7 +311,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public MeetingV2ApplyMeetingResponseDto testApplyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
-		return meetingApplySentinel.guard(userId,
+		return meetingApplySentinel.guard(requestBody.getMeetingId(), userId,
 			() -> meetingApplyTransactionalService.testApplyGeneral(requestBody, userId));
 	}
 
@@ -319,7 +319,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
-		return meetingApplySentinel.guard(userId,
+		return meetingApplySentinel.guard(requestBody.getMeetingId(), userId,
 			() -> meetingApplyTransactionalService.applyEvent(requestBody, userId));
 	}
 

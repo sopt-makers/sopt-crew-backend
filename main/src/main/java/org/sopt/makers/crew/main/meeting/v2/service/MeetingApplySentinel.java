@@ -12,16 +12,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class MeetingApplySentinel {
 
-	private final Set<Integer> inFlight = ConcurrentHashMap.newKeySet();
+	private final Set<ApplyKey> inFlight = ConcurrentHashMap.newKeySet();
 
-	public <T> T guard(Integer userId, Supplier<T> action) {
-		if (!inFlight.add(userId)) {
+	public <T> T guard(Integer meetingId, Integer userId, Supplier<T> action) {
+		ApplyKey key = new ApplyKey(meetingId, userId);
+		if (!inFlight.add(key)) {
 			throw new LockedException(LOCK_ACQUISITION_TIMEOUT.getErrorCode());
 		}
 		try {
 			return action.get();
 		} finally {
-			inFlight.remove(userId);
+			inFlight.remove(key);
 		}
+	}
+
+	private record ApplyKey(Integer meetingId, Integer userId) {
 	}
 }
