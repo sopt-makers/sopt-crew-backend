@@ -26,6 +26,7 @@ public class MeetingDemandCommentV2CreateCommentBodyDto {
 	private Integer parentCommentId;
 
 	@AssertTrue(message = "대댓글 작성 시 부모 댓글 id는 필수입니다.")
+	@Schema(hidden = true)
 	public boolean isValidParentCommentId() {
 		return Boolean.TRUE.equals(isParent) || parentCommentId != null;
 	}
