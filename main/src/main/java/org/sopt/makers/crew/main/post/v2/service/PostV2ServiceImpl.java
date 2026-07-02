@@ -43,6 +43,7 @@ import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
@@ -346,7 +347,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 		boolean existedTodayMumuPost = postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(userId,
 			PostCategory.MUMU, LocalDate.now().atStartOfDay());
 
-		List<Post> findPostsByMeetingIdsExceptSelf = postRepository
+		List<MumuPostHomeDto> findPostsByMeetingIdsExceptSelf = postRepository
 			.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(relatedMeetingIds, userId);
 
 		if (!existedTodayMumuPost) {

@@ -1,6 +1,9 @@
 package org.sopt.makers.crew.main.entity.post;
 
+import java.util.List;
+
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailWithPartBaseDto;
@@ -13,4 +16,6 @@ public interface PostSearchRepository {
 	Page<PostDetailWithPartBaseDto> findPostList(Pageable pageable, Integer userId);
 
 	PostDetailBaseDto findPost(Integer userId, Integer postId);
+
+	List<MumuPostHomeDto> findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List<Integer> meetingIds, Integer userId);
 }

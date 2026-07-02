@@ -4,14 +4,14 @@ import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.post.Post;
 
+import com.querydsl.core.annotations.QueryProjection;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
 @Getter
 public class MumuPostHomeDto {
@@ -41,7 +41,24 @@ public class MumuPostHomeDto {
 	@NotNull
 	private String content;
 
-	public static MumuPostHomeDto from(Post post) {
+	@Schema(description = "좋아요 눌렀는지 여부", example = "true")
+	private Boolean isLiked;
+
+	@QueryProjection
+	public MumuPostHomeDto(Integer meetingId, String meetingTitle, MeetingCategory meetingCategory, Integer postId,
+		Integer likeCount, Integer commentCount, String title, String content, Boolean isLiked) {
+		this.meetingId = meetingId;
+		this.meetingTitle = meetingTitle;
+		this.meetingCategory = meetingCategory;
+		this.postId = postId;
+		this.likeCount = likeCount;
+		this.commentCount = commentCount;
+		this.title = title;
+		this.content = content;
+		this.isLiked = isLiked;
+	}
+
+	public static MumuPostHomeDto of(Post post, Boolean isLiked) {
 		Meeting meeting = post.getMeeting();
 		return MumuPostHomeDto.builder()
 			.meetingId(post.getMeetingId())
@@ -52,6 +69,7 @@ public class MumuPostHomeDto {
 			.commentCount(post.getCommentCount())
 			.title(post.getTitle())
 			.content(post.getContents())
+			.isLiked(isLiked)
 			.build();
 	}
 

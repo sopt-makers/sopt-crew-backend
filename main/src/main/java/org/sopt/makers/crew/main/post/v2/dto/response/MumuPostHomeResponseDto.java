@@ -2,8 +2,6 @@ package org.sopt.makers.crew.main.post.v2.dto.response;
 
 import java.util.List;
 
-import org.sopt.makers.crew.main.entity.post.Post;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -42,8 +40,7 @@ public class MumuPostHomeResponseDto {
 			.build();
 	}
 
-	public static MumuPostHomeResponseDto notWrittenTodayMumuPost(List<Post> posts, String mumuText) {
-		List<MumuPostHomeDto> mumuPostHomeDtos = convertMumuPostHomeDtos(posts);
+	public static MumuPostHomeResponseDto notWrittenTodayMumuPost(List<MumuPostHomeDto> mumuPostHomeDtos, String mumuText) {
 
 		return MumuPostHomeResponseDto
 			.builder()
@@ -54,20 +51,12 @@ public class MumuPostHomeResponseDto {
 			.build();
 	}
 
-	public static MumuPostHomeResponseDto from(List<Post> posts, String mumuText) {
-		List<MumuPostHomeDto> mumuPostHomeDtos = convertMumuPostHomeDtos(posts);
-
+	public static MumuPostHomeResponseDto from(List<MumuPostHomeDto> mumuPostHomeDtos, String mumuText) {
 		return MumuPostHomeResponseDto.builder()
 			.isEmptyAppliedMeeting(false)
 			.hasWrittenTodayMumuPost(true)
 			.mumuText(mumuText)
 			.mumuPostHomeDtos(mumuPostHomeDtos)
 			.build();
-	}
-
-	private static List<MumuPostHomeDto> convertMumuPostHomeDtos(List<Post> posts) {
-		return posts.stream()
-			.map(MumuPostHomeDto::from)
-			.toList();
 	}
 }
