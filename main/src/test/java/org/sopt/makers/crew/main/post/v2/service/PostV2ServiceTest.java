@@ -38,6 +38,7 @@ import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meeting.v2.service.UserRelatedMeetingExtractor;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
@@ -238,8 +239,10 @@ public class PostV2ServiceTest {
 		@DisplayName("오늘 mumu post를 보낸 적이 없다면")
 		void 오늘_mumu_post_를_보낸_적이_없다면() {
 			Integer userId = 1;
-			Post oldPost = testPostData(1, LocalDateTime.of(2026, 6, 25, 11, 0));
-			Post latestPost = testPostData(2, LocalDateTime.of(2026, 6, 25, 12, 0));
+			MumuPostHomeDto oldPost = MumuPostHomeDto.of(testPostData(1, LocalDateTime.of(2026, 6, 25, 11, 0)),
+				false);
+			MumuPostHomeDto latestPost = MumuPostHomeDto.of(testPostData(2, LocalDateTime.of(2026, 6, 25, 12, 0)),
+				true);
 
 			//given
 			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
@@ -269,8 +272,10 @@ public class PostV2ServiceTest {
 		@DisplayName("오늘 무무 피드 보낸 경우")
 		void 오늘_무무_피드_보낸_경우() {
 			Integer userId = 1;
-			Post oldPost = testPostData(1, LocalDateTime.of(2026, 6, 25, 11, 0));
-			Post latestPost = testPostData(2, LocalDateTime.of(2026, 6, 25, 12, 0));
+			MumuPostHomeDto oldPost = MumuPostHomeDto.of(testPostData(1, LocalDateTime.of(2026, 6, 25, 11, 0)),
+				false);
+			MumuPostHomeDto latestPost = MumuPostHomeDto.of(testPostData(2, LocalDateTime.of(2026, 6, 25, 12, 0)),
+				true);
 
 			//given
 			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
