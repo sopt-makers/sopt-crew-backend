@@ -49,7 +49,7 @@ public class MeetingApplyTransactionalService {
 
 		try {
 			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-			// saveAndFlush: flush를 즉시 실행해 commit 전에 constraint 위반을 catch 가능하게 함
+			// IDENTITY 전략에서는 save() 시 INSERT되지만, flush 시점을 코드에 명시적으로 드러낸다.
 			Apply savedApply = applyRepository.saveAndFlush(apply);
 			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 		} catch (DataIntegrityViolationException e) {
