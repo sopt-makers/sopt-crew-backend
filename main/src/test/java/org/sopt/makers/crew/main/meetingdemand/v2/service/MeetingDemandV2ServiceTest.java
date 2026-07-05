@@ -94,31 +94,40 @@ class MeetingDemandV2ServiceTest {
 		@Test
 		@DisplayName("개설 전과 개설 완료 상태를 모두 최신순 목록으로 조회한다.")
 		void getMeetingDemands_returnsAllStatuses() {
+			User requestUser = UserFixture.createUser(REQUEST_USER_ID, "서버", 36);
+			MeetingDemand ownMeetingDemand = createMeetingDemand(requestUser);
+			setField(ownMeetingDemand, "id", MEETING_DEMAND_ID + 1);
 			MeetingDemand openedMeetingDemand = createMeetingDemand(writer);
-			setField(openedMeetingDemand, "id", MEETING_DEMAND_ID + 1);
+			setField(openedMeetingDemand, "id", MEETING_DEMAND_ID + 2);
 			openedMeetingDemand.open();
 			MeetingDemandWait wait = MeetingDemandWait.builder()
 				.meetingDemandId(openedMeetingDemand.getId())
 				.userId(REQUEST_USER_ID)
 				.build();
-			given(meetingDemandRepository.count()).willReturn(2L);
+			given(meetingDemandRepository.count()).willReturn(3L);
 			given(meetingDemandRepository.findAll(any(Pageable.class)))
-				.willReturn(new PageImpl<>(List.of(meetingDemand, openedMeetingDemand)));
+				.willReturn(new PageImpl<>(List.of(meetingDemand, ownMeetingDemand, openedMeetingDemand)));
 			given(meetingDemandWaitRepository.findAllByMeetingDemandIdInAndUserId(
-				List.of(meetingDemand.getId(), openedMeetingDemand.getId()), REQUEST_USER_ID))
+				List.of(meetingDemand.getId(), ownMeetingDemand.getId(), openedMeetingDemand.getId()), REQUEST_USER_ID))
 				.willReturn(List.of(wait));
 
 			MeetingDemandV2GetMeetingDemandsResponseDto response = meetingDemandV2Service.getMeetingDemands(
 				new MeetingDemandV2GetMeetingDemandsQueryDto(1, 3), REQUEST_USER_ID);
 
-			assertThat(response.meetingDemands()).hasSize(2);
+			assertThat(response.meetingDemands()).hasSize(3);
 			assertThat(response.meetingDemands().get(0).id()).isEqualTo(MEETING_DEMAND_ID);
 			assertThat(response.meetingDemands().get(0).status()).isEqualTo(MeetingDemandStatus.BEFORE_OPEN.name());
+			assertThat(response.meetingDemands().get(0).isMine()).isFalse();
 			assertThat(response.meetingDemands().get(0).isWaiting()).isFalse();
 			assertThat(response.meetingDemands().get(1).id()).isEqualTo(MEETING_DEMAND_ID + 1);
-			assertThat(response.meetingDemands().get(1).status()).isEqualTo(MeetingDemandStatus.OPENED.name());
-			assertThat(response.meetingDemands().get(1).isWaiting()).isTrue();
-			assertThat(response.meta().getItemCount()).isEqualTo(2);
+			assertThat(response.meetingDemands().get(1).status()).isEqualTo(MeetingDemandStatus.BEFORE_OPEN.name());
+			assertThat(response.meetingDemands().get(1).isMine()).isTrue();
+			assertThat(response.meetingDemands().get(1).isWaiting()).isFalse();
+			assertThat(response.meetingDemands().get(2).id()).isEqualTo(MEETING_DEMAND_ID + 2);
+			assertThat(response.meetingDemands().get(2).status()).isEqualTo(MeetingDemandStatus.OPENED.name());
+			assertThat(response.meetingDemands().get(2).isMine()).isFalse();
+			assertThat(response.meetingDemands().get(2).isWaiting()).isTrue();
+			assertThat(response.meta().getItemCount()).isEqualTo(3);
 			verify(meetingDemandRepository, never()).countByStatus(any(MeetingDemandStatus.class));
 			verify(meetingDemandRepository, never()).findAllByStatus(any(MeetingDemandStatus.class), any());
 		}

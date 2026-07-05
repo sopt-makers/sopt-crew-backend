@@ -23,6 +23,10 @@ public record MeetingDemandV2GetMeetingDemandSummaryResponseDto(
 	@NotNull
 	String status,
 
+	@Schema(description = "본인이 작성한 모임 수요인지 여부", example = "true")
+	@NotNull
+	Boolean isMine,
+
 	@Schema(description = "기다려요 수", example = "10")
 	@NotNull
 	int waitCount,
@@ -32,12 +36,13 @@ public record MeetingDemandV2GetMeetingDemandSummaryResponseDto(
 	Boolean isWaiting
 ) {
 	public static MeetingDemandV2GetMeetingDemandSummaryResponseDto of(MeetingDemand meetingDemand,
-		boolean isWaiting) {
+		boolean isMine, boolean isWaiting) {
 		return new MeetingDemandV2GetMeetingDemandSummaryResponseDto(
 			meetingDemand.getId(),
 			meetingDemand.getShortIntro(),
 			meetingDemand.getExpectation(),
 			meetingDemand.getStatus().name(),
+			isMine,
 			meetingDemand.getWaitCount(),
 			isWaiting
 		);

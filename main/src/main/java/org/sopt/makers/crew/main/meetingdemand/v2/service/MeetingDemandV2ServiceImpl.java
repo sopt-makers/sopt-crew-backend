@@ -71,6 +71,7 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 		List<MeetingDemandV2GetMeetingDemandSummaryResponseDto> responseDtos = meetingDemands.getContent().stream()
 			.map(meetingDemand -> MeetingDemandV2GetMeetingDemandSummaryResponseDto.of(
 				meetingDemand,
+				meetingDemand.isWriter(userId),
 				waitingMeetingDemandIds.contains(meetingDemand.getId())
 			))
 			.toList();
