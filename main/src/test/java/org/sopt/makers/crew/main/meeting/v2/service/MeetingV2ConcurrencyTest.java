@@ -132,7 +132,7 @@ class MeetingV2ConcurrencyTest {
 						readyLatch.countDown();
 						startLatch.await();
 
-						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingWithLock(applyDto,
+						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingGuarded(applyDto,
 							applicant.getId());
 
 						if (response != null && response.getApplyId() != null) {
@@ -262,7 +262,7 @@ class MeetingV2ConcurrencyTest {
 						MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(),
 							"지원 동기 " + index);
 
-						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingWithLock(applyDto,
+						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingGuarded(applyDto,
 							applicant.getId());
 
 						if (response != null && response.getApplyId() != null) {
@@ -361,14 +361,14 @@ class MeetingV2ConcurrencyTest {
 
 			// when: 첫 신청은 정상적으로 저장되고, 트랜잭션이 커밋되면서 sentinel도 해제된다.
 			MeetingV2ApplyMeetingResponseDto firstResponse =
-				meetingV2Service.applyEventMeetingWithLock(applyDto, applicant.getId());
+				meetingV2Service.applyEventMeetingGuarded(applyDto, applicant.getId());
 			assertThat(firstResponse.getApplyId()).isNotNull();
 
 			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 			Assertions.assertThat(applies).hasSize(1);
 
 			// then: sentinel이 해제됐으므로 후속 요청은 비즈니스 검증까지 진입해 중복으로 거절된다.
-			assertThatThrownBy(() -> meetingV2Service.applyEventMeetingWithLock(applyDto, applicant.getId()))
+			assertThatThrownBy(() -> meetingV2Service.applyEventMeetingGuarded(applyDto, applicant.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("이미 지원한 모임입니다");
 
