@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface MeetingDemandCommentRepository extends JpaRepository<MeetingDemandComment, Integer> {
@@ -34,6 +35,12 @@ public interface MeetingDemandCommentRepository extends JpaRepository<MeetingDem
 	}
 
 	List<MeetingDemandComment> findAllByMeetingDemandIdOrderByCreatedTimestampAsc(Integer meetingDemandId);
+
+	@Query("SELECT DISTINCT c.userId "
+		+ "FROM MeetingDemandComment c "
+		+ "WHERE c.meetingDemandId = :meetingDemandId "
+		+ "AND c.userId IS NOT NULL")
+	List<Integer> findDistinctUserIdsByMeetingDemandId(@Param("meetingDemandId") Integer meetingDemandId);
 
 	Page<MeetingDemandComment> findAllByMeetingDemandIdAndDepth(Integer meetingDemandId, int depth, Pageable pageable);
 
