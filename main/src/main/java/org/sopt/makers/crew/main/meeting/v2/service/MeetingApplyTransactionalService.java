@@ -1,9 +1,10 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.ALREADY_APPLIED_MEETING;
 
 import java.util.List;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.ApplyTest;
@@ -30,6 +31,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MeetingApplyTransactionalService {
 
+	private static final String DUPLICATE_APPLY_CONSTRAINT = "meetingid_userid_unique";
+
 	private final MeetingRepository meetingRepository;
 	private final UserRepository userRepository;
 	private final CoLeaderRepository coLeaderRepository;
@@ -47,14 +50,9 @@ public class MeetingApplyTransactionalService {
 		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 		meetingApplyValidator.validateGeneralApplyRequest(meeting, user, userId, applies, coLeaders);
 
-		try {
-			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-			// IDENTITY 전략에서는 save() 시 INSERT되지만, flush 시점을 코드에 명시적으로 드러낸다.
-			Apply savedApply = applyRepository.saveAndFlush(apply);
-			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
-		} catch (DataIntegrityViolationException e) {
-			throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
-		}
+		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
+		Apply savedApply = saveApply(apply);
+		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -65,13 +63,9 @@ public class MeetingApplyTransactionalService {
 		List<ApplyTest> applies = applyTestRepository.findAllByMeetingId(meeting.getId());
 		//validateMeetingCapacity(meeting, applies);
 
-		try {
-			ApplyTest apply = applyMapper.toApplyTestEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-			ApplyTest savedApply = applyTestRepository.saveAndFlush(apply);
-			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
-		} catch (DataIntegrityViolationException e) {
-			throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
-		}
+		ApplyTest apply = applyMapper.toApplyTestEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
+		ApplyTest savedApply = applyTestRepository.saveAndFlush(apply);
+		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -83,12 +77,32 @@ public class MeetingApplyTransactionalService {
 		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 		meetingApplyValidator.validateEventApplyRequest(meeting, user, userId, applies, coLeaders);
 
+		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
+		Apply savedApply = saveApply(apply);
+		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+	}
+
+	private Apply saveApply(Apply apply) {
 		try {
-			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-			Apply savedApply = applyRepository.saveAndFlush(apply);
-			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
+			// IDENTITY 전략에서는 save() 시 INSERT되지만, flush 시점을 코드에 명시적으로 드러낸다.
+			return applyRepository.saveAndFlush(apply);
 		} catch (DataIntegrityViolationException e) {
-			throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
+			if (isDuplicateApplyViolation(e)) {
+				throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
+			}
+			throw e;
 		}
+	}
+
+	private boolean isDuplicateApplyViolation(DataIntegrityViolationException exception) {
+		Throwable cause = exception;
+		while (cause != null) {
+			if (cause instanceof ConstraintViolationException constraintViolation
+				&& DUPLICATE_APPLY_CONSTRAINT.equalsIgnoreCase(constraintViolation.getConstraintName())) {
+				return true;
+			}
+			cause = cause.getCause();
+		}
+		return false;
 	}
 }
