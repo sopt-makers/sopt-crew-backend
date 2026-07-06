@@ -130,7 +130,7 @@ class MeetingDemandCommentV2ServiceTest {
 	class 모임_수요_댓글_작성 {
 
 		@Test
-		@DisplayName("부모 댓글을 작성하면 댓글 수를 증가시키고 알림을 요청한다.")
+		@DisplayName("작성자가 자신의 수요에 부모 댓글을 작성하면 댓글 수만 증가시키고 알림을 보내지 않는다.")
 		void createComment_createsParentComment() {
 			MeetingDemandCommentV2CreateCommentBodyDto requestBody = new MeetingDemandCommentV2CreateCommentBodyDto(
 				"부모 댓글", true, null);
@@ -149,8 +149,7 @@ class MeetingDemandCommentV2ServiceTest {
 
 			ArgumentCaptor<MeetingDemandComment> captor = ArgumentCaptor.forClass(MeetingDemandComment.class);
 			verify(meetingDemandCommentRepository).save(captor.capture());
-			verify(meetingDemandCommentNotificationSender).sendCommentNotification(requestBody, meetingDemand, null,
-				writerProfile);
+			verify(meetingDemandCommentNotificationSender, never()).sendCommentNotification(any(), any());
 
 			MeetingDemandComment savedComment = captor.getValue();
 			assertThat(response.getCommentId()).isEqualTo(COMMENT_ID);
@@ -187,8 +186,7 @@ class MeetingDemandCommentV2ServiceTest {
 
 			ArgumentCaptor<MeetingDemandComment> captor = ArgumentCaptor.forClass(MeetingDemandComment.class);
 			verify(meetingDemandCommentRepository).save(captor.capture());
-			verify(meetingDemandCommentNotificationSender).sendCommentNotification(requestBody, meetingDemand,
-				parentComment, writerProfile);
+			verify(meetingDemandCommentNotificationSender).sendCommentNotification(meetingDemand, REQUEST_USER_ID);
 
 			MeetingDemandComment savedComment = captor.getValue();
 			assertThat(response.getCommentId()).isEqualTo(REPLY_COMMENT_ID);

@@ -92,16 +92,16 @@ public class MeetingDemandCommentV2ServiceImpl implements MeetingDemandCommentV2
 		MeetingDemandCommentV2CreateCommentBodyDto requestBody, Integer userId) {
 		MeetingDemand meetingDemand = meetingDemandRepository.findByIdOrThrow(meetingDemandId);
 		User writer = userRepository.findByIdOrThrow(userId);
-		MeetingDemandCommentProfile writerProfile = meetingDemandCommentProfileFactory.findOrCreate(meetingDemandId,
-			userId);
+		meetingDemandCommentProfileFactory.findOrCreate(meetingDemandId, userId);
 
 		MeetingDemandCommentFactory.CreatedComment createdComment = meetingDemandCommentFactory.create(meetingDemand,
 			writer, requestBody);
 
 		MeetingDemandComment savedComment = meetingDemandCommentRepository.save(createdComment.comment());
 		meetingDemand.increaseCommentCount();
-		meetingDemandCommentNotificationSender.sendCommentNotification(requestBody, meetingDemand,
-			createdComment.parentComment(), writerProfile);
+		if (!meetingDemand.isWriter(userId)) {
+			meetingDemandCommentNotificationSender.sendCommentNotification(meetingDemand, userId);
+		}
 
 		return MeetingDemandCommentV2CreateCommentResponseDto.of(savedComment.getId());
 	}
