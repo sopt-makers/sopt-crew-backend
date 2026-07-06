@@ -9,6 +9,8 @@ drop table if exists "meeting_demand_comment_like" cascade;
 drop table if exists "meeting_demand_comment_profile" cascade;
 drop table if exists "meeting_demand_comment" cascade;
 drop table if exists "mumu_text" cascade;
+drop table if exists "meeting_demand_opened_notification" cascade;
+drop table if exists "meeting_demand_wait_history" cascade;
 drop table if exists "meeting_demand_wait" cascade;
 drop table if exists "meeting_demand" cascade;
 drop table if exists "meeting" cascade;
@@ -80,11 +82,32 @@ create table if not exists meeting_demand_wait
     unique ("meetingDemandId", "userId")
 );
 
+create table if not exists meeting_demand_wait_history
+(
+    id                 serial
+    primary key,
+    "meetingDemandId"  integer              not null
+    constraint fk_meeting_demand_wait_history_demand
+    references meeting_demand
+    on delete cascade,
+    "userId"           integer              not null
+    constraint fk_meeting_demand_wait_history_user
+    references "user"
+    on delete cascade,
+    "createdTimestamp" timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP,
+    constraint "UQ_meeting_demand_wait_history_demand_user"
+    unique ("meetingDemandId", "userId")
+);
+
 create index if not exists "meeting_demand_status_created_index"
     on meeting_demand (status, "createdTimestamp" desc, id desc);
 
 create index if not exists "meeting_demand_wait_user_index"
     on meeting_demand_wait ("userId");
+
+create index if not exists "meeting_demand_wait_history_user_index"
+    on meeting_demand_wait_history ("userId");
 
 create table if not exists meeting_demand_comment_profile
 (
@@ -196,6 +219,24 @@ create table if not exists meeting
 
 create index if not exists "meeting_meeting_demand_index"
     on meeting ("meetingDemandId");
+
+create table if not exists meeting_demand_opened_notification
+(
+    id                  serial
+    primary key,
+    "meetingId"         integer              not null
+    constraint fk_meeting_demand_opened_notification_meeting
+    references meeting
+    on delete cascade,
+    "sentAt"            timestamp,
+    "createdTimestamp"  timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP,
+    constraint "UQ_meeting_demand_opened_notification_meeting"
+    unique ("meetingId")
+);
+
+create index if not exists "meeting_demand_opened_notification_sent_index"
+    on meeting_demand_opened_notification ("sentAt");
 
 create table if not exists co_leader
 (
