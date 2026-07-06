@@ -27,6 +27,8 @@ import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWait;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWaitHistory;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWaitHistoryRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWaitRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.enums.MeetingDemandStatus;
 import org.sopt.makers.crew.main.entity.report.Report;
@@ -61,10 +63,16 @@ class MeetingDemandV2ServiceTest {
 	private MeetingDemandWaitRepository meetingDemandWaitRepository;
 
 	@Mock
+	private MeetingDemandWaitHistoryRepository meetingDemandWaitHistoryRepository;
+
+	@Mock
 	private MeetingRepository meetingRepository;
 
 	@Mock
 	private ReportRepository reportRepository;
+
+	@Mock
+	private MeetingDemandNotificationSender meetingDemandNotificationSender;
 
 	private MeetingDemandV2ServiceImpl meetingDemandV2Service;
 
@@ -77,10 +85,12 @@ class MeetingDemandV2ServiceTest {
 			userRepository,
 			meetingDemandRepository,
 			meetingDemandWaitRepository,
+			meetingDemandWaitHistoryRepository,
 			meetingRepository,
 			reportRepository,
 			new MeetingDemandFactory(),
-			new MeetingDemandPageNormalizer()
+			new MeetingDemandPageNormalizer(),
+			meetingDemandNotificationSender
 		);
 
 		writer = UserFixture.createUser(WRITER_ID, "서버", 36);
@@ -207,6 +217,8 @@ class MeetingDemandV2ServiceTest {
 				.willReturn(meetingDemand);
 			given(meetingDemandWaitRepository.existsByMeetingDemandIdAndUserId(MEETING_DEMAND_ID, REQUEST_USER_ID))
 				.willReturn(false);
+			given(meetingDemandWaitHistoryRepository.existsByMeetingDemandIdAndUserId(MEETING_DEMAND_ID,
+				REQUEST_USER_ID)).willReturn(false);
 			given(meetingDemandWaitRepository.countByMeetingDemandId(MEETING_DEMAND_ID)).willReturn(1L);
 
 			MeetingDemandV2SwitchMeetingDemandWaitResponseDto response = meetingDemandV2Service.switchMeetingDemandWait(
@@ -214,6 +226,8 @@ class MeetingDemandV2ServiceTest {
 
 			ArgumentCaptor<MeetingDemandWait> captor = ArgumentCaptor.forClass(MeetingDemandWait.class);
 			verify(meetingDemandWaitRepository).save(captor.capture());
+			verify(meetingDemandWaitHistoryRepository).save(any(MeetingDemandWaitHistory.class));
+			verify(meetingDemandNotificationSender).sendWaitNotification(meetingDemand);
 			verify(meetingDemandWaitRepository).flush();
 
 			assertThat(captor.getValue().getMeetingDemandId()).isEqualTo(MEETING_DEMAND_ID);
@@ -221,6 +235,27 @@ class MeetingDemandV2ServiceTest {
 			assertThat(response.getIsWaiting()).isTrue();
 			assertThat(response.getWaitCount()).isEqualTo(1);
 			assertThat(meetingDemand.getWaitCount()).isEqualTo(1);
+		}
+
+		@Test
+		@DisplayName("기다려요를 다시 누른 이력이 있는 유저에게는 알림을 반복 발송하지 않는다.")
+		void switchMeetingDemandWait_doesNotSendDuplicatedWaitNotification() {
+			given(meetingDemandRepository.findByIdWithPessimisticWriteLockOrThrow(MEETING_DEMAND_ID))
+				.willReturn(meetingDemand);
+			given(meetingDemandWaitRepository.existsByMeetingDemandIdAndUserId(MEETING_DEMAND_ID, REQUEST_USER_ID))
+				.willReturn(false);
+			given(meetingDemandWaitHistoryRepository.existsByMeetingDemandIdAndUserId(MEETING_DEMAND_ID,
+				REQUEST_USER_ID)).willReturn(true);
+			given(meetingDemandWaitRepository.countByMeetingDemandId(MEETING_DEMAND_ID)).willReturn(1L);
+
+			MeetingDemandV2SwitchMeetingDemandWaitResponseDto response = meetingDemandV2Service.switchMeetingDemandWait(
+				MEETING_DEMAND_ID, REQUEST_USER_ID);
+
+			verify(meetingDemandWaitRepository).save(any(MeetingDemandWait.class));
+			verify(meetingDemandWaitHistoryRepository, never()).save(any());
+			verify(meetingDemandNotificationSender, never()).sendWaitNotification(any());
+			assertThat(response.getIsWaiting()).isTrue();
+			assertThat(response.getWaitCount()).isEqualTo(1);
 		}
 
 		@Test

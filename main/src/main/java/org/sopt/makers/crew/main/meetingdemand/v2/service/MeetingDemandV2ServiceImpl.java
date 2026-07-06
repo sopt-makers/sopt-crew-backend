@@ -13,6 +13,8 @@ import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWait;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWaitHistory;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWaitHistoryRepository;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandWaitRepository;
 import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
@@ -49,10 +51,12 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 	private final UserRepository userRepository;
 	private final MeetingDemandRepository meetingDemandRepository;
 	private final MeetingDemandWaitRepository meetingDemandWaitRepository;
+	private final MeetingDemandWaitHistoryRepository meetingDemandWaitHistoryRepository;
 	private final MeetingRepository meetingRepository;
 	private final ReportRepository reportRepository;
 	private final MeetingDemandFactory meetingDemandFactory;
 	private final MeetingDemandPageNormalizer meetingDemandPageNormalizer;
+	private final MeetingDemandNotificationSender meetingDemandNotificationSender;
 
 	@Override
 	public MeetingDemandV2GetMeetingDemandsResponseDto getMeetingDemands(
@@ -155,6 +159,7 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 				.build();
 
 			meetingDemandWaitRepository.save(meetingDemandWait);
+			sendFirstWaitNotificationIfNeeded(meetingDemand, meetingDemandId, userId);
 		}
 
 		meetingDemandWaitRepository.flush();
@@ -213,5 +218,21 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 
 		return userRepository.findAllById(userIds).stream()
 			.collect(Collectors.toMap(User::getId, user -> user));
+	}
+
+	private void sendFirstWaitNotificationIfNeeded(MeetingDemand meetingDemand, Integer meetingDemandId,
+		Integer userId) {
+		boolean hasWaitHistory = meetingDemandWaitHistoryRepository.existsByMeetingDemandIdAndUserId(meetingDemandId,
+			userId);
+		if (hasWaitHistory) {
+			return;
+		}
+
+		MeetingDemandWaitHistory waitHistory = MeetingDemandWaitHistory.builder()
+			.meetingDemandId(meetingDemandId)
+			.userId(userId)
+			.build();
+		meetingDemandWaitHistoryRepository.save(waitHistory);
+		meetingDemandNotificationSender.sendWaitNotification(meetingDemand);
 	}
 }

@@ -41,6 +41,7 @@ import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meetingdemand.v2.service.MeetingDemandPageNormalizer;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2CreateCommentBodyDto;
+import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2MentionUserInCommentRequestDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2CreateCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2ReportCommentResponseDto;
 import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.response.MeetingDemandCommentV2SwitchCommentLikeResponseDto;
@@ -127,10 +128,32 @@ class MeetingDemandCommentV2ServiceTest {
 	}
 
 	@Nested
+	class 모임_수요_댓글_멘션 {
+
+		@Test
+		@DisplayName("모임 수요 댓글에서 멘션한 사용자에게 알림을 요청한다.")
+		void mentionUserInComment_sendsMentionNotification() {
+			MeetingDemandCommentV2MentionUserInCommentRequestDto requestBody =
+				new MeetingDemandCommentV2MentionUserInCommentRequestDto(
+					MEETING_DEMAND_ID,
+					"@테스트 유저 멘션 댓글",
+					List.of(3L, 4L)
+				);
+			given(meetingDemandRepository.findByIdOrThrow(MEETING_DEMAND_ID)).willReturn(meetingDemand);
+			given(userRepository.findByIdOrThrow(REQUEST_USER_ID)).willReturn(requestUser);
+
+			meetingDemandCommentV2Service.mentionUserInComment(requestBody, REQUEST_USER_ID);
+
+			verify(meetingDemandCommentNotificationSender).sendMentionNotification(requestBody);
+			verify(meetingDemandCommentProfileFactory, never()).findOrCreate(any(), any());
+		}
+	}
+
+	@Nested
 	class 모임_수요_댓글_작성 {
 
 		@Test
-		@DisplayName("부모 댓글을 작성하면 댓글 수를 증가시키고 알림을 요청한다.")
+		@DisplayName("작성자가 자신의 수요에 부모 댓글을 작성하면 댓글 수만 증가시키고 알림을 보내지 않는다.")
 		void createComment_createsParentComment() {
 			MeetingDemandCommentV2CreateCommentBodyDto requestBody = new MeetingDemandCommentV2CreateCommentBodyDto(
 				"부모 댓글", true, null);
@@ -149,8 +172,7 @@ class MeetingDemandCommentV2ServiceTest {
 
 			ArgumentCaptor<MeetingDemandComment> captor = ArgumentCaptor.forClass(MeetingDemandComment.class);
 			verify(meetingDemandCommentRepository).save(captor.capture());
-			verify(meetingDemandCommentNotificationSender).sendCommentNotification(requestBody, meetingDemand, null,
-				writerProfile);
+			verify(meetingDemandCommentNotificationSender, never()).sendCommentNotification(any(), any());
 
 			MeetingDemandComment savedComment = captor.getValue();
 			assertThat(response.getCommentId()).isEqualTo(COMMENT_ID);
@@ -187,8 +209,7 @@ class MeetingDemandCommentV2ServiceTest {
 
 			ArgumentCaptor<MeetingDemandComment> captor = ArgumentCaptor.forClass(MeetingDemandComment.class);
 			verify(meetingDemandCommentRepository).save(captor.capture());
-			verify(meetingDemandCommentNotificationSender).sendCommentNotification(requestBody, meetingDemand,
-				parentComment, writerProfile);
+			verify(meetingDemandCommentNotificationSender).sendCommentNotification(meetingDemand, REQUEST_USER_ID);
 
 			MeetingDemandComment savedComment = captor.getValue();
 			assertThat(response.getCommentId()).isEqualTo(REPLY_COMMENT_ID);
