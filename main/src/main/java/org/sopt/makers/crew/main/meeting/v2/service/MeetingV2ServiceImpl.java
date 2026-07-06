@@ -100,6 +100,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBann
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.service.MeetingDemandOpenedNotificationService;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
@@ -151,6 +152,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final MeetingApplyValidator meetingApplyValidator;
 	private final MeetingParticipationFactory meetingParticipationFactory;
 	private final MeetingCoLeaderFactory meetingCoLeaderFactory;
+	private final MeetingDemandOpenedNotificationService meetingDemandOpenedNotificationService;
 
 	private final ImageSettingProperties imageSettingProperties;
 	private final ActiveGenerationProvider activeGenerationProvider;
@@ -245,6 +247,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		Meeting savedMeeting = meetingRepository.save(meeting);
+		meetingDemandOpenedNotificationService.register(savedMeeting);
 
 		List<Integer> coLeaderUserIds = requestBody.getCoLeaderUserIds();
 		if (coLeaderUserIds != null && !coLeaderUserIds.isEmpty()) {
