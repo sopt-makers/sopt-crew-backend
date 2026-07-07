@@ -29,11 +29,29 @@ public class MumuText extends BaseTimeEntity {
 	@Column(name = "text")
 	private String text;
 
+	@Column(name = "category")
+	private String category;
+
 	@Column(name = "show_start_date")
 	private LocalDateTime showStartDate;
 
 	@Column(name = "show_end_date")
 	private LocalDateTime showEndDate;
 
+	public static MumuText create(String text, String category, LocalDateTime showStartDate,
+		LocalDateTime showEndDate) {
+		MumuText mumuText = new MumuText();
+		mumuText.text = text;
+		mumuText.category = category;
+		mumuText.showStartDate = showStartDate;
+		mumuText.showEndDate = showEndDate;
+		return mumuText;
+	}
 
+	public void update(String text, String category, LocalDateTime showStartDate, LocalDateTime showEndDate) {
+		this.text = text;
+		this.category = category;
+		this.showStartDate = showStartDate;
+		this.showEndDate = showEndDate;
+	}
 }

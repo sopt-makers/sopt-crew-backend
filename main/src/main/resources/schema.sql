@@ -365,6 +365,7 @@ create table if not exists mumu_text
     id                 bigserial
     primary key,
     text               varchar(255),
+    category           varchar(255),
     show_start_date    timestamp,
     show_end_date      timestamp,
     "createdTimestamp" timestamp default CURRENT_TIMESTAMP,
