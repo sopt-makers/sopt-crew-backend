@@ -6,7 +6,6 @@ import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
 import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.global.config.PushNotificationProperties;
-import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2MentionUserInCommentRequestDto;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -31,24 +30,6 @@ public class MeetingDemandCommentNotificationSender {
 
 		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(
 			new String[] {String.valueOf(meetingDemand.getUserId())},
-			MEETING_DEMAND_COMMENT_TITLE,
-			MEETING_DEMAND_COMMENT_CONTENT,
-			PUSH_NOTIFICATION_CATEGORY.getValue(),
-			webLink
-		);
-
-		pushNotificationService.sendPushNotification(pushRequestDto);
-	}
-
-	public void sendMentionNotification(MeetingDemandCommentV2MentionUserInCommentRequestDto requestBody) {
-		String webLink = createMeetingDemandWebLink(requestBody.getMeetingDemandId());
-
-		String[] userOrgIds = requestBody.getOrgIds().stream()
-			.map(Object::toString)
-			.toArray(String[]::new);
-
-		PushNotificationRequestDto pushRequestDto = PushNotificationRequestDto.of(
-			userOrgIds,
 			MEETING_DEMAND_COMMENT_TITLE,
 			MEETING_DEMAND_COMMENT_CONTENT,
 			PUSH_NOTIFICATION_CATEGORY.getValue(),

@@ -19,7 +19,6 @@ import org.sopt.makers.crew.main.entity.user.UserFixture;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
 import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.global.config.PushNotificationProperties;
-import org.sopt.makers.crew.main.meetingdemandcomment.v2.dto.request.MeetingDemandCommentV2MentionUserInCommentRequestDto;
 
 @ExtendWith(MockitoExtension.class)
 class MeetingDemandCommentNotificationSenderTest {
@@ -68,26 +67,4 @@ class MeetingDemandCommentNotificationSenderTest {
 		assertThat(request.getWebLink()).isEqualTo("https://crew.test/meeting-demand?id=10");
 	}
 
-	@Test
-	@DisplayName("멘션 알림도 댓글 알림과 동일한 문구로 발송한다.")
-	void sendMentionNotification_usesSameCommentMessage() {
-		MeetingDemandCommentV2MentionUserInCommentRequestDto requestBody =
-			new MeetingDemandCommentV2MentionUserInCommentRequestDto(
-				MEETING_DEMAND_ID,
-				"@테스트 유저 멘션 댓글",
-				List.of(3L, 4L)
-			);
-
-		meetingDemandCommentNotificationSender.sendMentionNotification(requestBody);
-
-		ArgumentCaptor<PushNotificationRequestDto> captor = ArgumentCaptor.forClass(
-			PushNotificationRequestDto.class);
-		verify(pushNotificationService).sendPushNotification(captor.capture());
-
-		PushNotificationRequestDto request = captor.getValue();
-		assertThat(request.getUserIds()).containsExactly("3", "4");
-		assertThat(request.getTitle()).isEqualTo("내가 만든 모임 수요에 댓글이 달렸어요");
-		assertThat(request.getContent()).isEqualTo("새로운 댓글이 달렸어요.");
-		assertThat(request.getWebLink()).isEqualTo("https://crew.test/meeting-demand?id=10");
-	}
 }

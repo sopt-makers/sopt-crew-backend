@@ -83,6 +83,7 @@ public class MeetingDemandCommentV2Controller implements MeetingDemandCommentV2A
 	}
 
 	@Override
+	@Deprecated
 	@PostMapping("/comments/mention")
 	public ResponseEntity<Void> mentionUserInComment(
 		@Valid @RequestBody MeetingDemandCommentV2MentionUserInCommentRequestDto requestBody,

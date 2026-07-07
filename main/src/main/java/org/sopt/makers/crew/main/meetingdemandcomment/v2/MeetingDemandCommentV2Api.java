@@ -38,7 +38,7 @@ public interface MeetingDemandCommentV2Api {
 		@Valid @ModelAttribute @Parameter(hidden = true) MeetingDemandCommentV2GetCommentsQueryDto queryDto,
 		Principal principal);
 
-	@Operation(summary = "모임 수요 댓글 작성", description = "모임 수요 댓글 또는 대댓글 생성")
+	@Operation(summary = "모임 수요 댓글 작성", description = "모임 수요 댓글 또는 대댓글 생성. 알림은 부모 댓글 생성 시에만 전송")
 	@ApiResponse(responseCode = "200", description = "성공")
 	ResponseEntity<MeetingDemandCommentV2CreateCommentResponseDto> createComment(
 		@PathVariable Integer meetingDemandId,
@@ -61,7 +61,8 @@ public interface MeetingDemandCommentV2Api {
 	ResponseEntity<MeetingDemandCommentV2SwitchCommentLikeResponseDto> switchCommentLike(
 		@PathVariable Integer commentId, Principal principal);
 
-	@Operation(summary = "모임 수요 댓글 멘션 알림", description = "모임 수요 댓글에서 멘션된 사용자에게 푸시 알림 전송")
+	@Deprecated
+	@Operation(summary = "모임 수요 댓글 멘션 알림", description = "사용하지 않습니다. 모임 수요 알림 정책에서 대댓글/멘션 알림은 제외합니다.", deprecated = true)
 	@ApiResponse(responseCode = "200", description = "성공")
 	ResponseEntity<Void> mentionUserInComment(
 		@Valid @RequestBody MeetingDemandCommentV2MentionUserInCommentRequestDto requestBody,
