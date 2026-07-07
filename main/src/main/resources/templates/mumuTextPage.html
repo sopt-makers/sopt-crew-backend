@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>무무씨 질문 관리</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f4f6fa;
+            color: #151b2d;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 28px;
+        }
+
+        .page {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.10);
+            margin: 0 auto;
+            max-width: 1480px;
+            overflow: hidden;
+        }
+
+        .topbar {
+            align-items: center;
+            background-color: #111827;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            padding: 22px 30px;
+        }
+
+        .brand {
+            align-items: baseline;
+            display: flex;
+            gap: 14px;
+        }
+
+        .brand strong {
+            font-size: 21px;
+        }
+
+        .brand span {
+            color: #b8c2d6;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .topbar a {
+            background-color: #273449;
+            border-radius: 6px;
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 11px 14px;
+            text-decoration: none;
+        }
+
+        .content {
+            padding: 32px 30px 36px;
+        }
+
+        .heading {
+            align-items: flex-start;
+            display: flex;
+            gap: 24px;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 30px;
+            margin: 0 0 8px;
+        }
+
+        .heading p {
+            color: #667085;
+            margin: 0;
+        }
+
+        .heading-actions {
+            display: flex;
+            gap: 10px;
+            min-width: max-content;
+        }
+
+        button {
+            border: 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: #2f6fed;
+            color: white;
+            padding: 12px 22px;
+        }
+
+        .btn-green {
+            background-color: #12a77f;
+            color: white;
+            padding: 12px 22px;
+        }
+
+        .btn-muted {
+            background-color: #f2f5f9;
+            border: 1px solid #d6dde8;
+            color: #344054;
+            padding: 10px 18px;
+        }
+
+        .btn-danger {
+            background-color: #fff1f1;
+            border: 1px solid #ffc7c7;
+            color: #d21f2b;
+            padding: 10px 18px;
+        }
+
+        .summary {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin-bottom: 28px;
+        }
+
+        .summary-card {
+            border-radius: 8px;
+            padding: 20px 22px;
+        }
+
+        .summary-card.active {
+            background-color: #e7f8ee;
+        }
+
+        .summary-card.scheduled {
+            background-color: #eaf2ff;
+        }
+
+        .summary-card.ended {
+            background-color: #f4f6f9;
+        }
+
+        .summary-card.invalid {
+            background-color: #fff3e6;
+        }
+
+        .summary-card span {
+            color: #667085;
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .summary-card strong {
+            display: block;
+            font-size: 28px;
+        }
+
+        .summary-card.active strong {
+            color: #078850;
+        }
+
+        .summary-card.scheduled strong {
+            color: #2f6fed;
+        }
+
+        .summary-card.ended strong {
+            color: #667085;
+        }
+
+        .summary-card.invalid strong {
+            color: #e65300;
+        }
+
+        .grid {
+            align-items: start;
+            display: grid;
+            gap: 28px;
+            grid-template-columns: minmax(0, 1.8fr) minmax(360px, 0.95fr);
+        }
+
+        .panel {
+            border: 1px solid #dde5ef;
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        .panel-title {
+            align-items: center;
+            display: flex;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .panel-title h2 {
+            font-size: 21px;
+            margin: 0;
+        }
+
+        .panel-title span {
+            color: #667085;
+            font-size: 13px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th {
+            background-color: #f5f7fb;
+            color: #475467;
+            font-size: 13px;
+            padding: 14px 12px;
+            text-align: left;
+        }
+
+        td {
+            border-bottom: 1px solid #edf1f6;
+            font-size: 14px;
+            padding: 14px 12px;
+            vertical-align: middle;
+        }
+
+        .badge {
+            border-radius: 999px;
+            display: inline-block;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 6px 12px;
+            white-space: nowrap;
+        }
+
+        .badge.active {
+            background-color: #c9f7da;
+            color: #087047;
+        }
+
+        .badge.scheduled {
+            background-color: #d9eaff;
+            color: #2f6fed;
+        }
+
+        .badge.ended {
+            background-color: #edf1f6;
+            color: #667085;
+        }
+
+        .question-text {
+            max-width: 360px;
+            white-space: normal;
+            word-break: keep-all;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .actions button {
+            padding: 8px 11px;
+        }
+
+        .empty {
+            color: #667085;
+            padding: 28px 0;
+            text-align: center;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .field label {
+            color: #475467;
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        .field input,
+        .field textarea {
+            border: 1px solid #cfd8e6;
+            border-radius: 6px;
+            color: #1f2937;
+            font: inherit;
+            padding: 12px;
+            width: 100%;
+        }
+
+        .field textarea {
+            min-height: 96px;
+            resize: vertical;
+        }
+
+        .two-cols {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .notice {
+            background-color: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 6px;
+            color: #c2410c;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 12px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .bulk {
+            margin-top: 28px;
+        }
+
+        .bulk-layout {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+        }
+
+        .bulk textarea {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            min-height: 150px;
+        }
+
+        .preview {
+            background-color: #f8fafc;
+            border: 1px solid #dbe3ef;
+            border-radius: 8px;
+            min-height: 150px;
+            padding: 16px;
+        }
+
+        .preview h3 {
+            font-size: 16px;
+            margin: 0 0 12px;
+        }
+
+        .preview-row {
+            color: #475467;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+
+        .preview-row.valid {
+            color: #078850;
+        }
+
+        .preview-row.invalid {
+            color: #d21f2b;
+        }
+
+        @media (max-width: 1080px) {
+            body {
+                padding: 16px;
+            }
+
+            .heading,
+            .grid,
+            .bulk-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .heading {
+                display: grid;
+            }
+
+            .summary {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .two-cols {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="topbar">
+        <div class="brand">
+            <strong>CREW Admin</strong>
+            <span>무무씨 질문 관리</span>
+        </div>
+        <a th:href="@{/admin/v2/{adminKey}/propertyPage(adminKey=${adminKey})}">기존 어드민 페이지</a>
+    </div>
+
+    <main class="content">
+        <section class="heading">
+            <div>
+                <h1>무무씨 질문 관리</h1>
+                <p>질문 문구와 노출 기간을 등록하면 현재 시간에 맞는 질문이 자동으로 노출됩니다.</p>
+            </div>
+            <div class="heading-actions">
+                <button class="btn-primary" onclick="resetForm()" type="button">+ 단건 등록</button>
+                <button class="btn-green" onclick="focusBulk()" type="button">CSV/붙여넣기 일괄 등록</button>
+            </div>
+        </section>
+
+        <section class="summary">
+            <div class="summary-card active">
+                <span>노출 중</span>
+                <strong th:text="${summary.activeCount}">0</strong>
+            </div>
+            <div class="summary-card scheduled">
+                <span>예약됨</span>
+                <strong th:text="${summary.scheduledCount}">0</strong>
+            </div>
+            <div class="summary-card ended">
+                <span>종료됨</span>
+                <strong th:text="${summary.endedCount}">0</strong>
+            </div>
+            <div class="summary-card invalid">
+                <span>검증 필요</span>
+                <strong th:text="${summary.validationRequiredCount}">0</strong>
+            </div>
+        </section>
+
+        <section class="grid">
+            <div class="panel">
+                <div class="panel-title">
+                    <h2>질문 목록</h2>
+                    <span>상태는 저장하지 않고 현재 시간 기준으로 계산</span>
+                </div>
+
+                <div class="empty" th:if="${#lists.isEmpty(mumuTexts)}">등록된 질문이 없습니다.</div>
+                <table th:unless="${#lists.isEmpty(mumuTexts)}">
+                    <thead>
+                    <tr>
+                        <th>상태</th>
+                        <th>구분</th>
+                        <th>노출 기간</th>
+                        <th>질문</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="mumuText : ${mumuTexts}">
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${mumuText.status.cssClass}"
+                                  th:text="${mumuText.status.displayName}">예약됨</span>
+                        </td>
+                        <td th:text="${mumuText.category}">번쩍</td>
+                        <td>
+                            <span th:text="${#temporals.format(mumuText.showStartDate, 'yyyy-MM-dd HH:mm')}">2026-09-07 00:00</span>
+                            <br>
+                            <span th:text="${#temporals.format(mumuText.showEndDate, 'yyyy-MM-dd HH:mm')}">2026-09-14 00:00</span>
+                        </td>
+                        <td class="question-text" th:text="${mumuText.text}">이번 주 새롭게 시도한 일은?</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn-muted"
+                                        onclick="editMumuText(this)"
+                                        th:attr="data-id=${mumuText.id},
+                                                 data-text=${mumuText.text},
+                                                 data-category=${mumuText.category},
+                                                 data-start-date=${mumuText.showStartDate},
+                                                 data-end-date=${mumuText.showEndDate}"
+                                        type="button">수정</button>
+                                <button class="btn-danger"
+                                        onclick="deleteMumuText(this)"
+                                        th:attr="data-id=${mumuText.id}"
+                                        type="button">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <aside class="panel">
+                <div class="panel-title">
+                    <h2 id="formTitle">질문 등록</h2>
+                    <span id="formStatus"></span>
+                </div>
+                <form class="form-grid" id="mumuTextForm">
+                    <input id="mumuTextId" type="hidden">
+                    <div class="field">
+                        <label for="mumuTextCategory">구분</label>
+                        <input id="mumuTextCategory" required type="text">
+                    </div>
+                    <div class="field">
+                        <label for="mumuTextText">질문 문구</label>
+                        <textarea id="mumuTextText" required></textarea>
+                    </div>
+                    <div class="two-cols">
+                        <div class="field">
+                            <label for="mumuTextStartDate">노출 시작일시</label>
+                            <input id="mumuTextStartDate" required type="datetime-local">
+                        </div>
+                        <div class="field">
+                            <label for="mumuTextEndDate">노출 종료일시</label>
+                            <input id="mumuTextEndDate" required type="datetime-local">
+                        </div>
+                    </div>
+                    <div class="notice" id="currentActiveNotice" style="display: none;">
+                        현재 노출 중인 질문 수정 시 앱에 즉시 반영됩니다.
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-muted" onclick="resetForm()" type="button">취소</button>
+                        <button class="btn-primary" type="submit">저장</button>
+                    </div>
+                </form>
+            </aside>
+        </section>
+
+        <section class="panel bulk" id="bulkSection">
+            <div class="panel-title">
+                <h2>CSV/붙여넣기 일괄 등록</h2>
+                <span>기간 겹침을 검증한 뒤 저장</span>
+            </div>
+            <div class="bulk-layout">
+                <div class="field">
+                    <label for="bulkCsvText">CSV</label>
+                    <textarea id="bulkCsvText">startDate,endDate,category,text
+2026-09-07 00:00,2026-09-14 00:00,번쩍,이번 주 새롭게 시도한 일은?
+2026-09-14 00:00,2026-09-21 00:00,1차 이벤트 / 솝커톤,함께해서 좋았던 순간은?</textarea>
+                    <div class="form-actions">
+                        <button class="btn-green" onclick="previewBulk()" type="button">검증하기</button>
+                        <button class="btn-primary" onclick="createBulk()" type="button">최종 등록</button>
+                    </div>
+                </div>
+                <div class="preview" id="bulkPreview">
+                    <h3>검증 결과 미리보기</h3>
+                    <div class="preview-row">검증 결과가 여기에 표시됩니다.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script th:inline="javascript">
+    const adminKey = /*[[${adminKey}]]*/ '';
+
+    document.getElementById('mumuTextForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const mumuTextId = document.getElementById('mumuTextId').value;
+        const requestBody = {
+            category: document.getElementById('mumuTextCategory').value.trim(),
+            text: document.getElementById('mumuTextText').value.trim(),
+            showStartDate: document.getElementById('mumuTextStartDate').value,
+            showEndDate: document.getElementById('mumuTextEndDate').value
+        };
+
+        if (!requestBody.category || !requestBody.text || !requestBody.showStartDate || !requestBody.showEndDate) {
+            alert('구분, 질문 문구, 노출 기간은 모두 필수입니다.');
+            return;
+        }
+
+        const method = mumuTextId ? 'PATCH' : 'POST';
+        const url = mumuTextId
+            ? `/admin/v2/${adminKey}/mumu-text/${mumuTextId}`
+            : `/admin/v2/${adminKey}/mumu-text`;
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                throw new Error(await extractErrorMessage(response));
+            }
+
+            window.location.reload();
+        } catch (error) {
+            alert('질문 저장 중 오류가 발생했습니다: ' + error.message);
+        }
+    });
+
+    function editMumuText(button) {
+        document.getElementById('mumuTextId').value = button.getAttribute('data-id');
+        document.getElementById('mumuTextCategory').value = button.getAttribute('data-category') || '';
+        document.getElementById('mumuTextText').value = button.getAttribute('data-text') || '';
+        document.getElementById('mumuTextStartDate').value = toDateTimeLocal(button.getAttribute('data-start-date'));
+        document.getElementById('mumuTextEndDate').value = toDateTimeLocal(button.getAttribute('data-end-date'));
+        document.getElementById('formTitle').textContent = '질문 수정';
+        document.getElementById('formStatus').textContent = '';
+        document.getElementById('currentActiveNotice').style.display =
+            button.closest('tr').querySelector('.badge').classList.contains('active') ? 'block' : 'none';
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function resetForm() {
+        document.getElementById('mumuTextForm').reset();
+        document.getElementById('mumuTextId').value = '';
+        document.getElementById('formTitle').textContent = '질문 등록';
+        document.getElementById('formStatus').textContent = '';
+        document.getElementById('currentActiveNotice').style.display = 'none';
+    }
+
+    async function deleteMumuText(button) {
+        const mumuTextId = button.getAttribute('data-id');
+        if (!confirm('이 질문을 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/v2/${adminKey}/mumu-text/${mumuTextId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error(await extractErrorMessage(response));
+            }
+
+            window.location.reload();
+        } catch (error) {
+            alert('질문 삭제 중 오류가 발생했습니다: ' + error.message);
+        }
+    }
+
+    function focusBulk() {
+        document.getElementById('bulkSection').scrollIntoView({behavior: 'smooth'});
+        document.getElementById('bulkCsvText').focus();
+    }
+
+    async function previewBulk() {
+        await requestBulk('/bulk/preview', false);
+    }
+
+    async function createBulk() {
+        await requestBulk('/bulk', true);
+    }
+
+    async function requestBulk(path, reloadOnSuccess) {
+        const csvText = document.getElementById('bulkCsvText').value;
+
+        try {
+            const response = await fetch(`/admin/v2/${adminKey}/mumu-text${path}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({csvText: csvText})
+            });
+
+            if (!response.ok) {
+                throw new Error(await extractErrorMessage(response));
+            }
+
+            const preview = await response.json();
+            renderPreview(preview);
+            if (reloadOnSuccess && preview.valid) {
+                window.location.reload();
+            }
+        } catch (error) {
+            alert('일괄 등록 처리 중 오류가 발생했습니다: ' + error.message);
+        }
+    }
+
+    function renderPreview(preview) {
+        const container = document.getElementById('bulkPreview');
+        container.innerHTML = '';
+
+        const title = document.createElement('h3');
+        title.textContent = `검증 결과: ${preview.validCount}건 가능 / ${preview.invalidCount}건 확인 필요`;
+        container.appendChild(title);
+
+        preview.rows.forEach(function (row) {
+            const div = document.createElement('div');
+            div.className = `preview-row ${row.valid ? 'valid' : 'invalid'}`;
+            const messages = row.valid ? '등록 가능' : row.messages.join(' ');
+            div.textContent = `${row.rowNumber}행 · ${row.category || '-'} · ${row.text || '-'} · ${messages}`;
+            container.appendChild(div);
+        });
+    }
+
+    function toDateTimeLocal(value) {
+        if (!value) {
+            return '';
+        }
+        return value.substring(0, 16);
+    }
+
+    async function extractErrorMessage(response) {
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            const data = await response.json();
+            return data.message || data.errorCode || '요청 처리 중 오류가 발생했습니다.';
+        }
+        return await response.text();
+    }
+</script>
+</body>
+</html>
