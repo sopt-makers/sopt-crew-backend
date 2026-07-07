@@ -39,6 +39,7 @@ import org.sopt.makers.crew.main.entity.user.UserFixture;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
+import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.request.MeetingDemandV2CreateMeetingDemandBodyDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.query.MeetingDemandV2GetMeetingDemandsQueryDto;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.response.MeetingDemandV2GetMeetingDemandsResponseDto;
@@ -225,6 +226,7 @@ class MeetingDemandV2ServiceTest {
 				MEETING_DEMAND_ID, REQUEST_USER_ID);
 
 			ArgumentCaptor<MeetingDemandWait> captor = ArgumentCaptor.forClass(MeetingDemandWait.class);
+			verify(userRepository).findByIdOrThrow(REQUEST_USER_ID);
 			verify(meetingDemandWaitRepository).save(captor.capture());
 			verify(meetingDemandWaitHistoryRepository).save(any(MeetingDemandWaitHistory.class));
 			verify(meetingDemandNotificationSender).sendWaitNotification(meetingDemand);
@@ -251,6 +253,7 @@ class MeetingDemandV2ServiceTest {
 			MeetingDemandV2SwitchMeetingDemandWaitResponseDto response = meetingDemandV2Service.switchMeetingDemandWait(
 				MEETING_DEMAND_ID, REQUEST_USER_ID);
 
+			verify(userRepository).findByIdOrThrow(REQUEST_USER_ID);
 			verify(meetingDemandWaitRepository).save(any(MeetingDemandWait.class));
 			verify(meetingDemandWaitHistoryRepository, never()).save(any());
 			verify(meetingDemandNotificationSender, never()).sendWaitNotification(any());
@@ -271,6 +274,7 @@ class MeetingDemandV2ServiceTest {
 			MeetingDemandV2SwitchMeetingDemandWaitResponseDto response = meetingDemandV2Service.switchMeetingDemandWait(
 				MEETING_DEMAND_ID, REQUEST_USER_ID);
 
+			verify(userRepository).findByIdOrThrow(REQUEST_USER_ID);
 			verify(meetingDemandWaitRepository).deleteByMeetingDemandIdAndUserId(MEETING_DEMAND_ID, REQUEST_USER_ID);
 			verify(meetingDemandWaitRepository).flush();
 			verify(meetingDemandWaitRepository, never()).save(any());
@@ -291,6 +295,22 @@ class MeetingDemandV2ServiceTest {
 
 			verify(meetingDemandWaitRepository, never()).save(any());
 			verify(meetingDemandWaitRepository, never()).deleteByMeetingDemandIdAndUserId(any(), any());
+		}
+
+		@Test
+		@DisplayName("인증된 유저 정보를 찾을 수 없으면 기다려요를 저장하지 않는다.")
+		void switchMeetingDemandWait_rejectsUnknownUser() {
+			given(meetingDemandRepository.findByIdWithPessimisticWriteLockOrThrow(MEETING_DEMAND_ID))
+				.willReturn(meetingDemand);
+			given(userRepository.findByIdOrThrow(REQUEST_USER_ID)).willThrow(new UnAuthorizedException());
+
+			assertThatThrownBy(() -> meetingDemandV2Service.switchMeetingDemandWait(MEETING_DEMAND_ID,
+				REQUEST_USER_ID))
+				.isInstanceOf(UnAuthorizedException.class);
+
+			verify(meetingDemandWaitRepository, never()).existsByMeetingDemandIdAndUserId(any(), any());
+			verify(meetingDemandWaitRepository, never()).save(any());
+			verify(meetingDemandWaitHistoryRepository, never()).save(any());
 		}
 	}
 
