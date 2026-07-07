@@ -148,6 +148,7 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 		MeetingDemand meetingDemand = meetingDemandRepository.findByIdWithPessimisticWriteLockOrThrow(meetingDemandId);
 
 		meetingDemand.validateNotWriter(userId);
+		userRepository.findByIdOrThrow(userId);
 
 		boolean isWaiting = meetingDemandWaitRepository.existsByMeetingDemandIdAndUserId(meetingDemandId, userId);
 		if (isWaiting) {
