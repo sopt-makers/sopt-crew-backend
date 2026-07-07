@@ -99,7 +99,7 @@ public class MeetingDemandCommentV2ServiceImpl implements MeetingDemandCommentV2
 
 		MeetingDemandComment savedComment = meetingDemandCommentRepository.save(createdComment.comment());
 		meetingDemand.increaseCommentCount();
-		if (!meetingDemand.isWriter(userId)) {
+		if (savedComment.isParentComment() && !meetingDemand.isWriter(userId)) {
 			meetingDemandCommentNotificationSender.sendCommentNotification(meetingDemand, userId);
 		}
 
@@ -171,8 +171,6 @@ public class MeetingDemandCommentV2ServiceImpl implements MeetingDemandCommentV2
 	public void mentionUserInComment(MeetingDemandCommentV2MentionUserInCommentRequestDto requestBody, Integer userId) {
 		meetingDemandRepository.findByIdOrThrow(requestBody.getMeetingDemandId());
 		userRepository.findByIdOrThrow(userId);
-
-		meetingDemandCommentNotificationSender.sendMentionNotification(requestBody);
 	}
 
 	@Override

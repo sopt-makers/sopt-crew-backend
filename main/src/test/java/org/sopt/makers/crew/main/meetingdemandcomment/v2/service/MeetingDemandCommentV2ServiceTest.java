@@ -131,8 +131,8 @@ class MeetingDemandCommentV2ServiceTest {
 	class 모임_수요_댓글_멘션 {
 
 		@Test
-		@DisplayName("모임 수요 댓글에서 멘션한 사용자에게 알림을 요청한다.")
-		void mentionUserInComment_sendsMentionNotification() {
+		@DisplayName("모임 수요 댓글 멘션 알림은 정책에서 제외되어 알림을 요청하지 않는다.")
+		void mentionUserInComment_doesNotSendMentionNotification() {
 			MeetingDemandCommentV2MentionUserInCommentRequestDto requestBody =
 				new MeetingDemandCommentV2MentionUserInCommentRequestDto(
 					MEETING_DEMAND_ID,
@@ -144,7 +144,7 @@ class MeetingDemandCommentV2ServiceTest {
 
 			meetingDemandCommentV2Service.mentionUserInComment(requestBody, REQUEST_USER_ID);
 
-			verify(meetingDemandCommentNotificationSender).sendMentionNotification(requestBody);
+			verify(meetingDemandCommentNotificationSender, never()).sendCommentNotification(any(), any());
 			verify(meetingDemandCommentProfileFactory, never()).findOrCreate(any(), any());
 		}
 	}
@@ -184,7 +184,27 @@ class MeetingDemandCommentV2ServiceTest {
 		}
 
 		@Test
-		@DisplayName("대댓글을 작성하면 부모 댓글과 최근 order를 기준으로 다음 order를 계산한다.")
+		@DisplayName("작성자가 아닌 사용자가 부모 댓글을 작성하면 수요 작성자에게 알림을 보낸다.")
+		void createComment_sendsNotificationForParentComment() {
+			MeetingDemandCommentV2CreateCommentBodyDto requestBody = new MeetingDemandCommentV2CreateCommentBodyDto(
+				"부모 댓글", true, null);
+			given(meetingDemandRepository.findByIdOrThrow(MEETING_DEMAND_ID)).willReturn(meetingDemand);
+			given(userRepository.findByIdOrThrow(REQUEST_USER_ID)).willReturn(requestUser);
+			given(meetingDemandCommentProfileFactory.findOrCreate(MEETING_DEMAND_ID, REQUEST_USER_ID))
+				.willReturn(writerProfile);
+			given(meetingDemandCommentRepository.save(any(MeetingDemandComment.class))).willAnswer(invocation -> {
+				MeetingDemandComment savedComment = invocation.getArgument(0);
+				setField(savedComment, "id", COMMENT_ID);
+				return savedComment;
+			});
+
+			meetingDemandCommentV2Service.createComment(MEETING_DEMAND_ID, requestBody, REQUEST_USER_ID);
+
+			verify(meetingDemandCommentNotificationSender).sendCommentNotification(meetingDemand, REQUEST_USER_ID);
+		}
+
+		@Test
+		@DisplayName("대댓글을 작성하면 부모 댓글과 최근 order를 기준으로 다음 order를 계산하고 알림은 보내지 않는다.")
 		void createComment_createsReplyComment() {
 			MeetingDemandComment recentReply = createComment(RECENT_REPLY_ID, "최근 대댓글", 1, 2, requestUser,
 				meetingDemand, COMMENT_ID);
@@ -209,7 +229,7 @@ class MeetingDemandCommentV2ServiceTest {
 
 			ArgumentCaptor<MeetingDemandComment> captor = ArgumentCaptor.forClass(MeetingDemandComment.class);
 			verify(meetingDemandCommentRepository).save(captor.capture());
-			verify(meetingDemandCommentNotificationSender).sendCommentNotification(meetingDemand, REQUEST_USER_ID);
+			verify(meetingDemandCommentNotificationSender, never()).sendCommentNotification(any(), any());
 
 			MeetingDemandComment savedComment = captor.getValue();
 			assertThat(response.getCommentId()).isEqualTo(REPLY_COMMENT_ID);
