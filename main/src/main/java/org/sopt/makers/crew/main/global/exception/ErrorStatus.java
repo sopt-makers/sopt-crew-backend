@@ -107,7 +107,12 @@ public enum ErrorStatus {
 	EXTERNAL_SERVER_RESPONSE_ERROR("외부 서버 응답 오류"),
 	EXTERNAL_SERVER_COMMUNICATION_ERROR("외부 서버 통신 실패"),
 	JWK_FETCH_FAILED("JWK 서버로부터 키를 가져오지 못했습니다."),
-	INTERNAL_SERVER_ERROR("예상치 못한 서버 에러가 발생했습니다.");
+	INTERNAL_SERVER_ERROR("예상치 못한 서버 에러가 발생했습니다."),
+
+	/**
+	 * 503 SERVICE_UNAVAILABLE
+	 */
+	APPLY_ADMISSION_TIMEOUT("신청 요청 처리 대기 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.");
 
 	private final String errorCode;
 

@@ -10,17 +10,17 @@ import org.sopt.makers.crew.main.global.exception.LockedException;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MeetingApplySentinel {
+public class MeetingApplyInFlightGuard {
 
 	private final Set<ApplyKey> inFlight = ConcurrentHashMap.newKeySet();
 
-	public <T> T guard(Integer meetingId, Integer userId, Supplier<T> action) {
+	public <T> T execute(Integer meetingId, Integer userId, Supplier<T> task) {
 		ApplyKey key = new ApplyKey(meetingId, userId);
 		if (!inFlight.add(key)) {
 			throw new LockedException(LOCK_ACQUISITION_TIMEOUT.getErrorCode());
 		}
 		try {
-			return action.get();
+			return task.get();
 		} finally {
 			inFlight.remove(key);
 		}

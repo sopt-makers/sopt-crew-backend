@@ -91,7 +91,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 		Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(meetingV2Service.applyGeneralMeetingGuarded(requestBody, userId));
+			.body(meetingV2Service.applyGeneralMeetingWithAdmissionControl(requestBody, userId));
 	}
 
 	@PostMapping("/test/apply")
@@ -106,7 +106,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 		}
 
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(meetingV2Service.testApplyGeneralMeetingGuarded(requestBody, userId));
+			.body(meetingV2Service.testApplyGeneralMeetingWithAdmissionControl(requestBody, userId));
 	}
 
 	@PostMapping("${custom.paths.eventApply}")
@@ -115,7 +115,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 		Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(meetingV2Service.applyEventMeetingGuarded(requestBody, userId));
+			.body(meetingV2Service.applyEventMeetingWithAdmissionControl(requestBody, userId));
 	}
 
 	@Override
