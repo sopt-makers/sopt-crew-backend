@@ -88,7 +88,9 @@ class MeetingV2ServiceFlashTest {
 	@Mock
 	private MeetingApplyTransactionalService meetingApplyTransactionalService;
 	@Mock
-	private MeetingApplySentinel meetingApplySentinel;
+	private MeetingApplyInFlightGuard meetingApplyInFlightGuard;
+	@Mock
+	private ApplyAdmissionControl applyAdmissionControl;
 	@Mock
 	private MeetingMapper meetingMapper;
 	@Spy

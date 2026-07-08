@@ -132,14 +132,14 @@ class MeetingV2ConcurrencyTest {
 						readyLatch.countDown();
 						startLatch.await();
 
-						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingGuarded(applyDto,
+						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingWithAdmissionControl(applyDto,
 							applicant.getId());
 
 						if (response != null && response.getApplyId() != null) {
 							successCount.incrementAndGet();
 						}
 					} catch (LockedException expected) {
-						// 처리 중인 동일 요청은 sentinel이 즉시 거절한다.
+						// 처리 중인 동일 요청은 in-flight guard가 즉시 거절한다.
 						failCount.incrementAndGet();
 					} catch (BadRequestException expected) {
 						// 앞선 요청이 커밋된 뒤라면 validator의 중복 검증 또는 DB unique 위반이
@@ -262,7 +262,7 @@ class MeetingV2ConcurrencyTest {
 						MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(),
 							"지원 동기 " + index);
 
-						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingGuarded(applyDto,
+						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingWithAdmissionControl(applyDto,
 							applicant.getId());
 
 						if (response != null && response.getApplyId() != null) {
@@ -316,8 +316,8 @@ class MeetingV2ConcurrencyTest {
 		}
 
 		@Test
-		@DisplayName("작업 완료 후 sentinel이 해제되어 후속 요청이 비즈니스 검증까지 진입한다")
-		void applyMeetingWithLock_WhenSentinelReleasedAfterCommit_ShouldReachBusinessValidation() {
+		@DisplayName("작업 완료 후 in-flight guard가 해제되어 후속 요청이 비즈니스 검증까지 진입한다")
+		void applyMeeting_WhenInFlightGuardReleasedAfterCommit_ShouldReachBusinessValidation() {
 			// given
 			User leader = userRepository.save(User.builder()
 				.name("모임장")
@@ -359,16 +359,16 @@ class MeetingV2ConcurrencyTest {
 
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
 
-			// when: 첫 신청은 정상적으로 저장되고, 트랜잭션이 커밋되면서 sentinel도 해제된다.
+			// when: 첫 신청은 정상적으로 저장되고, 트랜잭션이 커밋되면서 in-flight guard도 해제된다.
 			MeetingV2ApplyMeetingResponseDto firstResponse =
-				meetingV2Service.applyEventMeetingGuarded(applyDto, applicant.getId());
+				meetingV2Service.applyEventMeetingWithAdmissionControl(applyDto, applicant.getId());
 			assertThat(firstResponse.getApplyId()).isNotNull();
 
 			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 			Assertions.assertThat(applies).hasSize(1);
 
-			// then: sentinel이 해제됐으므로 후속 요청은 비즈니스 검증까지 진입해 중복으로 거절된다.
-			assertThatThrownBy(() -> meetingV2Service.applyEventMeetingGuarded(applyDto, applicant.getId()))
+			// then: in-flight guard가 해제됐으므로 후속 요청은 비즈니스 검증까지 진입해 중복으로 거절된다.
+			assertThatThrownBy(() -> meetingV2Service.applyEventMeetingWithAdmissionControl(applyDto, applicant.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("이미 지원한 모임입니다");
 
