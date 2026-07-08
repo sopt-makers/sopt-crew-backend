@@ -16,6 +16,12 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    all {
+        // Log4j2로 로깅 구현체를 통일한다. web/actuator뿐 아니라 security, aop, validation,
+        // data-redis, cache, data-jpa, openfeign 등 다수 스타터가 spring-boot-starter-logging(Logback)을
+        // 전이적으로 끌어와, 개별 스타터에서만 exclude하면 여전히 classpath에 Logback이 남는다.
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
 }
 
 repositories {
@@ -24,6 +30,7 @@ repositories {
 
 dependencies {
     // Spring Boot Dependencies
+    // Logback을 빼고 Log4j2로 교체한다(아래 Log4j2 섹션 참고, configurations.all에서 전역 exclude).
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
     //implementation 'org.springframework.boot:spring-boot-starter-webflux:3.1.5'
@@ -109,11 +116,14 @@ dependencies {
     // Prometheus (Monitoring and Metrics Collection)
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
-    // Sentry Logback (Error Tracking)
-    implementation 'io.sentry:sentry-logback:7.17.0'
+    // Logging: Log4j2 (Logback 대체)
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    // AsyncLogger(Disruptor 기반)를 사용하기 위한 필수 의존성. AsyncAppender와 달리
+    // ArrayBlockingQueue가 아닌 lock-free RingBuffer를 사용해 처리량이 더 높다.
+    implementation 'com.lmax:disruptor:3.4.4'
 
-    // Slack Webhook
-    implementation 'com.github.maricn:logback-slack-appender:1.4.0'
+    // Sentry Log4j2 (Error Tracking). sentry-logback에서 교체.
+    implementation 'io.sentry:sentry-log4j2:7.17.0'
 
     // caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
