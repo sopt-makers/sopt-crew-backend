@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Properties>
+        <Property name="LOG_PATTERN">
+            [%d{yyyy-MM-dd HH:mm:ss}:%-4relative] %style{[%thread]}{green} %highlight{%-5level} %style{[%C.%M:%style{%L}{yellow}]}{bright_white} - %msg%n
+        </Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+
+        <!--
+            SentryAppender: minimumBreadcrumbLevel=INFO(현재 코드베이스에 DEBUG 로그가 없어 DEBUG로 낮출 실익이 없음),
+            minimumEventLevel(이벤트 전송)=ERROR.
+            com.beat 사례(BEAT-SERVER)처럼 org.sopt.makers.crew 로거에만 참조해
+            Root/access 로거의 서드파티 로그가 이중으로 Sentry에 캡처되지 않도록 한다.
+        -->
+        <Sentry name="SENTRY" minimumBreadcrumbLevel="INFO" minimumEventLevel="ERROR"/>
+    </Appenders>
+
+    <Loggers>
+        <!--
+            행사 신청 경로 전용 경량 로거: ApplyEventLoggingAop에서만 사용한다.
+            AsyncLogger(Disruptor 기반 RingBuffer)로 지정해, 이 로거로 남기는 로그의 I/O가
+            요청 스레드를 막지 않고 별도 스레드에서 처리되게 한다. AsyncAppender(ArrayBlockingQueue)보다
+            lock 경합이 적어 다수 스레드가 동시에 로깅하는 신청 스파이크 상황에 더 적합하다.
+        -->
+        <AsyncLogger name="org.sopt.makers.crew.main.global.aop.ApplyEventLoggingAop" level="INFO" additivity="false">
+            <AppenderRef ref="CONSOLE"/>
+        </AsyncLogger>
+
+        <springProfile name="local">
+            <Root level="INFO">
+                <AppenderRef ref="CONSOLE"/>
+            </Root>
+        </springProfile>
+
+        <springProfile name="dev">
+            <Root level="INFO">
+                <AppenderRef ref="CONSOLE"/>
+                <AppenderRef ref="SENTRY"/>
+            </Root>
+        </springProfile>
+
+        <springProfile name="lambda-dev">
+            <Root level="INFO">
+                <AppenderRef ref="CONSOLE"/>
+                <AppenderRef ref="SENTRY"/>
+            </Root>
+        </springProfile>
+
+        <springProfile name="prod">
+            <Root level="INFO">
+                <AppenderRef ref="CONSOLE"/>
+                <AppenderRef ref="SENTRY"/>
+            </Root>
+        </springProfile>
+
+        <springProfile name="traffic">
+            <Root level="INFO">
+                <AppenderRef ref="CONSOLE"/>
+                <AppenderRef ref="SENTRY"/>
+            </Root>
+        </springProfile>
+
+        <springProfile name="test">
+            <Root level="INFO">
+                <AppenderRef ref="CONSOLE"/>
+            </Root>
+        </springProfile>
+    </Loggers>
+</Configuration>

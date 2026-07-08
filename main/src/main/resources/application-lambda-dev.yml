@@ -151,6 +151,15 @@ thread-pool:
   core-size: ${DEV_THREAD_CORE_SIZE}
   thread-name-prefix: ${DEV_THREAD_NAME_PREFIX}
 
+meeting:
+  apply:
+    admission:
+      enabled: ${APPLY_ADMISSION_ENABLED:true}
+      # Lambda 컨테이너별 Hikari maximumPoolSize가 1이므로 permit도 1로 제한한다.
+      permits: ${APPLY_ADMISSION_PERMITS:1}
+      # 함수 제한 시간 30초보다 먼저 대기를 종료한다. JVM별 제한이며 Lambda 전체 동시성을 제한하지 않는다.
+      wait-timeout: ${APPLY_ADMISSION_WAIT_TIMEOUT:25s}
+
 slack:
   bot-token: ${SLACK_BOT_TOKEN}
   app-token: ${SLACK_APP_TOKEN}

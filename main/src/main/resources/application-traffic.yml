@@ -122,3 +122,12 @@ img:
 thread-pool:
   core-size: ${PROD_THREAD_CORE_SIZE}
   thread-name-prefix: ${PROD_THREAD_NAME_PREFIX}
+
+meeting:
+  apply:
+    admission:
+      enabled: ${APPLY_ADMISSION_ENABLED:true}
+      # Hikari 기본 풀 10개 중 다른 API가 사용할 커넥션을 남긴다.
+      permits: ${APPLY_ADMISSION_PERMITS:8}
+      # 부하 테스트에서는 초과 요청을 거절하지 않고 permit 앞에서 대기시킨다.
+      wait-timeout: ${APPLY_ADMISSION_WAIT_TIMEOUT:0s}

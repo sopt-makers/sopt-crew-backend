@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -146,7 +147,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final TagV2Service tagV2Service;
 
 	private final MeetingApplyTransactionalService meetingApplyTransactionalService;
-	private final MeetingApplySentinel meetingApplySentinel;
+	private final MeetingApplyInFlightGuard meetingApplyInFlightGuard;
+	private final ApplyAdmissionControl applyAdmissionControl;
 
 	private final MeetingMapper meetingMapper;
 	private final FlashMeetingMapper flashMeetingMapper;
@@ -300,26 +302,25 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public MeetingV2ApplyMeetingResponseDto applyGeneralMeetingGuarded(MeetingV2ApplyMeetingDto requestBody,
+	public MeetingV2ApplyMeetingResponseDto applyGeneralMeetingWithAdmissionControl(
+		MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
-		return meetingApplySentinel.guard(requestBody.getMeetingId(), userId,
-			() -> meetingApplyTransactionalService.applyGeneral(requestBody, userId));
+		return meetingApplyTransactionalService.applyGeneral(requestBody, userId);
+	}
+
+	@Override
+	public MeetingV2ApplyMeetingResponseDto testApplyGeneralMeetingWithAdmissionControl(
+		MeetingV2ApplyMeetingDto requestBody,
+		Integer userId) {
+		return meetingApplyTransactionalService.testApplyGeneral(requestBody, userId);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public MeetingV2ApplyMeetingResponseDto testApplyGeneralMeetingGuarded(MeetingV2ApplyMeetingDto requestBody,
+	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithAdmissionControl(
+		MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
-		return meetingApplySentinel.guard(requestBody.getMeetingId(), userId,
-			() -> meetingApplyTransactionalService.testApplyGeneral(requestBody, userId));
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public MeetingV2ApplyMeetingResponseDto applyEventMeetingGuarded(MeetingV2ApplyMeetingDto requestBody,
-		Integer userId) {
-		return meetingApplySentinel.guard(requestBody.getMeetingId(), userId,
+		return executeWithApplyControls(requestBody.getMeetingId(), userId,
 			() -> meetingApplyTransactionalService.applyEvent(requestBody, userId));
 	}
 
@@ -856,5 +857,13 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private Integer createTargetActiveGeneration(Boolean canJoinOnlyActiveGeneration) {
 		return Boolean.TRUE.equals(canJoinOnlyActiveGeneration) ? activeGenerationProvider.getActiveGeneration() : null;
+	}
+
+	private MeetingV2ApplyMeetingResponseDto executeWithApplyControls(
+		Integer meetingId,
+		Integer userId,
+		Supplier<MeetingV2ApplyMeetingResponseDto> applyTransaction) {
+		return meetingApplyInFlightGuard.execute(meetingId, userId,
+			() -> applyAdmissionControl.execute(applyTransaction));
 	}
 }

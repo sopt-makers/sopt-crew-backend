@@ -29,11 +29,24 @@ public class ExecutionLoggingAop {
 	/**
 	 * @implNote : 일부 클래스를 제외하고, 모든 클래스의 메서드의 시작과 끝을 로깅한다.
 	 * @implNote : 제외 클래스 - global 패키지, config 관련 패키지, Test 클래스, redis 클래스
+	 * @implNote : 행사 신청 경로(컨트롤러 → 서비스 → in-flight guard → admission control → 트랜잭션 → 검증)는
+	 *           제외한다. 스파이크 트래픽 시 이 로깅(특히 파라미터 reflection 덤프)이 요청 스레드의 병목이 되므로,
+	 *           신청 경로는 {@code ApplyEventLoggingAop}가 대신 경량 로깅을 남긴다.
+	 *           MeetingApplyInFlightGuard/LocalSemaphoreApplyAdmissionControl은 행사 신청 전용이라
+	 *           클래스 전체를 제외해도 일반/테스트 신청에 영향이 없다(일반/테스트 신청은 이 두 클래스를 타지 않음).
+	 *           MeetingApplyTransactionalService/MeetingApplyValidator는 일반/테스트 신청과 메서드를 공유하므로
+	 *           클래스 전체가 아니라 이벤트 신청 메서드만 지정해서 제외한다.
 	 */
 	@Around("execution(* org.sopt.makers.crew.main..*(..)) "
 		+ "&& !within(org.sopt.makers.crew.main.global..*) "
 		+ "&& !within(org.sopt.makers.crew.main.external.s3.config..*)"
-		+ "&& !within(org.sopt.makers.crew.main.external.redis..*) ")
+		+ "&& !within(org.sopt.makers.crew.main.external.redis..*) "
+		+ "&& !within(org.sopt.makers.crew.main.meeting.v2.service.MeetingApplyInFlightGuard) "
+		+ "&& !within(org.sopt.makers.crew.main.meeting.v2.service.LocalSemaphoreApplyAdmissionControl) "
+		+ "&& !execution(* org.sopt.makers.crew.main.meeting.v2.service.MeetingV2ServiceImpl.applyEventMeetingWithAdmissionControl(..)) "
+		+ "&& !execution(* org.sopt.makers.crew.main.meeting.v2.service.MeetingApplyTransactionalService.applyEvent(..)) "
+		+ "&& !execution(* org.sopt.makers.crew.main.meeting.v2.service.MeetingApplyValidator.validateEventApplyRequest(..)) "
+		+ "&& !execution(* org.sopt.makers.crew.main.meeting.v2.MeetingV2Controller.applyEventMeeting(..)) ")
 	public Object logExecutionTrace(ProceedingJoinPoint pjp) throws Throwable {
 		// 추출 - 요청/메서드 컨텍스트 정보 및 클래스/메서드명
 		RequestContextInfo ctxInfo = extractRequestContext();

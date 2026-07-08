@@ -130,5 +130,14 @@ thread-pool:
   core-size: ${PROD_THREAD_CORE_SIZE}
   thread-name-prefix: ${PROD_THREAD_NAME_PREFIX}
 
+meeting:
+  apply:
+    admission:
+      enabled: ${APPLY_ADMISSION_ENABLED:true}
+      # Hikari 기본 풀 10개 중 다른 API가 사용할 커넥션을 남긴다.
+      permits: ${APPLY_ADMISSION_PERMITS:8}
+      # 0은 permit을 얻을 때까지 대기하는 blocking 모드다.
+      wait-timeout: ${APPLY_ADMISSION_WAIT_TIMEOUT:0s}
+
 api:
   secret: ${API_TEST_SECRET}
