@@ -66,7 +66,7 @@ public class MeetingDemand extends BaseTimeEntity {
 	@Type(JsonBinaryType.class)
 	private List<MeetingKeywordType> meetingKeywordTypes;
 
-	@Column(nullable = false, columnDefinition = "jsonb")
+	@Column(columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
 	private MeetingJoinInfo joinInfo;
 

@@ -4,6 +4,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.INVALID_MEE
 
 import java.util.List;
 
+import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.user.User;
@@ -22,8 +23,16 @@ public class MeetingDemandFactory {
 			.shortIntro(requestBody.getShortIntro())
 			.expectation(requestBody.getExpectation())
 			.meetingKeywordTypes(toMeetingKeywordTypes(requestBody.getMeetingKeywordTypes()))
-			.joinInfo(requestBody.getJoinInfo())
+			.joinInfo(toMeetingJoinInfo(requestBody.getJoinInfo()))
 			.build();
+	}
+
+	private MeetingJoinInfo toMeetingJoinInfo(MeetingJoinInfo joinInfo) {
+		if (joinInfo == null || joinInfo.isEmpty()) {
+			return null;
+		}
+
+		return joinInfo;
 	}
 
 	private List<MeetingKeywordType> toMeetingKeywordTypes(List<String> values) {

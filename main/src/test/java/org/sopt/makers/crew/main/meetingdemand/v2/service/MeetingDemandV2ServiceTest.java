@@ -176,6 +176,79 @@ class MeetingDemandV2ServiceTest {
 			assertThat(savedMeetingDemand.getWaitCount()).isZero();
 			assertThat(savedMeetingDemand.getCommentCount()).isZero();
 		}
+
+		@Test
+		@DisplayName("참여 정보 없이 모임 수요를 생성한다.")
+		void createMeetingDemand_withoutJoinInfo_success() {
+			MeetingDemandV2CreateMeetingDemandBodyDto requestBody = new MeetingDemandV2CreateMeetingDemandBodyDto(
+				"러닝 모임 열어주세요",
+				"같이 꾸준히 달릴 수 있는 모임이 있으면 좋겠어요.",
+				List.of("운동", "네트워킹"),
+				null
+			);
+			given(userRepository.findByIdOrThrow(WRITER_ID)).willReturn(writer);
+			given(meetingDemandRepository.save(any(MeetingDemand.class))).willAnswer(invocation -> {
+				MeetingDemand savedMeetingDemand = invocation.getArgument(0);
+				setField(savedMeetingDemand, "id", MEETING_DEMAND_ID);
+				return savedMeetingDemand;
+			});
+
+			MeetingDemandV2CreateMeetingDemandResponseDto response = meetingDemandV2Service.createMeetingDemand(
+				requestBody, WRITER_ID);
+
+			ArgumentCaptor<MeetingDemand> captor = ArgumentCaptor.forClass(MeetingDemand.class);
+			verify(meetingDemandRepository).save(captor.capture());
+
+			assertThat(response.getMeetingDemandId()).isEqualTo(MEETING_DEMAND_ID);
+			assertThat(captor.getValue().getJoinInfo()).isNull();
+		}
+
+		@Test
+		@DisplayName("빈 참여 정보 객체는 저장하지 않는다.")
+		void createMeetingDemand_convertsEmptyJoinInfoToNull() {
+			MeetingDemandV2CreateMeetingDemandBodyDto requestBody = new MeetingDemandV2CreateMeetingDemandBodyDto(
+				"러닝 모임 열어주세요",
+				"같이 꾸준히 달릴 수 있는 모임이 있으면 좋겠어요.",
+				List.of("운동", "네트워킹"),
+				new MeetingJoinInfo(null, null)
+			);
+			given(userRepository.findByIdOrThrow(WRITER_ID)).willReturn(writer);
+			given(meetingDemandRepository.save(any(MeetingDemand.class))).willAnswer(invocation -> {
+				MeetingDemand savedMeetingDemand = invocation.getArgument(0);
+				setField(savedMeetingDemand, "id", MEETING_DEMAND_ID);
+				return savedMeetingDemand;
+			});
+
+			meetingDemandV2Service.createMeetingDemand(requestBody, WRITER_ID);
+
+			ArgumentCaptor<MeetingDemand> captor = ArgumentCaptor.forClass(MeetingDemand.class);
+			verify(meetingDemandRepository).save(captor.capture());
+			assertThat(captor.getValue().getJoinInfo()).isNull();
+		}
+
+		@Test
+		@DisplayName("참여 방식 또는 참여 강도만 선택해도 모임 수요를 생성한다.")
+		void createMeetingDemand_withPartialJoinInfo_success() {
+			MeetingJoinInfo joinInfo = new MeetingJoinInfo(MeetingType.ONLINE, null);
+			MeetingDemandV2CreateMeetingDemandBodyDto requestBody = new MeetingDemandV2CreateMeetingDemandBodyDto(
+				"러닝 모임 열어주세요",
+				"같이 꾸준히 달릴 수 있는 모임이 있으면 좋겠어요.",
+				List.of("운동", "네트워킹"),
+				joinInfo
+			);
+			given(userRepository.findByIdOrThrow(WRITER_ID)).willReturn(writer);
+			given(meetingDemandRepository.save(any(MeetingDemand.class))).willAnswer(invocation -> {
+				MeetingDemand savedMeetingDemand = invocation.getArgument(0);
+				setField(savedMeetingDemand, "id", MEETING_DEMAND_ID);
+				return savedMeetingDemand;
+			});
+
+			meetingDemandV2Service.createMeetingDemand(requestBody, WRITER_ID);
+
+			ArgumentCaptor<MeetingDemand> captor = ArgumentCaptor.forClass(MeetingDemand.class);
+			verify(meetingDemandRepository).save(captor.capture());
+			assertThat(captor.getValue().getJoinInfo()).isEqualTo(joinInfo);
+		}
 	}
 
 	@Nested

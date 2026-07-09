@@ -23,6 +23,10 @@ public class MumuPostHomeResponseDto {
 	@NotNull
 	private Boolean hasWrittenTodayMumuPost;
 
+	@Schema(description = "내 모임 피드 카드 노출 여부", example = "true")
+	@NotNull
+	private Boolean hasMumuPostHomeFeed;
+
 	@Schema(description = "오늘의 무무 멘트", example = "true")
 	@NotNull
 	private String mumuText;
@@ -35,6 +39,7 @@ public class MumuPostHomeResponseDto {
 		return MumuPostHomeResponseDto.builder()
 			.isEmptyAppliedMeeting(true)
 			.hasWrittenTodayMumuPost(false)
+			.hasMumuPostHomeFeed(false)
 			.mumuText(mumuText)
 			.mumuPostHomeDtos(List.of())
 			.build();
@@ -46,6 +51,7 @@ public class MumuPostHomeResponseDto {
 			.builder()
 			.isEmptyAppliedMeeting(false)
 			.hasWrittenTodayMumuPost(false)
+			.hasMumuPostHomeFeed(!mumuPostHomeDtos.isEmpty())
 			.mumuText(mumuText)
 			.mumuPostHomeDtos(mumuPostHomeDtos)
 			.build();
@@ -55,6 +61,18 @@ public class MumuPostHomeResponseDto {
 		return MumuPostHomeResponseDto.builder()
 			.isEmptyAppliedMeeting(false)
 			.hasWrittenTodayMumuPost(true)
+			.hasMumuPostHomeFeed(!mumuPostHomeDtos.isEmpty())
+			.mumuText(mumuText)
+			.mumuPostHomeDtos(mumuPostHomeDtos)
+			.build();
+	}
+
+	public static MumuPostHomeResponseDto of(Boolean isEmptyAppliedMeeting, Boolean hasWrittenTodayMumuPost,
+		List<MumuPostHomeDto> mumuPostHomeDtos, String mumuText) {
+		return MumuPostHomeResponseDto.builder()
+			.isEmptyAppliedMeeting(isEmptyAppliedMeeting)
+			.hasWrittenTodayMumuPost(hasWrittenTodayMumuPost)
+			.hasMumuPostHomeFeed(!mumuPostHomeDtos.isEmpty())
 			.mumuText(mumuText)
 			.mumuPostHomeDtos(mumuPostHomeDtos)
 			.build();

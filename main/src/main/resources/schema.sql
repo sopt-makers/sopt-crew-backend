@@ -4,6 +4,7 @@ drop table if exists "comment" cascade;
 drop table if exists "like" cascade;
 drop table if exists "tag" cascade;
 drop table if exists "flash" cascade;
+drop table if exists "mumu_post_write_history" cascade;
 drop table if exists "post" cascade;
 drop table if exists "meeting_demand_comment_like" cascade;
 drop table if exists "meeting_demand_comment_profile" cascade;
@@ -57,7 +58,7 @@ create table if not exists meeting_demand
     "anonymousNickname"   varchar(30)          not null,
     "anonymousImageNumber" integer             not null,
     "meetingKeywordTypes" jsonb                not null,
-    "joinInfo"            jsonb                not null,
+    "joinInfo"            jsonb,
     "waitCount"           integer              not null default 0,
     "commentCount"        integer              not null default 0,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
@@ -371,6 +372,24 @@ create table if not exists mumu_text
     "createdTimestamp" timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP
 );
+
+create table if not exists mumu_post_write_history
+(
+    id                  serial
+    primary key,
+    "userId"            integer not null
+    constraint fk_mumu_post_write_history_user
+    references "user"
+    on delete cascade,
+    "writtenDate"       date    not null,
+    "createdTimestamp"  timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP,
+    constraint "UQ_mumu_post_write_history_user_written_date"
+    unique ("userId", "writtenDate")
+);
+
+create index if not exists "mumu_post_write_history_user_written_date_index"
+    on mumu_post_write_history ("userId", "writtenDate");
 
 create table if not exists comment
 (
