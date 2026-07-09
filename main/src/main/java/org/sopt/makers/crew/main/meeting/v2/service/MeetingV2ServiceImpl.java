@@ -43,6 +43,7 @@ import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
@@ -235,6 +236,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (requestBody.getFiles().isEmpty() || requestBody.getJoinableParts().length == ZERO) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
+		validateRequiredMeetingJoinInfo(requestBody.getJoinInfo());
 
 		MeetingDemand meetingDemand = findMeetingDemandIfRequested(requestBody.getMeetingDemandId());
 		Meeting meeting = meetingMapper.toMeetingEntity(requestBody,
@@ -272,6 +274,18 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		return meetingDemandRepository.findByIdOrThrow(meetingDemandId);
+	}
+
+	private void validateRequiredMeetingJoinInfo(MeetingJoinInfo joinInfo) {
+		if (joinInfo == null || joinInfo.hasMissingValue()) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+	}
+
+	private void validateOptionalMeetingJoinInfo(MeetingJoinInfo joinInfo) {
+		if (joinInfo != null && joinInfo.hasMissingValue()) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
 	}
 
 	private void publishMeetingEvent(MeetingV2CreateMeetingBodyDto requestBody, Meeting meeting) {
@@ -513,6 +527,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		meeting.validateMeetingCreator(userId);
+
+		validateOptionalMeetingJoinInfo(requestBody.getJoinInfo());
 
 		if (requestBody.getCoLeaderUserIds() != null) {
 			updateCoLeaders(requestBody.getCoLeaderUserIds(), meeting);

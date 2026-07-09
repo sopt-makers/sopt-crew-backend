@@ -55,7 +55,6 @@ public class MeetingDemandV2GetMeetingDemandResponseDto {
 	private List<String> meetingKeywordTypes;
 
 	@Schema(description = "참여 정보")
-	@NotNull
 	private MeetingJoinInfo joinInfo;
 
 	@Schema(description = "기다려요 수", example = "10")

@@ -39,6 +39,5 @@ public class MeetingDemandV2CreateMeetingDemandBodyDto {
 		  "meetingFrequency": "가볍게"
 		}
 		""", description = "참여 정보")
-	@NotNull
 	private MeetingJoinInfo joinInfo;
 }

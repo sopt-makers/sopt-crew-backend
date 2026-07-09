@@ -58,7 +58,7 @@ create table if not exists meeting_demand
     "anonymousNickname"   varchar(30)          not null,
     "anonymousImageNumber" integer             not null,
     "meetingKeywordTypes" jsonb                not null,
-    "joinInfo"            jsonb                not null,
+    "joinInfo"            jsonb,
     "waitCount"           integer              not null default 0,
     "commentCount"        integer              not null default 0,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
