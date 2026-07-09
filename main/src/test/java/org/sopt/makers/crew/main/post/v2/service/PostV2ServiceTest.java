@@ -306,7 +306,7 @@ public class PostV2ServiceTest {
 		}
 
 		@Test
-		@DisplayName("오늘 무무 피드 작성 후 삭제해도 작성 여부는 유지된다")
+		@DisplayName("오늘 무무 피드 작성 후 삭제해도 작성 여부는 유지")
 		void 오늘_무무_피드_작성_후_삭제한_경우() {
 			Integer userId = 1;
 
