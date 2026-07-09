@@ -34,6 +34,7 @@ class MeetingDemandOpenedNotificationServiceTest {
 	private static final int MEETING_ID = 20;
 	private static final int MEETING_DEMAND_ID = 10;
 	private static final LocalDateTime NOW = LocalDateTime.of(2026, 7, 7, 12, 0);
+	private static final LocalDateTime LATE_NIGHT = LocalDateTime.of(2026, 7, 7, 23, 0);
 
 	@Mock
 	private MeetingDemandOpenedNotificationRepository meetingDemandOpenedNotificationRepository;
@@ -63,19 +64,11 @@ class MeetingDemandOpenedNotificationServiceTest {
 			time
 		);
 
-		User meetingLeader = UserFixture.createUser(2, "기획", 36);
-		meeting = Meeting.builder()
-			.user(meetingLeader)
-			.meetingDemandId(MEETING_DEMAND_ID)
-			.startDate(NOW.minusHours(1))
-			.endDate(NOW.plusHours(1))
-			.createdGeneration(36)
-			.build();
-		setField(meeting, "id", MEETING_ID);
+		meeting = createApplyAbleMeeting(NOW);
 	}
 
 	@Test
-	@DisplayName("수요 기반 모임이 신청 가능 시간대에 생성되면 알림 이력을 만들고 즉시 발송 이벤트를 예약한다.")
+	@DisplayName("수요 기반 모임이 신청 가능 상태로 생성되면 알림 이력을 만들고 즉시 발송 이벤트를 발행한다.")
 	void register_applyAbleMeetingPublishesNotificationEvent() {
 		MeetingDemandOpenedNotification notification = MeetingDemandOpenedNotification.builder()
 			.meetingId(MEETING_ID)
@@ -88,6 +81,26 @@ class MeetingDemandOpenedNotificationServiceTest {
 		meetingDemandOpenedNotificationService.register(meeting);
 
 		verify(meetingDemandOpenedNotificationRepository).save(any(MeetingDemandOpenedNotification.class));
+		ArgumentCaptor<MeetingDemandOpenedNotificationEvent> captor = ArgumentCaptor.forClass(
+			MeetingDemandOpenedNotificationEvent.class);
+		verify(eventPublisher).publishEvent(captor.capture());
+		assertThat(captor.getValue().meetingId()).isEqualTo(MEETING_ID);
+	}
+
+	@Test
+	@DisplayName("수요 기반 모임이 22시 이후 신청 가능 상태로 생성되어도 즉시 발송 이벤트를 발행한다.")
+	void register_applyAbleMeetingAfterQuietHoursPublishesNotificationEvent() {
+		Meeting lateNightMeeting = createApplyAbleMeeting(LATE_NIGHT);
+		MeetingDemandOpenedNotification notification = MeetingDemandOpenedNotification.builder()
+			.meetingId(MEETING_ID)
+			.build();
+		given(time.now()).willReturn(LATE_NIGHT);
+		given(meetingDemandOpenedNotificationRepository.findByMeetingId(MEETING_ID)).willReturn(Optional.empty());
+		given(meetingDemandOpenedNotificationRepository.save(any(MeetingDemandOpenedNotification.class)))
+			.willReturn(notification);
+
+		meetingDemandOpenedNotificationService.register(lateNightMeeting);
+
 		ArgumentCaptor<MeetingDemandOpenedNotificationEvent> captor = ArgumentCaptor.forClass(
 			MeetingDemandOpenedNotificationEvent.class);
 		verify(eventPublisher).publishEvent(captor.capture());
@@ -152,6 +165,24 @@ class MeetingDemandOpenedNotificationServiceTest {
 	}
 
 	@Test
+	@DisplayName("22시 이후에도 pending 알림은 푸시 발송 후 sentAt을 기록한다.")
+	void sendNotification_afterQuietHoursSendsPushAndMarksSent() {
+		Meeting lateNightMeeting = createApplyAbleMeeting(LATE_NIGHT);
+		MeetingDemandOpenedNotification notification = MeetingDemandOpenedNotification.builder()
+			.meetingId(MEETING_ID)
+			.build();
+		given(time.now()).willReturn(LATE_NIGHT);
+		given(meetingDemandOpenedNotificationRepository.findByMeetingId(MEETING_ID))
+			.willReturn(Optional.of(notification));
+		given(meetingRepository.findByIdOrThrow(MEETING_ID)).willReturn(lateNightMeeting);
+
+		meetingDemandOpenedNotificationService.sendNotification(MEETING_ID);
+
+		verify(meetingDemandNotificationSender).sendOpenedMeetingNotification(lateNightMeeting);
+		assertThat(notification.getSentAt()).isEqualTo(LATE_NIGHT);
+	}
+
+	@Test
 	@DisplayName("스케줄러용 pending 발송은 신청 가능한 미발송 알림만 처리한다.")
 	void sendPendingNotifications_sendsApplyAblePendingNotifications() {
 		MeetingDemandOpenedNotification notification = MeetingDemandOpenedNotification.builder()
@@ -168,5 +199,39 @@ class MeetingDemandOpenedNotificationServiceTest {
 
 		verify(meetingDemandNotificationSender).sendOpenedMeetingNotification(meeting);
 		assertThat(notification.getSentAt()).isEqualTo(NOW);
+	}
+
+	@Test
+	@DisplayName("스케줄러용 pending 발송은 22시 이후에도 신청 가능한 미발송 알림을 처리한다.")
+	void sendPendingNotifications_afterQuietHoursSendsApplyAblePendingNotifications() {
+		Meeting lateNightMeeting = createApplyAbleMeeting(LATE_NIGHT);
+		MeetingDemandOpenedNotification notification = MeetingDemandOpenedNotification.builder()
+			.meetingId(MEETING_ID)
+			.build();
+		given(time.now()).willReturn(LATE_NIGHT);
+		given(meetingDemandOpenedNotificationRepository.findAllUnsentApplyAble(LATE_NIGHT))
+			.willReturn(List.of(notification));
+		given(meetingDemandOpenedNotificationRepository.findByMeetingId(MEETING_ID))
+			.willReturn(Optional.of(notification));
+		given(meetingRepository.findByIdOrThrow(MEETING_ID)).willReturn(lateNightMeeting);
+
+		meetingDemandOpenedNotificationService.sendPendingNotifications();
+
+		verify(meetingDemandNotificationSender).sendOpenedMeetingNotification(lateNightMeeting);
+		assertThat(notification.getSentAt()).isEqualTo(LATE_NIGHT);
+	}
+
+	private Meeting createApplyAbleMeeting(LocalDateTime now) {
+		User meetingLeader = UserFixture.createUser(2, "기획", 36);
+		Meeting applyAbleMeeting = Meeting.builder()
+			.user(meetingLeader)
+			.meetingDemandId(MEETING_DEMAND_ID)
+			.startDate(now.minusHours(1))
+			.endDate(now.plusHours(1))
+			.createdGeneration(36)
+			.build();
+		setField(applyAbleMeeting, "id", MEETING_ID);
+
+		return applyAbleMeeting;
 	}
 }

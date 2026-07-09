@@ -7,7 +7,6 @@ import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.EnMeetingStatus;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandOpenedNotification;
 import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandOpenedNotificationRepository;
-import org.sopt.makers.crew.main.external.notification.event.NotificationTimeValidator;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.meetingdemand.v2.dto.event.MeetingDemandOpenedNotificationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,8 +39,7 @@ public class MeetingDemandOpenedNotificationService {
 
 		MeetingDemandOpenedNotification notification = findOrCreate(meeting.getId());
 		if (!notification.isSent()
-			&& EnMeetingStatus.APPLY_ABLE.equals(meetingStatus)
-			&& NotificationTimeValidator.isPublishedTime(now)) {
+			&& EnMeetingStatus.APPLY_ABLE.equals(meetingStatus)) {
 			eventPublisher.publishEvent(new MeetingDemandOpenedNotificationEvent(meeting.getId()));
 		}
 	}
@@ -49,9 +47,6 @@ public class MeetingDemandOpenedNotificationService {
 	@Transactional
 	public void sendNotification(Integer meetingId) {
 		LocalDateTime now = time.now();
-		if (!NotificationTimeValidator.isPublishedTime(now)) {
-			return;
-		}
 
 		MeetingDemandOpenedNotification notification = meetingDemandOpenedNotificationRepository
 			.findByMeetingId(meetingId)
@@ -72,9 +67,6 @@ public class MeetingDemandOpenedNotificationService {
 	@Transactional
 	public void sendPendingNotifications() {
 		LocalDateTime now = time.now();
-		if (!NotificationTimeValidator.isPublishedTime(now)) {
-			return;
-		}
 
 		meetingDemandOpenedNotificationRepository.findAllUnsentApplyAble(now)
 			.forEach(notification -> sendNotification(notification.getMeetingId()));
