@@ -21,6 +21,8 @@ import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.post.MumuTextResolver;
+import org.sopt.makers.crew.main.entity.post.MumuPostWriteHistory;
+import org.sopt.makers.crew.main.entity.post.MumuPostWriteHistoryRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostCategory;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
@@ -75,6 +77,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 	private final LikeRepository likeRepository;
 	private final ReportRepository reportRepository;
 	private final CoLeaderRepository coLeaderRepository;
+	private final MumuPostWriteHistoryRepository mumuPostWriteHistoryRepository;
 
 	private final PushNotificationService pushNotificationService;
 	private final MemberBlockService memberBlockService;
@@ -109,17 +112,20 @@ public class PostV2ServiceImpl implements PostV2Service {
 			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
 		}
 
+		PostCategory postCategory = Objects.isNull(requestBody.getPostCategory()) ? PostCategory.NORMAL
+			: requestBody.getPostCategory();
+
 		Post post = Post.builder()
 			.title(requestBody.getTitle())
 			.user(user)
 			.contents(requestBody.getContents())
 			.images(requestBody.getImages())
 			.meeting(meeting)
-			.category(
-				Objects.isNull(requestBody.getPostCategory()) ? PostCategory.NORMAL : requestBody.getPostCategory())
+			.category(postCategory)
 			.build();
 
 		Post savedPost = postRepository.save(post);
+		saveMumuPostWriteHistoryIfNeeded(userId, postCategory);
 
 		List<String> userIdList = applyRepository.findAllByMeetingIdAndStatus(meeting.getId(), EnApplyStatus.APPROVE)
 			.stream()
@@ -338,27 +344,40 @@ public class PostV2ServiceImpl implements PostV2Service {
 
 		String text = extractMumuText();
 
+		boolean hasWrittenTodayMumuPost = mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(userId,
+			LocalDate.now());
+
 		List<Integer> relatedMeetingIds = userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId);
 
 		if (relatedMeetingIds.isEmpty()) {
-			return MumuPostHomeResponseDto.emptyAppliedMeeting(text);
+			return MumuPostHomeResponseDto.of(true, hasWrittenTodayMumuPost, List.of(), text);
 		}
-
-		boolean existedTodayMumuPost = postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(userId,
-			PostCategory.MUMU, LocalDate.now().atStartOfDay());
 
 		List<MumuPostHomeDto> findPostsByMeetingIdsExceptSelf = postRepository
 			.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(relatedMeetingIds, userId);
 
-		if (!existedTodayMumuPost) {
-			return MumuPostHomeResponseDto.notWrittenTodayMumuPost(findPostsByMeetingIdsExceptSelf, text);
-		}
-
-		return MumuPostHomeResponseDto.from(findPostsByMeetingIdsExceptSelf, text);
+		return MumuPostHomeResponseDto.of(false, hasWrittenTodayMumuPost, findPostsByMeetingIdsExceptSelf, text);
 	}
 
 	public String extractMumuText() {
 		return mumuTextResolver.resolveMumuText(LocalDateTime.now()).getText();
+	}
+
+	private void saveMumuPostWriteHistoryIfNeeded(Integer userId, PostCategory postCategory) {
+		if (postCategory != PostCategory.MUMU) {
+			return;
+		}
+
+		LocalDate today = LocalDate.now();
+		if (mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(userId, today)) {
+			return;
+		}
+
+		MumuPostWriteHistory history = MumuPostWriteHistory.builder()
+			.userId(userId)
+			.writtenDate(today)
+			.build();
+		mumuPostWriteHistoryRepository.save(history);
 	}
 
 	private PostDetailResponseDto toPostDetailResponseDto(PostDetailResponseDto postDetail,

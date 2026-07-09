@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
@@ -24,10 +25,10 @@ import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.post.MumuPostWriteHistoryRepository;
 import org.sopt.makers.crew.main.entity.post.MumuText;
 import org.sopt.makers.crew.main.entity.post.MumuTextResolver;
 import org.sopt.makers.crew.main.entity.post.Post;
-import org.sopt.makers.crew.main.entity.post.PostCategory;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
@@ -57,6 +58,8 @@ public class PostV2ServiceTest {
 	private LikeRepository likeRepository;
 	@Mock
 	private ApplyRepository applyRepository;
+	@Mock
+	private MumuPostWriteHistoryRepository mumuPostWriteHistoryRepository;
 	@Mock
 	private MumuTextResolver mumuTextResolver;
 	@Mock
@@ -225,11 +228,12 @@ public class PostV2ServiceTest {
 			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
 
 			//then
-			verify(postRepository, never()).existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class));
+			verify(postRepository, never()).findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(anyList(), eq(userId));
 			Assertions.assertThat(mumuPostHomeResponseDto).isNotNull();
 			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
 			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isTrue();
 			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasMumuPostHomeFeed()).isFalse();
 		}
 
 		/**
@@ -247,7 +251,8 @@ public class PostV2ServiceTest {
 			//given
 			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
 			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of(100));
-			when(postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class))).thenReturn(false);
+			when(mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(eq(userId), any(LocalDate.class)))
+				.thenReturn(false);
 			when(postRepository.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List.of(100), userId))
 				.thenReturn(List.of(latestPost, oldPost));
 
@@ -260,6 +265,7 @@ public class PostV2ServiceTest {
 			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
 			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isFalse();
 			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasMumuPostHomeFeed()).isTrue();
 			Assertions.assertThat(mumuPostHomeResponseDto.getMumuPostHomeDtos())
 				.extracting("postId")
 				.containsExactly(2, 1);
@@ -280,7 +286,8 @@ public class PostV2ServiceTest {
 			//given
 			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
 			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of(100));
-			when(postRepository.existsByUserIdAndCategoryAndCreatedDateGreaterThanEqual(eq(userId), eq(PostCategory.MUMU), any(LocalDateTime.class))).thenReturn(true);
+			when(mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(eq(userId), any(LocalDate.class)))
+				.thenReturn(true);
 			when(postRepository.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List.of(100), userId))
 				.thenReturn(List.of(latestPost, oldPost));
 
@@ -292,9 +299,32 @@ public class PostV2ServiceTest {
 			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
 			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isFalse();
 			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isTrue();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasMumuPostHomeFeed()).isTrue();
 			Assertions.assertThat(mumuPostHomeResponseDto.getMumuPostHomeDtos())
 				.extracting("postId")
 				.containsExactly(2, 1);
+		}
+
+		@Test
+		@DisplayName("오늘 무무 피드 작성 후 삭제해도 작성 여부는 유지된다")
+		void 오늘_무무_피드_작성_후_삭제한_경우() {
+			Integer userId = 1;
+
+			//given
+			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
+			when(mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(eq(userId), any(LocalDate.class)))
+				.thenReturn(true);
+			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of(100));
+			when(postRepository.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List.of(100), userId))
+				.thenReturn(List.of());
+
+			//when
+			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
+
+			//then
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isTrue();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasMumuPostHomeFeed()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuPostHomeDtos()).isEmpty();
 		}
 
 	}
