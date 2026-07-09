@@ -42,11 +42,16 @@ public class MeetingDemandCommentProfile extends BaseTimeEntity {
 	private Integer anonymousImageNumber;
 
 	@Builder
-	public MeetingDemandCommentProfile(Integer meetingDemandId, Integer userId) {
+	public MeetingDemandCommentProfile(Integer meetingDemandId, Integer userId, String anonymousNickname,
+		Integer anonymousImageNumber) {
 		this.meetingDemandId = meetingDemandId;
 		this.userId = userId;
-		this.anonymousNickname = MeetingDemandAnonymousProfile.generateNickname();
-		this.anonymousImageNumber = MeetingDemandAnonymousProfile.generateImageNumber();
+		this.anonymousNickname = anonymousNickname != null
+			? anonymousNickname
+			: MeetingDemandAnonymousProfile.generateNickname();
+		this.anonymousImageNumber = anonymousImageNumber != null
+			? anonymousImageNumber
+			: MeetingDemandAnonymousProfile.generateImageNumber();
 	}
 
 	public String getAnonymousImageUrl() {

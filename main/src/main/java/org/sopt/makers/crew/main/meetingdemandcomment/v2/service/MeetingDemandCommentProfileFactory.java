@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandRepository;
 import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandComment;
 import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentProfile;
 import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandCommentProfileRepository;
@@ -19,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class MeetingDemandCommentProfileFactory {
 
 	private final MeetingDemandCommentProfileRepository meetingDemandCommentProfileRepository;
+	private final MeetingDemandRepository meetingDemandRepository;
 
 	public MeetingDemandCommentProfile findOrCreate(Integer meetingDemandId, Integer userId) {
 		return meetingDemandCommentProfileRepository.findByMeetingDemandIdAndUserId(meetingDemandId, userId)
@@ -27,14 +30,33 @@ public class MeetingDemandCommentProfileFactory {
 
 	private MeetingDemandCommentProfile createProfile(Integer meetingDemandId, Integer userId) {
 		try {
+			MeetingDemand meetingDemand = meetingDemandRepository.findByIdOrThrow(meetingDemandId);
 			return meetingDemandCommentProfileRepository.saveAndFlush(MeetingDemandCommentProfile.builder()
 				.meetingDemandId(meetingDemandId)
 				.userId(userId)
+				.anonymousNickname(getAnonymousNickname(meetingDemand, userId))
+				.anonymousImageNumber(getAnonymousImageNumber(meetingDemand, userId))
 				.build());
 		} catch (DataIntegrityViolationException exception) {
 			return meetingDemandCommentProfileRepository.findByMeetingDemandIdAndUserId(meetingDemandId, userId)
 				.orElseThrow(() -> exception);
 		}
+	}
+
+	private String getAnonymousNickname(MeetingDemand meetingDemand, Integer userId) {
+		if (!meetingDemand.isWriter(userId)) {
+			return null;
+		}
+
+		return meetingDemand.getAnonymousNickname();
+	}
+
+	private Integer getAnonymousImageNumber(MeetingDemand meetingDemand, Integer userId) {
+		if (!meetingDemand.isWriter(userId)) {
+			return null;
+		}
+
+		return meetingDemand.getAnonymousImageNumber();
 	}
 
 	public Map<Integer, MeetingDemandCommentProfile> createProfileMap(Integer meetingDemandId,
