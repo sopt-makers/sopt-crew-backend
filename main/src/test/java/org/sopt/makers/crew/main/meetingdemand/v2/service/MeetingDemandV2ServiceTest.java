@@ -263,21 +263,22 @@ class MeetingDemandV2ServiceTest {
 			meetingDemandV2Service.deleteMeetingDemand(MEETING_DEMAND_ID, WRITER_ID);
 
 			verify(meetingDemandWaitRepository).deleteAllByMeetingDemandId(MEETING_DEMAND_ID);
+			verify(meetingRepository).clearMeetingDemandId(MEETING_DEMAND_ID);
 			verify(meetingDemandRepository).delete(meetingDemand);
 		}
 
 		@Test
-		@DisplayName("개설 완료된 모임 수요는 삭제할 수 없다.")
-		void deleteMeetingDemand_rejectsOpenedDemand() {
+		@DisplayName("작성자가 개설 완료된 모임 수요를 삭제하면 기다려요 기록도 함께 삭제한다.")
+		void deleteMeetingDemand_openedDemand_success() {
 			meetingDemand.open();
 			given(meetingDemandRepository.findByIdWithPessimisticWriteLockOrThrow(MEETING_DEMAND_ID))
 				.willReturn(meetingDemand);
 
-			assertThatThrownBy(() -> meetingDemandV2Service.deleteMeetingDemand(MEETING_DEMAND_ID, WRITER_ID))
-				.isInstanceOf(BadRequestException.class);
+			meetingDemandV2Service.deleteMeetingDemand(MEETING_DEMAND_ID, WRITER_ID);
 
-			verify(meetingDemandWaitRepository, never()).deleteAllByMeetingDemandId(any());
-			verify(meetingDemandRepository, never()).delete(any());
+			verify(meetingDemandWaitRepository).deleteAllByMeetingDemandId(MEETING_DEMAND_ID);
+			verify(meetingRepository).clearMeetingDemandId(MEETING_DEMAND_ID);
+			verify(meetingDemandRepository).delete(meetingDemand);
 		}
 	}
 

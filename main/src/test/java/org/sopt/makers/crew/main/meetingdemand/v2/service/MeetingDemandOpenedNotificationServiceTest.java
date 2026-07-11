@@ -183,6 +183,30 @@ class MeetingDemandOpenedNotificationServiceTest {
 	}
 
 	@Test
+	@DisplayName("모임 수요 연결이 사라진 pending 알림은 발송하지 않는다.")
+	void sendNotification_skipsWhenMeetingDemandDeleted() {
+		Meeting meetingWithoutDemand = Meeting.builder()
+			.user(UserFixture.createUser(2, "기획", 36))
+			.meetingDemandId(null)
+			.startDate(NOW.minusHours(1))
+			.endDate(NOW.plusHours(1))
+			.createdGeneration(36)
+			.build();
+		MeetingDemandOpenedNotification notification = MeetingDemandOpenedNotification.builder()
+			.meetingId(MEETING_ID)
+			.build();
+		given(time.now()).willReturn(NOW);
+		given(meetingDemandOpenedNotificationRepository.findByMeetingId(MEETING_ID))
+			.willReturn(Optional.of(notification));
+		given(meetingRepository.findByIdOrThrow(MEETING_ID)).willReturn(meetingWithoutDemand);
+
+		meetingDemandOpenedNotificationService.sendNotification(MEETING_ID);
+
+		verify(meetingDemandNotificationSender, never()).sendOpenedMeetingNotification(any());
+		assertThat(notification.getSentAt()).isNull();
+	}
+
+	@Test
 	@DisplayName("스케줄러용 pending 발송은 신청 가능한 미발송 알림만 처리한다.")
 	void sendPendingNotifications_sendsApplyAblePendingNotifications() {
 		MeetingDemandOpenedNotification notification = MeetingDemandOpenedNotification.builder()

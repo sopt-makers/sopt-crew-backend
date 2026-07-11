@@ -56,6 +56,9 @@ public class MeetingDemandOpenedNotificationService {
 		}
 
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
+		if (meeting.getMeetingDemandId() == null) {
+			return;
+		}
 		if (!EnMeetingStatus.APPLY_ABLE.equals(meeting.getMeetingStatus(now))) {
 			return;
 		}

@@ -30,7 +30,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.OPENED_MEETING_DEMAND;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.WRITER_CANNOT_WAIT_MEETING_DEMAND;
 
 @Entity
@@ -113,12 +112,6 @@ public class MeetingDemand extends BaseTimeEntity {
 	public void validateNotWriter(Integer userId) {
 		if (isWriter(userId)) {
 			throw new BadRequestException(WRITER_CANNOT_WAIT_MEETING_DEMAND.getErrorCode());
-		}
-	}
-
-	public void validateBeforeOpen() {
-		if (MeetingDemandStatus.OPENED.equals(this.status)) {
-			throw new BadRequestException(OPENED_MEETING_DEMAND.getErrorCode());
 		}
 	}
 
