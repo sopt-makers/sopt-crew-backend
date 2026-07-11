@@ -135,9 +135,9 @@ public class MeetingDemandV2ServiceImpl implements MeetingDemandV2Service {
 		MeetingDemand meetingDemand = meetingDemandRepository.findByIdWithPessimisticWriteLockOrThrow(meetingDemandId);
 
 		meetingDemand.validateWriter(userId);
-		meetingDemand.validateBeforeOpen();
 
 		meetingDemandWaitRepository.deleteAllByMeetingDemandId(meetingDemandId);
+		meetingRepository.clearMeetingDemandId(meetingDemandId);
 		meetingDemandRepository.delete(meetingDemand);
 	}
 

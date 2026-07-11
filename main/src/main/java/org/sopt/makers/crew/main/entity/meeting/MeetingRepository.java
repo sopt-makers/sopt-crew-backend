@@ -9,7 +9,9 @@ import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface MeetingRepository extends JpaRepository<Meeting, Integer>, MeetingSearchRepository {
 
@@ -38,6 +40,10 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 	int countByMeetingDemandId(Integer meetingDemandId);
 
 	Page<Meeting> findAllByMeetingDemandId(Integer meetingDemandId, Pageable pageable);
+
+	@Modifying
+	@Query("UPDATE Meeting m SET m.meetingDemandId = NULL WHERE m.meetingDemandId = :meetingDemandId")
+	void clearMeetingDemandId(@Param("meetingDemandId") Integer meetingDemandId);
 
 	Optional<Meeting> findFirstByTitleOrderByIdDesc(String title);
 
