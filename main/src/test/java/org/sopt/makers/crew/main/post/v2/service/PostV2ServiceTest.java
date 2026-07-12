@@ -228,7 +228,8 @@ public class PostV2ServiceTest {
 			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
 
 			//then
-			verify(postRepository, never()).findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(anyList(), eq(userId));
+			verify(postRepository, never()).findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+				anyList(), eq(userId), any(LocalDateTime.class), any(LocalDateTime.class));
 			Assertions.assertThat(mumuPostHomeResponseDto).isNotNull();
 			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
 			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isTrue();
@@ -254,7 +255,8 @@ public class PostV2ServiceTest {
 			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
 
 			//then
-			verify(postRepository, never()).findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(anyList(), eq(userId));
+			verify(postRepository, never()).findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+				anyList(), eq(userId), any(LocalDateTime.class), any(LocalDateTime.class));
 			Assertions.assertThat(mumuPostHomeResponseDto).isNotNull();
 			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
 			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isFalse();
@@ -280,7 +282,8 @@ public class PostV2ServiceTest {
 			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of(100));
 			when(mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(eq(userId), any(LocalDate.class)))
 				.thenReturn(true);
-			when(postRepository.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List.of(100), userId))
+			when(postRepository.findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+				eq(List.of(100)), eq(userId), any(LocalDateTime.class), any(LocalDateTime.class)))
 				.thenReturn(List.of(latestPost, oldPost));
 
 			//when
@@ -307,7 +310,8 @@ public class PostV2ServiceTest {
 			when(mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(eq(userId), any(LocalDate.class)))
 				.thenReturn(true);
 			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of(100));
-			when(postRepository.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List.of(100), userId))
+			when(postRepository.findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+				eq(List.of(100)), eq(userId), any(LocalDateTime.class), any(LocalDateTime.class)))
 				.thenReturn(List.of());
 
 			//when
