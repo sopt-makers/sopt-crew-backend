@@ -22,6 +22,8 @@ public enum ErrorStatus {
 	ALREADY_APPLIED_MEETING("이미 지원한 모임입니다."),
 	ALREADY_REPORTED_COMMENT("이미 신고한 댓글입니다."),
 	ALREADY_REPORTED_POST("이미 신고한 게시글입니다."),
+	ALREADY_REPORTED_MEETING_DEMAND("이미 신고한 모임 수요입니다."),
+	ALREADY_REPORTED_MEETING_DEMAND_COMMENT("이미 신고한 모임 수요 댓글입니다."),
 	NOT_IN_APPLY_PERIOD("모임 지원 기간이 아닙니다."),
 	INVALID_MEETING_CATEGORY("유효하지 않은 모임 카테고리입니다."),
 	MISSING_GENERATION_PART("내 프로필에서 기수/파트 정보를 입력해주세요."),
@@ -34,6 +36,8 @@ public enum ErrorStatus {
 	CO_LEADER_CANNOT_APPLY("공동 모임장은 신청할 수 없습니다."),
 	LEADER_CANNOT_BE_CO_LEADER_APPLY("모임장은 공동 모임장이 될 수 없습니다."),
 	NOT_ALLOW_MEETING_APPLY("허용되지 않는 모임 신청입니다."),
+	OPENED_MEETING_DEMAND("이미 개설 완료된 모임 수요입니다."),
+	WRITER_CANNOT_WAIT_MEETING_DEMAND("본인이 작성한 모임 수요에는 기다려요를 누를 수 없습니다."),
 	IO_EXCEPTION("파일 입출력 오류가 발생했습니다."),
 	INVALID_WELCOME_MESSAGE_TYPE("유효하지 않은 환영 메시지 타입입니다."),
 	INVALID_MEETING_KEYWORD_TYPE("유효하지 않은 모임 키워드 타입입니다."),
@@ -80,6 +84,7 @@ public enum ErrorStatus {
 	NOT_FOUND_POST("존재하지 않는 게시글입니다."), // 예외 처리 NotFound로 수정 필요
 	NOT_FOUND_USER("존재하지 않는 유저입니다."), // 예외 처리 NotFound로 수정 필요
 	NOT_FOUND_COMMENT("존재하지 않는 댓글입니다."), // 예외 처리 NotFound로 수정 필요
+	NOT_FOUND_MEETING_DEMAND("존재하지 않는 모임 수요입니다."),
 	NOT_FOUND_FLASH("번쩍 모임이 없습니다."), // 예외 처리 NotFound로 수정 필요
 	NOT_FOUND_TAG("존재하지 않는 태그입니다."),
 	NOT_FOUND_PROPERTY_KEY("프로퍼티 키가 존재하지 않습니다 해당 키 :  "),

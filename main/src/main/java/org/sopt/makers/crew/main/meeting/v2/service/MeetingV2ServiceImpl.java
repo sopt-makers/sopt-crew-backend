@@ -43,6 +43,9 @@ import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.meeting.vo.MeetingJoinInfo;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemandRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.tag.TagRepository;
@@ -98,6 +101,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingBann
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingByIdResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
+import org.sopt.makers.crew.main.meetingdemand.v2.service.MeetingDemandOpenedNotificationService;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
@@ -126,6 +130,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final ApplyRepository applyRepository;
 	private final ApplyTestRepository applyTestRepository;
 	private final MeetingRepository meetingRepository;
+	private final MeetingDemandRepository meetingDemandRepository;
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
 	private final LikeRepository likeRepository;
@@ -148,6 +153,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final MeetingApplyValidator meetingApplyValidator;
 	private final MeetingParticipationFactory meetingParticipationFactory;
 	private final MeetingCoLeaderFactory meetingCoLeaderFactory;
+	private final MeetingDemandOpenedNotificationService meetingDemandOpenedNotificationService;
 
 	private final ImageSettingProperties imageSettingProperties;
 	private final ActiveGenerationProvider activeGenerationProvider;
@@ -210,8 +216,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			.collect(Collectors.toMap(post -> post.getMeeting().getId(), post -> post));
 
 		Applies applies = new Applies(applyRepository.findAllByMeetingIdIn(meetingIds));
+		Map<Integer, User> userMap = getUsersById(meetings.stream()
+			.map(Meeting::getUserId)
+			.toList());
 
-		return getResponseDto(meetings, postMap, applies);
+		return getResponseDto(meetings, postMap, applies, userMap);
 	}
 
 	@Override
@@ -227,13 +236,20 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (requestBody.getFiles().isEmpty() || requestBody.getJoinableParts().length == ZERO) {
 			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
 		}
+		validateRequiredMeetingJoinInfo(requestBody.getJoinInfo());
 
+		MeetingDemand meetingDemand = findMeetingDemandIfRequested(requestBody.getMeetingDemandId());
 		Meeting meeting = meetingMapper.toMeetingEntity(requestBody,
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()),
 			activeGenerationProvider.getActiveGeneration(), user,
 			user.getId());
 
+		if (meetingDemand != null) {
+			meetingDemand.open();
+		}
+
 		Meeting savedMeeting = meetingRepository.save(meeting);
+		meetingDemandOpenedNotificationService.register(savedMeeting);
 
 		List<Integer> coLeaderUserIds = requestBody.getCoLeaderUserIds();
 		if (coLeaderUserIds != null && !coLeaderUserIds.isEmpty()) {
@@ -250,6 +266,26 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		}
 
 		return MeetingV2CreateMeetingResponseDto.of(savedMeeting.getId(), tagResponseDto.tagId());
+	}
+
+	private MeetingDemand findMeetingDemandIfRequested(Integer meetingDemandId) {
+		if (meetingDemandId == null) {
+			return null;
+		}
+
+		return meetingDemandRepository.findByIdOrThrow(meetingDemandId);
+	}
+
+	private void validateRequiredMeetingJoinInfo(MeetingJoinInfo joinInfo) {
+		if (joinInfo == null || joinInfo.hasMissingValue()) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+	}
+
+	private void validateOptionalMeetingJoinInfo(MeetingJoinInfo joinInfo) {
+		if (joinInfo != null && joinInfo.hasMissingValue()) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
 	}
 
 	private void publishMeetingEvent(MeetingV2CreateMeetingBodyDto requestBody, Meeting meeting) {
@@ -408,11 +444,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
 			meetingIds);
+		Map<Integer, User> userMap = getUsersById(meetings.stream()
+			.map(Meeting::getUserId)
+			.toList());
 
 		List<MeetingResponseDto> meetingResponseDtos = meetings.stream()
 			.map(meeting -> MeetingResponseDto.of(
 				meeting,
-				meeting.getUser(),
+				userMap.get(meeting.getUserId()),
 				allApplies.getApprovedCount(meeting.getId()),
 				time.now(),
 				activeGenerationProvider.getActiveGeneration(),
@@ -488,6 +527,8 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		Integer userId) {
 		Meeting meeting = meetingRepository.findByIdOrThrow(meetingId);
 		meeting.validateMeetingCreator(userId);
+
+		validateOptionalMeetingJoinInfo(requestBody.getJoinInfo());
 
 		if (requestBody.getCoLeaderUserIds() != null) {
 			updateCoLeaders(requestBody.getCoLeaderUserIds(), meeting);
@@ -649,11 +690,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto = tagV2Service.getMeetingTagsByMeetingIds(
 			meetingIds);
+		Map<Integer, User> userMap = getUsersById(meetings.stream()
+			.map(Meeting::getUserId)
+			.toList());
 
 		List<MeetingResponseDto> meetingResponseDtos = meetings.stream()
 			.map(meeting -> MeetingResponseDto.of(
 				meeting,
-				meeting.getUser(),
+				userMap.get(meeting.getUserId()),
 				allApplies.getApprovedCount(meeting.getId()),
 				time.now(),
 				activeGenerationProvider.getActiveGeneration(),
@@ -792,11 +836,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	private List<MeetingV2GetMeetingBannerResponseDto> getResponseDto(List<Meeting> meetings,
-		Map<Integer, Post> postMap, Applies applies) {
+		Map<Integer, Post> postMap, Applies applies, Map<Integer, User> userMap) {
 		return meetings.stream()
 			.map(meeting -> {
 				MeetingV2GetMeetingBannerResponseUserDto meetingCreatorDto = MeetingV2GetMeetingBannerResponseUserDto.of(
-					meeting.getUser());
+					userMap.get(meeting.getUserId()));
 
 				LocalDateTime recentActivityDate = null;
 				if (postMap.containsKey(meeting.getId())) {
@@ -807,6 +851,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 					applies.getAppliedCount(meeting.getId()), applies.getApprovedCount(meeting.getId()),
 					meetingCreatorDto, time.now());
 			}).toList();
+	}
+
+	private Map<Integer, User> getUsersById(List<Integer> userIds) {
+		return userRepository.findAllById(userIds.stream()
+				.distinct()
+				.toList())
+			.stream()
+			.collect(Collectors.toMap(User::getId, user -> user));
 	}
 
 	private void deleteCsvFile(String filePath) {

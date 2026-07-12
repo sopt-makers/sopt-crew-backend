@@ -23,7 +23,6 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 	@Query("select a "
 		+ "from Apply a "
 		+ "join fetch a.meeting m "
-		+ "join fetch m.user u "
 		+ "where a.userId = :userId "
 		+ "ORDER BY a.id DESC ")
 	List<Apply> findAllByUserIdOrderByIdDesc(@Param("userId") Integer userId);
@@ -71,4 +70,6 @@ public interface ApplyRepository extends JpaRepository<Apply, Integer>, ApplySea
 		@Param("orgId") Integer orgId);
 
 	List<Apply> findByUser(User user);
+
+	long countAllByUser_IdAndStatus(Integer userId, EnApplyStatus status);
 }

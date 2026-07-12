@@ -4,6 +4,7 @@ import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
@@ -34,4 +35,8 @@ public interface PostV2Service {
 	PostV2ReportResponseDto reportPost(Integer postId, Integer userId);
 
 	PostV2SwitchPostLikeResponseDto switchPostLike(Integer postId, Integer userId);
+
+	MumuPostHomeResponseDto retrieveMumuHomeInfo(Integer userId);
+
+	String extractMumuText();
 }

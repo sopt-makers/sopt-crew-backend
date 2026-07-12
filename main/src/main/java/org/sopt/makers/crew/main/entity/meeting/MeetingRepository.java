@@ -6,8 +6,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface MeetingRepository extends JpaRepository<Meeting, Integer>, MeetingSearchRepository {
 
@@ -15,11 +19,11 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 
 	/**
 	 * @implSpec : 특정 유저가 모임장이거나 공동모임장인 모임을 최근에 만들어진 순으로 조회한다.
-	 * **/
+	 *
+	 **/
 	@Query("SELECT m "
 		+ "FROM Meeting m "
-		+ "JOIN fetch m.user "
-		+ "WHERE m.user.id =:userId "
+		+ "WHERE m.userId =:userId "
 		+ "OR m.id IN (:coLeaderMeetingIds)"
 		+ "ORDER BY m.id DESC ")
 	List<Meeting> findAllByUserIdOrIdInWithUser(Integer userId, List<Integer> coLeaderMeetingIds);
@@ -29,12 +33,21 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_MEETING.getErrorCode()));
 	}
 
-	@Query("SELECT m FROM Meeting m JOIN FETCH m.user ORDER BY m.id DESC LIMIT 20")
 	List<Meeting> findTop20ByOrderByIdDesc();
 
 	Integer countAllByCreatedGeneration(Integer generation);
 
+	int countByMeetingDemandId(Integer meetingDemandId);
+
+	Page<Meeting> findAllByMeetingDemandId(Integer meetingDemandId, Pageable pageable);
+
+	@Modifying
+	@Query("UPDATE Meeting m SET m.meetingDemandId = NULL WHERE m.meetingDemandId = :meetingDemandId")
+	void clearMeetingDemandId(@Param("meetingDemandId") Integer meetingDemandId);
+
 	Optional<Meeting> findFirstByTitleOrderByIdDesc(String title);
 
 	Optional<Meeting> findFirstByTitleContainingOrderByIdDesc(String title);
+
+	long countMeetingsByUserId(Integer userId);
 }

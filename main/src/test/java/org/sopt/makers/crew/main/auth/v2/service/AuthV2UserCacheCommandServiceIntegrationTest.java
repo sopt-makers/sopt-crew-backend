@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.sopt.makers.crew.main.external.CaffeineTestConfig;
-import org.sopt.makers.crew.main.external.caffeine.CaffeineConfig;
+import org.sopt.makers.crew.main.global.config.CacheConfig;
 import org.sopt.makers.crew.main.global.dto.OrgIdListDto;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(classes = AuthV2UserCacheCommandServiceImpl.class)
-@Import({CaffeineConfig.class, CaffeineTestConfig.class})
+@Import({CacheConfig.class, CaffeineTestConfig.class})
 @ActiveProfiles("test")
 class AuthV2UserCacheCommandServiceIntegrationTest {
 

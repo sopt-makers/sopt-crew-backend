@@ -16,7 +16,6 @@ import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
-import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.playground.service.MemberBlockService;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
@@ -49,7 +48,6 @@ public class InternalMeetingService {
 	private final Time time;
 	private final CoLeaderRepository coLeaderRepository;
 	private final ApplyRepository applyRepository;
-	private final UserRepository userRepository;
 
 	/**
 	 * [for. APP BE] 모일 리스트 페이지네이션 조회 (10개)
@@ -69,7 +67,7 @@ public class InternalMeetingService {
 
 		List<Long> userOrgIds = meetings.getContent()
 			.stream()
-			.map(meeting -> meeting.getUser().getId().longValue())
+			.map(meeting -> meeting.getUserId().longValue())
 			.toList();
 
 		Map<Long, Boolean> blockedUsers = memberBlockService.getBlockedUsers(orgId.longValue(), userOrgIds);

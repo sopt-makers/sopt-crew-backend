@@ -418,11 +418,30 @@
             padding: 8px 16px;
             cursor: pointer;
         }
+
+        .admin-nav {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 18px;
+        }
+
+        .admin-nav a {
+            background-color: #2f6fed;
+            border-radius: 4px;
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 9px 12px;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <h1>Crew Property 관리 페이지</h1>
+    <div class="admin-nav">
+        <a th:href="@{/admin/v2/{adminKey}/mumu-text(adminKey=${adminKey})}">무무씨 질문 관리</a>
+    </div>
 
     <div class="alert alert-success" th:if="${message}" th:text="${message}">
         Property가 성공적으로 업데이트되었습니다.
