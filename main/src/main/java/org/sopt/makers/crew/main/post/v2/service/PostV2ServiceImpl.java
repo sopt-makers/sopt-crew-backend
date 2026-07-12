@@ -353,6 +353,10 @@ public class PostV2ServiceImpl implements PostV2Service {
 			return MumuPostHomeResponseDto.of(true, hasWrittenTodayMumuPost, List.of(), text);
 		}
 
+		if (!hasWrittenTodayMumuPost) {
+			return MumuPostHomeResponseDto.of(false, false, List.of(), text);
+		}
+
 		List<MumuPostHomeDto> findPostsByMeetingIdsExceptSelf = postRepository
 			.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(relatedMeetingIds, userId);
 
