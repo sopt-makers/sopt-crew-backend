@@ -61,6 +61,7 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.20.6'
     testImplementation 'org.testcontainers:postgresql:1.20.6'
     testImplementation 'org.testcontainers:jdbc:1.20.6'
+    testImplementation 'org.instancio:instancio-junit:5.4.1'
 
     // Apache Commons Dependencies
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
