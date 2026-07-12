@@ -136,8 +136,8 @@ class MeetingDemandNotificationSenderTest {
 
 		PushNotificationRequestDto request = captor.getValue();
 		assertThat(request.getUserIds()).containsExactly("1");
-		assertThat(request.getTitle()).isEqualTo("내가 만든 모임 수요를 기다리는 사람이 생겼어요");
-		assertThat(request.getContent()).isEqualTo("수요에 관심을 보인 멤버가 있어요.");
+		assertThat(request.getTitle()).isEqualTo("내가 제안한 모임을 기다려요!");
+		assertThat(request.getContent()).isEqualTo("내 제안에 관심을 보인 멤버가 있어요.");
 		assertThat(request.getWebLink()).isEqualTo("https://crew.test/meeting-demand?id=10");
 	}
 }
