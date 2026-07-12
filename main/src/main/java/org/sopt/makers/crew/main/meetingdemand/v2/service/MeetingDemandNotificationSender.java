@@ -25,8 +25,8 @@ public class MeetingDemandNotificationSender {
 
 	private static final String MEETING_DEMAND_OPENED_TITLE = "기다리던 모임이 열렸어요";
 	private static final String MEETING_DEMAND_OPENED_CONTENT = "관심을 보였던 수요가 모임으로 개설됐어요.";
-	private static final String MEETING_DEMAND_WAIT_TITLE = "내가 만든 모임 수요를 기다리는 사람이 생겼어요";
-	private static final String MEETING_DEMAND_WAIT_CONTENT = "수요에 관심을 보인 멤버가 있어요.";
+	private static final String MEETING_DEMAND_WAIT_TITLE = "내가 제안한 모임을 기다려요!";
+	private static final String MEETING_DEMAND_WAIT_CONTENT = "내 제안에 관심을 보인 멤버가 있어요.";
 	private static final String MEETING_DETAIL_WEB_LINK_FORMAT = "%s/detail?id=%d";
 	private static final String MEETING_DEMAND_WEB_LINK_FORMAT = "%s/meeting-demand?id=%d";
 
