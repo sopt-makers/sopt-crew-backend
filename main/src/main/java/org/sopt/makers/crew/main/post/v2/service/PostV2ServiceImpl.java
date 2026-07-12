@@ -344,8 +344,8 @@ public class PostV2ServiceImpl implements PostV2Service {
 
 		String text = extractMumuText();
 
-		boolean hasWrittenTodayMumuPost = mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(userId,
-			LocalDate.now());
+		LocalDate today = LocalDate.now();
+		boolean hasWrittenTodayMumuPost = mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(userId, today);
 
 		List<Integer> relatedMeetingIds = userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId);
 
@@ -358,7 +358,12 @@ public class PostV2ServiceImpl implements PostV2Service {
 		}
 
 		List<MumuPostHomeDto> findPostsByMeetingIdsExceptSelf = postRepository
-			.findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(relatedMeetingIds, userId);
+			.findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+				relatedMeetingIds,
+				userId,
+				today.atStartOfDay(),
+				today.plusDays(1).atStartOfDay()
+			);
 
 		return MumuPostHomeResponseDto.of(false, hasWrittenTodayMumuPost, findPostsByMeetingIdsExceptSelf, text);
 	}

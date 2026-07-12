@@ -7,6 +7,7 @@ import static org.sopt.makers.crew.main.entity.post.QPost.*;
 import static org.sopt.makers.crew.main.entity.user.QUser.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -122,16 +123,26 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 	}
 
 	@Override
-	public List<MumuPostHomeDto> findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List<Integer> meetingIds,
-		Integer userId) {
+	public List<MumuPostHomeDto> findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+		List<Integer> meetingIds,
+		Integer userId,
+		LocalDateTime startOfDay,
+		LocalDateTime startOfNextDay
+	) {
 		return queryFactory.select(
-			new QMumuPostHomeDto(post.meetingId, post.meeting.title, post.meeting.category, post.id, post.likeCount, post.commentCount, post.title, post.contents,
-				JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists().as("isLiked")
+				new QMumuPostHomeDto(post.meetingId, post.meeting.title, post.meeting.category, post.id, post.likeCount, post.commentCount, post.title, post.contents,
+					JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists().as("isLiked")
+					)
+			).from(post)
+				.where(
+					post.meeting.id.in(meetingIds)
+						.and(post.user.id.ne(userId))
+						.and(post.category.eq(PostCategory.MUMU))
+						.and(post.createdDate.goe(startOfDay))
+						.and(post.createdDate.lt(startOfNextDay))
 				)
-		).from(post)
-			.where(post.meeting.id.in(meetingIds).and(post.user.id.ne(userId) ))
-			.orderBy(post.createdDate.desc())
-			.fetch();
+				.orderBy(post.createdDate.desc())
+				.fetch();
 	}
 
 	private List<PostDetailResponseDto> getContentList(Pageable pageable, Integer meetingId, Integer userId) {

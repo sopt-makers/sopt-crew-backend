@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.entity.post;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
@@ -17,5 +18,10 @@ public interface PostSearchRepository {
 
 	PostDetailBaseDto findPost(Integer userId, Integer postId);
 
-	List<MumuPostHomeDto> findAllByMeetingIdInAndUserIdNotOrderByCreatedDateDesc(List<Integer> meetingIds, Integer userId);
+	List<MumuPostHomeDto> findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+		List<Integer> meetingIds,
+		Integer userId,
+		LocalDateTime startOfDay,
+		LocalDateTime startOfNextDay
+	);
 }
