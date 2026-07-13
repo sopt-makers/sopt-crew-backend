@@ -16,7 +16,7 @@ public class MeetingDemandCommentNotificationSender {
 
 	private static final String MEETING_DEMAND_COMMENT_TITLE = "내가 만든 모임 수요에 댓글이 달렸어요";
 	private static final String MEETING_DEMAND_COMMENT_CONTENT = "새로운 댓글이 달렸어요.";
-	private static final String MEETING_DEMAND_WEB_LINK_FORMAT = "%s/meeting-demand?id=%d";
+	private static final String MEETING_DEMAND_WEB_LINK_FORMAT = "%s/suggest/detail?id=%d";
 
 	private final PushNotificationService pushNotificationService;
 	private final PushNotificationProperties pushNotificationProperties;

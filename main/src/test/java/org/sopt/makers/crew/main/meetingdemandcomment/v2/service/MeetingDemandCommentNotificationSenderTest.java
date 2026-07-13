@@ -64,7 +64,7 @@ class MeetingDemandCommentNotificationSenderTest {
 		assertThat(request.getUserIds()).containsExactly("1");
 		assertThat(request.getTitle()).isEqualTo("내가 만든 모임 수요에 댓글이 달렸어요");
 		assertThat(request.getContent()).isEqualTo("새로운 댓글이 달렸어요.");
-		assertThat(request.getWebLink()).isEqualTo("https://crew.test/meeting-demand?id=10");
+		assertThat(request.getWebLink()).isEqualTo("https://crew.test/suggest/detail?id=10");
 	}
 
 }
