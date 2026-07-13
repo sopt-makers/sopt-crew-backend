@@ -20,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.context.jdbc.SqlGroup;
+import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
@@ -143,6 +144,7 @@ public class PostRepositoryTest {
 	}
 
 	@Test
+	@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 	@Sql(statements = {
 		"INSERT INTO post (id, title, contents, \"createdDate\", \"updatedDate\", \"viewCount\", images, \"userId\", \"meetingId\", \"commentCount\", \"likeCount\", category) VALUES " +
 			"(6, '오늘 무무1', '내용6', '2024-06-11 10:00:05', '2024-06-11 10:00:05', 0, NULL, 2, 1, 0, 0, 'MUMU'), " +
