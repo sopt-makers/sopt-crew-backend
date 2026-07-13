@@ -1,11 +1,23 @@
 package org.sopt.makers.crew.main.entity.post;
 
-import static org.sopt.makers.crew.main.global.exception.ErrorStatus.FORBIDDEN_EXCEPTION;
+import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
+
+import org.hibernate.annotations.Type;
+import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.entity.meeting.Meeting;
+import org.sopt.makers.crew.main.entity.user.User;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,22 +25,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
-import java.time.LocalDateTime;
-
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import org.hibernate.annotations.Type;
-import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
-import org.sopt.makers.crew.main.global.exception.ForbiddenException;
-import org.sopt.makers.crew.main.entity.meeting.Meeting;
-import org.sopt.makers.crew.main.entity.user.User;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter
@@ -120,8 +120,16 @@ public class Post extends BaseTimeEntity {
 	@Column(nullable = false, columnDefinition = "int default 0")
 	private int likeCount;
 
+	/**
+	 * 피드 카테고리
+	 * ex) 무무씨 편지, 일반
+	 */
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	private PostCategory category;
+
 	@Builder
-	public Post(String title, String contents, String[] images, User user, Meeting meeting) {
+	public Post(String title, String contents, String[] images, User user, Meeting meeting, PostCategory category) {
 		this.title = title;
 		this.contents = contents;
 		this.viewCount = 0;
@@ -132,6 +140,7 @@ public class Post extends BaseTimeEntity {
 		this.meetingId = meeting.getId();
 		this.commentCount = 0;
 		this.likeCount = 0;
+		this.category = Objects.isNull(category) ? PostCategory.NORMAL : category;
 	}
 
 	public void increaseCommentCount() {

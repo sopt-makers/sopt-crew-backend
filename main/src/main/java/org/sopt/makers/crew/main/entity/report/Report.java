@@ -2,7 +2,6 @@ package org.sopt.makers.crew.main.entity.report;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,9 +19,10 @@ import lombok.NoArgsConstructor;
 
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.common.BaseTimeEntity;
+import org.sopt.makers.crew.main.entity.meetingdemand.MeetingDemand;
+import org.sopt.makers.crew.main.entity.meetingdemandcomment.MeetingDemandComment;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter
@@ -75,13 +75,44 @@ public class Report extends BaseTimeEntity {
 	@Column(insertable = false, updatable = false)
 	private Integer commentId;
 
+	/**
+	 * 모임 수요
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "meetingDemandId")
+	private MeetingDemand meetingDemand;
+
+	/**
+	 * 모임 수요 id - 모임 수요 신고가 아닐 경우 null
+	 */
+	@Column(insertable = false, updatable = false)
+	private Integer meetingDemandId;
+
+	/**
+	 * 모임 수요 댓글
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "meetingDemandCommentId")
+	private MeetingDemandComment meetingDemandComment;
+
+	/**
+	 * 모임 수요 댓글 id - 모임 수요 댓글 신고가 아닐 경우 null
+	 */
+	@Column(insertable = false, updatable = false)
+	private Integer meetingDemandCommentId;
+
 	@Builder
 	public Report(Integer userId, Post post, Integer postId, Comment comment,
-		Integer commentId) {
+		Integer commentId, MeetingDemand meetingDemand, Integer meetingDemandId,
+		MeetingDemandComment meetingDemandComment, Integer meetingDemandCommentId) {
 		this.userId = userId;
 		this.post = post;
 		this.postId = postId;
 		this.comment = comment;
 		this.commentId = commentId;
+		this.meetingDemand = meetingDemand;
+		this.meetingDemandId = meetingDemandId;
+		this.meetingDemandComment = meetingDemandComment;
+		this.meetingDemandCommentId = meetingDemandCommentId;
 	}
 }

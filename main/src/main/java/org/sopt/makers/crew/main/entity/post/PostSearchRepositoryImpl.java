@@ -7,6 +7,7 @@ import static org.sopt.makers.crew.main.entity.post.QPost.*;
 import static org.sopt.makers.crew.main.entity.user.QUser.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,9 +18,11 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.response.CommenterThumbnails;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailWithPartBaseDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.QMumuPostHomeDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.QPostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.QPostDetailWithPartBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.QPostMeetingDto;
@@ -104,7 +107,8 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 					JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists(),
 					"isLiked"), post.viewCount, post.commentCount,
 					new QPostMeetingDto(post.meeting.id, post.meeting.title, post.meeting.category, post.meeting.imageURL,
-						post.meeting.desc)))
+						post.meeting.desc),
+					post.category))
 			.from(post)
 			.innerJoin(post.meeting, meeting)
 			.innerJoin(post.user, user)
@@ -118,6 +122,29 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 		return postDetail;
 	}
 
+	@Override
+	public List<MumuPostHomeDto> findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+		List<Integer> meetingIds,
+		Integer userId,
+		LocalDateTime startOfDay,
+		LocalDateTime startOfNextDay
+	) {
+		return queryFactory.select(
+				new QMumuPostHomeDto(post.meetingId, post.meeting.title, post.meeting.category, post.id, post.likeCount, post.commentCount, post.title, post.contents,
+					JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists().as("isLiked")
+					)
+			).from(post)
+				.where(
+					post.meeting.id.in(meetingIds)
+						.and(post.user.id.ne(userId))
+						.and(post.category.eq(PostCategory.MUMU))
+						.and(post.createdDate.goe(startOfDay))
+						.and(post.createdDate.lt(startOfNextDay))
+				)
+				.orderBy(post.createdDate.desc())
+				.fetch();
+	}
+
 	private List<PostDetailResponseDto> getContentList(Pageable pageable, Integer meetingId, Integer userId) {
 		List<PostDetailBaseDto> postDetails = queryFactory.select(
 				new QPostDetailBaseDto(post.id, post.title, post.contents, post.createdDate, post.images,
@@ -126,7 +153,8 @@ public class PostSearchRepositoryImpl implements PostSearchRepository {
 					JPAExpressions.selectFrom(like).where(like.postId.eq(post.id).and(like.userId.eq(userId))).exists(),
 					"isLiked"), post.viewCount, post.commentCount,
 					new QPostMeetingDto(post.meeting.id, post.meeting.title, post.meeting.category, post.meeting.imageURL,
-						post.meeting.desc)))
+						post.meeting.desc),
+					post.category))
 			.from(post)
 			.innerJoin(post.user, user)
 			.innerJoin(post.meeting, meeting)

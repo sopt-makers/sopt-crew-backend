@@ -6,6 +6,7 @@ import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2GetPostCountResponseDto;
@@ -90,4 +91,8 @@ public interface PostV2Api {
 	@Operation(summary = "모임 게시글 조회수 증가")
 	@ApiResponse(responseCode = "200", description = "성공, 응답 : 조회수")
 	ResponseEntity<PostViewCountResponseDto> addViewCount(@PathVariable Integer postId, Principal principal);
+
+	@Operation(summary = "무무 피드 정보 제공")
+	@ApiResponse(responseCode = "200", description = "성공")
+	ResponseEntity<MumuPostHomeResponseDto> mumuPostHome(Principal principal);
 }

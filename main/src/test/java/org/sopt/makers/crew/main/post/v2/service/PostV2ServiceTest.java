@@ -1,24 +1,33 @@
 package org.sopt.makers.crew.main.post.v2.service;
 
+import static org.instancio.Select.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
+import org.sopt.makers.crew.main.entity.post.MumuPostWriteHistoryRepository;
+import org.sopt.makers.crew.main.entity.post.MumuText;
+import org.sopt.makers.crew.main.entity.post.MumuTextResolver;
 import org.sopt.makers.crew.main.entity.post.Post;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.report.Report;
@@ -28,7 +37,10 @@ import org.sopt.makers.crew.main.entity.user.UserFixture;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.util.Time;
+import org.sopt.makers.crew.main.meeting.v2.service.UserRelatedMeetingExtractor;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2ReportResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2SwitchPostLikeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2UpdatePostResponseDto;
@@ -44,6 +56,14 @@ public class PostV2ServiceTest {
 	private ReportRepository reportRepository;
 	@Mock
 	private LikeRepository likeRepository;
+	@Mock
+	private ApplyRepository applyRepository;
+	@Mock
+	private MumuPostWriteHistoryRepository mumuPostWriteHistoryRepository;
+	@Mock
+	private MumuTextResolver mumuTextResolver;
+	@Mock
+	private UserRelatedMeetingExtractor userRelatedMeetingExtractor;
 
 	@Mock
 	private Time time;
@@ -190,4 +210,132 @@ public class PostV2ServiceTest {
 		}
 	}
 
+	@Nested
+	class 무무_홈_정보_반환_여부 {
+
+		/**
+		 * case 1 : 유저가 신청한 정보가 없다면!
+		 */
+		@Test
+		@DisplayName("유저가 모임에 한 번도 참여 안했다면?")
+		void 유저_한_번도_참여하지_않은_경우() {
+			Integer userId = 1;
+			//given
+			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
+			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of());
+
+			//when
+			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
+
+			//then
+			verify(postRepository, never()).findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+				anyList(), eq(userId), any(LocalDateTime.class), any(LocalDateTime.class));
+			Assertions.assertThat(mumuPostHomeResponseDto).isNotNull();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
+			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isTrue();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasMumuPostHomeFeed()).isFalse();
+		}
+
+		/**
+		 * case2 : 오늘 mumu post를 보낸 적이 없다면
+		 */
+		@Test
+		@DisplayName("오늘 mumu post를 보낸 적이 없다면")
+		void 오늘_mumu_post_를_보낸_적이_없다면() {
+			Integer userId = 1;
+
+			//given
+			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
+			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of(100));
+			when(mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(eq(userId), any(LocalDate.class)))
+				.thenReturn(false);
+
+			//when
+			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
+
+			//then
+			verify(postRepository, never()).findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+				anyList(), eq(userId), any(LocalDateTime.class), any(LocalDateTime.class));
+			Assertions.assertThat(mumuPostHomeResponseDto).isNotNull();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
+			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasMumuPostHomeFeed()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuPostHomeDtos()).isEmpty();
+		}
+
+		/**
+		 * case 3 : 오늘 무무 피드 보낸 경우
+		 */
+		@Test
+		@DisplayName("오늘 무무 피드 보낸 경우")
+		void 오늘_무무_피드_보낸_경우() {
+			Integer userId = 1;
+			MumuPostHomeDto oldPost = MumuPostHomeDto.of(testPostData(1, LocalDateTime.of(2026, 6, 25, 11, 0)),
+				false);
+			MumuPostHomeDto latestPost = MumuPostHomeDto.of(testPostData(2, LocalDateTime.of(2026, 6, 25, 12, 0)),
+				true);
+
+			//given
+			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
+			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of(100));
+			when(mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(eq(userId), any(LocalDate.class)))
+				.thenReturn(true);
+			when(postRepository.findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+				eq(List.of(100)), eq(userId), any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(List.of(latestPost, oldPost));
+
+			//when
+			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
+
+			//then
+			Assertions.assertThat(mumuPostHomeResponseDto).isNotNull();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuText()).isEqualTo("무무");
+			Assertions.assertThat(mumuPostHomeResponseDto.getIsEmptyAppliedMeeting()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isTrue();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasMumuPostHomeFeed()).isTrue();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuPostHomeDtos())
+				.extracting("postId")
+				.containsExactly(2, 1);
+		}
+
+		@Test
+		@DisplayName("오늘 무무 피드 작성 후 삭제해도 작성 여부는 유지")
+		void 오늘_무무_피드_작성_후_삭제한_경우() {
+			Integer userId = 1;
+
+			//given
+			when(mumuTextResolver.resolveMumuText(any(LocalDateTime.class))).thenReturn(testMumuTextData("무무"));
+			when(mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(eq(userId), any(LocalDate.class)))
+				.thenReturn(true);
+			when(userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId)).thenReturn(List.of(100));
+			when(postRepository.findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+				eq(List.of(100)), eq(userId), any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(List.of());
+
+			//when
+			MumuPostHomeResponseDto mumuPostHomeResponseDto = postV2Service.retrieveMumuHomeInfo(userId);
+
+			//then
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasWrittenTodayMumuPost()).isTrue();
+			Assertions.assertThat(mumuPostHomeResponseDto.getHasMumuPostHomeFeed()).isFalse();
+			Assertions.assertThat(mumuPostHomeResponseDto.getMumuPostHomeDtos()).isEmpty();
+		}
+
+	}
+
+	private MumuText testMumuTextData(String text) {
+		return Instancio.of(MumuText.class)
+			.set(field(MumuText::getText), text)
+			.create();
+	}
+
+	private Post testPostData(Integer id, LocalDateTime createdDate) {
+		return Instancio.of(Post.class)
+			.set(field(Post::getId), id)
+			.set(field(Post::getCreatedDate), createdDate)
+			.set(field(Post::getMeeting), meeting)
+			.create();
+	}
 }

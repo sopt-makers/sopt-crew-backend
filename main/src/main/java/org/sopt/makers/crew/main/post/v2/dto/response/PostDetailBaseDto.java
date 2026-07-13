@@ -2,6 +2,8 @@ package org.sopt.makers.crew.main.post.v2.dto.response;
 
 import java.time.LocalDateTime;
 
+import org.sopt.makers.crew.main.entity.post.PostCategory;
+
 import com.querydsl.core.annotations.QueryProjection;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -57,10 +59,13 @@ public class PostDetailBaseDto {
 	@NotNull
 	private final PostMeetingDto meeting;
 
+	@Schema(description = "게시글에 대한 카테고리", example = "MUMU")
+	private final PostCategory category;
+
 	@QueryProjection
 	public PostDetailBaseDto(Integer id, String title, String contents, LocalDateTime createdDate, String[] images,
 		PostWriterInfoDto user, int likeCount, boolean isLiked, int viewCount, int commentCount,
-		PostMeetingDto meeting) {
+		PostMeetingDto meeting, PostCategory category) {
 		this.id = id;
 		this.title = title;
 		this.contents = contents;
@@ -72,5 +77,6 @@ public class PostDetailBaseDto {
 		this.viewCount = viewCount;
 		this.commentCount = commentCount;
 		this.meeting = meeting;
+		this.category = category;
 	}
 }

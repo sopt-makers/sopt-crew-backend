@@ -5,10 +5,12 @@ import static org.assertj.core.api.Assertions.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.context.jdbc.SqlGroup;
+import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
@@ -138,6 +141,35 @@ public class PostRepositoryTest {
 		// then
 		assertThat(postCount1).isEqualTo(3);
 		assertThat(postCount2).isEqualTo(2);
+	}
+
+	@Test
+	@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
+	@Sql(statements = {
+		"INSERT INTO post (id, title, contents, \"createdDate\", \"updatedDate\", \"viewCount\", images, \"userId\", \"meetingId\", \"commentCount\", \"likeCount\", category) VALUES " +
+			"(6, '오늘 무무1', '내용6', '2024-06-11 10:00:05', '2024-06-11 10:00:05', 0, NULL, 2, 1, 0, 0, 'MUMU'), " +
+			"(7, '이전 무무', '내용7', '2024-06-10 10:00:00', '2024-06-10 10:00:00', 0, NULL, 3, 1, 0, 0, 'MUMU'), " +
+			"(8, '오늘 일반', '내용8', '2024-06-11 10:00:06', '2024-06-11 10:00:06', 0, NULL, 4, 2, 0, 0, 'NORMAL'), " +
+			"(9, '내 오늘 무무', '내용9', '2024-06-11 10:00:07', '2024-06-11 10:00:07', 0, NULL, 1, 2, 0, 0, 'MUMU'), " +
+			"(10, '오늘 무무2', '내용10', '2024-06-11 10:00:08', '2024-06-11 10:00:08', 0, NULL, 4, 2, 0, 0, 'MUMU')"
+	}, executionPhase = ExecutionPhase.BEFORE_TEST_METHOD)
+	void 무무_홈_피드는_오늘_작성된_무무_피드만_조회한다() {
+		// given
+		LocalDateTime startOfDay = LocalDate.of(2024, 6, 11).atStartOfDay();
+		LocalDateTime startOfNextDay = LocalDate.of(2024, 6, 12).atStartOfDay();
+
+		// when
+		List<MumuPostHomeDto> result = postRepository.findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+			List.of(1, 2),
+			1,
+			startOfDay,
+			startOfNextDay
+		);
+
+		// then
+		assertThat(result)
+			.extracting(MumuPostHomeDto::getPostId)
+			.containsExactly(10, 6);
 	}
 
 }

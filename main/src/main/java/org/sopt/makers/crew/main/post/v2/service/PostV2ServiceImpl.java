@@ -3,8 +3,11 @@ package org.sopt.makers.crew.main.post.v2.service;
 import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.sopt.makers.crew.main.entity.apply.Apply;
@@ -17,7 +20,11 @@ import org.sopt.makers.crew.main.entity.like.LikeRepository;
 import org.sopt.makers.crew.main.entity.meeting.CoLeaderRepository;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.post.MumuTextResolver;
+import org.sopt.makers.crew.main.entity.post.MumuPostWriteHistory;
+import org.sopt.makers.crew.main.entity.post.MumuPostWriteHistoryRepository;
 import org.sopt.makers.crew.main.entity.post.Post;
+import org.sopt.makers.crew.main.entity.post.PostCategory;
 import org.sopt.makers.crew.main.entity.post.PostRepository;
 import org.sopt.makers.crew.main.entity.report.Report;
 import org.sopt.makers.crew.main.entity.report.ReportRepository;
@@ -33,10 +40,13 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.AdvertisementCustomPageable;
 import org.sopt.makers.crew.main.global.util.Time;
+import org.sopt.makers.crew.main.meeting.v2.service.UserRelatedMeetingExtractor;
 import org.sopt.makers.crew.main.post.v2.dto.query.PostGetPostsCommand;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2CreatePostBodyDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2MentionUserInPostRequestDto;
 import org.sopt.makers.crew.main.post.v2.dto.request.PostV2UpdatePostBodyDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeDto;
+import org.sopt.makers.crew.main.post.v2.dto.response.MumuPostHomeResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailBaseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostDetailResponseDto;
 import org.sopt.makers.crew.main.post.v2.dto.response.PostV2CreatePostResponseDto;
@@ -67,14 +77,17 @@ public class PostV2ServiceImpl implements PostV2Service {
 	private final LikeRepository likeRepository;
 	private final ReportRepository reportRepository;
 	private final CoLeaderRepository coLeaderRepository;
+	private final MumuPostWriteHistoryRepository mumuPostWriteHistoryRepository;
 
 	private final PushNotificationService pushNotificationService;
 	private final MemberBlockService memberBlockService;
 	private final UserV2Service userV2Service;
 
 	private final PushNotificationProperties pushNotificationProperties;
+	private final UserRelatedMeetingExtractor userRelatedMeetingExtractor;
 
 	private final Time time;
+	private final MumuTextResolver mumuTextResolver;
 
 	/**
 	 * 모임 게시글 작성
@@ -99,15 +112,20 @@ public class PostV2ServiceImpl implements PostV2Service {
 			throw new ForbiddenException(FORBIDDEN_EXCEPTION.getErrorCode());
 		}
 
+		PostCategory postCategory = Objects.isNull(requestBody.getPostCategory()) ? PostCategory.NORMAL
+			: requestBody.getPostCategory();
+
 		Post post = Post.builder()
 			.title(requestBody.getTitle())
 			.user(user)
 			.contents(requestBody.getContents())
 			.images(requestBody.getImages())
 			.meeting(meeting)
+			.category(postCategory)
 			.build();
 
 		Post savedPost = postRepository.save(post);
+		saveMumuPostWriteHistoryIfNeeded(userId, postCategory);
 
 		List<String> userIdList = applyRepository.findAllByMeetingIdAndStatus(meeting.getId(), EnApplyStatus.APPROVE)
 			.stream()
@@ -321,6 +339,56 @@ public class PostV2ServiceImpl implements PostV2Service {
 		return PostV2SwitchPostLikeResponseDto.of(false);
 	}
 
+	@Override
+	public MumuPostHomeResponseDto retrieveMumuHomeInfo(Integer userId) {
+
+		String text = extractMumuText();
+
+		LocalDate today = LocalDate.now();
+		boolean hasWrittenTodayMumuPost = mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(userId, today);
+
+		List<Integer> relatedMeetingIds = userRelatedMeetingExtractor.extractMeetingIdsByUserId(userId);
+
+		if (relatedMeetingIds.isEmpty()) {
+			return MumuPostHomeResponseDto.of(true, hasWrittenTodayMumuPost, List.of(), text);
+		}
+
+		if (!hasWrittenTodayMumuPost) {
+			return MumuPostHomeResponseDto.of(false, false, List.of(), text);
+		}
+
+		List<MumuPostHomeDto> findPostsByMeetingIdsExceptSelf = postRepository
+			.findTodayMumuPostsByMeetingIdsExceptUserOrderByCreatedDateDesc(
+				relatedMeetingIds,
+				userId,
+				today.atStartOfDay(),
+				today.plusDays(1).atStartOfDay()
+			);
+
+		return MumuPostHomeResponseDto.of(false, hasWrittenTodayMumuPost, findPostsByMeetingIdsExceptSelf, text);
+	}
+
+	public String extractMumuText() {
+		return mumuTextResolver.resolveMumuText(LocalDateTime.now()).getText();
+	}
+
+	private void saveMumuPostWriteHistoryIfNeeded(Integer userId, PostCategory postCategory) {
+		if (postCategory != PostCategory.MUMU) {
+			return;
+		}
+
+		LocalDate today = LocalDate.now();
+		if (mumuPostWriteHistoryRepository.existsByUserIdAndWrittenDate(userId, today)) {
+			return;
+		}
+
+		MumuPostWriteHistory history = MumuPostWriteHistory.builder()
+			.userId(userId)
+			.writtenDate(today)
+			.build();
+		mumuPostWriteHistoryRepository.save(history);
+	}
+
 	private PostDetailResponseDto toPostDetailResponseDto(PostDetailResponseDto postDetail,
 		Map<Long, Boolean> blockedPostMap) {
 		boolean isBlockedPost = blockedPostMap.getOrDefault(postDetail.getUser().getOrgId().longValue(), false);
@@ -336,6 +404,7 @@ public class PostV2ServiceImpl implements PostV2Service {
 			postDetail.getViewCount(),
 			postDetail.getCommentCount(),
 			postDetail.getMeeting(),
+			postDetail.getCategory(),
 			postDetail.getCommenterThumbnails(),
 			isBlockedPost
 		);

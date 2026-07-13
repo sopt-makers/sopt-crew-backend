@@ -24,12 +24,9 @@ import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -48,17 +45,15 @@ public class Meeting extends BaseTimeEntity {
 	private Integer id;
 
 	/**
-	 * 개설한 유저
-	 */
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "userId", nullable = false)
-	private User user;
-
-	/**
 	 * 유저 id
 	 */
-	@Column(insertable = false, updatable = false)
+	@Column(nullable = false)
 	private Integer userId;
+
+	/**
+	 * 개설 기반 모임 수요 id
+	 */
+	private Integer meetingDemandId;
 
 	/**
 	 * 모임 제목
@@ -185,14 +180,14 @@ public class Meeting extends BaseTimeEntity {
 	private MeetingJoinablePart[] joinableParts;
 
 	@Builder
-	public Meeting(User user, Integer userId, String title, String subTitle, MeetingCategory category,
-		List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate, Integer capacity,
-		String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
+	public Meeting(User user, Integer userId, Integer meetingDemandId, String title, String subTitle,
+		MeetingCategory category, List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate,
+		Integer capacity, String desc, String processDesc, LocalDateTime mStartDate, LocalDateTime mEndDate,
 		String leaderDesc, String note, Boolean isMentorNeeded,
 		Boolean canJoinOnlyActiveGeneration, MeetingJoinInfo joinInfo, Integer createdGeneration,
 		Integer targetActiveGeneration, MeetingJoinablePart[] joinableParts) {
-		this.user = user;
-		this.userId = userId;
+		this.userId = user != null ? user.getId() : userId;
+		this.meetingDemandId = meetingDemandId;
 		this.title = title;
 		this.subTitle = subTitle;
 		this.category = category;

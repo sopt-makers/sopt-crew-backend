@@ -12,6 +12,7 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.tag.enums.MeetingKeywordType;
 import org.sopt.makers.crew.main.entity.tag.enums.WelcomeMessageType;
+import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.global.dto.MeetingCreatorDto;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
 
@@ -109,10 +110,11 @@ public record MeetingV2GetCreatedMeetingByUserResponseDto(
 	@NotNull
 	List<String> meetingKeywordTypes
 ) {
-	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, boolean isCoLeader, int approvedCount,
-		LocalDateTime now, Integer activeGeneration, Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto) {
+	public static MeetingV2GetCreatedMeetingByUserResponseDto of(Meeting meeting, User meetingCreator,
+		boolean isCoLeader, int approvedCount, LocalDateTime now, Integer activeGeneration,
+		Map<Integer, TagV2MeetingTagsResponseDto> allTagsResponseDto) {
 
-		MeetingCreatorDto creatorDto = MeetingCreatorDto.from(meeting.getUser());
+		MeetingCreatorDto creatorDto = MeetingCreatorDto.from(meetingCreator);
 		boolean canJoinOnlyActiveGeneration = Objects.equals(meeting.getTargetActiveGeneration(), activeGeneration)
 			&& meeting.getCanJoinOnlyActiveGeneration();
 
