@@ -10,9 +10,14 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * dev 환경 lambda 이관으로 인한 prod 환경에서 작동될 수 있도록 변동!
+ *
+ * @author khyojun
+ */
 @Slf4j
 @Component
-@Profile({"dev"})
+@Profile({"prod"})
 @RequiredArgsConstructor
 public class SlackEventListener {
 

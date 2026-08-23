@@ -68,8 +68,6 @@ public class AuthClient {
 					return new ServerException(EXTERNAL_SERVER_RESPONSE_ERROR.getErrorCode());
 				})
 				.block();
-		} catch (ServerException e) {
-			throw e;
 		} catch (RuntimeException e) {
 			log.error("Unexpected exception occurred during auth server communication: {}",
 				e.getMessage(), e);
