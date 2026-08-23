@@ -1,8 +1,12 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -46,7 +50,6 @@ import org.sopt.makers.crew.main.meeting.v2.dto.FlashMeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
-import org.sopt.makers.crew.main.user.v2.service.lock.UserLockManager;
 import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
@@ -83,7 +86,9 @@ class MeetingV2ServiceFlashTest {
 	@Mock
 	private TagV2Service tagV2Service;
 	@Mock
-	private UserLockManager userLockManager;
+	private MeetingApplyTransactionalService meetingApplyTransactionalService;
+	@Mock
+	private MeetingApplySentinel meetingApplySentinel;
 	@Mock
 	private MeetingMapper meetingMapper;
 	@Spy
@@ -135,7 +140,8 @@ class MeetingV2ServiceFlashTest {
 			}).when(meetingRepository).save(any(Meeting.class));
 
 			// when
-			MeetingV2CreateAndUpdateMeetingForFlashResponseDto response = meetingV2Service.createMeetingForFlash(1, flashBody);
+			MeetingV2CreateAndUpdateMeetingForFlashResponseDto response = meetingV2Service.createMeetingForFlash(1,
+				flashBody);
 
 			// then
 			assertThat(response.meetingId()).isEqualTo(100);
@@ -197,7 +203,8 @@ class MeetingV2ServiceFlashTest {
 			doReturn(Optional.of(existingMeeting)).when(meetingRepository).findById(100);
 
 			// when
-			MeetingV2CreateAndUpdateMeetingForFlashResponseDto response = meetingV2Service.updateMeetingForFlash(100, 1, flashBody);
+			MeetingV2CreateAndUpdateMeetingForFlashResponseDto response = meetingV2Service.updateMeetingForFlash(100, 1,
+				flashBody);
 
 			// then
 			assertThat(response.meetingId()).isEqualTo(100);
