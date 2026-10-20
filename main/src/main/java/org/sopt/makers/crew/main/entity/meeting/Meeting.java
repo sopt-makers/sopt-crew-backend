@@ -4,6 +4,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
@@ -179,6 +180,18 @@ public class Meeting extends BaseTimeEntity {
 	@Column(name = "joinableParts", columnDefinition = "meeting_joinableparts_enum[]")
 	private MeetingJoinablePart[] joinableParts;
 
+	/**
+	 * 회식 종료 시각 (회식 카테고리 전용, null 이면 진행 중)
+	 */
+	@Column(name = "diningEndedAt", columnDefinition = "TIMESTAMP")
+	private LocalDateTime diningEndedAt;
+
+	/**
+	 * 회식 일자 수정 여부 (회식 카테고리 전용)
+	 */
+	@Column(name = "isDateModified", nullable = false)
+	private boolean isDateModified;
+
 	@Builder
 	public Meeting(User user, Integer userId, Integer meetingDemandId, String title, String subTitle,
 		MeetingCategory category, List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate,
@@ -330,6 +343,40 @@ public class Meeting extends BaseTimeEntity {
 		}
 		if (joinableParts != null) {
 			this.joinableParts = joinableParts;
+		}
+	}
+
+	/**
+	 * 회식 정보 수정. 종료된 회식은 수정할 수 없다.
+	 * 회식 일자가 실제로 바뀐 경우에만 수정됨 표시를 남긴다.
+	 */
+	public void updateDining(String title, List<ImageUrlVO> imageURL, LocalDateTime mStartDate,
+		LocalDateTime mEndDate, MeetingJoinablePart[] joinableParts) {
+		validateDiningNotEnded();
+
+		if (!Objects.equals(this.mStartDate, mStartDate)) {
+			this.isDateModified = true;
+		}
+
+		this.title = title;
+		this.imageURL = imageURL;
+		this.mStartDate = mStartDate;
+		this.mEndDate = mEndDate;
+		this.joinableParts = joinableParts;
+	}
+
+	public void endDining(LocalDateTime now) {
+		validateDiningNotEnded();
+		this.diningEndedAt = now;
+	}
+
+	public boolean isDiningEnded() {
+		return this.diningEndedAt != null;
+	}
+
+	public void validateDiningNotEnded() {
+		if (isDiningEnded()) {
+			throw new BadRequestException(ENDED_DINING.getErrorCode());
 		}
 	}
 
