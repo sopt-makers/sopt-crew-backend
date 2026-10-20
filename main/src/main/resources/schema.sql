@@ -14,6 +14,9 @@ drop table if exists "meeting_demand_opened_notification" cascade;
 drop table if exists "meeting_demand_wait_history" cascade;
 drop table if exists "meeting_demand_wait" cascade;
 drop table if exists "meeting_demand" cascade;
+drop table if exists "dining_deletion_history" cascade;
+drop table if exists "dining_attendance" cascade;
+drop table if exists "dining_round" cascade;
 drop table if exists "meeting" cascade;
 drop table if exists "notice" cascade;
 drop table if exists "report" cascade;
@@ -214,6 +217,8 @@ create table if not exists meeting
     "targetActiveGeneration"      integer,
     "joinableParts"               meeting_joinableparts_enum[],
     "createdGeneration"           integer   default 32,
+    "diningEndedAt"               timestamp,
+    "isDateModified"              boolean   default false not null,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
@@ -539,3 +544,70 @@ create table if not exists map_recommended
     "createdTimestamp" timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP
 );
+
+-- Dining Tables
+create table if not exists dining_round
+(
+    id                    serial
+    primary key,
+    "meetingId"           integer      not null
+    constraint fk_dining_round_meeting
+    references meeting
+    on delete cascade,
+    place                 varchar(30),
+    "naverMapLink"        varchar(500),
+    "kakaoMapLink"        varchar(500),
+    "startTime"           time,
+    status                varchar      not null default 'OPEN',
+    "closedAt"            timestamp,
+    "isPlaceModified"     boolean      not null default false,
+    "isLinkModified"      boolean      not null default false,
+    "isStartTimeModified" boolean      not null default false,
+    "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp"   timestamp default CURRENT_TIMESTAMP
+);
+
+create index if not exists "dining_round_meeting_index"
+    on dining_round ("meetingId");
+
+create index if not exists "dining_round_open_index"
+    on dining_round (status) where status = 'OPEN';
+
+create table if not exists dining_attendance
+(
+    id                  serial
+    primary key,
+    "roundId"           integer   not null
+    constraint fk_dining_attendance_round
+    references dining_round
+    on delete cascade,
+    "userId"            integer   not null
+    constraint fk_dining_attendance_user
+    references "user"
+    on delete cascade,
+    "payerStatus"       varchar,
+    "payerRequestedAt"  timestamp,
+    "createdTimestamp"  timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP,
+    constraint "UQ_dining_attendance_round_user"
+    unique ("roundId", "userId")
+);
+
+create index if not exists "dining_attendance_user_index"
+    on dining_attendance ("userId");
+
+create table if not exists dining_deletion_history
+(
+    id                  serial
+    primary key,
+    "meetingId"         integer   not null,
+    "targetType"        varchar   not null,
+    "targetId"          integer   not null,
+    "deletedByUserId"   integer   not null,
+    snapshot            jsonb     not null,
+    "createdTimestamp"  timestamp default CURRENT_TIMESTAMP,
+    "modifiedTimestamp" timestamp default CURRENT_TIMESTAMP
+);
+
+create index if not exists "dining_deletion_history_meeting_index"
+    on dining_deletion_history ("meetingId");
