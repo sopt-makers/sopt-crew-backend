@@ -1,5 +1,6 @@
 package org.sopt.makers.crew.main.entity.dining;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.hibernate.annotations.Type;
@@ -23,12 +24,16 @@ import lombok.NoArgsConstructor;
 /**
  * 회식, 회차, 참석 기록 삭제 시 보관하는 스냅샷
  * 원본 삭제 이후에도 남아야 하므로 FK 를 두지 않는다.
+ * snapshot 형식: { "schemaVersion": 1, "data": { ... } }
+ * 엔티티 구조가 바뀌어 snapshot 의 data 형식이 달라지면 SNAPSHOT_SCHEMA_VERSION 을 올린다.
  */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "dining_deletion_history")
 public class DiningDeletionHistory extends BaseTimeEntity {
+
+	public static final int SNAPSHOT_SCHEMA_VERSION = 1;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -60,7 +65,7 @@ public class DiningDeletionHistory extends BaseTimeEntity {
 	private Integer deletedByUserId;
 
 	/**
-	 * 삭제 직전 데이터 스냅샷
+	 * 삭제 직전 데이터 스냅샷 (schemaVersion + data)
 	 */
 	@Column(nullable = false, columnDefinition = "jsonb")
 	@Type(JsonBinaryType.class)
@@ -68,11 +73,18 @@ public class DiningDeletionHistory extends BaseTimeEntity {
 
 	@Builder
 	public DiningDeletionHistory(Integer meetingId, DiningDeletionTargetType targetType, Integer targetId,
-		Integer deletedByUserId, Map<String, Object> snapshot) {
+		Integer deletedByUserId, Map<String, Object> data) {
 		this.meetingId = meetingId;
 		this.targetType = targetType;
 		this.targetId = targetId;
 		this.deletedByUserId = deletedByUserId;
-		this.snapshot = snapshot;
+		this.snapshot = wrapSnapshot(data);
+	}
+
+	private static Map<String, Object> wrapSnapshot(Map<String, Object> data) {
+		Map<String, Object> snapshot = new LinkedHashMap<>();
+		snapshot.put("schemaVersion", SNAPSHOT_SCHEMA_VERSION);
+		snapshot.put("data", data);
+		return snapshot;
 	}
 }
