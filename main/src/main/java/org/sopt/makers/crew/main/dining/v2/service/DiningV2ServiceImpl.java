@@ -70,7 +70,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			requestBody.title(),
 			getImageUrlsOrDefault(requestBody.files()),
 			diningDate,
-			requestBody.joinableParts(),
+			normalizeJoinableParts(requestBody.joinableParts()),
 			userId,
 			time.now(),
 			activeGenerationProvider.getActiveGeneration()
@@ -106,7 +106,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			getImageUrlsOrDefault(requestBody.files()),
 			toStartOfDay(diningDate),
 			toEndOfDay(diningDate),
-			requestBody.joinableParts()
+			normalizeJoinableParts(requestBody.joinableParts())
 		);
 
 		getRounds(meetingId).getFirstRound().update(

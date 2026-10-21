@@ -7,7 +7,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
@@ -85,6 +88,20 @@ public class DiningMeetingMapper {
 		return IntStream.range(0, files.size())
 			.mapToObj(index -> new ImageUrlVO(index, files.get(index)))
 			.toList();
+	}
+
+	/**
+	 * 참여 파트 정규화. null 요소는 거부하고, 중복은 제거해 enum 선언 순서로 정렬한다.
+	 */
+	public static MeetingJoinablePart[] normalizeJoinableParts(MeetingJoinablePart[] joinableParts) {
+		if (joinableParts == null || joinableParts.length == 0
+			|| Arrays.stream(joinableParts).anyMatch(Objects::isNull)) {
+			throw new BadRequestException(VALIDATION_EXCEPTION.getErrorCode());
+		}
+		return Arrays.stream(joinableParts)
+			.distinct()
+			.sorted(Comparator.comparingInt(Enum::ordinal))
+			.toArray(MeetingJoinablePart[]::new);
 	}
 
 	/**

@@ -172,6 +172,41 @@ class DiningV2ServiceTest {
 		}
 
 		@Test
+		@DisplayName("참여 파트의 중복은 제거되고 파트 순서대로 저장된다.")
+		void createDining_withDuplicateParts_savesDistinctParts() {
+			// given
+			DiningV2CreateAndUpdateDiningBodyDto body = new DiningV2CreateAndUpdateDiningBodyDto(
+				"서버 파트 회식", null, null, null, DINING_DATE, null,
+				new MeetingJoinablePart[] {MeetingJoinablePart.WEB, MeetingJoinablePart.SERVER,
+					MeetingJoinablePart.WEB},
+				null
+			);
+
+			// when
+			Integer meetingId = diningV2Service.createDining(body, leader.getId()).meetingId();
+
+			// then
+			assertThat(meetingRepository.findDiningByIdOrThrow(meetingId).getJoinableParts())
+				.containsExactly(MeetingJoinablePart.SERVER, MeetingJoinablePart.WEB);
+		}
+
+		@Test
+		@DisplayName("참여 파트에 null 이 있으면 등록할 수 없다.")
+		void createDining_withNullPart_throwsException() {
+			// given
+			DiningV2CreateAndUpdateDiningBodyDto body = new DiningV2CreateAndUpdateDiningBodyDto(
+				"서버 파트 회식", null, null, null, DINING_DATE, null,
+				new MeetingJoinablePart[] {MeetingJoinablePart.SERVER, null},
+				null
+			);
+
+			// when & then
+			assertThatThrownBy(() -> diningV2Service.createDining(body, leader.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(VALIDATION_EXCEPTION.getErrorCode());
+		}
+
+		@Test
 		@DisplayName("회식은 기존 모임 조회로 찾을 수 없다.")
 		void createdDining_isNotFoundByMeetingApi() {
 			// given
