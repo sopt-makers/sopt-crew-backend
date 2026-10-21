@@ -26,9 +26,10 @@ drop table if exists "map_recommended" cascade;
 drop table if exists "sopt_map" cascade;
 drop table if exists "subway_station" cascade;
 
-DROP TYPE IF EXISTS meeting_joinableparts_enum;
-
-create type meeting_joinableparts_enum as enum ('PM', 'DESIGN', 'IOS', 'ANDROID', 'SERVER', 'WEB');
+-- 테스트 컨텍스트마다 이 스크립트가 다시 실행되므로, 타입은 지우지 않고 없을 때만 만든다.
+-- 매번 DROP 후 CREATE 하면 타입 OID 가 바뀌어, 먼저 뜬 컨텍스트의 커넥션이 옛 OID 를 참조하다
+-- cache lookup failed for type 에러가 난다. 값을 추가할 때는 ALTER TYPE ... ADD VALUE 를 사용한다.
+DO 'BEGIN CREATE TYPE meeting_joinableparts_enum AS ENUM (''PM'', ''DESIGN'', ''IOS'', ''ANDROID'', ''SERVER'', ''WEB''); EXCEPTION WHEN duplicate_object THEN NULL; END';
 
 create table if not exists "user"
 (
