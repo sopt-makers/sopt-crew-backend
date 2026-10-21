@@ -243,6 +243,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			createTargetActiveGeneration(requestBody.getCanJoinOnlyActiveGeneration()),
 			activeGenerationProvider.getActiveGeneration(), user,
 			user.getId());
+		validateNotDiningCategory(meeting.getCategory());
 
 		if (meetingDemand != null) {
 			meetingDemand.open();
@@ -537,6 +538,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		MeetingCategory updatedCategory = requestBody.getCategory() != null
 			? MeetingMapper.getCategory(requestBody.getCategory())
 			: null;
+		validateNotDiningCategory(updatedCategory);
 		List<ImageUrlVO> updatedImageURL = requestBody.getFiles() != null
 			? MeetingMapper.getImageURL(requestBody.getFiles())
 			: null;
@@ -738,8 +740,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			updatedFlashBody.files().add(imageSettingProperties.getDefaultFlashImage());
 		}
 
-		Meeting flashMeeting = meetingRepository.findById(meetingId)
-			.orElseThrow(() -> new NotFoundException(NOT_FOUND_MEETING.getErrorCode()));
+		Meeting flashMeeting = meetingRepository.findByIdOrThrow(meetingId);
 
 		flashMeeting.validateMeetingCreator(userId);
 
@@ -936,5 +937,14 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private Integer createTargetActiveGeneration(Boolean canJoinOnlyActiveGeneration) {
 		return Boolean.TRUE.equals(canJoinOnlyActiveGeneration) ? activeGenerationProvider.getActiveGeneration() : null;
+	}
+
+	/**
+	 * 회식(DINING)은 회식 API 로만 생성/수정할 수 있다.
+	 */
+	private void validateNotDiningCategory(MeetingCategory category) {
+		if (category == MeetingCategory.DINING) {
+			throw new BadRequestException(INVALID_MEETING_CATEGORY.getErrorCode());
+		}
 	}
 }

@@ -123,6 +123,8 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 		LocalDateTime now = time.now();
 		JPAQuery<Meeting> query = queryFactory.selectFrom(meeting);
 
+		query.where(isNotDining());
+
 		if (meetingIds == null) {
 			query.where(eqStatus(List.of(String.valueOf(EnMeetingStatus.APPLY_ABLE.getValue())), now));
 			return query.fetch();
@@ -137,6 +139,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 
 		List<Meeting> meetings = queryFactory
 			.selectFrom(meeting)
+			.where(isNotDining())
 			.orderBy(meeting.createdTimestamp.desc())
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())
@@ -226,7 +229,8 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 	private JPAQuery<Long> getCount() {
 		return queryFactory
 			.select(meeting.count())
-			.from(meeting);
+			.from(meeting)
+			.where(isNotDining());
 	}
 
 	private JPAQuery<Long> getCount(MeetingV2GetAllMeetingQueryDto queryCommand, LocalDateTime now,
@@ -244,16 +248,23 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 			);
 	}
 
+	/**
+	 * @implSpec : 회식(DINING)은 기존 모임 조회에서 항상 제외한다.
+	 */
 	private BooleanExpression eqCategory(List<String> categories) {
 		if (categories == null || categories.isEmpty()) {
-			return null;
+			return isNotDining();
 		}
 
 		List<MeetingCategory> meetingCategories = categories.stream()
 			.map(MeetingCategory::ofValue)
 			.toList();
 
-		return meeting.category.in(meetingCategories);
+		return meeting.category.in(meetingCategories).and(isNotDining());
+	}
+
+	private BooleanExpression isNotDining() {
+		return meeting.category.ne(MeetingCategory.DINING);
 	}
 
 	private BooleanExpression eqKeyword(List<String> keywords) {

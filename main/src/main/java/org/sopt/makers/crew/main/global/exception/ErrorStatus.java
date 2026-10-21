@@ -95,6 +95,7 @@ public enum ErrorStatus {
 	NOT_FOUND_PROPERTY_STRATEGY("적절한 프로퍼티 반환 전략을 찾을 수 없습니다"),
 	NOT_FOUND_SOPT_MAP("존재하지 않는 솝맵입니다."),
 	NOT_FOUND_SUBWAY_STATION("존재하지 않는 지하철역입니다."),
+	NOT_FOUND_DINING("존재하지 않는 회식입니다."),
 	NOT_FOUND_DINING_ROUND("존재하지 않는 회차입니다."),
 
 	/**
