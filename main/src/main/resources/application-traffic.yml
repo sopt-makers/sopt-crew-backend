@@ -118,6 +118,7 @@ sentry:
 
 img:
   flash: ${FLASH_IMAGE}
+  dining: ${DINING_IMAGE}
 
 thread-pool:
   core-size: ${PROD_THREAD_CORE_SIZE}

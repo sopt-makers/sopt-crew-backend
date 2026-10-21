@@ -2277,7 +2277,7 @@ public class MeetingV2ServiceTest {
 		}
 
 		@ParameterizedTest
-		@EnumSource(value = MeetingCategory.class, names = "EVENT", mode = EnumSource.Mode.EXCLUDE)
+		@EnumSource(value = MeetingCategory.class, names = {"EVENT", "DINING"}, mode = EnumSource.Mode.EXCLUDE)
 		@DisplayName("행사 카테고리가 아닌 다른 카테고리로 행사 모임 신청 API로 호출 시 예외가 발생되어야 한다.")
 		void applyEventMeeting_WhenCategoryIsNotEvent_ShouldThrowException(MeetingCategory category) {
 			// given

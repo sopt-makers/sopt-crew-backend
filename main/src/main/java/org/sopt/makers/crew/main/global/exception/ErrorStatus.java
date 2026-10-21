@@ -23,6 +23,10 @@ public enum ErrorStatus {
 	ALREADY_REPORTED_COMMENT("이미 신고한 댓글입니다."),
 	ALREADY_REPORTED_POST("이미 신고한 게시글입니다."),
 	ALREADY_REPORTED_MEETING_DEMAND("이미 신고한 모임 수요입니다."),
+	ENDED_DINING("종료된 회식입니다."),
+	ALREADY_CLOSED_DINING_ROUND("이미 마감된 회차입니다."),
+	ALREADY_REQUESTED_DINING_PAYER("이미 결제자 요청을 했습니다."),
+	NOT_PENDING_DINING_PAYER("승인 대기 중인 결제자 요청이 없습니다."),
 	ALREADY_REPORTED_MEETING_DEMAND_COMMENT("이미 신고한 모임 수요 댓글입니다."),
 	NOT_IN_APPLY_PERIOD("모임 지원 기간이 아닙니다."),
 	INVALID_MEETING_CATEGORY("유효하지 않은 모임 카테고리입니다."),
@@ -91,6 +95,8 @@ public enum ErrorStatus {
 	NOT_FOUND_PROPERTY_STRATEGY("적절한 프로퍼티 반환 전략을 찾을 수 없습니다"),
 	NOT_FOUND_SOPT_MAP("존재하지 않는 솝맵입니다."),
 	NOT_FOUND_SUBWAY_STATION("존재하지 않는 지하철역입니다."),
+	NOT_FOUND_DINING("존재하지 않는 회식입니다."),
+	NOT_FOUND_DINING_ROUND("존재하지 않는 회차입니다."),
 
 	/**
 	 * 405 METHOD_NOT_ALLOWED

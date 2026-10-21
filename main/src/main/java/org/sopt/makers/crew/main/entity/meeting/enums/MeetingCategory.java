@@ -9,7 +9,8 @@ public enum MeetingCategory {
 	LECTURE("강연"),
 	FLASH("번쩍"),
 	EVENT("행사"),
-	SEMINAR("세미나");
+	SEMINAR("세미나"),
+	DINING("회식");
 
 	private final String value;
 
