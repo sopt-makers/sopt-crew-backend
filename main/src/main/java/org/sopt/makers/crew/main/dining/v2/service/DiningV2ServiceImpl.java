@@ -249,14 +249,18 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	@Transactional
 	public void applyAttendance(Integer meetingId, Integer roundId, Integer userId) {
 		meetingRepository.findDiningByIdOrThrow(meetingId);
-		addAttendance(findRoundOfDining(meetingId, roundId), userId);
+		DiningRound round = findRoundOfDining(meetingId, roundId);
+		round.validateNotClosed();
+		addAttendance(round, userId);
 	}
 
 	@Override
 	@Transactional
 	public void cancelAttendance(Integer meetingId, Integer roundId, Integer userId) {
 		meetingRepository.findDiningByIdOrThrow(meetingId);
-		deleteAttendance(findRoundOfDining(meetingId, roundId), userId, userId);
+		DiningRound round = findRoundOfDining(meetingId, roundId);
+		round.validateNotClosed();
+		deleteAttendance(round, userId, userId);
 	}
 
 	@Override

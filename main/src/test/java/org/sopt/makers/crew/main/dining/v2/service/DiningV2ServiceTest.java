@@ -506,6 +506,49 @@ class DiningV2ServiceTest {
 				.isEqualTo(1);
 		}
 
+		@ParameterizedTest
+		@ValueSource(strings = {"closed", "ended"})
+		@DisplayName("회차 마감 또는 회식 종료 후 본인 신청과 취소는 차단되며 참석과 이력은 변경되지 않는다.")
+		void selfAttendance_rejectsClosedRound(String state) {
+			if (state.equals("ended")) {
+				diningV2Service.endDining(meetingId, leader.getId());
+			} else {
+				diningV2Service.closeRound(meetingId, roundId, leader.getId());
+			}
+
+			assertThatThrownBy(() -> diningV2Service.applyAttendance(meetingId, roundId, member.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(ALREADY_CLOSED_DINING_ROUND.getErrorCode());
+			assertThatThrownBy(() -> diningV2Service.cancelAttendance(meetingId, roundId, leader.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(ALREADY_CLOSED_DINING_ROUND.getErrorCode());
+			assertThat(diningAttendanceRepository.existsByRoundIdAndUserId(roundId, member.getId())).isFalse();
+			assertThat(diningAttendanceRepository.existsByRoundIdAndUserId(roundId, leader.getId())).isTrue();
+			assertThat(diningDeletionHistoryRepository.findAll()).isEmpty();
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = {"closed", "ended"})
+		@DisplayName("마감과 종료 후에도 개설자와 승인된 공동 결제자는 참석자를 추가하고 삭제할 수 있다.")
+		void management_allowsClosedRound(String state) {
+			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
+			var payer = diningAttendanceRepository.findByRoundIdAndUserId(roundId, member.getId()).orElseThrow();
+			payer.requestPayer(LocalDateTime.of(2024, 4, 24, 0, 0));
+			payer.approvePayer();
+			if (state.equals("ended")) {
+				diningV2Service.endDining(meetingId, leader.getId());
+			} else {
+				diningV2Service.closeRound(meetingId, roundId, leader.getId());
+			}
+			User third = userRepository.save(createUser("추가 참석자", 3));
+			for (Integer managerId : List.of(leader.getId(), member.getId())) {
+				diningV2Service.addAttendee(meetingId, roundId, third.getId(), managerId);
+				assertThat(diningAttendanceRepository.existsByRoundIdAndUserId(roundId, third.getId())).isTrue();
+				diningV2Service.deleteAttendee(meetingId, roundId, third.getId(), managerId);
+				assertThat(diningAttendanceRepository.existsByRoundIdAndUserId(roundId, third.getId())).isFalse();
+			}
+		}
+
 		@Test
 		@DisplayName("다른 파트의 OB 사용자도 신청 및 직접 추가가 가능하다.")
 		void attendance_acceptsOtherPartAndOldGeneration() {

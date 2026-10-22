@@ -118,11 +118,11 @@ public interface DiningV2Api {
 		@PathVariable Integer roundId,
 		Principal principal);
 
-	@Operation(summary = "회차 참석 신청", description = "본인의 참석을 등록합니다. 기수와 파트 제한이 없습니다.")
+	@Operation(summary = "회차 참석 신청", description = "마감 전 회차에 본인의 참석을 등록합니다. 기수와 파트 제한이 없습니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "201", description = "참석 신청 성공"),
 		@ApiResponse(responseCode = "401", description = "존재하지 않거나 유효하지 않은 유저입니다.", content = @Content),
-		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION, 이미 참석 중인 회차입니다.", content = @Content),
+		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION, 이미 참석 중인 회차입니다., 이미 마감된 회차입니다.", content = @Content),
 		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
 	})
 	ResponseEntity<Void> applyAttendance(
@@ -130,9 +130,10 @@ public interface DiningV2Api {
 		@PathVariable Integer roundId,
 		Principal principal);
 
-	@Operation(summary = "회차 참석 취소", description = "본인의 참석 기록을 삭제하고 삭제 이력을 보관합니다.")
+	@Operation(summary = "회차 참석 취소", description = "마감 전 회차의 본인 참석 기록을 삭제하고 삭제 이력을 보관합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "204", description = "참석 취소 성공"),
+		@ApiResponse(responseCode = "400", description = "이미 마감된 회차입니다.", content = @Content),
 		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
 	})
 	ResponseEntity<Void> cancelAttendance(
