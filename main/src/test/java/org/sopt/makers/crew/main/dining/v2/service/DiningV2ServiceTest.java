@@ -673,6 +673,29 @@ class DiningV2ServiceTest {
 			assertThat(diningAttendanceRepository.countDistinctUserIdsByMeetingId(createDining())).isEqualTo(1);
 		}
 
+		@Test
+		@DisplayName("목록용 고유 참석자 수는 회식별로 집계하며 취소 이력과 요청하지 않은 회식은 제외한다.")
+		void countDistinctAttendees_inBatch() {
+			User third = userRepository.save(createUser("세 번째", 3));
+			Integer secondRound = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
+			diningV2Service.applyAttendance(meetingId, secondRound, third.getId());
+			Integer otherDining = createDining();
+			Integer otherRound = getRounds(otherDining).get(0).getId();
+			diningV2Service.applyAttendance(otherDining, otherRound, member.getId());
+			diningV2Service.cancelAttendance(otherDining, otherRound, member.getId());
+			Integer emptyDining = createDining();
+			diningV2Service.cancelAttendance(emptyDining, getRounds(emptyDining).get(0).getId(), leader.getId());
+			createDining();
+
+			var counts = diningAttendanceRepository.countDistinctUserIdsByMeetingIdIn(
+				List.of(meetingId, otherDining, emptyDining));
+
+			assertThat(counts).extracting(count -> tuple(count.getMeetingId(), count.getAttendeeCount()))
+				.containsExactlyInAnyOrder(tuple(meetingId, 3L), tuple(otherDining, 1L));
+			assertThat(diningAttendanceRepository.countDistinctUserIdsByMeetingIdIn(List.of())).isEmpty();
+		}
+
 		@ParameterizedTest
 		@ValueSource(strings = {"apply", "cancel", "status", "list", "add", "delete"})
 		@DisplayName("모든 참석 API는 다른 회식에 속한 회차를 거절한다.")
