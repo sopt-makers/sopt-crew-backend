@@ -34,4 +34,8 @@ public interface DiningAttendanceRepository extends JpaRepository<DiningAttendan
 		+ "AND a.payerStatus = :payerStatus")
 	boolean existsByMeetingIdAndUserIdAndPayerStatus(@Param("meetingId") Integer meetingId,
 		@Param("userId") Integer userId, @Param("payerStatus") DiningPayerStatus payerStatus);
+
+	@Query("SELECT COUNT(DISTINCT a.userId) FROM DiningAttendance a, DiningRound r "
+		+ "WHERE a.roundId = r.id AND r.meetingId = :meetingId")
+	long countDistinctUserIdsByMeetingId(@Param("meetingId") Integer meetingId);
 }
