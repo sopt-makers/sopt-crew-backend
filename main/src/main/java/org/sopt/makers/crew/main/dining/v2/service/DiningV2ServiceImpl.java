@@ -5,6 +5,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
@@ -13,6 +14,8 @@ import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDi
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateDiningResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
 import org.sopt.makers.crew.main.entity.dining.DiningAttendance;
 import org.sopt.makers.crew.main.entity.dining.DiningAttendanceRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRound;
@@ -21,6 +24,7 @@ import org.sopt.makers.crew.main.entity.dining.DiningRounds;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
+import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.global.config.ImageSettingProperties;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
@@ -241,6 +245,61 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		findRoundOfDining(meetingId, roundId).close(time.now());
 	}
 
+	@Override
+	@Transactional
+	public void applyAttendance(Integer meetingId, Integer roundId, Integer userId) {
+		meetingRepository.findDiningByIdOrThrow(meetingId);
+		addAttendance(findRoundOfDining(meetingId, roundId), userId);
+	}
+
+	@Override
+	@Transactional
+	public void cancelAttendance(Integer meetingId, Integer roundId, Integer userId) {
+		meetingRepository.findDiningByIdOrThrow(meetingId);
+		deleteAttendance(findRoundOfDining(meetingId, roundId), userId, userId);
+	}
+
+	@Override
+	public DiningV2GetAttendanceResponseDto getAttendance(Integer meetingId, Integer roundId, Integer userId) {
+		meetingRepository.findDiningByIdOrThrow(meetingId);
+		findRoundOfDining(meetingId, roundId);
+		return new DiningV2GetAttendanceResponseDto(diningAttendanceRepository.countByRoundId(roundId),
+			diningAttendanceRepository.existsByRoundIdAndUserId(roundId, userId));
+	}
+
+	@Override
+	public DiningV2GetAttendeesResponseDto getAttendees(Integer meetingId, Integer roundId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		findRoundOfDining(meetingId, roundId);
+		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
+		List<Integer> userIds = diningAttendanceRepository.findAllByRoundId(roundId).stream()
+			.map(DiningAttendance::getUserId).toList();
+		if (userIds.isEmpty()) {
+			return new DiningV2GetAttendeesResponseDto(List.of());
+		}
+		return new DiningV2GetAttendeesResponseDto(userRepository.findAllById(userIds).stream()
+			.sorted(Comparator.comparing(User::getId))
+			.map(DiningV2GetAttendeesResponseDto.Attendee::of).toList());
+	}
+
+	@Override
+	@Transactional
+	public void addAttendee(Integer meetingId, Integer roundId, Integer attendeeUserId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		DiningRound round = findRoundOfDining(meetingId, roundId);
+		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
+		addAttendance(round, attendeeUserId);
+	}
+
+	@Override
+	@Transactional
+	public void deleteAttendee(Integer meetingId, Integer roundId, Integer attendeeUserId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		DiningRound round = findRoundOfDining(meetingId, roundId);
+		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
+		deleteAttendance(round, attendeeUserId, userId);
+	}
+
 	private void attend(DiningRound round, Integer userId) {
 		diningAttendanceRepository.save(DiningAttendance.builder()
 			.roundId(round.getId())
@@ -271,5 +330,20 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		if (diningDate.isBefore(time.now().toLocalDate())) {
 			throw new BadRequestException(PAST_DINING_DATE.getErrorCode());
 		}
+	}
+
+	private void addAttendance(DiningRound round, Integer userId) {
+		userRepository.findByIdOrThrow(userId);
+		if (diningAttendanceRepository.existsByRoundIdAndUserId(round.getId(), userId)) {
+			throw new BadRequestException(ALREADY_ATTENDED_DINING_ROUND.getErrorCode());
+		}
+		attend(round, userId);
+	}
+
+	private void deleteAttendance(DiningRound round, Integer attendeeUserId, Integer deletedByUserId) {
+		DiningAttendance attendance = diningAttendanceRepository.findByRoundIdAndUserId(round.getId(), attendeeUserId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_DINING_ATTENDANCE.getErrorCode()));
+		diningDeletionHistoryRecorder.recordAttendanceDeletion(round, attendance, deletedByUserId);
+		diningAttendanceRepository.delete(attendance);
 	}
 }
