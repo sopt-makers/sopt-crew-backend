@@ -2,10 +2,13 @@ package org.sopt.makers.crew.main.dining.v2;
 
 import java.security.Principal;
 
+import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2AddAttendeeBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDiningBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateDiningResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -65,7 +68,7 @@ public interface DiningV2Api {
 		@PathVariable Integer meetingId,
 		Principal principal);
 
-	@Operation(summary = "회차 추가", description = "새 회차를 추가하고 개설자를 참석자로 등록합니다. 이전 회차 참석자에게 알림을 보냅니다.")
+	@Operation(summary = "회차 추가", description = "새 회차를 추가하고 개설자를 참석자로 등록합니다. 이전 회차에 한 번이라도 참석했던 사용자에게 알림을 보냅니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "201", description = "roundId: 2"),
 		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION, 종료된 회식입니다.", content = @Content),
@@ -113,5 +116,74 @@ public interface DiningV2Api {
 	ResponseEntity<Void> closeRound(
 		@PathVariable Integer meetingId,
 		@PathVariable Integer roundId,
+		Principal principal);
+
+	@Operation(summary = "회차 참석 신청", description = "본인의 참석을 등록합니다. 기수와 파트 제한이 없습니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "201", description = "참석 신청 성공"),
+		@ApiResponse(responseCode = "401", description = "존재하지 않거나 유효하지 않은 유저입니다.", content = @Content),
+		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION, 이미 참석 중인 회차입니다.", content = @Content),
+		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
+	})
+	ResponseEntity<Void> applyAttendance(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		Principal principal);
+
+	@Operation(summary = "회차 참석 취소", description = "본인의 참석 기록을 삭제하고 삭제 이력을 보관합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "204", description = "참석 취소 성공"),
+		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
+	})
+	ResponseEntity<Void> cancelAttendance(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		Principal principal);
+
+	@Operation(summary = "회차 참석 현황 조회", description = "현재 참석 인원과 본인의 참석 여부를 조회합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "참석 현황 조회 성공"),
+		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
+	})
+	ResponseEntity<DiningV2GetAttendanceResponseDto> getAttendance(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		Principal principal);
+
+	@Operation(summary = "회차 참석자 목록 조회", description = "개설자 또는 승인된 공동 결제자가 조회할 수 있습니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "참석자 목록 조회 성공"),
+		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
+		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
+	})
+	ResponseEntity<DiningV2GetAttendeesResponseDto> getAttendees(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		Principal principal);
+
+	@Operation(summary = "회차 참석자 직접 추가", description = "개설자 또는 승인된 공동 결제자가 추가합니다. 종료 후에도 가능합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "201", description = "참석자 추가 성공"),
+		@ApiResponse(responseCode = "401", description = "존재하지 않거나 유효하지 않은 유저입니다.", content = @Content),
+		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION, 이미 참석 중인 회차입니다.", content = @Content),
+		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
+		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
+	})
+	ResponseEntity<Void> addAttendee(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		@Valid @RequestBody DiningV2AddAttendeeBodyDto requestBody,
+		Principal principal);
+
+	@Operation(summary = "회차 참석자 삭제", description = "개설자 또는 승인된 공동 결제자가 삭제합니다. 개설자 삭제 및 종료 후 삭제도 가능합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "204", description = "참석자 삭제 성공"),
+		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
+		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
+	})
+	ResponseEntity<Void> deleteAttendee(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		@PathVariable Integer attendeeUserId,
 		Principal principal);
 }
