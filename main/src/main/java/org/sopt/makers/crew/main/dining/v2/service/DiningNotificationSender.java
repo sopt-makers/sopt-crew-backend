@@ -2,13 +2,19 @@ package org.sopt.makers.crew.main.dining.v2.service;
 
 import static org.sopt.makers.crew.main.external.notification.PushNotificationEnums.*;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.sopt.makers.crew.main.entity.dining.DiningAttendanceRepository;
+import org.sopt.makers.crew.main.entity.dining.DiningDeletionHistory;
+import org.sopt.makers.crew.main.entity.dining.DiningDeletionHistoryRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRound;
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRounds;
+import org.sopt.makers.crew.main.entity.dining.enums.DiningDeletionTargetType;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
@@ -37,11 +43,12 @@ public class DiningNotificationSender {
 	private final MeetingRepository meetingRepository;
 	private final DiningRoundRepository diningRoundRepository;
 	private final DiningAttendanceRepository diningAttendanceRepository;
+	private final DiningDeletionHistoryRepository diningDeletionHistoryRepository;
 	private final PushNotificationService pushNotificationService;
 	private final PushNotificationProperties pushNotificationProperties;
 
 	/**
-	 * 새 회차 알림. 대상: 새 회차 이전 회차에 참석한 사람 (개설자 제외)
+	 * 새 회차 알림. 대상: 새 회차 이전 회차에 한 번이라도 참석한 사람 (취소·삭제 이력 포함, 개설자 제외)
 	 * 커밋 이후 비동기로 실행되므로, 그 사이 회식이나 회차가 삭제됐으면 보내지 않고
 	 * 그 사이 더 뒤 회차가 추가됐어도 새 회차 이전 회차의 참석자만 대상으로 한다.
 	 */
@@ -61,13 +68,27 @@ public class DiningNotificationSender {
 			.map(DiningRound::getId)
 			.filter(id -> id < roundId)
 			.toList();
-		if (previousRoundIds.isEmpty()) {
-			return;
+		Set<Integer> attendeeUserIds = new LinkedHashSet<>();
+		if (!previousRoundIds.isEmpty()) {
+			attendeeUserIds.addAll(diningAttendanceRepository.findDistinctUserIdsByRoundIdIn(previousRoundIds));
+		}
+		for (DiningDeletionHistory history : diningDeletionHistoryRepository.findAllByMeetingIdAndTargetTypeIn(
+			meetingId, List.of(DiningDeletionTargetType.ATTENDANCE, DiningDeletionTargetType.ROUND))) {
+			Map<?, ?> data = (Map<?, ?>)history.getSnapshot().get("data");
+			if (((Number)data.get("roundId")).intValue() >= roundId) {
+				continue;
+			}
+			if (history.getTargetType() == DiningDeletionTargetType.ATTENDANCE) {
+				attendeeUserIds.add(((Number)data.get("userId")).intValue());
+			} else {
+				for (Object attendance : (List<?>)data.get("attendances")) {
+					attendeeUserIds.add(((Number)((Map<?, ?>)attendance).get("userId")).intValue());
+				}
+			}
 		}
 
 		Integer leaderUserId = dining.get().getUserId();
-		String[] receiverUserIds = diningAttendanceRepository.findDistinctUserIdsByRoundIdIn(previousRoundIds)
-			.stream()
+		String[] receiverUserIds = attendeeUserIds.stream()
 			.filter(userId -> !userId.equals(leaderUserId))
 			.map(String::valueOf)
 			.toArray(String[]::new);
