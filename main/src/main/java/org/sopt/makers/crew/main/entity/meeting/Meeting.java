@@ -360,6 +360,7 @@ public class Meeting extends BaseTimeEntity {
 
 		this.title = title;
 		this.imageURL = imageURL;
+		this.endDate = mEndDate;
 		this.mStartDate = mStartDate;
 		this.mEndDate = mEndDate;
 		this.joinableParts = joinableParts;
