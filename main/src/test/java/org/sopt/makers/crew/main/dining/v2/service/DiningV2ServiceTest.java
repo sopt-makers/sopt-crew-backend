@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.test.context.event.RecordApplicationEvents;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -50,6 +53,7 @@ import org.springframework.context.annotation.Import;
  * StubTime 기준 현재 시각: 2024.04.24 00:00
  */
 @IntegratedTest
+@RecordApplicationEvents
 @Import(CaffeineTestConfig.class)
 class DiningV2ServiceTest {
 
@@ -77,6 +81,9 @@ class DiningV2ServiceTest {
 	private DiningNotificationSender diningNotificationSender;
 	@MockBean
 	private PushNotificationService pushNotificationService;
+
+	@Autowired
+	private ApplicationEvents applicationEvents;
 
 	private User leader;
 	private User member;
@@ -791,42 +798,62 @@ class DiningV2ServiceTest {
 		}
 
 		@Test
-		@DisplayName("취소와 회차 삭제 이력의 참석자는 새 회차 알림에 포함하고 개설자와 중복은 제외한다.")
-		void notification_includesHistoricalAttendees() {
+		@DisplayName("새 회차 생성 시 취소·삭제된 참석자와 개설자는 제외하고 현재 참석자만 알린다.")
+		void notification_onlyIncludesCurrentAttendeesAtCreation() {
 			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
 			diningV2Service.cancelAttendance(meetingId, roundId, member.getId());
-			diningV2Service.cancelAttendance(meetingId, roundId, leader.getId());
 			Integer deletedRound = diningV2Service.createRound(meetingId, roundBody("삭제될 회차"), leader.getId()).roundId();
-			User third = userRepository.save(createUser("과거 참석자", 3));
-			diningV2Service.applyAttendance(meetingId, deletedRound, third.getId());
+			User removed = userRepository.save(createUser("과거 참석자", 3));
+			diningV2Service.applyAttendance(meetingId, deletedRound, removed.getId());
 			diningV2Service.deleteRound(meetingId, deletedRound, leader.getId());
+			User current = userRepository.save(createUser("현재 참석자", 4));
+			diningV2Service.applyAttendance(meetingId, roundId, current.getId());
 			Integer newRound = diningV2Service.createRound(meetingId, roundBody("새 회차"), leader.getId()).roundId();
-			diningV2Service.applyAttendance(meetingId, roundId, third.getId());
+			DiningRoundCreatedEvent event = roundCreatedEvent(newRound);
+			assertThat(event.attendeeUserIds()).containsExactly(current.getId());
 
-			diningNotificationSender.sendNewRoundNotification(meetingId, newRound);
+			// 생성 이후 취소와 신규 신청이 있어도 생성 시점의 수신자는 유지된다.
+			diningV2Service.cancelAttendance(meetingId, roundId, current.getId());
+			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
+			diningNotificationSender.sendNewRoundNotification(event);
 
-			ArgumentCaptor<PushNotificationRequestDto> captor = ArgumentCaptor.forClass(
-				PushNotificationRequestDto.class);
+			ArgumentCaptor<PushNotificationRequestDto> captor = ArgumentCaptor.forClass(PushNotificationRequestDto.class);
 			org.mockito.Mockito.verify(pushNotificationService).sendPushNotification(captor.capture());
-			assertThat(captor.getValue().getUserIds())
-				.containsExactlyInAnyOrder(member.getId().toString(), third.getId().toString());
+			assertThat(captor.getValue().getUserIds()).containsExactly(current.getId().toString());
 		}
 
 		@Test
-		@DisplayName("새 회차 알림은 다른 회식과 이후 회차의 삭제 이력을 포함하지 않는다.")
-		void notification_excludesOtherDiningAndLaterRoundHistory() {
-			Integer otherDiningId = createDining();
-			Integer otherRoundId = getRounds(otherDiningId).get(0).getId();
-			diningV2Service.applyAttendance(otherDiningId, otherRoundId, member.getId());
-			diningV2Service.cancelAttendance(otherDiningId, otherRoundId, member.getId());
-			Integer newRound = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
-			Integer laterRound = diningV2Service.createRound(meetingId, roundBody("3차"), leader.getId()).roundId();
-			diningV2Service.applyAttendance(meetingId, laterRound, member.getId());
-			diningV2Service.cancelAttendance(meetingId, laterRound, member.getId());
+		@DisplayName("새 회차 알림은 여러 회차의 중복 참석자를 한 번만 포함하고 다른 회식은 제외한다.")
+		void notification_deduplicatesCurrentAttendees() {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+			Integer otherDining = createDining();
+			User other = userRepository.save(createUser("다른 회식 참석자", 3));
+			diningV2Service.applyAttendance(otherDining, getRounds(otherDining).get(0).getId(), other.getId());
+			Integer third = diningV2Service.createRound(meetingId, roundBody("3차"), leader.getId()).roundId();
+			assertThat(roundCreatedEvent(third).attendeeUserIds()).containsExactly(member.getId());
+			diningNotificationSender.sendNewRoundNotification(roundCreatedEvent(third));
+			ArgumentCaptor<PushNotificationRequestDto> captor = ArgumentCaptor.forClass(PushNotificationRequestDto.class);
+			org.mockito.Mockito.verify(pushNotificationService).sendPushNotification(captor.capture());
+			assertThat(captor.getValue().getUserIds()).containsExactly(member.getId().toString());
+		}
 
-			diningNotificationSender.sendNewRoundNotification(meetingId, newRound);
-
+		@Test
+		@DisplayName("생성 시 수신자가 없거나 발송 전에 회차가 삭제되면 알림을 보내지 않는다.")
+		void notification_skipsEmptyRecipientsAndDeletedRound() {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
+			diningNotificationSender.sendNewRoundNotification(roundCreatedEvent(second));
+			Integer third = diningV2Service.createRound(meetingId, roundBody("3차"), leader.getId()).roundId();
+			diningV2Service.deleteRound(meetingId, third, leader.getId());
+			diningNotificationSender.sendNewRoundNotification(roundCreatedEvent(third));
 			org.mockito.Mockito.verifyNoInteractions(pushNotificationService);
+		}
+
+		private DiningRoundCreatedEvent roundCreatedEvent(Integer roundId) {
+			return applicationEvents.stream(DiningRoundCreatedEvent.class)
+				.filter(event -> event.roundId().equals(roundId)).findFirst().orElseThrow();
 		}
 
 		private void callAttendanceApi(String operation, Integer diningId, Integer targetRoundId) {

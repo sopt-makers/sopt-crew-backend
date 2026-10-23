@@ -182,6 +182,12 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		dining.validateDiningNotEnded();
 		diningMapLinkValidator.validate(requestBody.naverMapLink(), requestBody.kakaoMapLink());
 
+		List<Integer> previousRoundIds = getRounds(meetingId).getRoundIds();
+		List<Integer> attendeeUserIds = previousRoundIds.isEmpty() ? List.of()
+			: diningAttendanceRepository.findDistinctUserIdsByRoundIdIn(previousRoundIds).stream()
+				.filter(attendeeUserId -> !attendeeUserId.equals(dining.getUserId()))
+				.toList();
+
 		DiningRound round = diningRoundRepository.save(DiningRound.builder()
 			.meetingId(meetingId)
 			.place(blankToNull(requestBody.place()))
@@ -191,7 +197,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			.build());
 		attend(round, userId);
 
-		eventPublisher.publishEvent(new DiningRoundCreatedEvent(meetingId, round.getId()));
+		eventPublisher.publishEvent(new DiningRoundCreatedEvent(meetingId, round.getId(), attendeeUserIds));
 
 		return DiningV2CreateRoundResponseDto.from(round.getId());
 	}

@@ -17,6 +17,6 @@ public class DiningRoundCreatedEventListener {
 	@Async("taskExecutor")
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handleDiningRoundCreatedEvent(DiningRoundCreatedEvent event) {
-		diningNotificationSender.sendNewRoundNotification(event.meetingId(), event.roundId());
+		diningNotificationSender.sendNewRoundNotification(event);
 	}
 }
