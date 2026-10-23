@@ -31,6 +31,7 @@ public enum ErrorStatus {
 	INVALID_DINING_MAP_LINK("네이버지도 또는 카카오맵 링크만 등록할 수 있습니다."),
 	CANNOT_DELETE_DINING_WITH_CLOSED_ROUND("마감된 회차가 있는 회식은 삭제할 수 없습니다."),
 	CANNOT_DELETE_CLOSED_DINING_ROUND("마감된 회차는 삭제할 수 없습니다."),
+	ALREADY_ATTENDED_DINING_ROUND("이미 참석 중인 회차입니다."),
 	CANNOT_DELETE_FIRST_DINING_ROUND("1차는 회식 삭제로만 삭제할 수 있습니다."),
 	ALREADY_REPORTED_MEETING_DEMAND_COMMENT("이미 신고한 모임 수요 댓글입니다."),
 	NOT_IN_APPLY_PERIOD("모임 지원 기간이 아닙니다."),
@@ -101,6 +102,7 @@ public enum ErrorStatus {
 	NOT_FOUND_SOPT_MAP("존재하지 않는 솝맵입니다."),
 	NOT_FOUND_SUBWAY_STATION("존재하지 않는 지하철역입니다."),
 	NOT_FOUND_DINING("존재하지 않는 회식입니다."),
+	NOT_FOUND_DINING_ATTENDANCE("존재하지 않는 회차 참석 기록입니다."),
 	NOT_FOUND_DINING_ROUND("존재하지 않는 회차입니다."),
 
 	/**

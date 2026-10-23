@@ -134,11 +134,15 @@ public class DiningRound extends BaseTimeEntity {
 	}
 
 	public void close(LocalDateTime now) {
+		validateNotClosed();
+		this.status = DiningRoundStatus.CLOSED;
+		this.closedAt = now;
+	}
+
+	public void validateNotClosed() {
 		if (isClosed()) {
 			throw new BadRequestException(ALREADY_CLOSED_DINING_ROUND.getErrorCode());
 		}
-		this.status = DiningRoundStatus.CLOSED;
-		this.closedAt = now;
 	}
 
 	public boolean isClosed() {

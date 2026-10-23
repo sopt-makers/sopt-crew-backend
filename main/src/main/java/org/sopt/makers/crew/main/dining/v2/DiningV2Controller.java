@@ -2,15 +2,22 @@ package org.sopt.makers.crew.main.dining.v2;
 
 import java.security.Principal;
 
+import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
+import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2AddAttendeeBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDiningBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateDiningResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
 import org.sopt.makers.crew.main.dining.v2.service.DiningV2Service;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -120,5 +127,74 @@ public class DiningV2Controller implements DiningV2Api {
 		Integer userId = UserUtil.getUserId(principal);
 		diningV2Service.closeRound(meetingId, roundId, userId);
 		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	@PostMapping("/{meetingId}/rounds/{roundId}/attendance")
+	public ResponseEntity<Void> applyAttendance(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		Principal principal) {
+		diningV2Service.applyAttendance(meetingId, roundId, UserUtil.getUserId(principal));
+		return ResponseEntity.status(HttpStatus.CREATED).build();
+	}
+
+	@Override
+	@DeleteMapping("/{meetingId}/rounds/{roundId}/attendance")
+	public ResponseEntity<Void> cancelAttendance(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		Principal principal) {
+		diningV2Service.cancelAttendance(meetingId, roundId, UserUtil.getUserId(principal));
+		return ResponseEntity.noContent().build();
+	}
+
+	@Override
+	@GetMapping("/{meetingId}/rounds/{roundId}/attendance")
+	public ResponseEntity<DiningV2GetAttendanceResponseDto> getAttendance(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		Principal principal) {
+		return ResponseEntity.ok(diningV2Service.getAttendance(meetingId, roundId, UserUtil.getUserId(principal)));
+	}
+
+	@Override
+	@GetMapping("/{meetingId}/rounds/{roundId}/attendees")
+	public ResponseEntity<DiningV2GetAttendeeManagementResponseDto> getAttendees(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		@Valid @ModelAttribute DiningV2GetAttendeesQueryDto queryCommand,
+		Principal principal) {
+		return ResponseEntity.ok(diningV2Service.getAttendees(meetingId, roundId, queryCommand, UserUtil.getUserId(principal)));
+	}
+
+	@Override
+	@PostMapping("/{meetingId}/rounds/{roundId}/attendees")
+	public ResponseEntity<Void> addAttendee(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		@Valid @RequestBody DiningV2AddAttendeeBodyDto requestBody,
+		Principal principal) {
+		diningV2Service.addAttendee(meetingId, roundId, requestBody.userId(), UserUtil.getUserId(principal));
+		return ResponseEntity.status(HttpStatus.CREATED).build();
+	}
+
+	@Override
+	@DeleteMapping("/{meetingId}/rounds/{roundId}/attendees/{attendeeUserId}")
+	public ResponseEntity<Void> deleteAttendee(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		@PathVariable Integer attendeeUserId,
+		Principal principal) {
+		diningV2Service.deleteAttendee(meetingId, roundId, attendeeUserId, UserUtil.getUserId(principal));
+		return ResponseEntity.noContent().build();
+	}
+
+	@Override
+	@GetMapping("/{meetingId}/rounds/{roundId}/attendance/attendees")
+	public ResponseEntity<DiningV2GetAttendeesResponseDto> getAttendanceAttendees(
+		@PathVariable Integer meetingId, @PathVariable Integer roundId, Principal principal) {
+		return ResponseEntity.ok(diningV2Service.getAttendanceAttendees(meetingId, roundId,
+			UserUtil.getUserId(principal)));
 	}
 }
