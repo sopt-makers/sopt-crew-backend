@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -550,6 +551,69 @@ class DiningV2ServiceTest {
 		}
 
 		@Test
+		@DisplayName("비참석 사용자도 모달 목록을 조회할 수 있으며 연락처와 기수는 노출하지 않는다.")
+		void modal_isAvailableToNonAttendeeWithoutPrivateFields() {
+			var response = diningV2Service.getAttendanceAttendees(meetingId, roundId, member.getId());
+			assertThat(response.attendees()).extracting(attendee -> attendee.id()).containsExactly(leader.getId());
+			var json = new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(response);
+			assertThat(json.get("attendees").get(0).has("phone")).isFalse();
+			assertThat(json.get("attendees").get(0).has("recentGeneration")).isFalse();
+			assertThatThrownBy(() -> diningV2Service.getAttendees(meetingId, roundId,
+				new DiningV2GetAttendeesQueryDto(null, null, null), member.getId()))
+				.isInstanceOf(ForbiddenException.class);
+		}
+
+		@Test
+		@DisplayName("관리자 목록은 등록 최신순과 등록 순서 번호를 사용하고 최근 기수 및 연락처를 제공한다.")
+		void management_ordersByRegistrationAndIncludesDetails() {
+			User third = userRepository.save(User.builder().name("세 번째").orgId(3).phone("010-3333-3333")
+				.activities(List.of(new UserActivityVO("서버", 36), new UserActivityVO("웹", 30))).build());
+			diningV2Service.applyAttendance(meetingId, roundId, third.getId());
+			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
+			// 사용자 ID와 등록 순서가 다르고 시각이 같아도 참석 ID로 순서가 고정된다.
+			for (var attendance : diningAttendanceRepository.findAllByRoundId(roundId)) {
+				attendance.createdTimestamp = LocalDateTime.of(2024, 4, 24, 0, 0);
+			}
+			var response = diningV2Service.getAttendees(meetingId, roundId,
+				new DiningV2GetAttendeesQueryDto(null, null, null), leader.getId());
+			assertThat(response.attendees()).extracting(attendee -> attendee.id())
+				.containsExactly(member.getId(), third.getId(), leader.getId());
+			assertThat(response.attendees()).extracting(attendee -> attendee.attendanceNumber())
+				.containsExactly(3L, 2L, 1L);
+			assertThat(response.attendees().get(1).recentGeneration()).isEqualTo(36);
+			assertThat(response.attendees().get(1).phone()).isEqualTo("010-3333-3333");
+			assertThat(response.meta().getItemCount()).isEqualTo(3);
+		}
+
+		@Test
+		@DisplayName("관리자 목록은 페이지 경계에서도 등록 번호를 유지하고 빈 페이지의 총 개수를 보존한다.")
+		void management_paginatesWithStableNumbers() {
+			for (int i = 3; i < 14; i++) {
+				User attendee = userRepository.save(createUser("참석자" + i, i));
+				diningV2Service.addAttendee(meetingId, roundId, attendee.getId(), leader.getId());
+			}
+			var first = diningV2Service.getAttendees(meetingId, roundId,
+				new DiningV2GetAttendeesQueryDto(1, 10, "desc"), leader.getId());
+			var second = diningV2Service.getAttendees(meetingId, roundId,
+				new DiningV2GetAttendeesQueryDto(2, 10, "desc"), leader.getId());
+			assertThat(first.attendees()).hasSize(10);
+			assertThat(first.attendees().get(0).attendanceNumber()).isEqualTo(12);
+			assertThat(first.meta().isHasNextPage()).isTrue();
+			assertThat(second.attendees()).extracting(attendee -> attendee.attendanceNumber()).containsExactly(2L, 1L);
+			assertThat(second.meta().getPageCount()).isEqualTo(2);
+			assertThat(second.meta().isHasPreviousPage()).isTrue();
+			var empty = diningV2Service.getAttendees(meetingId, roundId,
+				new DiningV2GetAttendeesQueryDto(3, 10, "desc"), leader.getId());
+			assertThat(empty.attendees()).isEmpty();
+			assertThat(empty.meta().getItemCount()).isEqualTo(12);
+			var ascending = diningV2Service.getAttendees(meetingId, roundId,
+				new DiningV2GetAttendeesQueryDto(1, 30, "asc"), leader.getId());
+			assertThat(ascending.attendees()).hasSize(12);
+			assertThat(ascending.attendees().get(0).id()).isEqualTo(leader.getId());
+			assertThat(ascending.attendees().get(0).attendanceNumber()).isEqualTo(1);
+		}
+
+		@Test
 		@DisplayName("다른 파트의 OB 사용자도 신청 및 직접 추가가 가능하다.")
 		void attendance_acceptsOtherPartAndOldGeneration() {
 			User ob = userRepository.save(User.builder().name("OB 웹").orgId(3)
@@ -598,7 +662,7 @@ class DiningV2ServiceTest {
 			assertThat(history.getMeetingId()).isEqualTo(meetingId);
 			assertThat(history.getDeletedByUserId()).isEqualTo(member.getId());
 			assertThat(((Map<?, ?>)history.getSnapshot().get("data")).get("userId")).isEqualTo(member.getId());
-			assertThat(diningV2Service.getAttendees(meetingId, roundId, leader.getId()).attendees())
+			assertThat(diningV2Service.getAttendees(meetingId, roundId, new DiningV2GetAttendeesQueryDto(null, null, null), leader.getId()).attendees())
 				.extracting(attendee -> attendee.id()).containsExactly(leader.getId());
 		}
 
@@ -619,9 +683,9 @@ class DiningV2ServiceTest {
 		void management_afterEndAndLeaderRemoval() {
 			diningV2Service.endDining(meetingId, leader.getId());
 			diningV2Service.deleteAttendee(meetingId, roundId, leader.getId(), leader.getId());
-			assertThat(diningV2Service.getAttendees(meetingId, roundId, leader.getId()).attendees()).isEmpty();
+			assertThat(diningV2Service.getAttendees(meetingId, roundId, new DiningV2GetAttendeesQueryDto(null, null, null), leader.getId()).attendees()).isEmpty();
 			diningV2Service.addAttendee(meetingId, roundId, member.getId(), leader.getId());
-			assertThat(diningV2Service.getAttendees(meetingId, roundId, leader.getId()).attendees())
+			assertThat(diningV2Service.getAttendees(meetingId, roundId, new DiningV2GetAttendeesQueryDto(null, null, null), leader.getId()).attendees())
 				.extracting(attendee -> attendee.id()).containsExactly(member.getId());
 			diningV2Service.deleteAttendee(meetingId, roundId, member.getId(), leader.getId());
 			assertThat(diningAttendanceRepository.countByRoundId(roundId)).isZero();
@@ -636,7 +700,7 @@ class DiningV2ServiceTest {
 		@DisplayName("일반 참석자는 참석자 조회·추가·삭제 권한이 없다.")
 		void management_requiresPermission() {
 			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
-			assertThatThrownBy(() -> diningV2Service.getAttendees(meetingId, roundId, member.getId()))
+			assertThatThrownBy(() -> diningV2Service.getAttendees(meetingId, roundId, new DiningV2GetAttendeesQueryDto(null, null, null), member.getId()))
 				.isInstanceOf(ForbiddenException.class);
 			assertThatThrownBy(() -> diningV2Service.addAttendee(meetingId, roundId, member.getId(), member.getId()))
 				.isInstanceOf(ForbiddenException.class);
@@ -652,12 +716,12 @@ class DiningV2ServiceTest {
 			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
 			var attendance = diningAttendanceRepository.findByRoundIdAndUserId(roundId, member.getId()).orElseThrow();
 			attendance.requestPayer(LocalDateTime.of(2024, 4, 24, 0, 0));
-			assertThatThrownBy(() -> diningV2Service.getAttendees(meetingId, roundId, member.getId()))
+			assertThatThrownBy(() -> diningV2Service.getAttendees(meetingId, roundId, new DiningV2GetAttendeesQueryDto(null, null, null), member.getId()))
 				.isInstanceOf(ForbiddenException.class);
 			attendance.approvePayer();
 			diningV2Service.deleteAttendee(meetingId, roundId, leader.getId(), member.getId());
 			diningV2Service.addAttendee(meetingId, roundId, leader.getId(), member.getId());
-			assertThat(diningV2Service.getAttendees(meetingId, roundId, member.getId()).attendees()).hasSize(2);
+			assertThat(diningV2Service.getAttendees(meetingId, roundId, new DiningV2GetAttendeesQueryDto(null, null, null), member.getId()).attendees()).hasSize(2);
 		}
 
 		@Test
@@ -697,7 +761,7 @@ class DiningV2ServiceTest {
 		}
 
 		@ParameterizedTest
-		@ValueSource(strings = {"apply", "cancel", "status", "list", "add", "delete"})
+		@ValueSource(strings = {"apply", "cancel", "status", "list", "modal", "add", "delete"})
 		@DisplayName("모든 참석 API는 다른 회식에 속한 회차를 거절한다.")
 		void attendance_rejectsForeignRound(String operation) {
 			Integer otherRoundId = getRounds(createDining()).get(0).getId();
@@ -707,7 +771,7 @@ class DiningV2ServiceTest {
 		}
 
 		@ParameterizedTest
-		@ValueSource(strings = {"apply", "cancel", "status", "list", "add", "delete"})
+		@ValueSource(strings = {"apply", "cancel", "status", "list", "modal", "add", "delete"})
 		@DisplayName("모든 참석 API는 존재하지 않는 회차를 거절한다.")
 		void attendance_rejectsMissingRound(String operation) {
 			assertThatThrownBy(() -> callAttendanceApi(operation, meetingId, -1))
@@ -716,7 +780,7 @@ class DiningV2ServiceTest {
 		}
 
 		@ParameterizedTest
-		@ValueSource(strings = {"apply", "cancel", "status", "list", "add", "delete"})
+		@ValueSource(strings = {"apply", "cancel", "status", "list", "modal", "add", "delete"})
 		@DisplayName("모든 참석 API는 일반 모임을 회식으로 처리하지 않는다.")
 		void attendance_rejectsNonDiningMeeting(String operation) {
 			ReflectionTestUtils.setField(meetingRepository.findDiningByIdOrThrow(meetingId), "category",
@@ -770,7 +834,8 @@ class DiningV2ServiceTest {
 				case "apply" -> diningV2Service.applyAttendance(diningId, targetRoundId, member.getId());
 				case "cancel" -> diningV2Service.cancelAttendance(diningId, targetRoundId, member.getId());
 				case "status" -> diningV2Service.getAttendance(diningId, targetRoundId, member.getId());
-				case "list" -> diningV2Service.getAttendees(diningId, targetRoundId, leader.getId());
+				case "modal" -> diningV2Service.getAttendanceAttendees(diningId, targetRoundId, member.getId());
+				case "list" -> diningV2Service.getAttendees(diningId, targetRoundId, new DiningV2GetAttendeesQueryDto(null, null, null), leader.getId());
 				case "add" -> diningV2Service.addAttendee(diningId, targetRoundId, member.getId(), leader.getId());
 				case "delete" -> diningV2Service.deleteAttendee(diningId, targetRoundId, member.getId(), leader.getId());
 				default -> throw new IllegalArgumentException(operation);

@@ -2,14 +2,17 @@ package org.sopt.makers.crew.main.dining.v2;
 
 import java.security.Principal;
 
+import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2AddAttendeeBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDiningBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateDiningResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -151,15 +154,17 @@ public interface DiningV2Api {
 		@PathVariable Integer roundId,
 		Principal principal);
 
-	@Operation(summary = "회차 참석자 목록 조회", description = "개설자 또는 승인된 공동 결제자가 조회할 수 있습니다.")
+	@Operation(summary = "회차 참석자 목록 조회", description = "개설자 또는 승인된 공동 결제자가 상세 정보를 조회합니다. 등록 시각 최신순이 기본이며 10/30/50명씩 조회합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "참석자 목록 조회 성공"),
+		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
 		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
 		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
 	})
-	ResponseEntity<DiningV2GetAttendeesResponseDto> getAttendees(
+	ResponseEntity<DiningV2GetAttendeeManagementResponseDto> getAttendees(
 		@PathVariable Integer meetingId,
 		@PathVariable Integer roundId,
+		@Valid @ModelAttribute DiningV2GetAttendeesQueryDto queryCommand,
 		Principal principal);
 
 	@Operation(summary = "회차 참석자 직접 추가", description = "개설자 또는 승인된 공동 결제자가 추가합니다. 종료 후에도 가능합니다.")
@@ -187,4 +192,12 @@ public interface DiningV2Api {
 		@PathVariable Integer roundId,
 		@PathVariable Integer attendeeUserId,
 		Principal principal);
+
+	@Operation(summary = "회차 참석 현황 모달 목록 조회", description = "로그인한 모든 사용자가 참석자의 ID, 이름, 프로필 이미지를 조회합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "참석 현황 모달 목록 조회 성공"),
+		@ApiResponse(responseCode = "404", description = "회식 또는 회차를 찾을 수 없습니다.", content = @Content),
+	})
+	ResponseEntity<DiningV2GetAttendeesResponseDto> getAttendanceAttendees(
+		@PathVariable Integer meetingId, @PathVariable Integer roundId, Principal principal);
 }

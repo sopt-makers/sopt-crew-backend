@@ -7,14 +7,19 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.mapper.DiningMeetingMapper;
+import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDiningBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateDiningResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
 import org.sopt.makers.crew.main.entity.dining.DiningAttendance;
 import org.sopt.makers.crew.main.entity.dining.DiningAttendanceRepository;
@@ -29,9 +34,13 @@ import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.global.config.ImageSettingProperties;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
+import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -272,10 +281,35 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	}
 
 	@Override
-	public DiningV2GetAttendeesResponseDto getAttendees(Integer meetingId, Integer roundId, Integer userId) {
+	public DiningV2GetAttendeeManagementResponseDto getAttendees(Integer meetingId, Integer roundId,
+		DiningV2GetAttendeesQueryDto queryCommand, Integer userId) {
 		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
 		findRoundOfDining(meetingId, roundId);
 		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
+		boolean ascending = "asc".equals(queryCommand.getDate());
+		Sort.Direction direction = ascending ? Sort.Direction.ASC : Sort.Direction.DESC;
+		PageRequest pageable = PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake(),
+			Sort.by(direction, "createdTimestamp", "id"));
+		Page<DiningAttendance> page = diningAttendanceRepository.findAllByRoundId(roundId, pageable);
+		PageMetaDto meta = new PageMetaDto(queryCommand, Math.toIntExact(page.getTotalElements()));
+		if (page.isEmpty()) {
+			return new DiningV2GetAttendeeManagementResponseDto(List.of(), meta);
+		}
+		List<DiningAttendance> attendances = page.getContent();
+		Map<Integer, User> users = userRepository.findAllByIdInOrThrow(attendances.stream()
+			.map(DiningAttendance::getUserId).toList()).stream()
+			.collect(Collectors.toMap(User::getId, user -> user));
+		return new DiningV2GetAttendeeManagementResponseDto(IntStream.range(0, attendances.size())
+			.mapToObj(index -> DiningV2GetAttendeeManagementResponseDto.Attendee.of(
+				users.get(attendances.get(index).getUserId()),
+				ascending ? pageable.getOffset() + index + 1 : page.getTotalElements() - pageable.getOffset() - index))
+			.toList(), meta);
+	}
+
+	@Override
+	public DiningV2GetAttendeesResponseDto getAttendanceAttendees(Integer meetingId, Integer roundId, Integer userId) {
+		meetingRepository.findDiningByIdOrThrow(meetingId);
+		findRoundOfDining(meetingId, roundId);
 		List<Integer> userIds = diningAttendanceRepository.findAllByRoundId(roundId).stream()
 			.map(DiningAttendance::getUserId).toList();
 		if (userIds.isEmpty()) {
