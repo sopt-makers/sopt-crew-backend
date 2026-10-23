@@ -22,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
 import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDiningBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
@@ -68,7 +69,7 @@ class DiningV2ServiceTest {
 	private MeetingRepository meetingRepository;
 	@Autowired
 	private DiningRoundRepository diningRoundRepository;
-	@Autowired
+	@SpyBean
 	private DiningAttendanceRepository diningAttendanceRepository;
 	@Autowired
 	private DiningDeletionHistoryRepository diningDeletionHistoryRepository;
@@ -643,6 +644,17 @@ class DiningV2ServiceTest {
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining(ALREADY_ATTENDED_DINING_ROUND.getErrorCode());
 			assertThat(diningAttendanceRepository.countByRoundId(roundId)).isEqualTo(2);
+		}
+
+		@Test
+		@DisplayName("사전 조회 이후 중복이 발생해도 PostgreSQL unique 제약 위반은 중복 참석 예외로 변환한다.")
+		void attendance_translatesDatabaseDuplicateAfterPrecheck() {
+			// 동시 요청이 사전 중복 조회를 통과한 상황을 재현하고 실제 PostgreSQL 제약으로 검증한다.
+			org.mockito.Mockito.doReturn(false).when(diningAttendanceRepository)
+				.existsByRoundIdAndUserId(roundId, leader.getId());
+			assertThatThrownBy(() -> diningV2Service.applyAttendance(meetingId, roundId, leader.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(ALREADY_ATTENDED_DINING_ROUND.getErrorCode());
 		}
 
 		@Test

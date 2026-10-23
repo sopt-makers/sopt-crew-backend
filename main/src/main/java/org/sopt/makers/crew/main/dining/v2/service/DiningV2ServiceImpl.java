@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.mapper.DiningMeetingMapper;
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
@@ -38,6 +39,7 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -381,7 +383,23 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		if (diningAttendanceRepository.existsByRoundIdAndUserId(round.getId(), userId)) {
 			throw new BadRequestException(ALREADY_ATTENDED_DINING_ROUND.getErrorCode());
 		}
-		attend(round, userId);
+		try {
+			diningAttendanceRepository.saveAndFlush(DiningAttendance.builder()
+				.roundId(round.getId())
+				.userId(userId)
+				.build());
+		} catch (DataIntegrityViolationException exception) {
+			// 제약 위반으로 중단된 트랜잭션에서 재조회하지 않고 해당 제약만 판별한다.
+			Throwable cause = exception;
+			while (cause != null) {
+				if (cause instanceof ConstraintViolationException violation
+					&& "UQ_dining_attendance_round_user".equals(violation.getConstraintName())) {
+					throw new BadRequestException(ALREADY_ATTENDED_DINING_ROUND.getErrorCode());
+				}
+				cause = cause.getCause();
+			}
+			throw exception;
+		}
 	}
 
 	private void deleteAttendance(DiningRound round, Integer attendeeUserId, Integer deletedByUserId) {
