@@ -71,7 +71,7 @@ public interface DiningV2Api {
 		@PathVariable Integer meetingId,
 		Principal principal);
 
-	@Operation(summary = "회차 추가", description = "새 회차를 추가하고 개설자를 참석자로 등록합니다. 이전 회차에 한 번이라도 참석했던 사용자에게 알림을 보냅니다.")
+	@Operation(summary = "회차 추가", description = "새 회차를 추가하고 개설자를 참석자로 등록합니다. 새 회차 생성 시점에 이전 회차에 참석 중인 사용자에게 알림을 보냅니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "201", description = "roundId: 2"),
 		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION, 종료된 회식입니다.", content = @Content),
