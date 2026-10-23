@@ -19,6 +19,12 @@ public class DiningV2GetAttendeesQueryDto extends PageOptionsDto {
 		this.date = date == null ? "desc" : date;
 	}
 
+	@Override
+	@Schema(description = "가져올 데이터 개수", defaultValue = "10", allowableValues = {"10", "30", "50"})
+	public Integer getTake() {
+		return super.getTake();
+	}
+
 	@AssertTrue(message = "조회 개수는 10, 30, 50 중 하나여야 합니다.")
 	public boolean isValidTake() {
 		return getTake() == 10 || getTake() == 30 || getTake() == 50;
