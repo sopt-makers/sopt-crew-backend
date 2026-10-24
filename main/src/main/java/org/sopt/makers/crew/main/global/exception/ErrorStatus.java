@@ -26,6 +26,8 @@ public enum ErrorStatus {
 	ENDED_DINING("종료된 회식입니다."),
 	ALREADY_CLOSED_DINING_ROUND("이미 마감된 회차입니다."),
 	ALREADY_REQUESTED_DINING_PAYER("이미 결제자 요청을 했습니다."),
+	NOT_APPROVED_DINING_PAYER("승인된 공동 결제자가 아닙니다."),
+	CANNOT_REQUEST_DINING_PAYER_AS_LEADER("개설자는 공동 결제자를 요청할 수 없습니다."),
 	NOT_PENDING_DINING_PAYER("승인 대기 중인 결제자 요청이 없습니다."),
 	PAST_DINING_DATE("지난 날짜로 회식을 등록할 수 없습니다."),
 	INVALID_DINING_MAP_LINK("네이버지도 또는 카카오맵 링크만 등록할 수 있습니다."),
