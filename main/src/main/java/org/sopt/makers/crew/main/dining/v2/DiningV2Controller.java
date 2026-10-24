@@ -230,4 +230,11 @@ public class DiningV2Controller implements DiningV2Api {
 		return ResponseEntity.ok().build();
 	}
 
+	@Override
+	@PostMapping("/{meetingId}/rounds/{roundId}/payer-requests/{requesterUserId}/revoke")
+	public ResponseEntity<Void> revokePayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
+		@PathVariable Integer requesterUserId, Principal principal) {
+		diningV2Service.revokePayer(meetingId, roundId, requesterUserId, UserUtil.getUserId(principal));
+		return ResponseEntity.ok().build();
+	}
 }

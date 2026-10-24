@@ -16,6 +16,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRevokedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.mapper.DiningMeetingMapper;
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
@@ -392,6 +393,19 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		attendance.validatePendingPayer();
 		attendance.clearPayer();
 		eventPublisher.publishEvent(new DiningPayerRejectedEvent(meetingId, roundId, requesterUserId, dining.getTitle()));
+	}
+
+	@Override
+	@Transactional
+	public void revokePayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		diningPermissionValidator.validateLeader(dining, userId);
+		dining.validateDiningNotEnded();
+		findRoundOfDining(meetingId, roundId);
+		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, requesterUserId);
+		attendance.validateApprovedPayer();
+		attendance.clearPayer();
+		eventPublisher.publishEvent(new DiningPayerRevokedEvent(meetingId, roundId, requesterUserId, dining.getTitle()));
 	}
 
 	@Override
