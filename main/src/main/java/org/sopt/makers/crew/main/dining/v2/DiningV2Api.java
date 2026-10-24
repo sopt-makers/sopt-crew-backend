@@ -144,7 +144,7 @@ public interface DiningV2Api {
 		@PathVariable Integer roundId,
 		Principal principal);
 
-	@Operation(summary = "회차 참석 현황 조회", description = "현재 참석 인원과 본인의 참석 여부를 조회합니다.")
+	@Operation(summary = "회차 참석 현황 조회", description = "현재 참석 인원과 본인의 참석 여부 및 해당 회차 공동 결제자 상태를 조회합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "참석 현황 조회 성공"),
 		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
@@ -200,4 +200,5 @@ public interface DiningV2Api {
 	})
 	ResponseEntity<DiningV2GetAttendeesResponseDto> getAttendanceAttendees(
 		@PathVariable Integer meetingId, @PathVariable Integer roundId, Principal principal);
+
 }

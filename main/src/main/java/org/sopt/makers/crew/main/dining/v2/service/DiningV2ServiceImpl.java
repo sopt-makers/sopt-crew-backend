@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -284,8 +285,9 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	public DiningV2GetAttendanceResponseDto getAttendance(Integer meetingId, Integer roundId, Integer userId) {
 		meetingRepository.findDiningByIdOrThrow(meetingId);
 		findRoundOfDining(meetingId, roundId);
+		Optional<DiningAttendance> attendance = diningAttendanceRepository.findByRoundIdAndUserId(roundId, userId);
 		return new DiningV2GetAttendanceResponseDto(diningAttendanceRepository.countByRoundId(roundId),
-			diningAttendanceRepository.existsByRoundIdAndUserId(roundId, userId));
+			attendance.isPresent(), attendance.map(DiningAttendance::getPayerStatus).orElse(null));
 	}
 
 	@Override
