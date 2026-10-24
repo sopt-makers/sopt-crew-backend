@@ -3,6 +3,7 @@ package org.sopt.makers.crew.main.dining.v2;
 import java.security.Principal;
 
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
+import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetDiningsQueryDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2AddAttendeeBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDiningBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
@@ -11,6 +12,8 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundRespo
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningsResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -200,4 +203,23 @@ public interface DiningV2Api {
 	})
 	ResponseEntity<DiningV2GetAttendeesResponseDto> getAttendanceAttendees(
 		@PathVariable Integer meetingId, @PathVariable Integer roundId, Principal principal);
+
+	@Operation(summary = "회식 메인 목록 조회", description = "전체 회식 또는 내 회식(개설했거나 참석 중인 회식)을 조회합니다. "
+		+ "정렬은 진행 중 우선, 회식 일자 최신순, 등록 최신순입니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "회식 목록 조회 성공"),
+		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
+	})
+	ResponseEntity<DiningV2GetDiningsResponseDto> getDinings(
+		@Valid @ModelAttribute DiningV2GetDiningsQueryDto queryCommand,
+		Principal principal);
+
+	@Operation(summary = "회식 상세 조회", description = "회식 정보와 회차 목록, 조회자의 회차별 참석 상태를 조회합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "회식 상세 조회 성공"),
+		@ApiResponse(responseCode = "404", description = "존재하지 않는 회식입니다.", content = @Content),
+	})
+	ResponseEntity<DiningV2GetDiningDetailResponseDto> getDiningDetail(
+		@PathVariable Integer meetingId,
+		Principal principal);
 }

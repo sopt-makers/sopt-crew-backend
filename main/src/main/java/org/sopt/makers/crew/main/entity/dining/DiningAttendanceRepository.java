@@ -40,6 +40,15 @@ public interface DiningAttendanceRepository extends JpaRepository<DiningAttendan
 	boolean existsByMeetingIdAndUserIdAndPayerStatus(@Param("meetingId") Integer meetingId,
 		@Param("userId") Integer userId, @Param("payerStatus") DiningPayerStatus payerStatus);
 
+	/**
+	 * 목록 카드용. 주어진 회식 중 사용자가 해당 결제자 상태인 회차가 있는 회식 id
+	 */
+	@Query("SELECT DISTINCT r.meetingId FROM DiningAttendance a, DiningRound r "
+		+ "WHERE a.roundId = r.id AND a.userId = :userId AND a.payerStatus = :payerStatus "
+		+ "AND r.meetingId IN :meetingIds")
+	List<Integer> findMeetingIdsByUserIdAndPayerStatus(@Param("userId") Integer userId,
+		@Param("payerStatus") DiningPayerStatus payerStatus, @Param("meetingIds") List<Integer> meetingIds);
+
 	@Query("SELECT COUNT(DISTINCT a.userId) FROM DiningAttendance a, DiningRound r "
 		+ "WHERE a.roundId = r.id AND r.meetingId = :meetingId")
 	long countDistinctUserIdsByMeetingId(@Param("meetingId") Integer meetingId);
