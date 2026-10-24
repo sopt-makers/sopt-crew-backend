@@ -11,6 +11,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundRespo
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
 import org.sopt.makers.crew.main.dining.v2.service.DiningV2Service;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.springframework.http.HttpStatus;
@@ -197,4 +198,12 @@ public class DiningV2Controller implements DiningV2Api {
 		return ResponseEntity.ok(diningV2Service.getAttendanceAttendees(meetingId, roundId,
 			UserUtil.getUserId(principal)));
 	}
+
+	@Override
+	@GetMapping("/{meetingId}/payer-requests")
+	public ResponseEntity<DiningV2GetPayerRequestsResponseDto> getPayerRequests(@PathVariable Integer meetingId,
+		Principal principal) {
+		return ResponseEntity.ok(diningV2Service.getPayerRequests(meetingId, UserUtil.getUserId(principal)));
+	}
+
 }

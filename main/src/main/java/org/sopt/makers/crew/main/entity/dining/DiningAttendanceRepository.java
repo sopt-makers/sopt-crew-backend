@@ -26,6 +26,9 @@ public interface DiningAttendanceRepository extends JpaRepository<DiningAttendan
 	Optional<DiningAttendance> findByRoundIdAndUserIdForUpdate(@Param("roundId") Integer roundId,
 		@Param("userId") Integer userId);
 
+	List<DiningAttendance> findAllByRoundIdInAndPayerStatusOrderByPayerRequestedAtAscIdAsc(
+		List<Integer> roundIds, DiningPayerStatus payerStatus);
+
 	List<DiningAttendance> findAllByRoundIdIn(List<Integer> roundIds);
 
 	List<DiningAttendance> findAllByRoundId(Integer roundId);

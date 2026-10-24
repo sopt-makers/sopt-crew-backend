@@ -11,6 +11,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundRespo
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -200,5 +201,14 @@ public interface DiningV2Api {
 	})
 	ResponseEntity<DiningV2GetAttendeesResponseDto> getAttendanceAttendees(
 		@PathVariable Integer meetingId, @PathVariable Integer roundId, Principal principal);
+
+	@Operation(summary = "공동 결제자 대기 요청 목록", description = "개설자만 회식 전체의 PENDING 요청을 요청 시각 오름차순으로 조회합니다. 회차 번호는 현재 기준입니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "대기 요청 목록 조회 성공. 요청이 없으면 빈 리스트"),
+		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
+		@ApiResponse(responseCode = "404", description = "존재하지 않는 회식입니다.", content = @Content),
+	})
+	ResponseEntity<DiningV2GetPayerRequestsResponseDto> getPayerRequests(@PathVariable Integer meetingId,
+		Principal principal);
 
 }

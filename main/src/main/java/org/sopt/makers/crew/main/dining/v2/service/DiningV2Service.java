@@ -8,6 +8,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundRespo
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
 
 public interface DiningV2Service {
 
@@ -43,4 +44,7 @@ public interface DiningV2Service {
 	void addAttendee(Integer meetingId, Integer roundId, Integer attendeeUserId, Integer userId);
 
 	void deleteAttendee(Integer meetingId, Integer roundId, Integer attendeeUserId, Integer userId);
+
+	DiningV2GetPayerRequestsResponseDto getPayerRequests(Integer meetingId, Integer userId);
+
 }

@@ -23,11 +23,13 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundRespo
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
 import org.sopt.makers.crew.main.entity.dining.DiningAttendance;
 import org.sopt.makers.crew.main.entity.dining.DiningAttendanceRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRound;
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRounds;
+import org.sopt.makers.crew.main.entity.dining.enums.DiningPayerStatus;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
@@ -346,6 +348,25 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		DiningRound round = findRoundOfDining(meetingId, roundId);
 		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
 		deleteAttendance(round, attendeeUserId, userId);
+	}
+
+	@Override
+	public DiningV2GetPayerRequestsResponseDto getPayerRequests(Integer meetingId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		diningPermissionValidator.validateLeader(dining, userId);
+		DiningRounds rounds = getRounds(meetingId);
+		List<DiningAttendance> requests = diningAttendanceRepository
+			.findAllByRoundIdInAndPayerStatusOrderByPayerRequestedAtAscIdAsc(rounds.getRoundIds(), DiningPayerStatus.PENDING);
+		if (requests.isEmpty()) {
+			return new DiningV2GetPayerRequestsResponseDto(List.of());
+		}
+		Map<Integer, User> users = userRepository.findAllByIdInOrThrow(requests.stream()
+			.map(DiningAttendance::getUserId).distinct().toList()).stream()
+			.collect(Collectors.toMap(User::getId, user -> user));
+		return new DiningV2GetPayerRequestsResponseDto(requests.stream()
+			.map(attendance -> DiningV2GetPayerRequestsResponseDto.PayerRequest.of(attendance,
+				users.get(attendance.getUserId()), rounds.getRoundNumber(attendance.getRoundId())))
+			.toList());
 	}
 
 	private void attend(DiningRound round, Integer userId) {
