@@ -202,10 +202,10 @@ public interface DiningV2Api {
 	ResponseEntity<DiningV2GetAttendeesResponseDto> getAttendanceAttendees(
 		@PathVariable Integer meetingId, @PathVariable Integer roundId, Principal principal);
 
-	@Operation(summary = "공동 결제자 요청", description = "해당 회차 참석자 본인만 요청할 수 있습니다. 개설자는 요청할 수 없습니다. 마감된 회차에서도 가능하지만 종료된 회식에서는 불가합니다.")
+	@Operation(summary = "공동 결제자 요청", description = "해당 회차 참석자 본인만 요청할 수 있습니다. 개설자는 요청할 수 없습니다. 마감된 회차와 종료된 회식에서도 가능합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "201", description = "공동 결제자 요청 성공"),
-		@ApiResponse(responseCode = "400", description = "이미 결제자 요청을 했습니다., 개설자는 공동 결제자를 요청할 수 없습니다., 종료된 회식입니다.", content = @Content),
+		@ApiResponse(responseCode = "400", description = "이미 결제자 요청을 했습니다., 개설자는 공동 결제자를 요청할 수 없습니다.", content = @Content),
 		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
 	})
 	ResponseEntity<Void> requestPayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
@@ -220,30 +220,30 @@ public interface DiningV2Api {
 	ResponseEntity<DiningV2GetPayerRequestsResponseDto> getPayerRequests(@PathVariable Integer meetingId,
 		Principal principal);
 
-	@Operation(summary = "공동 결제자 승인", description = "개설자만 가능합니다. 마감된 회차에서도 가능하지만 종료된 회식에서는 불가합니다. 참석 기록은 유지합니다.")
+	@Operation(summary = "공동 결제자 승인", description = "개설자만 가능합니다. 마감된 회차와 종료된 회식에서도 가능합니다. 참석 기록은 유지합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "공동 결제자 승인 성공"),
-		@ApiResponse(responseCode = "400", description = "승인 대기 중인 결제자 요청이 없습니다., 종료된 회식입니다.", content = @Content),
+		@ApiResponse(responseCode = "400", description = "승인 대기 중인 결제자 요청이 없습니다.", content = @Content),
 		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
 		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
 	})
 	ResponseEntity<Void> approvePayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
 		@PathVariable Integer requesterUserId, Principal principal);
 
-	@Operation(summary = "공동 결제자 거절", description = "개설자만 가능합니다. 마감된 회차에서도 가능하지만 종료된 회식에서는 불가합니다. 참석 기록은 유지합니다.")
+	@Operation(summary = "공동 결제자 거절", description = "개설자만 가능합니다. 마감된 회차와 종료된 회식에서도 가능합니다. 참석 기록은 유지합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "공동 결제자 거절 성공"),
-		@ApiResponse(responseCode = "400", description = "승인 대기 중인 결제자 요청이 없습니다., 종료된 회식입니다.", content = @Content),
+		@ApiResponse(responseCode = "400", description = "승인 대기 중인 결제자 요청이 없습니다.", content = @Content),
 		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
 		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
 	})
 	ResponseEntity<Void> rejectPayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
 		@PathVariable Integer requesterUserId, Principal principal);
 
-	@Operation(summary = "공동 결제자 승인 해제", description = "개설자만 가능합니다. 마감된 회차에서도 가능하지만 종료된 회식에서는 불가합니다. 참석 기록은 유지합니다.")
+	@Operation(summary = "공동 결제자 승인 해제", description = "개설자만 가능합니다. 마감된 회차와 종료된 회식에서도 가능합니다. 참석 기록은 유지합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "공동 결제자 승인 해제 성공"),
-		@ApiResponse(responseCode = "400", description = "승인된 공동 결제자가 아닙니다., 종료된 회식입니다.", content = @Content),
+		@ApiResponse(responseCode = "400", description = "승인된 공동 결제자가 아닙니다.", content = @Content),
 		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
 		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
 	})
