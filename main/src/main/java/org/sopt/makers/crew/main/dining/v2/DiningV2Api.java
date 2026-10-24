@@ -230,4 +230,14 @@ public interface DiningV2Api {
 	ResponseEntity<Void> approvePayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
 		@PathVariable Integer requesterUserId, Principal principal);
 
+	@Operation(summary = "공동 결제자 거절", description = "개설자만 가능합니다. 마감된 회차에서도 가능하지만 종료된 회식에서는 불가합니다. 참석 기록은 유지합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "공동 결제자 거절 성공"),
+		@ApiResponse(responseCode = "400", description = "승인 대기 중인 결제자 요청이 없습니다., 종료된 회식입니다.", content = @Content),
+		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
+		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
+	})
+	ResponseEntity<Void> rejectPayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
+		@PathVariable Integer requesterUserId, Principal principal);
+
 }

@@ -51,4 +51,6 @@ public interface DiningV2Service {
 
 	void approvePayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId);
 
+	void rejectPayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId);
+
 }
