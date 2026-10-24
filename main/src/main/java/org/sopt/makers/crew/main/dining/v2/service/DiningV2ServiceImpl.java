@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.hibernate.exception.ConstraintViolationException;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.mapper.DiningMeetingMapper;
@@ -365,6 +366,18 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		User requester = userRepository.findByIdOrThrow(userId);
 		eventPublisher.publishEvent(new DiningPayerRequestedEvent(meetingId, roundId, userId,
 			dining.getUserId(), dining.getTitle(), requester.getName(), getRounds(meetingId).getRoundNumber(roundId)));
+	}
+
+	@Override
+	@Transactional
+	public void approvePayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		diningPermissionValidator.validateLeader(dining, userId);
+		dining.validateDiningNotEnded();
+		findRoundOfDining(meetingId, roundId);
+		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, requesterUserId);
+		attendance.approvePayer();
+		eventPublisher.publishEvent(new DiningPayerApprovedEvent(meetingId, roundId, requesterUserId, dining.getTitle()));
 	}
 
 	@Override

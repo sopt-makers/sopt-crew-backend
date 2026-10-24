@@ -214,4 +214,12 @@ public class DiningV2Controller implements DiningV2Api {
 		return ResponseEntity.ok(diningV2Service.getPayerRequests(meetingId, UserUtil.getUserId(principal)));
 	}
 
+	@Override
+	@PostMapping("/{meetingId}/rounds/{roundId}/payer-requests/{requesterUserId}/approve")
+	public ResponseEntity<Void> approvePayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
+		@PathVariable Integer requesterUserId, Principal principal) {
+		diningV2Service.approvePayer(meetingId, roundId, requesterUserId, UserUtil.getUserId(principal));
+		return ResponseEntity.ok().build();
+	}
+
 }

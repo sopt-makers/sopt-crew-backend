@@ -49,4 +49,6 @@ public interface DiningV2Service {
 
 	DiningV2GetPayerRequestsResponseDto getPayerRequests(Integer meetingId, Integer userId);
 
+	void approvePayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId);
+
 }
