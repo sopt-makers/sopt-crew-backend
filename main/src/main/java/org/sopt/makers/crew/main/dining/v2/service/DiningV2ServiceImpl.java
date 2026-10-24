@@ -489,7 +489,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	}
 
 	private void deleteAttendance(DiningRound round, Integer attendeeUserId, Integer deletedByUserId) {
-		DiningAttendance attendance = diningAttendanceRepository.findByRoundIdAndUserId(round.getId(), attendeeUserId)
+		DiningAttendance attendance = diningAttendanceRepository.findByRoundIdAndUserIdForUpdate(round.getId(), attendeeUserId)
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_DINING_ATTENDANCE.getErrorCode()));
 		diningDeletionHistoryRecorder.recordAttendanceDeletion(round, attendance, deletedByUserId);
 		diningAttendanceRepository.delete(attendance);
