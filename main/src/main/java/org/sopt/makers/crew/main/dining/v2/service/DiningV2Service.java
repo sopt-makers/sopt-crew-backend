@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.dining.v2.service;
 
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
+import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetDiningsQueryDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDiningBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateDiningResponseDto;
@@ -9,6 +10,8 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceRes
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningsResponseDto;
 
 public interface DiningV2Service {
 
@@ -54,4 +57,10 @@ public interface DiningV2Service {
 	void rejectPayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId);
 
 	void revokePayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId);
+
+	DiningV2GetDiningsResponseDto getDinings(DiningV2GetDiningsQueryDto queryCommand, Integer userId);
+
+	DiningV2GetDiningDetailResponseDto getDiningDetail(Integer meetingId, Integer userId);
+
+	int closeExpiredRounds();
 }

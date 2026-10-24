@@ -6,9 +6,12 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -20,6 +23,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRevokedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.mapper.DiningMeetingMapper;
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
+import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetDiningsQueryDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDiningBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateDiningResponseDto;
@@ -28,14 +32,24 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceRes
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto.MyAttendanceStatus;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningsResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningsResponseDto.DiningCard;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2LeaderDto;
 import org.sopt.makers.crew.main.entity.dining.DiningAttendance;
 import org.sopt.makers.crew.main.entity.dining.DiningAttendanceRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRound;
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRounds;
 import org.sopt.makers.crew.main.entity.dining.enums.DiningPayerStatus;
+import org.sopt.makers.crew.main.entity.dining.DiningSearchRepository;
+import org.sopt.makers.crew.main.entity.dining.enums.DiningPayerStatus;
+import org.sopt.makers.crew.main.entity.dining.enums.DiningRoundStatus;
+import org.sopt.makers.crew.main.entity.dining.projection.DiningAttendeeCountProjection;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
@@ -63,6 +77,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	private final MeetingRepository meetingRepository;
 	private final DiningRoundRepository diningRoundRepository;
 	private final DiningAttendanceRepository diningAttendanceRepository;
+	private final DiningSearchRepository diningSearchRepository;
 	private final UserRepository userRepository;
 
 	private final DiningMeetingMapper diningMeetingMapper;
@@ -490,5 +505,144 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_DINING_ATTENDANCE.getErrorCode()));
 		diningDeletionHistoryRecorder.recordAttendanceDeletion(round, attendance, deletedByUserId);
 		diningAttendanceRepository.delete(attendance);
+	}
+
+	/**
+	 * 회식 메인 목록: 전체/내 회식, 진행 상태·파트 필터, 회식명 검색
+	 * 정렬: 진행 중 우선 → 회식 일자 최신순 → 등록 최신순
+	 */
+	@Override
+	public DiningV2GetDiningsResponseDto getDinings(DiningV2GetDiningsQueryDto queryCommand, Integer userId) {
+		long totalCount = diningSearchRepository.countDinings(queryCommand, userId);
+		PageMetaDto meta = new PageMetaDto(queryCommand, Math.toIntExact(totalCount));
+		List<Meeting> dinings = totalCount == 0 ? List.of() : diningSearchRepository.findDinings(queryCommand, userId);
+		if (dinings.isEmpty()) {
+			return new DiningV2GetDiningsResponseDto(List.of(), meta);
+		}
+
+		List<Integer> meetingIds = dinings.stream().map(Meeting::getId).toList();
+		Map<Integer, Long> attendeeCounts = diningAttendanceRepository.countDistinctUserIdsByMeetingIdIn(meetingIds)
+			.stream()
+			.collect(Collectors.toMap(DiningAttendeeCountProjection::getMeetingId,
+				DiningAttendeeCountProjection::getAttendeeCount));
+		Map<Integer, User> leaders = userRepository.findAllById(
+				dinings.stream().map(Meeting::getUserId).distinct().toList())
+			.stream()
+			.collect(Collectors.toMap(User::getId, Function.identity()));
+		Set<Integer> approvedPayerMeetingIds = new HashSet<>(
+			diningAttendanceRepository.findMeetingIdsByUserIdAndPayerStatus(userId, DiningPayerStatus.APPROVED,
+				meetingIds));
+
+		List<DiningCard> cards = dinings.stream()
+			.map(dining -> new DiningCard(
+				dining.getId(),
+				dining.getTitle(),
+				dining.getmStartDate().toLocalDate(),
+				getFirstImageUrl(dining),
+				dining.isDiningEnded(),
+				dining.getJoinableParts(),
+				attendeeCounts.getOrDefault(dining.getId(), 0L),
+				toLeaderDto(leaders.get(dining.getUserId())),
+				dining.checkMeetingLeader(userId) || approvedPayerMeetingIds.contains(dining.getId())
+			))
+			.toList();
+
+		return new DiningV2GetDiningsResponseDto(cards, meta);
+	}
+
+	/**
+	 * 회식 상세: 회식 정보와 회차 목록. 회차별 인원, 내 참석 상태, 결제자 상태는 참석 기록을 한 번에 읽어 계산한다.
+	 */
+	@Override
+	public DiningV2GetDiningDetailResponseDto getDiningDetail(Integer meetingId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		DiningRounds rounds = getRounds(meetingId);
+		List<DiningAttendance> attendances = rounds.getRoundIds().isEmpty()
+			? List.of()
+			: diningAttendanceRepository.findAllByRoundIdIn(rounds.getRoundIds());
+
+		Map<Integer, Long> attendeeCounts = attendances.stream()
+			.collect(Collectors.groupingBy(DiningAttendance::getRoundId, Collectors.counting()));
+		Map<Integer, DiningAttendance> myAttendances = attendances.stream()
+			.filter(attendance -> attendance.getUserId().equals(userId))
+			.collect(Collectors.toMap(DiningAttendance::getRoundId, Function.identity()));
+		boolean isApprovedPayer = myAttendances.values().stream().anyMatch(DiningAttendance::isApprovedPayer);
+
+		LocalDateTime now = time.now();
+		List<DiningRound> roundList = rounds.getRounds();
+		List<DiningV2GetDiningDetailResponseDto.Round> roundDtos = IntStream.range(0, roundList.size())
+			.mapToObj(index -> toRoundDto(rounds, index, attendeeCounts, myAttendances, now))
+			.toList();
+
+		return new DiningV2GetDiningDetailResponseDto(
+			dining.getId(),
+			dining.getTitle(),
+			dining.getmStartDate().toLocalDate(),
+			dining.isDateModified(),
+			getFirstImageUrl(dining),
+			dining.isDiningEnded(),
+			dining.getJoinableParts(),
+			toLeaderDto(userRepository.findById(dining.getUserId()).orElse(null)),
+			dining.checkMeetingLeader(userId),
+			isApprovedPayer,
+			roundDtos
+		);
+	}
+
+	/**
+	 * 자동 확정: 회식 일자가 오늘 이전인 회식의 미마감 회차를 모두 마감한다. (스케줄러에서 매일 11:59 호출)
+	 * 실행 시점의 회식 일자로 판단하므로 일자를 수정해도 확정 시점이 따라간다.
+	 */
+	@Override
+	@Transactional
+	public int closeExpiredRounds() {
+		LocalDateTime now = time.now();
+		return diningRoundRepository.closeOpenRoundsOfDiningsBefore(DiningRoundStatus.CLOSED, DiningRoundStatus.OPEN,
+			MeetingCategory.DINING, now.toLocalDate().atStartOfDay(), now);
+	}
+
+	private DiningV2GetDiningDetailResponseDto.Round toRoundDto(DiningRounds rounds, int index,
+		Map<Integer, Long> attendeeCounts, Map<Integer, DiningAttendance> myAttendances, LocalDateTime now) {
+		List<DiningRound> roundList = rounds.getRounds();
+		DiningRound round = roundList.get(index);
+		DiningAttendance myAttendance = myAttendances.get(round.getId());
+		boolean isAttending = myAttendance != null;
+
+		MyAttendanceStatus myAttendanceStatus = !isAttending ? MyAttendanceStatus.NOT_ATTENDING
+			: round.isClosed() ? MyAttendanceStatus.ATTENDED : MyAttendanceStatus.ATTENDING;
+
+		// 신규 회차 안내: 1차가 아닌 최신 회차가 마감 전이고, 이전 회차에는 참석했지만 이 회차는 미신청
+		boolean isLatestRound = index == roundList.size() - 1;
+		boolean attendedPreviousRound = roundList.subList(0, index).stream()
+			.anyMatch(previous -> myAttendances.containsKey(previous.getId()));
+		boolean showNewRoundGuide = index > 0 && isLatestRound && !round.isClosed() && !isAttending
+			&& attendedPreviousRound;
+
+		return new DiningV2GetDiningDetailResponseDto.Round(
+			round.getId(),
+			index + 1,
+			round.getPlace(),
+			round.getNaverMapLink(),
+			round.getKakaoMapLink(),
+			round.getStartTime(),
+			round.isClosed(),
+			round.isPlaceModified(),
+			round.isLinkModified(),
+			round.isStartTimeModified(),
+			rounds.isNewRound(round, now),
+			attendeeCounts.getOrDefault(round.getId(), 0L),
+			myAttendanceStatus,
+			isAttending ? myAttendance.getPayerStatus() : null,
+			showNewRoundGuide
+		);
+	}
+
+	private String getFirstImageUrl(Meeting dining) {
+		List<ImageUrlVO> imageUrls = dining.getImageURL();
+		return imageUrls == null || imageUrls.isEmpty() ? null : imageUrls.get(0).getUrl();
+	}
+
+	private DiningV2LeaderDto toLeaderDto(User leader) {
+		return leader == null ? null : DiningV2LeaderDto.from(leader);
 	}
 }

@@ -3,6 +3,7 @@ package org.sopt.makers.crew.main.dining.v2;
 import java.security.Principal;
 
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
+import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetDiningsQueryDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2AddAttendeeBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDiningBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
@@ -12,6 +13,8 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceRes
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningsResponseDto;
 import org.sopt.makers.crew.main.dining.v2.service.DiningV2Service;
 import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.springframework.http.HttpStatus;
@@ -236,5 +239,23 @@ public class DiningV2Controller implements DiningV2Api {
 		@PathVariable Integer requesterUserId, Principal principal) {
 		diningV2Service.revokePayer(meetingId, roundId, requesterUserId, UserUtil.getUserId(principal));
 		return ResponseEntity.ok().build();
+
+	@GetMapping
+	public ResponseEntity<DiningV2GetDiningsResponseDto> getDinings(
+		@Valid @ModelAttribute DiningV2GetDiningsQueryDto queryCommand,
+		Principal principal
+	) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(diningV2Service.getDinings(queryCommand, userId));
+	}
+
+	@Override
+	@GetMapping("/{meetingId}")
+	public ResponseEntity<DiningV2GetDiningDetailResponseDto> getDiningDetail(
+		@PathVariable Integer meetingId,
+		Principal principal
+	) {
+		Integer userId = UserUtil.getUserId(principal);
+		return ResponseEntity.ok(diningV2Service.getDiningDetail(meetingId, userId));
 	}
 }
