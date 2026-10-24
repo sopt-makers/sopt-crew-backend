@@ -373,10 +373,12 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	public void requestPayer(Integer meetingId, Integer roundId, Integer userId) {
 		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
 		findRoundOfDining(meetingId, roundId);
-		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, userId);
+
 		if (diningPermissionValidator.isLeader(dining, userId)) {
 			throw new BadRequestException(CANNOT_REQUEST_DINING_PAYER_AS_LEADER.getErrorCode());
 		}
+
+		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, userId);
 		attendance.requestPayer(time.now());
 		User requester = userRepository.findByIdOrThrow(userId);
 		eventPublisher.publishEvent(new DiningPayerRequestedEvent(meetingId, roundId, userId,
