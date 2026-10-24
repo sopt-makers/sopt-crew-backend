@@ -3,6 +3,7 @@ package org.sopt.makers.crew.main.dining.v2.service;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRevokedEvent;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -34,4 +35,9 @@ public class DiningPayerEventListener {
 		diningNotificationSender.sendPayerRejectedNotification(event);
 	}
 
+	@Async("taskExecutor")
+	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	public void handleDiningPayerRevoked(DiningPayerRevokedEvent event) {
+		diningNotificationSender.sendPayerRevokedNotification(event);
+	}
 }

@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRevokedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRounds;
@@ -98,6 +99,12 @@ public class DiningNotificationSender {
 	public void sendPayerRejectedNotification(DiningPayerRejectedEvent event) {
 		sendPayerNotification(event.requesterUserId(), "공동 결제자 요청 거절",
 			String.format("[%s] 공동 결제자 요청이 거절됐어요.", event.diningTitle()),
+			String.format(DINING_DETAIL_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), event.meetingId()));
+	}
+
+	public void sendPayerRevokedNotification(DiningPayerRevokedEvent event) {
+		sendPayerNotification(event.requesterUserId(), "공동 결제자 승인 해제",
+			String.format("[%s] 공동 결제자 권한이 해제됐어요.", event.diningTitle()),
 			String.format(DINING_DETAIL_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), event.meetingId()));
 	}
 
