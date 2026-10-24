@@ -1222,6 +1222,36 @@ class DiningV2ServiceTest {
 			assertThat(applicationEvents.stream(DiningPayerRevokedEvent.class)).hasSize(1);
 		}
 
+		@ParameterizedTest
+		@ValueSource(booleans = {false, true})
+		void revokingOneRound_keepsOtherApprovalAndMeetingManagement(boolean ended) {
+			request();
+			approve();
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+			diningV2Service.requestPayer(meetingId, second, member.getId());
+			diningV2Service.approvePayer(meetingId, second, member.getId(), leader.getId());
+			if (ended) {
+				diningV2Service.endDining(meetingId, leader.getId());
+			}
+			Integer attendanceId = attendance().getId();
+
+			diningV2Service.revokePayer(meetingId, roundId, member.getId(), leader.getId());
+
+			assertThat(attendance().getId()).isEqualTo(attendanceId);
+			assertThat(attendance().getPayerStatus()).isNull();
+			assertThat(attendance().getPayerRequestedAt()).isNull();
+			assertThat(diningAttendanceRepository.findByRoundIdAndUserId(second, member.getId()).orElseThrow()
+				.isApprovedPayer()).isTrue();
+			assertThat(diningV2Service.getAttendees(meetingId, roundId,
+				new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()).attendees()).hasSize(2);
+			User third = userRepository.save(createUser("추가 참석자", 3));
+			diningV2Service.addAttendee(meetingId, roundId, third.getId(), member.getId());
+			assertThat(diningAttendanceRepository.existsByRoundIdAndUserId(roundId, third.getId())).isTrue();
+			diningV2Service.deleteAttendee(meetingId, roundId, third.getId(), member.getId());
+			assertThat(diningAttendanceRepository.existsByRoundIdAndUserId(roundId, third.getId())).isFalse();
+		}
+
 
 	}
 }
