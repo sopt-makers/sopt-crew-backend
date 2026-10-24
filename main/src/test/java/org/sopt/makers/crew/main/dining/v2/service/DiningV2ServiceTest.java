@@ -9,29 +9,31 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.test.context.event.RecordApplicationEvents;
-import org.springframework.test.context.event.ApplicationEvents;
-import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
-import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
-import org.sopt.makers.crew.main.external.notification.PushNotificationService;
-import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRevokedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDiningBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
+import org.sopt.makers.crew.main.entity.dining.DiningAttendance;
 import org.sopt.makers.crew.main.entity.dining.DiningAttendanceRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningDeletionHistory;
 import org.sopt.makers.crew.main.entity.dining.DiningDeletionHistoryRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRound;
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
 import org.sopt.makers.crew.main.entity.dining.enums.DiningDeletionTargetType;
+import org.sopt.makers.crew.main.entity.dining.enums.DiningPayerStatus;
 import org.sopt.makers.crew.main.entity.dining.enums.DiningRoundStatus;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
@@ -41,6 +43,8 @@ import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.external.CaffeineTestConfig;
+import org.sopt.makers.crew.main.external.notification.PushNotificationService;
+import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.global.config.ImageSettingProperties;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
@@ -48,7 +52,12 @@ import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * StubTime 기준 현재 시각: 2024.04.24 00:00
@@ -878,6 +887,300 @@ class DiningV2ServiceTest {
 				case "add" -> diningV2Service.addAttendee(diningId, targetRoundId, member.getId(), leader.getId());
 				case "delete" -> diningV2Service.deleteAttendee(diningId, targetRoundId, member.getId(), leader.getId());
 				default -> throw new IllegalArgumentException(operation);
+			}
+		}
+	}
+
+	@Nested
+	class 공동_결제자 {
+		private Integer meetingId;
+		private Integer roundId;
+
+		@BeforeEach
+		void prepareDining() {
+			meetingId = createDining();
+			roundId = getRounds(meetingId).get(0).getId();
+			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
+		}
+
+		private DiningAttendance attendance() {
+			return diningAttendanceRepository.findByRoundIdAndUserId(roundId, member.getId()).orElseThrow();
+		}
+
+		private void request() {
+			diningV2Service.requestPayer(meetingId, roundId, member.getId());
+		}
+
+		private void approve() {
+			diningV2Service.approvePayer(meetingId, roundId, member.getId(), leader.getId());
+		}
+
+		private void change(String action, Integer diningId, Integer targetRoundId, Integer actor) {
+			switch (action) {
+				case "approve" -> diningV2Service.approvePayer(diningId, targetRoundId, member.getId(), actor);
+				case "reject" -> diningV2Service.rejectPayer(diningId, targetRoundId, member.getId(), actor);
+				case "revoke" -> diningV2Service.revokePayer(diningId, targetRoundId, member.getId(), actor);
+				default -> throw new IllegalArgumentException(action);
+			}
+		}
+
+		@ParameterizedTest
+		@ValueSource(booleans = {false, true})
+		void requestAndApprove_workOnOpenAndClosedRounds(boolean closed) {
+			if (closed) {
+				diningV2Service.closeRound(meetingId, roundId, leader.getId());
+			}
+			request();
+			assertThat(attendance().getPayerStatus()).isEqualTo(DiningPayerStatus.PENDING);
+			assertThat(attendance().getPayerRequestedAt()).isEqualTo(LocalDateTime.of(2024, 4, 24, 0, 0));
+			var event = applicationEvents.stream(DiningPayerRequestedEvent.class).findFirst().orElseThrow();
+			assertThat(event.meetingId()).isEqualTo(meetingId);
+			assertThat(event.roundId()).isEqualTo(roundId);
+			assertThat(event.requesterUserId()).isEqualTo(member.getId());
+			assertThat(event.leaderUserId()).isEqualTo(leader.getId());
+			assertThat(event.requesterName()).isEqualTo(member.getName());
+			assertThat(event.roundNumber()).isEqualTo(1);
+			approve();
+			assertThat(attendance().isApprovedPayer()).isTrue();
+			assertThat(applicationEvents.stream(DiningPayerApprovedEvent.class)).hasSize(1);
+		}
+
+		@Test
+		void request_requiresAttendanceAndRejectsLeader() {
+			diningV2Service.cancelAttendance(meetingId, roundId, member.getId());
+			assertThatThrownBy(this::request).isInstanceOf(NotFoundException.class)
+				.hasMessageContaining(NOT_FOUND_DINING_ATTENDANCE.getErrorCode());
+			assertThatThrownBy(() -> diningV2Service.requestPayer(meetingId, roundId, leader.getId()))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(CANNOT_REQUEST_DINING_PAYER_AS_LEADER.getErrorCode());
+			assertThat(applicationEvents.stream(DiningPayerRequestedEvent.class)).isEmpty();
+		}
+
+		@ParameterizedTest
+		@EnumSource(DiningPayerStatus.class)
+		void duplicateRequest_isRejected(DiningPayerStatus status) {
+			request();
+			if (status == DiningPayerStatus.APPROVED) { approve(); }
+			assertThatThrownBy(this::request).isInstanceOf(BadRequestException.class)
+				.hasMessageContaining(ALREADY_REQUESTED_DINING_PAYER.getErrorCode());
+			assertThat(applicationEvents.stream(DiningPayerRequestedEvent.class)).hasSize(1);
+		}
+
+		@Test
+		void requestOnAnotherRound_isIndependentOfApproval() {
+			request();
+			approve();
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+			diningV2Service.requestPayer(meetingId, second, member.getId());
+			assertThat(attendance().isApprovedPayer()).isTrue();
+			assertThat(diningAttendanceRepository.findByRoundIdAndUserId(second, member.getId()).orElseThrow()
+				.getPayerStatus()).isEqualTo(DiningPayerStatus.PENDING);
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = {"request", "approve", "reject", "revoke"})
+		void crossDiningRound_isRejected(String action) {
+			Integer otherDining = createDining();
+			assertThatThrownBy(() -> {
+				if (action.equals("request")) {
+					diningV2Service.requestPayer(otherDining, roundId, member.getId());
+				} else {
+					change(action, otherDining, roundId, leader.getId());
+				}
+			}).isInstanceOf(NotFoundException.class).hasMessageContaining(NOT_FOUND_DINING_ROUND.getErrorCode());
+			assertThat(attendance().getPayerStatus()).isNull();
+		}
+
+		@ParameterizedTest
+		@ValueSource(booleans = {false, true})
+		void nonLeader_cannotViewOrProcessRequests_evenIfApproved(boolean approved) {
+			request();
+			if (approved) { approve(); }
+			assertThatThrownBy(() -> diningV2Service.getPayerRequests(meetingId, member.getId()))
+				.isInstanceOf(ForbiddenException.class);
+			for (String action : List.of("approve", "reject", "revoke")) {
+				assertThatThrownBy(() -> change(action, meetingId, roundId, member.getId()))
+					.isInstanceOf(ForbiddenException.class);
+			}
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = {"reject", "revoke"})
+		void clearOnClosedRound_preservesAttendanceAndAllowsNewRequest(String action) {
+			request();
+			if (action.equals("revoke")) { approve(); }
+			Integer attendanceId = attendance().getId();
+			diningV2Service.closeRound(meetingId, roundId, leader.getId());
+			change(action, meetingId, roundId, leader.getId());
+			assertThat(attendance().getId()).isEqualTo(attendanceId);
+			assertThat(attendance().getPayerStatus()).isNull();
+			assertThat(attendance().getPayerRequestedAt()).isNull();
+			if (action.equals("reject")) {
+				assertThat(applicationEvents.stream(DiningPayerRejectedEvent.class)).hasSize(1);
+			} else {
+				assertThat(applicationEvents.stream(DiningPayerRevokedEvent.class)).hasSize(1);
+			}
+			request();
+			assertThat(attendance().getPayerStatus()).isEqualTo(DiningPayerStatus.PENDING);
+		}
+
+		@ParameterizedTest
+		@NullSource
+		@EnumSource(DiningPayerStatus.class)
+		void onlyValidSourceStates_canBeProcessed(DiningPayerStatus state) {
+			if (state != null) { request(); }
+			if (state == DiningPayerStatus.APPROVED) { approve(); }
+			if (state != DiningPayerStatus.PENDING) {
+				for (String action : List.of("approve", "reject")) {
+					assertThatThrownBy(() -> change(action, meetingId, roundId, leader.getId()))
+						.isInstanceOf(BadRequestException.class).hasMessageContaining(NOT_PENDING_DINING_PAYER.getErrorCode());
+				}
+			}
+			if (state != DiningPayerStatus.APPROVED) {
+				assertThatThrownBy(() -> change("revoke", meetingId, roundId, leader.getId()))
+					.isInstanceOf(BadRequestException.class).hasMessageContaining(NOT_APPROVED_DINING_PAYER.getErrorCode());
+			}
+		}
+
+		@Test
+		void requestsList_returnsPendingProfilesAndCurrentRoundNumbers() {
+			assertThat(diningV2Service.getPayerRequests(meetingId, leader.getId()).requests()).isEmpty();
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			Integer third = diningV2Service.createRound(meetingId, roundBody("3차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, third, member.getId());
+			request();
+			diningV2Service.requestPayer(meetingId, third, member.getId());
+			diningV2Service.deleteRound(meetingId, second, leader.getId());
+			var requests = diningV2Service.getPayerRequests(meetingId, leader.getId()).requests();
+			assertThat(requests).hasSize(2);
+			assertThat(requests).extracting(r -> r.userId()).containsExactly(member.getId(), member.getId());
+			assertThat(requests).extracting(r -> r.roundNumber()).containsExactly(1, 2);
+			assertThat(requests.get(1).roundId()).isEqualTo(third);
+			assertThat(requests.get(0).name()).isEqualTo(member.getName());
+			assertThat(requests.get(0).profileImage()).isEqualTo(member.getProfileImage());
+			assertThat(requests.get(0).requestedAt()).isEqualTo(attendance().getPayerRequestedAt());
+			approve();
+			assertThat(diningV2Service.getPayerRequests(meetingId, leader.getId()).requests()).hasSize(1);
+			diningV2Service.rejectPayer(meetingId, third, member.getId(), leader.getId());
+			assertThat(diningV2Service.getPayerRequests(meetingId, leader.getId()).requests()).isEmpty();
+		}
+
+		@Test
+		void attendanceResponse_exposesCurrentUsersPayerState() {
+			assertThat(diningV2Service.getAttendance(meetingId, roundId, member.getId()).payerStatus()).isNull();
+			request();
+			assertThat(diningV2Service.getAttendance(meetingId, roundId, member.getId()).payerStatus())
+				.isEqualTo(DiningPayerStatus.PENDING);
+			assertThat(diningV2Service.getAttendance(meetingId, roundId, leader.getId()).payerStatus()).isNull();
+			approve();
+			assertThat(diningV2Service.getAttendance(meetingId, roundId, member.getId()).payerStatus())
+				.isEqualTo(DiningPayerStatus.APPROVED);
+			diningV2Service.revokePayer(meetingId, roundId, member.getId(), leader.getId());
+			assertThat(diningV2Service.getAttendance(meetingId, roundId, member.getId()).payerStatus()).isNull();
+			diningV2Service.cancelAttendance(meetingId, roundId, member.getId());
+			var absent = diningV2Service.getAttendance(meetingId, roundId, member.getId());
+			assertThat(absent.isAttending()).isFalse();
+			assertThat(absent.payerStatus()).isNull();
+		}
+
+		@ParameterizedTest
+		@ValueSource(booleans = {false, true})
+		void deletingAttendance_keepsPermissionOnlyIfAnotherApprovalRemains(boolean anotherApproval) {
+			request();
+			approve();
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+			if (anotherApproval) {
+				diningV2Service.requestPayer(meetingId, second, member.getId());
+				diningV2Service.approvePayer(meetingId, second, member.getId(), leader.getId());
+			}
+			assertThat(diningV2Service.getAttendees(meetingId, second, new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()))
+				.isNotNull();
+			diningV2Service.deleteAttendee(meetingId, roundId, member.getId(), member.getId());
+			assertThat(diningAttendanceRepository.findByRoundIdAndUserId(roundId, member.getId())).isEmpty();
+			assertThat(diningDeletionHistoryRepository.findAll()).anyMatch(h -> h.getDeletedByUserId().equals(member.getId()));
+			if (anotherApproval) {
+				assertThat(diningV2Service.getAttendees(meetingId, second, new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()))
+					.isNotNull();
+			} else {
+				assertThatThrownBy(() -> diningV2Service.getAttendees(meetingId, second,
+					new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId())).isInstanceOf(ForbiddenException.class);
+			}
+		}
+
+		@ParameterizedTest
+		@CsvSource({"cancel,false", "cancel,true", "round,false", "round,true"})
+		void attendanceOrRoundDeletion_updatesMeetingPermission(String deletion, boolean anotherApproval) {
+			request();
+			if (anotherApproval) { approve(); }
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+			diningV2Service.requestPayer(meetingId, second, member.getId());
+			diningV2Service.approvePayer(meetingId, second, member.getId(), leader.getId());
+			if (deletion.equals("cancel")) {
+				diningV2Service.cancelAttendance(meetingId, second, member.getId());
+			} else {
+				diningV2Service.deleteRound(meetingId, second, leader.getId());
+			}
+			assertThat(diningAttendanceRepository.findByRoundIdAndUserId(second, member.getId())).isEmpty();
+			assertThat(diningAttendanceRepository.existsByMeetingIdAndUserIdAndPayerStatus(
+				meetingId, member.getId(), DiningPayerStatus.APPROVED)).isEqualTo(anotherApproval);
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = {"cancel", "round", "management"})
+		void deletingPendingAttendance_removesRequest(String deletion) {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+			diningV2Service.requestPayer(meetingId, second, member.getId());
+			switch (deletion) {
+				case "cancel" -> diningV2Service.cancelAttendance(meetingId, second, member.getId());
+				case "round" -> diningV2Service.deleteRound(meetingId, second, leader.getId());
+				case "management" -> diningV2Service.deleteAttendee(meetingId, second, member.getId(), leader.getId());
+			}
+			assertThat(diningAttendanceRepository.findByRoundIdAndUserId(second, member.getId())).isEmpty();
+			assertThat(diningV2Service.getPayerRequests(meetingId, leader.getId()).requests()).isEmpty();
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = {"approve", "reject", "revoke"})
+		void processingRequiresAttendanceInTargetRound(String action) {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			request();
+			assertThatThrownBy(() -> change(action, meetingId, second, leader.getId()))
+				.isInstanceOf(NotFoundException.class).hasMessageContaining(NOT_FOUND_DINING_ATTENDANCE.getErrorCode());
+			assertThat(attendance().getPayerStatus()).isEqualTo(DiningPayerStatus.PENDING);
+		}
+
+		@Test
+		void nonDiningMeeting_isRejectedByAllPayerOperations() {
+			ReflectionTestUtils.setField(meetingRepository.findDiningByIdOrThrow(meetingId), "category", MeetingCategory.STUDY);
+			assertThatThrownBy(this::request).isInstanceOf(NotFoundException.class)
+				.hasMessageContaining(NOT_FOUND_DINING.getErrorCode());
+			assertThatThrownBy(() -> diningV2Service.getPayerRequests(meetingId, leader.getId()))
+				.isInstanceOf(NotFoundException.class).hasMessageContaining(NOT_FOUND_DINING.getErrorCode());
+			for (String action : List.of("approve", "reject", "revoke")) {
+				assertThatThrownBy(() -> change(action, meetingId, roundId, leader.getId()))
+					.isInstanceOf(NotFoundException.class).hasMessageContaining(NOT_FOUND_DINING.getErrorCode());
+			}
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = {"request", "approve", "reject", "revoke"})
+		void endedDining_blocksPayerChangesButKeepsManagement(String action) {
+			if (!action.equals("request")) { request(); }
+			if (action.equals("revoke")) { approve(); }
+			DiningPayerStatus before = attendance().getPayerStatus();
+			diningV2Service.endDining(meetingId, leader.getId());
+			assertThatThrownBy(() -> {
+				if (action.equals("request")) { request(); }
+				else { change(action, meetingId, roundId, leader.getId()); }
+			}).isInstanceOf(BadRequestException.class).hasMessageContaining(ENDED_DINING.getErrorCode());
+			assertThat(attendance().getPayerStatus()).isEqualTo(before);
+			if (action.equals("revoke")) {
+				assertThat(diningV2Service.getAttendees(meetingId, roundId, new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()))
+					.isNotNull();
 			}
 		}
 	}
