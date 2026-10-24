@@ -1166,22 +1166,62 @@ class DiningV2ServiceTest {
 			}
 		}
 
-		@ParameterizedTest
-		@ValueSource(strings = {"request", "approve", "reject", "revoke"})
-		void endedDining_blocksPayerChangesButKeepsManagement(String action) {
-			if (!action.equals("request")) { request(); }
-			if (action.equals("revoke")) { approve(); }
-			DiningPayerStatus before = attendance().getPayerStatus();
+		@Test
+		void endedDining_allowsPayerRequest() {
 			diningV2Service.endDining(meetingId, leader.getId());
-			assertThatThrownBy(() -> {
-				if (action.equals("request")) { request(); }
-				else { change(action, meetingId, roundId, leader.getId()); }
-			}).isInstanceOf(BadRequestException.class).hasMessageContaining(ENDED_DINING.getErrorCode());
-			assertThat(attendance().getPayerStatus()).isEqualTo(before);
-			if (action.equals("revoke")) {
-				assertThat(diningV2Service.getAttendees(meetingId, roundId, new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()))
-					.isNotNull();
-			}
+			assertThat(getRounds(meetingId).get(0).isClosed()).isTrue();
+
+			request();
+
+			assertThat(attendance().getPayerStatus()).isEqualTo(DiningPayerStatus.PENDING);
+			assertThat(attendance().getPayerRequestedAt()).isEqualTo(LocalDateTime.of(2024, 4, 24, 0, 0));
+			assertThat(applicationEvents.stream(DiningPayerRequestedEvent.class)).hasSize(1);
 		}
+
+		@Test
+		void endedDining_allowsPendingPayerApproval() {
+			request();
+			diningV2Service.endDining(meetingId, leader.getId());
+
+			approve();
+
+			assertThat(attendance().isApprovedPayer()).isTrue();
+			assertThat(applicationEvents.stream(DiningPayerApprovedEvent.class)).hasSize(1);
+			assertThat(diningV2Service.getAttendees(meetingId, roundId,
+				new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()).attendees()).hasSize(2);
+		}
+
+		@Test
+		void endedDining_allowsPendingPayerRejection() {
+			request();
+			Integer attendanceId = attendance().getId();
+			diningV2Service.endDining(meetingId, leader.getId());
+
+			diningV2Service.rejectPayer(meetingId, roundId, member.getId(), leader.getId());
+
+			assertThat(attendance().getId()).isEqualTo(attendanceId);
+			assertThat(attendance().getPayerStatus()).isNull();
+			assertThat(attendance().getPayerRequestedAt()).isNull();
+			assertThat(applicationEvents.stream(DiningPayerRejectedEvent.class)).hasSize(1);
+		}
+
+		@Test
+		void endedDining_allowsApprovedPayerRevocation() {
+			request();
+			approve();
+			Integer attendanceId = attendance().getId();
+			diningV2Service.endDining(meetingId, leader.getId());
+			assertThat(diningV2Service.getAttendees(meetingId, roundId,
+				new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()).attendees()).hasSize(2);
+
+			diningV2Service.revokePayer(meetingId, roundId, member.getId(), leader.getId());
+
+			assertThat(attendance().getId()).isEqualTo(attendanceId);
+			assertThat(attendance().getPayerStatus()).isNull();
+			assertThat(attendance().getPayerRequestedAt()).isNull();
+			assertThat(applicationEvents.stream(DiningPayerRevokedEvent.class)).hasSize(1);
+		}
+
+
 	}
 }

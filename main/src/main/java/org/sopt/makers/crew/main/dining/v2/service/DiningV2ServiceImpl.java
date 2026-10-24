@@ -358,7 +358,6 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	@Transactional
 	public void requestPayer(Integer meetingId, Integer roundId, Integer userId) {
 		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
-		dining.validateDiningNotEnded();
 		findRoundOfDining(meetingId, roundId);
 		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, userId);
 		if (diningPermissionValidator.isLeader(dining, userId)) {
@@ -375,7 +374,6 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	public void approvePayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId) {
 		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
 		diningPermissionValidator.validateLeader(dining, userId);
-		dining.validateDiningNotEnded();
 		findRoundOfDining(meetingId, roundId);
 		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, requesterUserId);
 		attendance.approvePayer();
@@ -387,7 +385,6 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	public void rejectPayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId) {
 		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
 		diningPermissionValidator.validateLeader(dining, userId);
-		dining.validateDiningNotEnded();
 		findRoundOfDining(meetingId, roundId);
 		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, requesterUserId);
 		attendance.validatePendingPayer();
@@ -400,7 +397,6 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	public void revokePayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId) {
 		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
 		diningPermissionValidator.validateLeader(dining, userId);
-		dining.validateDiningNotEnded();
 		findRoundOfDining(meetingId, roundId);
 		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, requesterUserId);
 		attendance.validateApprovedPayer();
