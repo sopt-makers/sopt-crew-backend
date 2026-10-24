@@ -239,7 +239,9 @@ public class DiningV2Controller implements DiningV2Api {
 		@PathVariable Integer requesterUserId, Principal principal) {
 		diningV2Service.revokePayer(meetingId, roundId, requesterUserId, UserUtil.getUserId(principal));
 		return ResponseEntity.ok().build();
+	}
 
+	@Override
 	@GetMapping
 	public ResponseEntity<DiningV2GetDiningsResponseDto> getDinings(
 		@Valid @ModelAttribute DiningV2GetDiningsQueryDto queryCommand,
