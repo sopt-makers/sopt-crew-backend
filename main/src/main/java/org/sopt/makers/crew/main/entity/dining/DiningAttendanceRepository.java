@@ -20,11 +20,16 @@ public interface DiningAttendanceRepository extends JpaRepository<DiningAttendan
 
 	Optional<DiningAttendance> findByRoundIdAndUserId(Integer roundId, Integer userId);
 
-	/** 동일 참석 기록의 상태 변경을 직렬화해 중복 승인과 중복 알림을 방지한다. */
+	/** 결제자 상태 변경과 참석 삭제를 직렬화해 삭제 이력에 마지막 커밋 상태를 보관한다. */
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("SELECT a FROM DiningAttendance a WHERE a.roundId = :roundId AND a.userId = :userId")
 	Optional<DiningAttendance> findByRoundIdAndUserIdForUpdate(@Param("roundId") Integer roundId,
 		@Param("userId") Integer userId);
+
+	/** 회차·회식 삭제 시 스냅샷 생성 전에 잠금을 확보한다. 일괄 삭제끼리는 같은 ID 순서로 잠근다. */
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("SELECT a FROM DiningAttendance a WHERE a.roundId IN :roundIds ORDER BY a.id ASC")
+	List<DiningAttendance> findAllByRoundIdInForUpdate(@Param("roundIds") List<Integer> roundIds);
 
 	List<DiningAttendance> findAllByRoundIdInAndPayerStatusOrderByPayerRequestedAtAscIdAsc(
 		List<Integer> roundIds, DiningPayerStatus payerStatus);
