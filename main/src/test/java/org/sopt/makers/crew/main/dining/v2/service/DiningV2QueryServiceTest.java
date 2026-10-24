@@ -86,6 +86,31 @@ class DiningV2QueryServiceTest {
 	class 메인_목록 {
 
 		@Test
+		@DisplayName("페이지 크기 기준으로 중복이나 누락 없이 페이지가 나뉜다.")
+		void getDinings_paginatesWithoutDuplicateOrMissing() {
+			// given: 정렬 순서 5월 20일 → 5월 10일 → 4월 30일
+			Integer latest = createDining(leader, "5월 20일 회식", "2024.05.20", MeetingJoinablePart.SERVER);
+			Integer middle = createDining(leader, "5월 10일 회식", "2024.05.10", MeetingJoinablePart.SERVER);
+			Integer oldest = createDining(leader, "4월 30일 회식", "2024.04.30", MeetingJoinablePart.SERVER);
+
+			// when
+			DiningV2GetDiningsResponseDto firstPage = diningV2Service.getDinings(
+				new DiningV2GetDiningsQueryDto(1, 2, null, null, null, null), member.getId());
+			DiningV2GetDiningsResponseDto secondPage = diningV2Service.getDinings(
+				new DiningV2GetDiningsQueryDto(2, 2, null, null, null, null), member.getId());
+
+			// then
+			assertThat(meetingIds(firstPage)).containsExactly(latest, middle);
+			assertThat(meetingIds(secondPage)).containsExactly(oldest);
+
+			assertThat(firstPage.meta().getItemCount()).isEqualTo(3);
+			assertThat(firstPage.meta().getPageCount()).isEqualTo(2);
+			assertThat(firstPage.meta().isHasNextPage()).isTrue();
+			assertThat(secondPage.meta().isHasPreviousPage()).isTrue();
+			assertThat(secondPage.meta().isHasNextPage()).isFalse();
+		}
+
+		@Test
 		@DisplayName("진행 중인 회식이 먼저, 그 안에서 회식 일자 최신순으로 정렬된다.")
 		void getDinings_sortsInProgressFirstThenLatestDate() {
 			// given
