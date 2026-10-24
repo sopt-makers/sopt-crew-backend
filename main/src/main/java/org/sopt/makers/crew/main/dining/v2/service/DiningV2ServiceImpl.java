@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.hibernate.exception.ConstraintViolationException;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.mapper.DiningMeetingMapper;
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
@@ -351,6 +352,22 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	}
 
 	@Override
+	@Transactional
+	public void requestPayer(Integer meetingId, Integer roundId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		dining.validateDiningNotEnded();
+		findRoundOfDining(meetingId, roundId);
+		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, userId);
+		if (diningPermissionValidator.isLeader(dining, userId)) {
+			throw new BadRequestException(CANNOT_REQUEST_DINING_PAYER_AS_LEADER.getErrorCode());
+		}
+		attendance.requestPayer(time.now());
+		User requester = userRepository.findByIdOrThrow(userId);
+		eventPublisher.publishEvent(new DiningPayerRequestedEvent(meetingId, roundId, userId,
+			dining.getUserId(), dining.getTitle(), requester.getName(), getRounds(meetingId).getRoundNumber(roundId)));
+	}
+
+	@Override
 	public DiningV2GetPayerRequestsResponseDto getPayerRequests(Integer meetingId, Integer userId) {
 		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
 		diningPermissionValidator.validateLeader(dining, userId);
@@ -367,6 +384,11 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			.map(attendance -> DiningV2GetPayerRequestsResponseDto.PayerRequest.of(attendance,
 				users.get(attendance.getUserId()), rounds.getRoundNumber(attendance.getRoundId())))
 			.toList());
+	}
+
+	private DiningAttendance findAttendanceForPayerUpdate(Integer roundId, Integer userId) {
+		return diningAttendanceRepository.findByRoundIdAndUserIdForUpdate(roundId, userId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_DINING_ATTENDANCE.getErrorCode()));
 	}
 
 	private void attend(DiningRound round, Integer userId) {

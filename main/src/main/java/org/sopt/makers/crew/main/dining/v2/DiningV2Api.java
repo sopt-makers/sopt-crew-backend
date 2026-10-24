@@ -202,6 +202,15 @@ public interface DiningV2Api {
 	ResponseEntity<DiningV2GetAttendeesResponseDto> getAttendanceAttendees(
 		@PathVariable Integer meetingId, @PathVariable Integer roundId, Principal principal);
 
+	@Operation(summary = "공동 결제자 요청", description = "해당 회차 참석자 본인만 요청할 수 있습니다. 개설자는 요청할 수 없습니다. 마감된 회차에서도 가능하지만 종료된 회식에서는 불가합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "201", description = "공동 결제자 요청 성공"),
+		@ApiResponse(responseCode = "400", description = "이미 결제자 요청을 했습니다., 개설자는 공동 결제자를 요청할 수 없습니다., 종료된 회식입니다.", content = @Content),
+		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
+	})
+	ResponseEntity<Void> requestPayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
+		Principal principal);
+
 	@Operation(summary = "공동 결제자 대기 요청 목록", description = "개설자만 회식 전체의 PENDING 요청을 요청 시각 오름차순으로 조회합니다. 회차 번호는 현재 기준입니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "대기 요청 목록 조회 성공. 요청이 없으면 빈 리스트"),

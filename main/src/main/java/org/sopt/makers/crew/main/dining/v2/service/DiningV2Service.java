@@ -45,6 +45,8 @@ public interface DiningV2Service {
 
 	void deleteAttendee(Integer meetingId, Integer roundId, Integer attendeeUserId, Integer userId);
 
+	void requestPayer(Integer meetingId, Integer roundId, Integer userId);
+
 	DiningV2GetPayerRequestsResponseDto getPayerRequests(Integer meetingId, Integer userId);
 
 }
