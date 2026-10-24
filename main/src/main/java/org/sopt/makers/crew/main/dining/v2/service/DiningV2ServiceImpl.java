@@ -250,7 +250,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			throw new BadRequestException(CANNOT_DELETE_CLOSED_DINING_ROUND.getErrorCode());
 		}
 
-		List<DiningAttendance> attendances = diningAttendanceRepository.findAllByRoundId(roundId);
+		List<DiningAttendance> attendances = diningAttendanceRepository.findAllByRoundIdInForUpdate(List.of(roundId));
 		diningDeletionHistoryRecorder.recordRoundDeletion(round, attendances, userId);
 
 		diningAttendanceRepository.deleteAllInBatch(attendances);
