@@ -79,9 +79,7 @@ public class DiningAttendance extends BaseTimeEntity {
 	}
 
 	public void approvePayer() {
-		if (this.payerStatus != DiningPayerStatus.PENDING) {
-			throw new BadRequestException(NOT_PENDING_DINING_PAYER.getErrorCode());
-		}
+		validatePendingPayer();
 		this.payerStatus = DiningPayerStatus.APPROVED;
 	}
 
@@ -91,6 +89,18 @@ public class DiningAttendance extends BaseTimeEntity {
 	public void clearPayer() {
 		this.payerStatus = null;
 		this.payerRequestedAt = null;
+	}
+
+	public void validatePendingPayer() {
+		if (this.payerStatus != DiningPayerStatus.PENDING) {
+			throw new BadRequestException(NOT_PENDING_DINING_PAYER.getErrorCode());
+		}
+	}
+
+	public void validateApprovedPayer() {
+		if (!isApprovedPayer()) {
+			throw new BadRequestException(NOT_APPROVED_DINING_PAYER.getErrorCode());
+		}
 	}
 
 	public boolean isApprovedPayer() {

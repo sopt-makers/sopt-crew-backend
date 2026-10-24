@@ -4,8 +4,11 @@ import static org.sopt.makers.crew.main.external.notification.PushNotificationEn
 
 import java.util.Optional;
 
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRevokedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
-
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRounds;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
@@ -32,6 +35,10 @@ public class DiningNotificationSender {
 	private static final String NEW_ROUND_CONTENT_FORMAT = "[%s] 새로 추가된 %d차에 참석하려면 신청해주세요.";
 	// TODO: FE 회식 상세 페이지 경로 확정 후 변경 예정 (현재 임의 경로)
 	private static final String DINING_DETAIL_WEB_LINK_FORMAT = "%s/dining/detail?id=%d";
+
+	// TODO: FE 참석자 관리 및 결제자 요청 영역 경로 확정 후 변경
+	private static final String DINING_ATTENDEE_WEB_LINK_FORMAT = "%s/dining/attendees?id=%d";
+	private static final String PAYER_REQUESTS_ANCHOR = "#payer-requests";
 
 	private final MeetingRepository meetingRepository;
 	private final DiningRoundRepository diningRoundRepository;
@@ -73,5 +80,37 @@ public class DiningNotificationSender {
 			PUSH_NOTIFICATION_CATEGORY.getValue(),
 			String.format(DINING_DETAIL_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), meetingId)
 		));
+	}
+
+	public void sendPayerRequestedNotification(DiningPayerRequestedEvent event) {
+		sendPayerNotification(event.leaderUserId(), "공동 결제자 승인 요청",
+			String.format("[%s] %d차 [%s]님이 공동 결제자 승인을 요청했어요.\n참석자 관리 화면에서 확인해주세요.",
+				event.diningTitle(), event.roundNumber(), event.requesterName()),
+			String.format(DINING_ATTENDEE_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), event.meetingId())
+				+ PAYER_REQUESTS_ANCHOR);
+	}
+
+	public void sendPayerApprovedNotification(DiningPayerApprovedEvent event) {
+		sendPayerNotification(event.requesterUserId(), "공동 결제자 승인",
+			String.format("[%s] 공동 결제자로 승인됐어요.\n이제 참석자 관리 화면을 이용할 수 있어요.", event.diningTitle()),
+			String.format(DINING_ATTENDEE_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), event.meetingId()));
+	}
+
+	public void sendPayerRejectedNotification(DiningPayerRejectedEvent event) {
+		sendPayerNotification(event.requesterUserId(), "공동 결제자 요청 거절",
+			String.format("[%s] 공동 결제자 요청이 거절됐어요.", event.diningTitle()),
+			String.format(DINING_DETAIL_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), event.meetingId()));
+	}
+
+	public void sendPayerRevokedNotification(DiningPayerRevokedEvent event) {
+		sendPayerNotification(event.requesterUserId(), "공동 결제자 승인 해제",
+			String.format("[%s] %d차 공동 결제자 승인이 해제됐어요.", event.diningTitle(), event.roundNumber()),
+			String.format(DINING_DETAIL_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), event.meetingId()));
+	}
+
+	private void sendPayerNotification(Integer receiverUserId, String title, String content, String webLink) {
+		pushNotificationService.sendPushNotification(PushNotificationRequestDto.of(
+			new String[] {String.valueOf(receiverUserId)}, title, content,
+			PUSH_NOTIFICATION_CATEGORY.getValue(), webLink));
 	}
 }

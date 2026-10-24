@@ -9,12 +9,17 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.hibernate.exception.ConstraintViolationException;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRevokedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.mapper.DiningMeetingMapper;
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
@@ -26,6 +31,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundRespo
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto.MyAttendanceStatus;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningsResponseDto;
@@ -36,8 +42,8 @@ import org.sopt.makers.crew.main.entity.dining.DiningAttendanceRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRound;
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRounds;
-import org.sopt.makers.crew.main.entity.dining.DiningSearchRepository;
 import org.sopt.makers.crew.main.entity.dining.enums.DiningPayerStatus;
+import org.sopt.makers.crew.main.entity.dining.DiningSearchRepository;
 import org.sopt.makers.crew.main.entity.dining.enums.DiningRoundStatus;
 import org.sopt.makers.crew.main.entity.dining.projection.DiningAttendeeCountProjection;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
@@ -163,7 +169,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			throw new BadRequestException(CANNOT_DELETE_DINING_WITH_CLOSED_ROUND.getErrorCode());
 		}
 
-		List<DiningAttendance> attendances = diningAttendanceRepository.findAllByRoundIdIn(rounds.getRoundIds());
+		List<DiningAttendance> attendances = diningAttendanceRepository.findAllByRoundIdInForUpdate(rounds.getRoundIds());
 		diningDeletionHistoryRecorder.recordDiningDeletion(dining, rounds.getRounds(), attendances, userId);
 
 		diningAttendanceRepository.deleteAllInBatch(attendances);
@@ -258,7 +264,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			throw new BadRequestException(CANNOT_DELETE_CLOSED_DINING_ROUND.getErrorCode());
 		}
 
-		List<DiningAttendance> attendances = diningAttendanceRepository.findAllByRoundId(roundId);
+		List<DiningAttendance> attendances = diningAttendanceRepository.findAllByRoundIdInForUpdate(List.of(roundId));
 		diningDeletionHistoryRecorder.recordRoundDeletion(round, attendances, userId);
 
 		diningAttendanceRepository.deleteAllInBatch(attendances);
@@ -299,8 +305,9 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	public DiningV2GetAttendanceResponseDto getAttendance(Integer meetingId, Integer roundId, Integer userId) {
 		meetingRepository.findDiningByIdOrThrow(meetingId);
 		findRoundOfDining(meetingId, roundId);
+		Optional<DiningAttendance> attendance = diningAttendanceRepository.findByRoundIdAndUserId(roundId, userId);
 		return new DiningV2GetAttendanceResponseDto(diningAttendanceRepository.countByRoundId(roundId),
-			diningAttendanceRepository.existsByRoundIdAndUserId(roundId, userId));
+			attendance.isPresent(), attendance.map(DiningAttendance::getPayerStatus).orElse(null));
 	}
 
 	@Override
@@ -361,6 +368,83 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		deleteAttendance(round, attendeeUserId, userId);
 	}
 
+	@Override
+	@Transactional
+	public void requestPayer(Integer meetingId, Integer roundId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		findRoundOfDining(meetingId, roundId);
+
+		if (diningPermissionValidator.isLeader(dining, userId)) {
+			throw new BadRequestException(CANNOT_REQUEST_DINING_PAYER_AS_LEADER.getErrorCode());
+		}
+
+		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, userId);
+		attendance.requestPayer(time.now());
+		User requester = userRepository.findByIdOrThrow(userId);
+		eventPublisher.publishEvent(new DiningPayerRequestedEvent(meetingId, roundId, userId,
+			dining.getUserId(), dining.getTitle(), requester.getName(), getRounds(meetingId).getRoundNumber(roundId)));
+	}
+
+	@Override
+	@Transactional
+	public void approvePayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		diningPermissionValidator.validateLeader(dining, userId);
+		findRoundOfDining(meetingId, roundId);
+		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, requesterUserId);
+		attendance.approvePayer();
+		eventPublisher.publishEvent(new DiningPayerApprovedEvent(meetingId, roundId, requesterUserId, dining.getTitle()));
+	}
+
+	@Override
+	@Transactional
+	public void rejectPayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		diningPermissionValidator.validateLeader(dining, userId);
+		findRoundOfDining(meetingId, roundId);
+		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, requesterUserId);
+		attendance.validatePendingPayer();
+		attendance.clearPayer();
+		eventPublisher.publishEvent(new DiningPayerRejectedEvent(meetingId, roundId, requesterUserId, dining.getTitle()));
+	}
+
+	@Override
+	@Transactional
+	public void revokePayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		diningPermissionValidator.validateLeader(dining, userId);
+		findRoundOfDining(meetingId, roundId);
+		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, requesterUserId);
+		attendance.validateApprovedPayer();
+		attendance.clearPayer();
+		eventPublisher.publishEvent(new DiningPayerRevokedEvent(meetingId, roundId, requesterUserId, dining.getTitle(),
+			getRounds(meetingId).getRoundNumber(roundId)));
+	}
+
+	@Override
+	public DiningV2GetPayerRequestsResponseDto getPayerRequests(Integer meetingId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		diningPermissionValidator.validateLeader(dining, userId);
+		DiningRounds rounds = getRounds(meetingId);
+		List<DiningAttendance> requests = diningAttendanceRepository
+			.findAllByRoundIdInAndPayerStatusOrderByPayerRequestedAtAscIdAsc(rounds.getRoundIds(), DiningPayerStatus.PENDING);
+		if (requests.isEmpty()) {
+			return new DiningV2GetPayerRequestsResponseDto(List.of());
+		}
+		Map<Integer, User> users = userRepository.findAllByIdInOrThrow(requests.stream()
+			.map(DiningAttendance::getUserId).distinct().toList()).stream()
+			.collect(Collectors.toMap(User::getId, user -> user));
+		return new DiningV2GetPayerRequestsResponseDto(requests.stream()
+			.map(attendance -> DiningV2GetPayerRequestsResponseDto.PayerRequest.of(attendance,
+				users.get(attendance.getUserId()), rounds.getRoundNumber(attendance.getRoundId())))
+			.toList());
+	}
+
+	private DiningAttendance findAttendanceForPayerUpdate(Integer roundId, Integer userId) {
+		return diningAttendanceRepository.findByRoundIdAndUserIdForUpdate(roundId, userId)
+			.orElseThrow(() -> new NotFoundException(NOT_FOUND_DINING_ATTENDANCE.getErrorCode()));
+	}
+
 	private void attend(DiningRound round, Integer userId) {
 		diningAttendanceRepository.save(DiningAttendance.builder()
 			.roundId(round.getId())
@@ -418,7 +502,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	}
 
 	private void deleteAttendance(DiningRound round, Integer attendeeUserId, Integer deletedByUserId) {
-		DiningAttendance attendance = diningAttendanceRepository.findByRoundIdAndUserId(round.getId(), attendeeUserId)
+		DiningAttendance attendance = diningAttendanceRepository.findByRoundIdAndUserIdForUpdate(round.getId(), attendeeUserId)
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_DINING_ATTENDANCE.getErrorCode()));
 		diningDeletionHistoryRecorder.recordAttendanceDeletion(round, attendance, deletedByUserId);
 		diningAttendanceRepository.delete(attendance);

@@ -17,6 +17,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
+import org.sopt.makers.crew.main.entity.dining.enums.DiningPayerStatus;
 import org.sopt.makers.crew.main.dining.v2.service.DiningV2Service;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -74,5 +77,47 @@ class DiningV2ControllerTest {
 				.andExpect(status().isBadRequest());
 		}
 		verifyNoInteractions(diningV2Service);
+	}
+
+	@Test
+	void payerRoutes_bindPrincipalAndPathWithoutBody() throws Exception {
+		mockMvc.perform(post("/dining/v2/1/rounds/2/payer-requests").principal(() -> "3"))
+			.andExpect(status().isCreated());
+		verify(diningV2Service).requestPayer(1, 2, 3);
+		for (String action : List.of("approve", "reject", "revoke")) {
+			mockMvc.perform(post("/dining/v2/1/rounds/2/payer-requests/3/" + action).principal(() -> "4"))
+				.andExpect(status().isOk());
+		}
+		verify(diningV2Service).approvePayer(1, 2, 3, 4);
+		verify(diningV2Service).rejectPayer(1, 2, 3, 4);
+		verify(diningV2Service).revokePayer(1, 2, 3, 4);
+	}
+
+	@Test
+	void payerRequestsRoute_serializesProfileRoundAndEmptyList() throws Exception {
+		var requestedAt = java.time.LocalDateTime.of(2024, 4, 24, 0, 0);
+		given(diningV2Service.getPayerRequests(1, 4)).willReturn(new DiningV2GetPayerRequestsResponseDto(
+			List.of(new DiningV2GetPayerRequestsResponseDto.PayerRequest(3, "참석자", "profile.jpg", 2, 1, requestedAt))))
+			.willReturn(new DiningV2GetPayerRequestsResponseDto(List.of()));
+		mockMvc.perform(get("/dining/v2/1/payer-requests").principal(() -> "4"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.requests[0].userId").value(3))
+			.andExpect(jsonPath("$.requests[0].name").value("참석자"))
+			.andExpect(jsonPath("$.requests[0].profileImage").value("profile.jpg"))
+			.andExpect(jsonPath("$.requests[0].roundId").value(2))
+			.andExpect(jsonPath("$.requests[0].roundNumber").value(1))
+			.andExpect(jsonPath("$.requests[0].requestedAt").exists());
+		mockMvc.perform(get("/dining/v2/1/payer-requests").principal(() -> "4"))
+			.andExpect(status().isOk()).andExpect(jsonPath("$.requests").isEmpty());
+	}
+
+	@Test
+	void attendanceRoute_includesPayerStatus() throws Exception {
+		given(diningV2Service.getAttendance(1, 2, 3))
+			.willReturn(new DiningV2GetAttendanceResponseDto(2, true, DiningPayerStatus.PENDING));
+		mockMvc.perform(get("/dining/v2/1/rounds/2/attendance").principal(() -> "3"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.isAttending").value(true))
+			.andExpect(jsonPath("$.payerStatus").value("PENDING"));
 	}
 }

@@ -12,6 +12,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundRespo
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningsResponseDto;
 import org.sopt.makers.crew.main.dining.v2.service.DiningV2Service;
@@ -199,6 +200,45 @@ public class DiningV2Controller implements DiningV2Api {
 		@PathVariable Integer meetingId, @PathVariable Integer roundId, Principal principal) {
 		return ResponseEntity.ok(diningV2Service.getAttendanceAttendees(meetingId, roundId,
 			UserUtil.getUserId(principal)));
+	}
+
+	@Override
+	@PostMapping("/{meetingId}/rounds/{roundId}/payer-requests")
+	public ResponseEntity<Void> requestPayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
+		Principal principal) {
+		diningV2Service.requestPayer(meetingId, roundId, UserUtil.getUserId(principal));
+		return ResponseEntity.status(HttpStatus.CREATED).build();
+	}
+
+	@Override
+	@GetMapping("/{meetingId}/payer-requests")
+	public ResponseEntity<DiningV2GetPayerRequestsResponseDto> getPayerRequests(@PathVariable Integer meetingId,
+		Principal principal) {
+		return ResponseEntity.ok(diningV2Service.getPayerRequests(meetingId, UserUtil.getUserId(principal)));
+	}
+
+	@Override
+	@PostMapping("/{meetingId}/rounds/{roundId}/payer-requests/{requesterUserId}/approve")
+	public ResponseEntity<Void> approvePayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
+		@PathVariable Integer requesterUserId, Principal principal) {
+		diningV2Service.approvePayer(meetingId, roundId, requesterUserId, UserUtil.getUserId(principal));
+		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	@PostMapping("/{meetingId}/rounds/{roundId}/payer-requests/{requesterUserId}/reject")
+	public ResponseEntity<Void> rejectPayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
+		@PathVariable Integer requesterUserId, Principal principal) {
+		diningV2Service.rejectPayer(meetingId, roundId, requesterUserId, UserUtil.getUserId(principal));
+		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	@PostMapping("/{meetingId}/rounds/{roundId}/payer-requests/{requesterUserId}/revoke")
+	public ResponseEntity<Void> revokePayer(@PathVariable Integer meetingId, @PathVariable Integer roundId,
+		@PathVariable Integer requesterUserId, Principal principal) {
+		diningV2Service.revokePayer(meetingId, roundId, requesterUserId, UserUtil.getUserId(principal));
+		return ResponseEntity.ok().build();
 	}
 
 	@Override
