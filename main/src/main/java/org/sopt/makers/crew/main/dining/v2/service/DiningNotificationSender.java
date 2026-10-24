@@ -5,6 +5,7 @@ import static org.sopt.makers.crew.main.external.notification.PushNotificationEn
 import java.util.Optional;
 
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
@@ -92,6 +93,12 @@ public class DiningNotificationSender {
 		sendPayerNotification(event.requesterUserId(), "공동 결제자 승인",
 			String.format("[%s] 공동 결제자로 승인됐어요.\n이제 참석자 관리 화면을 이용할 수 있어요.", event.diningTitle()),
 			String.format(DINING_ATTENDEE_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), event.meetingId()));
+	}
+
+	public void sendPayerRejectedNotification(DiningPayerRejectedEvent event) {
+		sendPayerNotification(event.requesterUserId(), "공동 결제자 요청 거절",
+			String.format("[%s] 공동 결제자 요청이 거절됐어요.", event.diningTitle()),
+			String.format(DINING_DETAIL_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), event.meetingId()));
 	}
 
 	private void sendPayerNotification(Integer receiverUserId, String title, String content, String webLink) {
