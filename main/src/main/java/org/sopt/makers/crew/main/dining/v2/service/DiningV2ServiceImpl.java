@@ -401,7 +401,8 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, requesterUserId);
 		attendance.validateApprovedPayer();
 		attendance.clearPayer();
-		eventPublisher.publishEvent(new DiningPayerRevokedEvent(meetingId, roundId, requesterUserId, dining.getTitle()));
+		eventPublisher.publishEvent(new DiningPayerRevokedEvent(meetingId, roundId, requesterUserId, dining.getTitle(),
+			getRounds(meetingId).getRoundNumber(roundId)));
 	}
 
 	@Override

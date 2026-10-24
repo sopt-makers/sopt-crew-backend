@@ -104,7 +104,7 @@ public class DiningNotificationSender {
 
 	public void sendPayerRevokedNotification(DiningPayerRevokedEvent event) {
 		sendPayerNotification(event.requesterUserId(), "공동 결제자 승인 해제",
-			String.format("[%s] 공동 결제자 권한이 해제됐어요.", event.diningTitle()),
+			String.format("[%s] %d차 공동 결제자 승인이 해제됐어요.", event.diningTitle(), event.roundNumber()),
 			String.format(DINING_DETAIL_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), event.meetingId()));
 	}
 

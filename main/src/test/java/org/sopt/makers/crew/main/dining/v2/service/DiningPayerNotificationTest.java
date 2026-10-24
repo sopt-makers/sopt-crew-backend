@@ -41,8 +41,8 @@ class DiningPayerNotificationTest {
 				"https://crew.test/dining/attendees?id=1"),
 			Arguments.of(new DiningPayerRejectedEvent(1, 2, 3, "서버 회식"), "3",
 				"[서버 회식] 공동 결제자 요청이 거절됐어요.", "https://crew.test/dining/detail?id=1"),
-			Arguments.of(new DiningPayerRevokedEvent(1, 2, 3, "서버 회식"), "3",
-				"[서버 회식] 공동 결제자 권한이 해제됐어요.", "https://crew.test/dining/detail?id=1")
+			Arguments.of(new DiningPayerRevokedEvent(1, 2, 3, "서버 회식", 2), "3",
+				"[서버 회식] 2차 공동 결제자 승인이 해제됐어요.", "https://crew.test/dining/detail?id=1")
 		);
 	}
 
