@@ -1252,6 +1252,26 @@ class DiningV2ServiceTest {
 			assertThat(diningAttendanceRepository.existsByRoundIdAndUserId(roundId, third.getId())).isFalse();
 		}
 
+		@Test
+		void revokeEvent_snapshotsCurrentRoundNumberAfterMiddleRoundDeletion() {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			Integer third = diningV2Service.createRound(meetingId, roundBody("3차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, third, member.getId());
+			diningV2Service.requestPayer(meetingId, third, member.getId());
+			diningV2Service.approvePayer(meetingId, third, member.getId(), leader.getId());
+			diningV2Service.deleteRound(meetingId, second, leader.getId());
+
+			diningV2Service.revokePayer(meetingId, third, member.getId(), leader.getId());
+
+			var event = applicationEvents.stream(DiningPayerRevokedEvent.class).findFirst().orElseThrow();
+			assertThat(event.meetingId()).isEqualTo(meetingId);
+			assertThat(event.roundId()).isEqualTo(third);
+			assertThat(event.requesterUserId()).isEqualTo(member.getId());
+			assertThat(event.diningTitle()).isEqualTo("서버 파트 회식");
+			assertThat(event.roundNumber()).isEqualTo(2);
+			diningV2Service.deleteRound(meetingId, third, leader.getId());
+			assertThat(event.roundNumber()).isEqualTo(2);
+		}
 
 	}
 }
