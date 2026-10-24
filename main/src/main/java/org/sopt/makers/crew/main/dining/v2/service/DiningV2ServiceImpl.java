@@ -44,7 +44,6 @@ import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRounds;
 import org.sopt.makers.crew.main.entity.dining.enums.DiningPayerStatus;
 import org.sopt.makers.crew.main.entity.dining.DiningSearchRepository;
-import org.sopt.makers.crew.main.entity.dining.enums.DiningPayerStatus;
 import org.sopt.makers.crew.main.entity.dining.enums.DiningRoundStatus;
 import org.sopt.makers.crew.main.entity.dining.projection.DiningAttendeeCountProjection;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
