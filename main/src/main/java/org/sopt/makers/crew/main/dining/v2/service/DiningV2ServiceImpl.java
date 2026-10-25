@@ -164,7 +164,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		diningPermissionValidator.validateLeader(dining, userId);
 		dining.validateDiningNotEnded();
 
-		DiningRounds rounds = getRounds(meetingId);
+		DiningRounds rounds = getRoundsForUpdate(meetingId);
 		if (rounds.hasClosedRound()) {
 			throw new BadRequestException(CANNOT_DELETE_DINING_WITH_CLOSED_ROUND.getErrorCode());
 		}
@@ -255,7 +255,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		diningPermissionValidator.validateLeader(dining, userId);
 		dining.validateDiningNotEnded();
 
-		DiningRounds rounds = getRounds(meetingId);
+		DiningRounds rounds = getRoundsForUpdate(meetingId);
 		DiningRound round = rounds.getRound(roundId);
 		if (rounds.isFirstRound(round)) {
 			throw new BadRequestException(CANNOT_DELETE_FIRST_DINING_ROUND.getErrorCode());
@@ -456,6 +456,11 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		return new DiningRounds(diningRoundRepository.findAllByMeetingIdOrderByIdAsc(meetingId));
 	}
 
+	/** 삭제 전용. 참석 추가와 직렬화하도록 회차를 id 순서로 잠근다. */
+	private DiningRounds getRoundsForUpdate(Integer meetingId) {
+		return new DiningRounds(diningRoundRepository.findAllByMeetingIdForUpdate(meetingId));
+	}
+
 	private DiningRound findRoundOfDining(Integer meetingId, Integer roundId) {
 		DiningRound round = diningRoundRepository.findByIdOrThrow(roundId);
 		if (!round.getMeetingId().equals(meetingId)) {
@@ -491,9 +496,14 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			// 제약 위반으로 중단된 트랜잭션에서 재조회하지 않고 해당 제약만 판별한다.
 			Throwable cause = exception;
 			while (cause != null) {
-				if (cause instanceof ConstraintViolationException violation
-					&& "UQ_dining_attendance_round_user".equals(violation.getConstraintName())) {
-					throw new BadRequestException(ALREADY_ATTENDED_DINING_ROUND.getErrorCode());
+				if (cause instanceof ConstraintViolationException violation) {
+					if ("UQ_dining_attendance_round_user".equals(violation.getConstraintName())) {
+						throw new BadRequestException(ALREADY_ATTENDED_DINING_ROUND.getErrorCode());
+					}
+					// 삭제가 먼저 회차를 잠근 경우 삭제 커밋 후 FK 검사에 실패한다.
+					if ("fk_dining_attendance_round".equals(violation.getConstraintName())) {
+						throw new NotFoundException(NOT_FOUND_DINING_ROUND.getErrorCode());
+					}
 				}
 				cause = cause.getCause();
 			}
