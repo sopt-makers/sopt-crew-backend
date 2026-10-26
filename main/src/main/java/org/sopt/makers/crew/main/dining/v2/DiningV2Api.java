@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -165,6 +167,14 @@ public interface DiningV2Api {
 		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
 		@ApiResponse(responseCode = "404", description = "회식, 회차 또는 참석 기록을 찾을 수 없습니다.", content = @Content),
 	})
+	@Parameter(name = "queryCommand", hidden = true)
+	@Parameter(name = "page", description = "페이지, default = 1", example = "1",
+		schema = @Schema(type = "integer", format = "int32", defaultValue = "1", minimum = "1"))
+	// allowableValues는 문자열 enum으로 나가 integer 타입과 어긋나므로 허용값은 설명에만 둔다.
+	@Parameter(name = "take", description = "가져올 데이터 개수. 10, 30, 50 중 하나, default = 10", example = "10",
+		schema = @Schema(type = "integer", format = "int32", defaultValue = "10"))
+	@Parameter(name = "date", description = "등록 시각 정렬 (desc: 최신순, asc: 오래된순), default = desc", example = "desc",
+		schema = @Schema(type = "string", defaultValue = "desc", allowableValues = {"desc", "asc"}))
 	ResponseEntity<DiningV2GetAttendeeManagementResponseDto> getAttendees(
 		@PathVariable Integer meetingId,
 		@PathVariable Integer roundId,
@@ -259,6 +269,19 @@ public interface DiningV2Api {
 		@ApiResponse(responseCode = "200", description = "회식 목록 조회 성공"),
 		@ApiResponse(responseCode = "400", description = "VALIDATION_EXCEPTION", content = @Content),
 	})
+	@Parameter(name = "queryCommand", hidden = true)
+	@Parameter(name = "page", description = "페이지, default = 1", example = "1",
+		schema = @Schema(type = "integer", format = "int32", defaultValue = "1", minimum = "1"))
+	@Parameter(name = "take", description = "가져올 데이터 개수, default = 12", example = "12",
+		schema = @Schema(type = "integer", format = "int32", defaultValue = "12", minimum = "1", maximum = "50"))
+	@Parameter(name = "tab", description = "목록 탭. ALL: 전체 회식, MY: 내 회식(개설했거나 참석 중인 회식), default = ALL", example = "ALL",
+		schema = @Schema(type = "string", defaultValue = "ALL", allowableValues = {"ALL", "MY"}))
+	@Parameter(name = "status", description = "진행 상태. 생략하면 전체 상태", example = "IN_PROGRESS",
+		schema = @Schema(type = "string", allowableValues = {"IN_PROGRESS", "ENDED"}))
+	@Parameter(name = "part", description = "파트. 생략하면 전체 파트이며, 전체 파트 회식은 모든 파트 필터에 포함된다", example = "SERVER",
+		schema = @Schema(type = "string", allowableValues = {"PM", "DESIGN", "IOS", "ANDROID", "SERVER", "WEB"}))
+	@Parameter(name = "query", description = "회식명 검색어 (최대 30자)", example = "서버",
+		schema = @Schema(type = "string", maxLength = 30))
 	ResponseEntity<DiningV2GetDiningsResponseDto> getDinings(
 		@Valid @ModelAttribute DiningV2GetDiningsQueryDto queryCommand,
 		Principal principal);

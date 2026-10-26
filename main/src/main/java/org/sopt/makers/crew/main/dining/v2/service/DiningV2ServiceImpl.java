@@ -643,7 +643,15 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		return imageUrls == null || imageUrls.isEmpty() ? null : imageUrls.get(0).getUrl();
 	}
 
+	/**
+	 * 개설자는 meeting."userId"(NOT NULL, user ON DELETE CASCADE)로 항상 존재한다.
+	 * 조회 도중 탈퇴가 커밋된 경우에만 없으며, 이때는 회식도 함께 삭제된 상태라 null 대신 예외로 끝낸다.
+	 * UserRepository.findByIdOrThrow 는 외부 인증 서버를 호출하므로 크루 DB 조회 결과로 판단한다.
+	 */
 	private DiningV2LeaderDto toLeaderDto(User leader) {
-		return leader == null ? null : DiningV2LeaderDto.from(leader);
+		if (leader == null) {
+			throw new NotFoundException(NOT_FOUND_USER.getErrorCode());
+		}
+		return DiningV2LeaderDto.from(leader);
 	}
 }
