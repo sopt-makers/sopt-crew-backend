@@ -156,13 +156,15 @@ public class DiningNotificationSender {
 			detailLink(event.meetingId()));
 	}
 
-	public void sendCloseGuideNotification(DiningCloseGuideTarget target) {
-		send(List.of(target.leaderUserId()), CLOSE_GUIDE_TITLE,
+	/** @return 발송 실패 시 false (스케줄러 실패 집계용) */
+	public boolean sendCloseGuideNotification(DiningCloseGuideTarget target) {
+		return send(List.of(target.leaderUserId()), CLOSE_GUIDE_TITLE,
 			String.format(CLOSE_GUIDE_CONTENT, target.diningTitle()), attendeeLink(target.meetingId()));
 	}
 
-	public void sendReminderNotification(DiningReminderTarget target) {
-		send(target.receiverUserIds(), REMINDER_TITLE,
+	/** @return 발송 실패 시 false (스케줄러 실패 집계용) */
+	public boolean sendReminderNotification(DiningReminderTarget target) {
+		return send(target.receiverUserIds(), REMINDER_TITLE,
 			String.format(REMINDER_CONTENT, target.diningTitle()), detailLink(target.meetingId()));
 	}
 
@@ -203,17 +205,20 @@ public class DiningNotificationSender {
 			.anyMatch(event.joinableParts()::contains);
 	}
 
-	/** 중복 수신자는 1건으로 합치고, 수신자가 없으면 보내지 않는다. */
-	private void send(Collection<Integer> receiverUserIds, String title, String content, String webLink) {
+	/**
+	 * 중복 수신자는 1건으로 합치고, 수신자가 없으면 보내지 않는다.
+	 * @return push 서버 발송 요청 성공 여부. 수신자가 없어 보내지 않은 경우는 실패가 아니므로 true
+	 */
+	private boolean send(Collection<Integer> receiverUserIds, String title, String content, String webLink) {
 		String[] receivers = receiverUserIds.stream()
 			.filter(Objects::nonNull)
 			.distinct()
 			.map(String::valueOf)
 			.toArray(String[]::new);
 		if (receivers.length == 0) {
-			return;
+			return true;
 		}
-		pushNotificationService.sendPushNotification(PushNotificationRequestDto.of(
+		return pushNotificationService.sendPushNotification(PushNotificationRequestDto.of(
 			receivers, title, content, PUSH_NOTIFICATION_CATEGORY.getValue(), webLink));
 	}
 

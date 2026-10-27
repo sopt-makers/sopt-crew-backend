@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.dining.v2.service;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
@@ -169,6 +170,26 @@ class DiningNotificationTest {
 			assertThat(reminder.getTitle()).isEqualTo("내일 예정된 회식");
 			assertThat(reminder.getContent()).isEqualTo("[서버 회식] 회식 정보를 확인해주세요.");
 			assertThat(reminder.getWebLink()).isEqualTo(DETAIL);
+		}
+	}
+
+	@Test
+	@DisplayName("스케줄러 발송은 push 서버 결과를 반환하고, 수신자가 없어 보내지 않은 경우는 실패로 보지 않는다.")
+	void scheduledNotifications_returnPushResult() {
+		try (var context = new AnnotationConfigApplicationContext(Config.class)) {
+			var sender = context.getBean(DiningNotificationSender.class);
+			var push = context.getBean(PushNotificationService.class);
+			var target = new DiningReminderTarget(1, "서버 회식", List.of(10));
+
+			when(push.sendPushNotification(any())).thenReturn(true);
+			assertThat(sender.sendReminderNotification(target)).isTrue();
+			assertThat(sender.sendCloseGuideNotification(new DiningCloseGuideTarget(1, "서버 회식", 10))).isTrue();
+
+			when(push.sendPushNotification(any())).thenReturn(false);
+			assertThat(sender.sendReminderNotification(target)).isFalse();
+			assertThat(sender.sendCloseGuideNotification(new DiningCloseGuideTarget(1, "서버 회식", 10))).isFalse();
+
+			assertThat(sender.sendReminderNotification(new DiningReminderTarget(1, "서버 회식", List.of()))).isTrue();
 		}
 	}
 

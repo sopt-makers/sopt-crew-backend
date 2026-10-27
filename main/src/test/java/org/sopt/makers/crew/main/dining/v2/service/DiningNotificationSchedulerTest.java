@@ -16,28 +16,36 @@ class DiningNotificationSchedulerTest {
 	private final DiningNotificationScheduler scheduler = new DiningNotificationScheduler(reminderService, sender);
 
 	@Test
-	@DisplayName("마감 안내는 한 회식의 발송이 실패해도 나머지 회식에 보낸다.")
+	@DisplayName("마감 안내는 한 회식의 발송이 예외나 push 서버 실패로 끝나도 나머지 회식에 보낸다.")
 	void closeGuide_continuesAfterFailure() {
-		var failing = new DiningCloseGuideTarget(1, "실패 회식", 10);
-		var next = new DiningCloseGuideTarget(2, "다음 회식", 11);
-		when(reminderService.findCloseGuideTargets()).thenReturn(List.of(failing, next));
-		doThrow(new RuntimeException("push down")).when(sender).sendCloseGuideNotification(failing);
+		var throwing = new DiningCloseGuideTarget(1, "예외 회식", 10);
+		var pushFailed = new DiningCloseGuideTarget(2, "발송 실패 회식", 11);
+		var next = new DiningCloseGuideTarget(3, "다음 회식", 12);
+		when(reminderService.findCloseGuideTargets()).thenReturn(List.of(throwing, pushFailed, next));
+		when(sender.sendCloseGuideNotification(throwing)).thenThrow(new RuntimeException("unexpected"));
+		when(sender.sendCloseGuideNotification(pushFailed)).thenReturn(false);
+		when(sender.sendCloseGuideNotification(next)).thenReturn(true);
 
 		scheduler.sendCloseGuideNotifications();
 
+		verify(sender).sendCloseGuideNotification(pushFailed);
 		verify(sender).sendCloseGuideNotification(next);
 	}
 
 	@Test
-	@DisplayName("전날 리마인드는 한 회식의 발송이 실패해도 나머지 회식에 보낸다.")
+	@DisplayName("전날 리마인드는 한 회식의 발송이 예외나 push 서버 실패로 끝나도 나머지 회식에 보낸다.")
 	void reminder_continuesAfterFailure() {
-		var failing = new DiningReminderTarget(1, "실패 회식", List.of(10));
-		var next = new DiningReminderTarget(2, "다음 회식", List.of(11));
-		when(reminderService.findReminderTargets()).thenReturn(List.of(failing, next));
-		doThrow(new RuntimeException("push down")).when(sender).sendReminderNotification(failing);
+		var throwing = new DiningReminderTarget(1, "예외 회식", List.of(10));
+		var pushFailed = new DiningReminderTarget(2, "발송 실패 회식", List.of(11));
+		var next = new DiningReminderTarget(3, "다음 회식", List.of(12));
+		when(reminderService.findReminderTargets()).thenReturn(List.of(throwing, pushFailed, next));
+		when(sender.sendReminderNotification(throwing)).thenThrow(new RuntimeException("unexpected"));
+		when(sender.sendReminderNotification(pushFailed)).thenReturn(false);
+		when(sender.sendReminderNotification(next)).thenReturn(true);
 
 		scheduler.sendReminderNotifications();
 
+		verify(sender).sendReminderNotification(pushFailed);
 		verify(sender).sendReminderNotification(next);
 	}
 }
