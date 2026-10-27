@@ -3,6 +3,10 @@ package org.sopt.makers.crew.main.dining.v2.service;
 import static org.sopt.makers.crew.main.dining.v2.dto.mapper.DiningMeetingMapper.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -31,6 +35,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundRespo
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesCsvResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto.MyAttendanceStatus;
@@ -52,12 +57,15 @@ import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
 import org.sopt.makers.crew.main.entity.meeting.vo.ImageUrlVO;
 import org.sopt.makers.crew.main.entity.user.User;
 import org.sopt.makers.crew.main.entity.user.UserRepository;
+import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.global.config.ImageSettingProperties;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
+import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
+import org.sopt.makers.crew.main.global.util.UserUtil;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -67,8 +75,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import com.opencsv.CSVWriter;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class DiningV2ServiceImpl implements DiningV2Service {
@@ -88,6 +100,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	private final ActiveGenerationProvider activeGenerationProvider;
 	private final ApplicationEventPublisher eventPublisher;
 	private final Time time;
+	private final S3Service s3Service;
 
 	/**
 	 * 회식 등록: 회식(meeting) + 1차 회차 생성, 개설자는 1차에 자동 참석한다.
@@ -334,6 +347,69 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 				users.get(attendances.get(index).getUserId()),
 				ascending ? pageable.getOffset() + index + 1 : page.getTotalElements() - pageable.getOffset() - index))
 			.toList(), meta);
+	}
+
+	@Override
+	public DiningV2GetAttendeesCsvResponseDto getAttendeesCsv(Integer meetingId, Integer roundId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		findRoundOfDining(meetingId, roundId);
+		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
+
+		List<DiningAttendance> attendances = diningAttendanceRepository
+			.findAllByRoundIdOrderByCreatedTimestampAscIdAsc(roundId);
+		Map<Integer, User> users = attendances.isEmpty() ? Map.of()
+			: userRepository.findAllByIdInOrThrow(attendances.stream().map(DiningAttendance::getUserId).toList())
+				.stream().collect(Collectors.toMap(User::getId, Function.identity()));
+
+		Path csvFile = null;
+		try {
+			// 기본 임시 디렉터리(java.io.tmpdir)를 사용해 Lambda에서도 파일을 생성한다.
+			csvFile = Files.createTempFile("dining-attendees-", ".csv");
+			try (var output = Files.newBufferedWriter(csvFile, StandardCharsets.UTF_8);
+				 CSVWriter writer = new CSVWriter(output)) {
+				output.write('\uFEFF');
+				writer.writeNext(new String[] {"번호", "이름", "최근 기수", "연락처"});
+				for (int index = 0; index < attendances.size(); index++) {
+					User user = users.get(attendances.get(index).getUserId());
+					var activity = user.getActivities() == null ? null
+						: UserUtil.getRecentUserActivity(user.getActivities());
+					writer.writeNext(new String[] {
+						String.valueOf(index + 1),
+						toCsvText(user.getName(), false),
+						activity == null ? "" : String.valueOf(activity.getGeneration()),
+						toCsvText(user.getPhone(), true)
+					});
+				}
+				if (writer.checkError()) {
+					throw new IOException("회식 참석자 CSV 기록 실패");
+				}
+			}
+			return new DiningV2GetAttendeesCsvResponseDto(s3Service.uploadCSVFile(csvFile.toString()));
+		} catch (IOException exception) {
+			throw new ServerException(CSV_ERROR.getErrorCode());
+		} finally {
+			if (csvFile != null) {
+				try {
+					Files.deleteIfExists(csvFile);
+				} catch (IOException | SecurityException exception) {
+					log.warn("회식 참석자 CSV 임시 파일 삭제 실패: {}", csvFile, exception);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Excel용 CSV: 연락처와 수식으로 해석될 수 있는 사용자 입력에는 탭을 붙인다.
+	 * CSV quoting은 CSVWriter에 맡긴다. 탭은 원본 CSV 데이터에 남으므로 재가공 시 주의한다.
+	 */
+	private String toCsvText(String value, boolean forceText) {
+		if (value == null || value.isEmpty()) {
+			return "";
+		}
+		char first = value.charAt(0);
+		boolean unsafePrefix = "=+-@＝＋－＠".indexOf(first) >= 0
+			|| first <= '\u0020' || Character.isWhitespace(first) || Character.isSpaceChar(first) || first == '\uFEFF';
+		return forceText || unsafePrefix ? "\t" + value : value;
 	}
 
 	@Override

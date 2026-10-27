@@ -1,8 +1,15 @@
 package org.sopt.makers.crew.main.dining.v2.service;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -45,12 +52,14 @@ import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.external.CaffeineTestConfig;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
 import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.external.s3.service.S3Service;
 import org.sopt.makers.crew.main.global.annotation.IntegratedTest;
 import org.sopt.makers.crew.main.global.config.ImageSettingProperties;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
+import org.sopt.makers.crew.main.global.exception.ServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -58,6 +67,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 
 /**
  * StubTime 기준 현재 시각: 2024.04.24 00:00
@@ -82,7 +94,7 @@ class DiningV2ServiceTest {
 	private DiningAttendanceRepository diningAttendanceRepository;
 	@Autowired
 	private DiningDeletionHistoryRepository diningDeletionHistoryRepository;
-	@Autowired
+	@SpyBean
 	private UserRepository userRepository;
 	@Autowired
 	private ImageSettingProperties imageSettingProperties;
@@ -91,6 +103,8 @@ class DiningV2ServiceTest {
 	private DiningNotificationSender diningNotificationSender;
 	@MockBean
 	private PushNotificationService pushNotificationService;
+	@MockBean
+	private S3Service s3Service;
 
 	@Autowired
 	private ApplicationEvents applicationEvents;
@@ -494,6 +508,233 @@ class DiningV2ServiceTest {
 			assertThatThrownBy(() -> diningV2Service.createRound(meetingId, roundBody("3차 장소"), leader.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining(ENDED_DINING.getErrorCode());
+		}
+	}
+
+	@Nested
+	class 참석자_CSV {
+		private static final String CSV_URL = "https://image.test/dining-attendees.csv";
+		private Integer meetingId;
+		private Integer roundId;
+		private Path uploadedFile;
+		private byte[] uploadedBytes;
+
+		@BeforeEach
+		void createRoundAndCaptureUpload() {
+			meetingId = createDining();
+			roundId = getRounds(meetingId).get(0).getId();
+			doAnswer(invocation -> {
+				uploadedFile = Path.of(invocation.getArgument(0, String.class));
+				uploadedBytes = Files.readAllBytes(uploadedFile);
+				return CSV_URL;
+			}).when(s3Service).uploadCSVFile(anyString());
+		}
+
+		private List<String[]> download(Integer requesterId) throws Exception {
+			assertThat(diningV2Service.getAttendeesCsv(meetingId, roundId, requesterId).url()).isEqualTo(CSV_URL);
+			assertThat(uploadedFile).doesNotExist();
+			assertThat(uploadedFile.getParent().toRealPath()).isEqualTo(Path.of(System.getProperty("java.io.tmpdir")).toRealPath());
+			assertThat(uploadedBytes).startsWith((byte)0xEF, (byte)0xBB, (byte)0xBF);
+			String csv = new String(uploadedBytes, StandardCharsets.UTF_8);
+			try (CSVReader reader = new CSVReaderBuilder(new StringReader(csv.substring(1)))
+				.withKeepCarriageReturn(true).build()) {
+				return reader.readAll();
+			}
+		}
+
+		@Test
+		@DisplayName("개설자는 정확한 네 컬럼의 UTF-8 BOM CSV를 내려받고, 연락처의 앞자리 0이 보존된다.")
+		void leader_downloadsCsvWithHeaderAndTextPhone() throws Exception {
+			ReflectionTestUtils.setField(leader, "phone", "01012345678");
+			var rows = download(leader.getId());
+			assertThat(rows).hasSize(2);
+			assertThat(rows.get(0)).containsExactly("번호", "이름", "최근 기수", "연락처");
+			assertThat(rows.get(1)).containsExactly("1", "개설자", "35", "\t01012345678");
+		}
+
+		@ParameterizedTest
+		@ValueSource(booleans = {false, true})
+		@DisplayName("다른 회차에서 승인된 공동 결제자도 선택 회차의 CSV를 받으며 종료 후에도 가능하다.")
+		void approvedPayerInAnotherRound_canDownload(boolean ended) throws Exception {
+			Integer secondRoundId = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, secondRoundId, member.getId());
+			diningV2Service.requestPayer(meetingId, secondRoundId, member.getId());
+			diningV2Service.approvePayer(meetingId, secondRoundId, member.getId(), leader.getId());
+			if (ended) {
+				diningV2Service.endDining(meetingId, leader.getId());
+			}
+			assertThat(download(member.getId())).hasSize(2);
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = {"none", "attendee", "pending", "revoked", "otherDining"})
+		@DisplayName("미승인 참석자, 승인 해제자, 다른 회식의 결제자는 CSV 다운로드 권한이 없다.")
+		void unauthorizedUser_isForbidden(String state) {
+			if (!state.equals("none")) {
+				Integer payerMeetingId = state.equals("otherDining") ? createDining() : meetingId;
+				Integer payerRoundId = getRounds(payerMeetingId).get(0).getId();
+				diningV2Service.applyAttendance(payerMeetingId, payerRoundId, member.getId());
+				if (!state.equals("attendee")) {
+					diningV2Service.requestPayer(payerMeetingId, payerRoundId, member.getId());
+					if (!state.equals("pending")) {
+						diningV2Service.approvePayer(payerMeetingId, payerRoundId, member.getId(), leader.getId());
+						if (state.equals("revoked")) {
+							diningV2Service.revokePayer(payerMeetingId, payerRoundId, member.getId(), leader.getId());
+						}
+					}
+				}
+			}
+			assertThatThrownBy(() -> diningV2Service.getAttendeesCsv(meetingId, roundId, member.getId()))
+				.isInstanceOf(ForbiddenException.class).hasMessageContaining(FORBIDDEN_EXCEPTION.getErrorCode());
+			verifyNoInteractions(s3Service);
+		}
+
+		@Test
+		@DisplayName("다른 회식의 회차는 권한 검사보다 먼저 404로 거절한다.")
+		void roundFromAnotherDining_isNotFoundBeforePermissionCheck() {
+			Integer otherRoundId = getRounds(createDining()).get(0).getId();
+			assertThatThrownBy(() -> diningV2Service.getAttendeesCsv(meetingId, otherRoundId, member.getId()))
+				.isInstanceOf(NotFoundException.class).hasMessageContaining(NOT_FOUND_DINING_ROUND.getErrorCode());
+			verifyNoInteractions(s3Service);
+		}
+
+		@Test
+		@DisplayName("선택한 회차의 현재 참석자만 포함하고 다른 회차 참석자와 삭제된 참석자는 제외한다.")
+		void csv_containsOnlyCurrentAttendeesOfSelectedRound() throws Exception {
+			Integer secondRoundId = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, secondRoundId, member.getId());
+			User deleted = userRepository.save(createUser("삭제 참석자", 3));
+			diningV2Service.addAttendee(meetingId, roundId, deleted.getId(), leader.getId());
+			diningV2Service.deleteAttendee(meetingId, roundId, deleted.getId(), leader.getId());
+			assertThat(diningDeletionHistoryRepository.findAll()).hasSize(1);
+			var rows = download(leader.getId());
+			assertThat(rows).hasSize(2);
+			assertThat(rows.get(1)[1]).isEqualTo("개설자");
+		}
+
+		@Test
+		@DisplayName("화면이 10명씩 표시되어도 CSV에는 35명 전체가 포함되며 사용자 조회는 한 번이다.")
+		void csv_exportsAll35AttendeesWithOneUserBatch() throws Exception {
+			for (int i = 3; i < 37; i++) {
+				User attendee = userRepository.save(createUser("참석자" + i, i));
+				diningV2Service.addAttendee(meetingId, roundId, attendee.getId(), leader.getId());
+			}
+			var page = diningV2Service.getAttendees(meetingId, roundId,
+				new DiningV2GetAttendeesQueryDto(1, 10, "desc"), leader.getId());
+			assertThat(page.attendees()).hasSize(10);
+			clearInvocations(userRepository, diningAttendanceRepository);
+			var rows = download(leader.getId());
+			assertThat(rows).hasSize(36);
+			for (int i = 1; i <= 35; i++) {
+				assertThat(rows.get(i)[0]).isEqualTo(String.valueOf(i));
+			}
+			verify(userRepository).findAllByIdInOrThrow(argThat(ids -> ids.size() == 35));
+			verify(userRepository, never()).findByIdOrThrow(anyInt());
+			verify(userRepository, never()).findById(anyInt());
+			verify(diningAttendanceRepository, never()).findAllByRoundId(anyInt(), any(org.springframework.data.domain.Pageable.class));
+		}
+
+		@Test
+		@DisplayName("등록 시각, 참석 ID 오름차순으로 정렬하여 1부터 번호를 부여하고 가장 최근 기수를 쓴다.")
+		void csv_ordersByTimestampThenAttendanceId() throws Exception {
+			User third = userRepository.save(User.builder().name("세 번째").orgId(3).phone("010-3333-3333")
+				.activities(List.of(new UserActivityVO("서버", 36), new UserActivityVO("웹", 30))).build());
+			diningV2Service.applyAttendance(meetingId, roundId, third.getId());
+			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
+			for (var attendance : diningAttendanceRepository.findAllByRoundId(roundId)) {
+				attendance.createdTimestamp = LocalDateTime.of(2024, 4, 24, 0, 0)
+					.plusHours(attendance.getUserId().equals(leader.getId()) ? 1 : 0);
+			}
+			var rows = download(leader.getId());
+			assertThat(rows.get(1)).containsExactly("1", "세 번째", "36", "\t010-3333-3333");
+			assertThat(rows.get(2)).containsExactly("2", "참석자", "35", "\t010-1234-5678");
+			assertThat(rows.get(3)).containsExactly("3", "개설자", "35", "\t010-1234-5678");
+		}
+
+		@Test
+		@DisplayName("참석자가 없어도 헤더만 있는 CSV를 생성한다.")
+		void emptyRound_exportsHeaderOnly() throws Exception {
+			diningV2Service.deleteAttendee(meetingId, roundId, leader.getId(), leader.getId());
+			clearInvocations(userRepository);
+			var rows = download(leader.getId());
+			assertThat(rows).hasSize(1);
+			assertThat(rows.get(0)).containsExactly("번호", "이름", "최근 기수", "연락처");
+			verify(userRepository, never()).findAllByIdInOrThrow(anyList());
+		}
+
+		@Test
+		@DisplayName("개설자는 종료된 회식에서도 다운로드할 수 있다.")
+		void endedDining_allowsLeaderDownload() throws Exception {
+			diningV2Service.endDining(meetingId, leader.getId());
+			assertThat(download(leader.getId())).hasSize(2);
+		}
+
+		@ParameterizedTest
+		@ValueSource(booleans = {false, true})
+		@DisplayName("활동 정보와 연락처가 없어도 빈 셀로 기록하며 CSV 특수문자는 보존한다.")
+		void missingActivityAndPhone_exportsEmptyCells(boolean nullActivities) throws Exception {
+			ReflectionTestUtils.setField(leader, "activities", nullActivities ? null : List.of());
+			ReflectionTestUtils.setField(leader, "phone", null);
+			ReflectionTestUtils.setField(leader, "name", "홍,\"길동\"\n참석자");
+			assertThat(download(leader.getId()).get(1)).containsExactly("1", "홍,\"길동\"\n참석자", "", "");
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = {"=1+1", "+1+1", "-1+1", "@SUM(1,1)", " =1+1", "\t=1+1", "\r=1+1",
+			"\n=1+1", "\uFEFF=1+1", "\u00A0=1+1", "＝1+1", "＋1+1", "－1+1", "＠SUM(1,1)",
+			"=1+1\",\"=2+2"})
+		@DisplayName("사용자 입력의 수식 시작 문자와 선행 공백·제어문자를 텍스트로 처리한다.")
+		void formulaLikeInput_isPrefixedInsideSingleCsvCell(String input) throws Exception {
+			ReflectionTestUtils.setField(leader, "name", input);
+			ReflectionTestUtils.setField(leader, "phone", input);
+			var rows = download(leader.getId());
+			assertThat(rows).hasSize(2);
+			assertThat(rows.get(1)).containsExactly("1", "\t" + input, "35", "\t" + input);
+		}
+
+		@ParameterizedTest
+		@ValueSource(booleans = {false, true})
+		@DisplayName("임시 파일 삭제 실패가 업로드 성공 결과나 원래 S3 예외를 덮어쓰지 않는다.")
+		void cleanupFailure_preservesUploadOutcome(boolean uploadFails) throws Exception {
+			var uploadException = new ServerException(S3_STORAGE_ERROR.getErrorCode());
+			doAnswer(invocation -> {
+				uploadedFile = Path.of(invocation.getArgument(0, String.class));
+				if (uploadFails) {
+					throw uploadException;
+				}
+				return CSV_URL;
+			}).when(s3Service).uploadCSVFile(anyString());
+			try {
+				try (var files = mockStatic(Files.class, CALLS_REAL_METHODS)) {
+					files.when(() -> Files.deleteIfExists(any(Path.class)))
+						.thenThrow(new IOException("임시 파일 삭제 실패 재현"));
+					if (uploadFails) {
+						assertThatThrownBy(() -> diningV2Service.getAttendeesCsv(meetingId, roundId, leader.getId()))
+							.isSameAs(uploadException);
+					} else {
+						assertThat(diningV2Service.getAttendeesCsv(meetingId, roundId, leader.getId()).url()).isEqualTo(CSV_URL);
+					}
+					files.verify(() -> Files.deleteIfExists(uploadedFile));
+				}
+				assertThat(uploadedFile).exists();
+			} finally {
+				if (uploadedFile != null) {
+					Files.deleteIfExists(uploadedFile);
+				}
+			}
+		}
+
+		@Test
+		@DisplayName("S3 업로드 실패 시에도 임시 파일을 삭제한다.")
+		void uploadFailure_deletesTemporaryFile() {
+			doAnswer(invocation -> {
+				uploadedFile = Path.of(invocation.getArgument(0, String.class));
+				assertThat(uploadedFile).exists();
+				throw new ServerException(S3_STORAGE_ERROR.getErrorCode());
+			}).when(s3Service).uploadCSVFile(anyString());
+			assertThatThrownBy(() -> diningV2Service.getAttendeesCsv(meetingId, roundId, leader.getId()))
+				.isInstanceOf(ServerException.class).hasMessageContaining(S3_STORAGE_ERROR.getErrorCode());
+			assertThat(uploadedFile).doesNotExist();
 		}
 	}
 
