@@ -75,10 +75,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import com.opencsv.CSVWriter;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class DiningV2ServiceImpl implements DiningV2Service {
@@ -389,8 +391,8 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			if (csvFile != null) {
 				try {
 					Files.deleteIfExists(csvFile);
-				} catch (IOException exception) {
-					throw new ServerException(CSV_ERROR.getErrorCode());
+				} catch (IOException | SecurityException exception) {
+					log.warn("회식 참석자 CSV 임시 파일 삭제 실패: {}", csvFile, exception);
 				}
 			}
 		}
