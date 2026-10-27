@@ -15,6 +15,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRevokedEvent;
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
+import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
 import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.global.config.PushNotificationProperties;
@@ -34,15 +35,15 @@ class DiningPayerNotificationTest {
 	static Stream<Arguments> notifications() {
 		return Stream.of(
 			Arguments.of(new DiningPayerRequestedEvent(1, 2, 3, 4, "서버 회식", "참석자", 2), "4",
-				"[서버 회식] 2차 [참석자]님이 공동 결제자 승인을 요청했어요.\n참석자 관리 화면에서 확인해주세요.",
+				"[서버 회식] 2차 [참석자]님이 승인을 요청했어요. 참석자 관리 화면에서 확인해주세요.",
 				"https://crew.test/dining/attendees?id=1#payer-requests"),
-			Arguments.of(new DiningPayerApprovedEvent(1, 2, 3, "서버 회식"), "3",
-				"[서버 회식] 공동 결제자로 승인됐어요.\n이제 참석자 관리 화면을 이용할 수 있어요.",
+			Arguments.of(new DiningPayerApprovedEvent(1, 2, 3, "서버 회식", 2), "3",
+				"[서버 회식] 2차 요청이 승인됐어요. 이제 참석자 관리 화면을 이용할 수 있어요.",
 				"https://crew.test/dining/attendees?id=1"),
-			Arguments.of(new DiningPayerRejectedEvent(1, 2, 3, "서버 회식"), "3",
-				"[서버 회식] 공동 결제자 요청이 거절됐어요.", "https://crew.test/dining/detail?id=1"),
+			Arguments.of(new DiningPayerRejectedEvent(1, 2, 3, "서버 회식", 2), "3",
+				"[서버 회식] 2차 공동 결제자 요청이 거절됐어요.", "https://crew.test/dining/detail?id=1"),
 			Arguments.of(new DiningPayerRevokedEvent(1, 2, 3, "서버 회식", 2), "3",
-				"[서버 회식] 2차 공동 결제자 승인이 해제됐어요.", "https://crew.test/dining/detail?id=1")
+				"[서버 회식] 2차 공동 결제자 권한이 해제됐어요.", "https://crew.test/dining/detail?id=1")
 		);
 	}
 
@@ -95,7 +96,7 @@ class DiningPayerNotificationTest {
 			PushNotificationService push) {
 			var properties = mock(PushNotificationProperties.class);
 			when(properties.getPushWebUrl()).thenReturn("https://crew.test");
-			return new DiningNotificationSender(meetings, rounds, push, properties);
+			return new DiningNotificationSender(meetings, rounds, mock(UserRepository.class), push, properties);
 		}
 		@Bean
 		DiningPayerEventListener listener(DiningNotificationSender sender) {
