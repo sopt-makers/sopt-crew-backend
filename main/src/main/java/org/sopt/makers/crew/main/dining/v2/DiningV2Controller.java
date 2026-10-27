@@ -12,6 +12,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundRespo
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesCsvResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningsResponseDto;
@@ -170,6 +171,15 @@ public class DiningV2Controller implements DiningV2Api {
 		@Valid @ModelAttribute DiningV2GetAttendeesQueryDto queryCommand,
 		Principal principal) {
 		return ResponseEntity.ok(diningV2Service.getAttendees(meetingId, roundId, queryCommand, UserUtil.getUserId(principal)));
+	}
+
+	@Override
+	@GetMapping("/{meetingId}/rounds/{roundId}/attendees/csv")
+	public ResponseEntity<DiningV2GetAttendeesCsvResponseDto> getAttendeesCsv(
+		@PathVariable Integer meetingId,
+		@PathVariable Integer roundId,
+		Principal principal) {
+		return ResponseEntity.ok(diningV2Service.getAttendeesCsv(meetingId, roundId, UserUtil.getUserId(principal)));
 	}
 
 	@Override

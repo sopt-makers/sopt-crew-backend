@@ -12,6 +12,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundRespo
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesCsvResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningDetailResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetDiningsResponseDto;
@@ -180,6 +181,18 @@ public interface DiningV2Api {
 		@PathVariable Integer roundId,
 		@Valid @ModelAttribute DiningV2GetAttendeesQueryDto queryCommand,
 		Principal principal);
+
+	@Operation(summary = "회차 전체 참석자 CSV 다운로드", description = "선택한 회차의 전체 참석자를 페이지네이션 없이 CSV로 생성하여 S3 파일 URL을 반환합니다. "
+		+ "개설자 또는 해당 회식의 어느 회차에서든 승인된 공동 결제자만 가능하며, 종료된 회식에서도 가능합니다. "
+		+ "CSV 컬럼: 번호 / 이름 / 최근 기수 / 연락처. 등록 시각 오름차순, 동일 시각에는 참석 기록 ID 오름차순으로 정렬하고 번호는 1부터 부여합니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "CSV 파일 URL 반환. 참석자가 없으면 헤더만 있는 CSV"),
+		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
+		@ApiResponse(responseCode = "404", description = "회식 또는 해당 회식의 회차를 찾을 수 없습니다.", content = @Content),
+		@ApiResponse(responseCode = "500", description = "CSV 생성 또는 S3 업로드 실패", content = @Content),
+	})
+	ResponseEntity<DiningV2GetAttendeesCsvResponseDto> getAttendeesCsv(
+		@PathVariable Integer meetingId, @PathVariable Integer roundId, Principal principal);
 
 	@Operation(summary = "회차 참석자 직접 추가", description = "개설자 또는 승인된 공동 결제자가 추가합니다. 종료 후에도 가능합니다.")
 	@ApiResponses(value = {
