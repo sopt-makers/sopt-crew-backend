@@ -68,6 +68,7 @@ import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 
 /**
  * StubTime 기준 현재 시각: 2024.04.24 00:00
@@ -534,7 +535,8 @@ class DiningV2ServiceTest {
 			assertThat(uploadedFile.getParent().toRealPath()).isEqualTo(Path.of(System.getProperty("java.io.tmpdir")).toRealPath());
 			assertThat(uploadedBytes).startsWith((byte)0xEF, (byte)0xBB, (byte)0xBF);
 			String csv = new String(uploadedBytes, StandardCharsets.UTF_8);
-			try (CSVReader reader = new CSVReader(new StringReader(csv.substring(1)))) {
+			try (CSVReader reader = new CSVReaderBuilder(new StringReader(csv.substring(1)))
+				.withKeepCarriageReturn(true).build()) {
 				return reader.readAll();
 			}
 		}
@@ -674,6 +676,19 @@ class DiningV2ServiceTest {
 			ReflectionTestUtils.setField(leader, "phone", null);
 			ReflectionTestUtils.setField(leader, "name", "홍,\"길동\"\n참석자");
 			assertThat(download(leader.getId()).get(1)).containsExactly("1", "홍,\"길동\"\n참석자", "", "");
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = {"=1+1", "+1+1", "-1+1", "@SUM(1,1)", " =1+1", "\t=1+1", "\r=1+1",
+			"\n=1+1", "\uFEFF=1+1", "\u00A0=1+1", "＝1+1", "＋1+1", "－1+1", "＠SUM(1,1)",
+			"=1+1\",\"=2+2"})
+		@DisplayName("사용자 입력의 수식 시작 문자와 선행 공백·제어문자를 텍스트로 처리한다.")
+		void formulaLikeInput_isPrefixedInsideSingleCsvCell(String input) throws Exception {
+			ReflectionTestUtils.setField(leader, "name", input);
+			ReflectionTestUtils.setField(leader, "phone", input);
+			var rows = download(leader.getId());
+			assertThat(rows).hasSize(2);
+			assertThat(rows.get(1)).containsExactly("1", "\t" + input, "35", "\t" + input);
 		}
 
 		@Test
