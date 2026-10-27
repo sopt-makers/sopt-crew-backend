@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -20,11 +21,18 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.hibernate.exception.ConstraintViolationException;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeAddedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeRemovedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningCreatedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningDeletedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRevokedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundCreatedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundDeletedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundUpdatedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningUpdatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.mapper.DiningMeetingMapper;
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetDiningsQueryDto;
@@ -134,6 +142,9 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			.build());
 		attend(firstRound, userId);
 
+		eventPublisher.publishEvent(new DiningCreatedEvent(dining.getId(), dining.getTitle(), userId,
+			List.of(dining.getJoinableParts()), dining.getCreatedGeneration()));
+
 		return DiningV2CreateDiningResponseDto.from(dining.getId());
 	}
 
@@ -150,6 +161,10 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		LocalDate diningDate = parseDiningDate(requestBody.diningDate());
 		diningMapLinkValidator.validate(requestBody.naverMapLink(), requestBody.kakaoMapLink());
 
+		// 수정 알림 기준: 회식명·일자만 회식 정보로 본다. (이미지, 참여 파트 변경은 알림 대상 아님)
+		boolean dateChanged = !dining.getmStartDate().toLocalDate().equals(diningDate);
+		boolean diningInfoChanged = dateChanged || !Objects.equals(dining.getTitle(), requestBody.title());
+
 		dining.updateDining(
 			requestBody.title(),
 			getImageUrlsOrDefault(requestBody.files()),
@@ -158,12 +173,25 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			normalizeJoinableParts(requestBody.joinableParts())
 		);
 
-		getRounds(meetingId).getFirstRound().update(
+		DiningRounds rounds = getRounds(meetingId);
+		DiningRound firstRound = rounds.getFirstRound();
+		boolean firstRoundChanged = firstRound.update(
 			blankToNull(requestBody.place()),
 			blankToNull(requestBody.naverMapLink()),
 			blankToNull(requestBody.kakaoMapLink()),
 			parseStartTime(requestBody.startTime())
 		);
+
+		// 회식 정보가 바뀌면 1차 변경 여부와 관계없이 회식 수정 1건, 1차 정보만 바뀌면 1차 회차 수정 1건
+		if (diningInfoChanged) {
+			List<Integer> receiverUserIds = dateChanged
+				? diningAttendanceRepository.findDistinctUserIdsByRoundIdIn(rounds.getRoundIds())
+				: findAttendeeUserIds(firstRound.getId());
+			eventPublisher.publishEvent(new DiningUpdatedEvent(meetingId, dining.getTitle(), receiverUserIds));
+		} else if (firstRoundChanged) {
+			eventPublisher.publishEvent(new DiningRoundUpdatedEvent(meetingId, dining.getTitle(),
+				rounds.getRoundNumber(firstRound.getId()), findAttendeeUserIds(firstRound.getId())));
+		}
 	}
 
 	/**
@@ -188,6 +216,8 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		diningAttendanceRepository.deleteAllInBatch(attendances);
 		diningRoundRepository.deleteAllInBatch(rounds.getRounds());
 		meetingRepository.delete(dining);
+
+		eventPublisher.publishEvent(new DiningDeletedEvent(meetingId, dining.getTitle(), toUserIds(attendances)));
 	}
 
 	/**
@@ -250,12 +280,16 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		dining.validateDiningNotEnded();
 		diningMapLinkValidator.validate(requestBody.naverMapLink(), requestBody.kakaoMapLink());
 
-		findRoundOfDining(meetingId, roundId).update(
+		boolean changed = findRoundOfDining(meetingId, roundId).update(
 			blankToNull(requestBody.place()),
 			blankToNull(requestBody.naverMapLink()),
 			blankToNull(requestBody.kakaoMapLink()),
 			parseStartTime(requestBody.startTime())
 		);
+		if (changed) {
+			eventPublisher.publishEvent(new DiningRoundUpdatedEvent(meetingId, dining.getTitle(),
+				getRounds(meetingId).getRoundNumber(roundId), findAttendeeUserIds(roundId)));
+		}
 	}
 
 	/**
@@ -282,6 +316,9 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 
 		diningAttendanceRepository.deleteAllInBatch(attendances);
 		diningRoundRepository.delete(round);
+
+		eventPublisher.publishEvent(new DiningRoundDeletedEvent(meetingId, dining.getTitle(),
+			rounds.getRoundNumber(roundId), toUserIds(attendances)));
 	}
 
 	/**
@@ -433,6 +470,8 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		DiningRound round = findRoundOfDining(meetingId, roundId);
 		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
 		addAttendance(round, attendeeUserId);
+		eventPublisher.publishEvent(new DiningAttendeeAddedEvent(meetingId, dining.getTitle(),
+			getRounds(meetingId).getRoundNumber(roundId), attendeeUserId));
 	}
 
 	@Override
@@ -442,6 +481,11 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		DiningRound round = findRoundOfDining(meetingId, roundId);
 		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
 		deleteAttendance(round, attendeeUserId, userId);
+		// 관리자가 자기 자신을 삭제한 경우는 알리지 않는다.
+		if (!attendeeUserId.equals(userId)) {
+			eventPublisher.publishEvent(new DiningAttendeeRemovedEvent(meetingId, dining.getTitle(),
+				getRounds(meetingId).getRoundNumber(roundId), attendeeUserId));
+		}
 	}
 
 	@Override
@@ -469,7 +513,8 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		findRoundOfDining(meetingId, roundId);
 		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, requesterUserId);
 		attendance.approvePayer();
-		eventPublisher.publishEvent(new DiningPayerApprovedEvent(meetingId, roundId, requesterUserId, dining.getTitle()));
+		eventPublisher.publishEvent(new DiningPayerApprovedEvent(meetingId, roundId, requesterUserId, dining.getTitle(),
+			getRounds(meetingId).getRoundNumber(roundId)));
 	}
 
 	@Override
@@ -481,7 +526,8 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 		DiningAttendance attendance = findAttendanceForPayerUpdate(roundId, requesterUserId);
 		attendance.validatePendingPayer();
 		attendance.clearPayer();
-		eventPublisher.publishEvent(new DiningPayerRejectedEvent(meetingId, roundId, requesterUserId, dining.getTitle()));
+		eventPublisher.publishEvent(new DiningPayerRejectedEvent(meetingId, roundId, requesterUserId, dining.getTitle(),
+			getRounds(meetingId).getRoundNumber(roundId)));
 	}
 
 	@Override
@@ -526,6 +572,14 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			.roundId(round.getId())
 			.userId(userId)
 			.build());
+	}
+
+	private List<Integer> findAttendeeUserIds(Integer roundId) {
+		return diningAttendanceRepository.findDistinctUserIdsByRoundIdIn(List.of(roundId));
+	}
+
+	private static List<Integer> toUserIds(List<DiningAttendance> attendances) {
+		return attendances.stream().map(DiningAttendance::getUserId).distinct().toList();
 	}
 
 	private DiningRounds getRounds(Integer meetingId) {

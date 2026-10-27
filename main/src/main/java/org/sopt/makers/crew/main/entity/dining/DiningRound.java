@@ -116,14 +116,22 @@ public class DiningRound extends BaseTimeEntity {
 	 * 회차 정보 수정. 값이 실제로 바뀐 항목만 수정됨 표시를 남긴다.
 	 * 마감된 회차도 수정할 수 있다.
 	 */
-	public void update(String place, String naverMapLink, String kakaoMapLink, LocalTime startTime) {
-		if (!Objects.equals(this.place, place)) {
+	/**
+	 * @return 이번 요청으로 장소, 링크, 시작 시간 중 하나라도 실제로 바뀌었는지 (수정 알림 발송 기준)
+	 */
+	public boolean update(String place, String naverMapLink, String kakaoMapLink, LocalTime startTime) {
+		boolean placeChanged = !Objects.equals(this.place, place);
+		boolean linkChanged = !Objects.equals(this.naverMapLink, naverMapLink)
+			|| !Objects.equals(this.kakaoMapLink, kakaoMapLink);
+		boolean startTimeChanged = !Objects.equals(this.startTime, startTime);
+
+		if (placeChanged) {
 			this.isPlaceModified = true;
 		}
-		if (!Objects.equals(this.naverMapLink, naverMapLink) || !Objects.equals(this.kakaoMapLink, kakaoMapLink)) {
+		if (linkChanged) {
 			this.isLinkModified = true;
 		}
-		if (!Objects.equals(this.startTime, startTime)) {
+		if (startTimeChanged) {
 			this.isStartTimeModified = true;
 		}
 
@@ -131,6 +139,7 @@ public class DiningRound extends BaseTimeEntity {
 		this.naverMapLink = naverMapLink;
 		this.kakaoMapLink = kakaoMapLink;
 		this.startTime = startTime;
+		return placeChanged || linkChanged || startTimeChanged;
 	}
 
 	public void close(LocalDateTime now) {

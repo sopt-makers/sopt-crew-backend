@@ -2,6 +2,7 @@ package org.sopt.makers.crew.main.entity.meeting;
 
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,6 +53,16 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer>, Meet
 			.filter(meeting -> meeting.getCategory() != MeetingCategory.DINING)
 			.orElseThrow(() -> new NotFoundException(NOT_FOUND_MEETING.getErrorCode()));
 	}
+
+	/**
+	 * @implSpec : 회식 일자가 [from, to) 이고 종료되지 않은 회식. 회식 알림 스케줄러용
+	 */
+	@Query("SELECT m FROM Meeting m "
+		+ "WHERE m.category = :category AND m.diningEndedAt IS NULL "
+		+ "AND m.mStartDate >= :from AND m.mStartDate < :to "
+		+ "ORDER BY m.id ASC")
+	List<Meeting> findOngoingDiningsByDateBetween(@Param("category") MeetingCategory category,
+		@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
 	default Meeting findDiningByIdOrThrow(Integer meetingId) {
 		return findById(meetingId)

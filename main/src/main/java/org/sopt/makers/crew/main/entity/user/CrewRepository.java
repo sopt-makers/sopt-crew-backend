@@ -19,6 +19,14 @@ public interface CrewRepository extends JpaRepository<User, Integer> {
 	@Query("SELECT u.id FROM User u")
 	List<Integer> findAllOrgIds();
 
+	/**
+	 * 활동 이력(activities jsonb)에 해당 기수가 있는 회원. 파트 표기는 자유 문자열이라 호출부에서 판정한다.
+	 */
+	@Query(value = "SELECT * FROM \"user\" u "
+		+ "WHERE u.activities @> jsonb_build_array(jsonb_build_object('generation', :generation))",
+		nativeQuery = true)
+	List<User> findAllByActivityGeneration(@Param("generation") Integer generation);
+
 	@Query("select u from User u where u.id = :userId")
 	Optional<UserKeywordsProjection> findInterestedKeywordsByUserId(@Param("userId") Integer userId);
 
