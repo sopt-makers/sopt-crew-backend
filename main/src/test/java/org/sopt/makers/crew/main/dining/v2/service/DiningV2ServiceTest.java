@@ -25,6 +25,13 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeAddedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeRemovedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningCreatedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningDeletedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundDeletedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundUpdatedEvent;
+import org.sopt.makers.crew.main.dining.v2.dto.event.DiningUpdatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
@@ -60,6 +67,7 @@ import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
+import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -98,6 +106,8 @@ class DiningV2ServiceTest {
 	private UserRepository userRepository;
 	@Autowired
 	private ImageSettingProperties imageSettingProperties;
+	@Autowired
+	private ActiveGenerationProvider activeGenerationProvider;
 
 	@Autowired
 	private DiningNotificationSender diningNotificationSender;
@@ -1514,5 +1524,208 @@ class DiningV2ServiceTest {
 			assertThat(event.roundNumber()).isEqualTo(2);
 		}
 
+	}
+
+	@Nested
+	class 알림_이벤트 {
+
+		private Integer meetingId;
+		private Integer firstRoundId;
+
+		@BeforeEach
+		void setUp() {
+			meetingId = createDining();
+			firstRoundId = getRounds(meetingId).get(0).getId();
+		}
+
+		private DiningV2CreateAndUpdateDiningBodyDto updateBody(String title, String diningDate, String place,
+			MeetingJoinablePart[] parts, List<String> files) {
+			return new DiningV2CreateAndUpdateDiningBodyDto(title, place, NAVER_LINK, KAKAO_LINK, diningDate, "18:00",
+				parts, files);
+		}
+
+		private DiningV2CreateAndUpdateDiningBodyDto sameBody() {
+			return updateBody("서버 파트 회식", DINING_DATE, "1차 장소", new MeetingJoinablePart[] {MeetingJoinablePart.SERVER},
+				List.of(IMAGE_URL));
+		}
+
+		private <T> List<T> events(Class<T> type) {
+			return applicationEvents.stream(type).toList();
+		}
+
+		@Test
+		@DisplayName("회식 등록 시 회식명, 개설자, 참여 파트, 현재 기수를 담아 발행한다.")
+		void createDining_publishesCreatedEvent() {
+			var event = events(DiningCreatedEvent.class).get(0);
+			assertThat(event.meetingId()).isEqualTo(meetingId);
+			assertThat(event.diningTitle()).isEqualTo("서버 파트 회식");
+			assertThat(event.leaderUserId()).isEqualTo(leader.getId());
+			assertThat(event.joinableParts()).containsExactly(MeetingJoinablePart.SERVER);
+			assertThat(event.activeGeneration()).isEqualTo(activeGenerationProvider.getActiveGeneration());
+		}
+
+		@Test
+		@DisplayName("값이 그대로이거나 이미지·참여 파트만 바뀌면 수정 알림을 발행하지 않는다.")
+		void updateDining_noEventWithoutNotifiableChange() {
+			diningV2Service.updateDining(meetingId, sameBody(), leader.getId());
+			diningV2Service.updateDining(meetingId, updateBody("서버 파트 회식", DINING_DATE, "1차 장소",
+				new MeetingJoinablePart[] {MeetingJoinablePart.SERVER, MeetingJoinablePart.WEB},
+				List.of("https://image.test/other.png")), leader.getId());
+
+			assertThat(events(DiningUpdatedEvent.class)).isEmpty();
+			assertThat(events(DiningRoundUpdatedEvent.class)).isEmpty();
+		}
+
+		@Test
+		@DisplayName("회식 수정에서 1차 정보만 바뀌면 1차 참석자에게 회차 수정 1건을 발행한다.")
+		void updateDining_firstRoundOnly_publishesRoundUpdated() {
+			diningV2Service.applyAttendance(meetingId, firstRoundId, member.getId());
+			diningV2Service.updateDining(meetingId, updateBody("서버 파트 회식", DINING_DATE, "바뀐 장소",
+				new MeetingJoinablePart[] {MeetingJoinablePart.SERVER}, List.of(IMAGE_URL)), leader.getId());
+
+			assertThat(events(DiningUpdatedEvent.class)).isEmpty();
+			var event = events(DiningRoundUpdatedEvent.class).get(0);
+			assertThat(event.roundNumber()).isEqualTo(1);
+			assertThat(event.receiverUserIds()).containsExactlyInAnyOrder(leader.getId(), member.getId());
+		}
+
+		@Test
+		@DisplayName("회식명과 1차 정보가 함께 바뀌면 1차 참석자에게 회식 수정 1건만 발행한다.")
+		void updateDining_diningAndFirstRound_publishesDiningUpdatedOnly() {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			User secondOnly = userRepository.save(createUser("2차만 참석", 3));
+			diningV2Service.applyAttendance(meetingId, second, secondOnly.getId());
+			diningV2Service.applyAttendance(meetingId, firstRoundId, member.getId());
+
+			diningV2Service.updateDining(meetingId, updateBody("바뀐 회식", DINING_DATE, "바뀐 장소",
+				new MeetingJoinablePart[] {MeetingJoinablePart.SERVER}, List.of(IMAGE_URL)), leader.getId());
+
+			assertThat(events(DiningRoundUpdatedEvent.class)).isEmpty();
+			var event = events(DiningUpdatedEvent.class).get(0);
+			assertThat(event.diningTitle()).isEqualTo("바뀐 회식");
+			assertThat(event.receiverUserIds()).containsExactlyInAnyOrder(leader.getId(), member.getId());
+		}
+
+		@Test
+		@DisplayName("회식 일자가 바뀌면 모든 회차 참석자에게 중복 없이 회식 수정을 발행한다.")
+		void updateDining_dateChanged_publishesToAllRoundAttendees() {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			User secondOnly = userRepository.save(createUser("2차만 참석", 3));
+			diningV2Service.applyAttendance(meetingId, second, secondOnly.getId());
+			diningV2Service.applyAttendance(meetingId, firstRoundId, member.getId());
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+
+			diningV2Service.updateDining(meetingId, updateBody("서버 파트 회식", "2024.05.01", "1차 장소",
+				new MeetingJoinablePart[] {MeetingJoinablePart.SERVER}, List.of(IMAGE_URL)), leader.getId());
+
+			var event = events(DiningUpdatedEvent.class).get(0);
+			assertThat(event.receiverUserIds())
+				.containsExactlyInAnyOrder(leader.getId(), member.getId(), secondOnly.getId());
+		}
+
+		@Test
+		@DisplayName("회차 수정은 실제로 바뀐 경우에만 해당 회차 참석자에게 현재 회차 번호로 발행한다.")
+		void updateRound_publishesOnlyWhenChanged() {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+
+			diningV2Service.updateRound(meetingId, second, roundBody("2차"), leader.getId());
+			assertThat(events(DiningRoundUpdatedEvent.class)).isEmpty();
+
+			diningV2Service.updateRound(meetingId, second, roundBody("바뀐 2차"), leader.getId());
+			var event = events(DiningRoundUpdatedEvent.class).get(0);
+			assertThat(event.roundNumber()).isEqualTo(2);
+			assertThat(event.receiverUserIds()).containsExactlyInAnyOrder(leader.getId(), member.getId());
+		}
+
+		@Test
+		@DisplayName("회차 삭제는 삭제 당시 회차 번호와 참석자를 담아 발행한다.")
+		void deleteRound_publishesRoundDeleted() {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+
+			diningV2Service.deleteRound(meetingId, second, leader.getId());
+
+			var event = events(DiningRoundDeletedEvent.class).get(0);
+			assertThat(event.diningTitle()).isEqualTo("서버 파트 회식");
+			assertThat(event.roundNumber()).isEqualTo(2);
+			assertThat(event.receiverUserIds()).containsExactlyInAnyOrder(leader.getId(), member.getId());
+		}
+
+		@Test
+		@DisplayName("회식 삭제는 모든 회차 참석자를 중복 없이 담아 발행한다.")
+		void deleteDining_publishesDistinctAttendees() {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, firstRoundId, member.getId());
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+
+			diningV2Service.deleteDining(meetingId, leader.getId());
+
+			var event = events(DiningDeletedEvent.class).get(0);
+			assertThat(event.diningTitle()).isEqualTo("서버 파트 회식");
+			assertThat(event.receiverUserIds()).containsExactlyInAnyOrder(leader.getId(), member.getId());
+		}
+
+		@Test
+		@DisplayName("참석자 직접 추가만 알리고 본인 참석 신청은 알리지 않는다.")
+		void addAttendee_publishesOnlyForManagerAddition() {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			User self = userRepository.save(createUser("직접 신청", 3));
+			diningV2Service.applyAttendance(meetingId, second, self.getId());
+			assertThat(events(DiningAttendeeAddedEvent.class)).isEmpty();
+
+			diningV2Service.addAttendee(meetingId, second, member.getId(), leader.getId());
+
+			var event = events(DiningAttendeeAddedEvent.class).get(0);
+			assertThat(event.attendeeUserId()).isEqualTo(member.getId());
+			assertThat(event.roundNumber()).isEqualTo(2);
+		}
+
+		@Test
+		@DisplayName("참석자 삭제는 다른 사람을 삭제한 경우만 알리고, 본인 삭제와 참석 취소는 알리지 않는다.")
+		void deleteAttendee_publishesOnlyForOthers() {
+			diningV2Service.applyAttendance(meetingId, firstRoundId, member.getId());
+			diningV2Service.deleteAttendee(meetingId, firstRoundId, member.getId(), leader.getId());
+			var event = events(DiningAttendeeRemovedEvent.class).get(0);
+			assertThat(event.attendeeUserId()).isEqualTo(member.getId());
+			assertThat(event.roundNumber()).isEqualTo(1);
+
+			diningV2Service.deleteAttendee(meetingId, firstRoundId, leader.getId(), leader.getId());
+			diningV2Service.applyAttendance(meetingId, firstRoundId, member.getId());
+			diningV2Service.cancelAttendance(meetingId, firstRoundId, member.getId());
+			assertThat(events(DiningAttendeeRemovedEvent.class)).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("결제자 승인·거절 이벤트에 현재 회차 번호를 담는다.")
+		void approveAndReject_includeRoundNumber() {
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			User other = userRepository.save(createUser("다른 참석자", 3));
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+			diningV2Service.applyAttendance(meetingId, second, other.getId());
+			diningV2Service.requestPayer(meetingId, second, member.getId());
+			diningV2Service.requestPayer(meetingId, second, other.getId());
+
+			diningV2Service.approvePayer(meetingId, second, member.getId(), leader.getId());
+			diningV2Service.rejectPayer(meetingId, second, other.getId(), leader.getId());
+
+			assertThat(events(DiningPayerApprovedEvent.class).get(0).roundNumber()).isEqualTo(2);
+			assertThat(events(DiningPayerRejectedEvent.class).get(0).roundNumber()).isEqualTo(2);
+		}
+
+		@Test
+		@DisplayName("활동 이력에 해당 기수가 있는 회원만 조회한다.")
+		void findAllByActivityGeneration_matchesGenerationInJsonb() {
+			User current = userRepository.save(User.builder().name("현재 기수").orgId(901)
+				.activities(List.of(new UserActivityVO("서버", 34), new UserActivityVO("ios", 99)))
+				.profileImage("profile.jpg").phone("010-1234-5678").build());
+			User past = userRepository.save(User.builder().name("지난 기수").orgId(902)
+				.activities(List.of(new UserActivityVO("서버", 98)))
+				.profileImage("profile.jpg").phone("010-1234-5678").build());
+
+			assertThat(userRepository.findAllByActivityGeneration(99)).extracting(User::getId)
+				.contains(current.getId())
+				.doesNotContain(past.getId());
+		}
 	}
 }
