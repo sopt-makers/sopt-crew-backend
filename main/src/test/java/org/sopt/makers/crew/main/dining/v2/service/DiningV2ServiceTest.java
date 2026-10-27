@@ -546,7 +546,7 @@ class DiningV2ServiceTest {
 			var rows = download(leader.getId());
 			assertThat(rows).hasSize(2);
 			assertThat(rows.get(0)).containsExactly("번호", "이름", "최근 기수", "연락처");
-			assertThat(rows.get(1)).containsExactly("1", "개설자", "35", "\"01012345678\"");
+			assertThat(rows.get(1)).containsExactly("1", "개설자", "35", "\t01012345678");
 		}
 
 		@ParameterizedTest
@@ -643,9 +643,9 @@ class DiningV2ServiceTest {
 					.plusHours(attendance.getUserId().equals(leader.getId()) ? 1 : 0);
 			}
 			var rows = download(leader.getId());
-			assertThat(rows.get(1)).containsExactly("1", "세 번째", "36", "\"010-3333-3333\"");
-			assertThat(rows.get(2)).containsExactly("2", "참석자", "35", "\"010-1234-5678\"");
-			assertThat(rows.get(3)).containsExactly("3", "개설자", "35", "\"010-1234-5678\"");
+			assertThat(rows.get(1)).containsExactly("1", "세 번째", "36", "\t010-3333-3333");
+			assertThat(rows.get(2)).containsExactly("2", "참석자", "35", "\t010-1234-5678");
+			assertThat(rows.get(3)).containsExactly("3", "개설자", "35", "\t010-1234-5678");
 		}
 
 		@Test

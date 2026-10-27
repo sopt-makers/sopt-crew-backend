@@ -373,10 +373,9 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 						: UserUtil.getRecentUserActivity(user.getActivities());
 					writer.writeNext(new String[] {
 						String.valueOf(index + 1),
-						user.getName(),
+						toCsvText(user.getName(), false),
 						activity == null ? "" : String.valueOf(activity.getGeneration()),
-						// 기존 모임 CSV와 동일하게 값 자체를 따옴표로 감싸 앞자리 0을 보존한다.
-						user.getPhone() == null ? "" : String.format("\"%s\"", user.getPhone())
+						toCsvText(user.getPhone(), true)
 					});
 				}
 				if (writer.checkError()) {
@@ -395,6 +394,20 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Excel용 CSV: 연락처와 수식으로 해석될 수 있는 사용자 입력에는 탭을 붙인다.
+	 * CSV quoting은 CSVWriter에 맡긴다. 탭은 원본 CSV 데이터에 남으므로 재가공 시 주의한다.
+	 */
+	private String toCsvText(String value, boolean forceText) {
+		if (value == null || value.isEmpty()) {
+			return "";
+		}
+		char first = value.charAt(0);
+		boolean unsafePrefix = "=+-@＝＋－＠".indexOf(first) >= 0
+			|| first <= '\u0020' || Character.isWhitespace(first) || Character.isSpaceChar(first) || first == '\uFEFF';
+		return forceText || unsafePrefix ? "\t" + value : value;
 	}
 
 	@Override
