@@ -17,6 +17,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesCsvResponseDto;
+import org.sopt.makers.crew.main.global.advice.ControllerExceptionAdvice;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
+import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetPayerRequestsResponseDto;
 import org.sopt.makers.crew.main.entity.dining.enums.DiningPayerStatus;
@@ -34,7 +38,33 @@ class DiningV2ControllerTest {
 
 	@BeforeEach
 	void setUp() {
-		mockMvc = MockMvcBuilders.standaloneSetup(new DiningV2Controller(diningV2Service)).build();
+		mockMvc = MockMvcBuilders.standaloneSetup(new DiningV2Controller(diningV2Service))
+			.setControllerAdvice(new ControllerExceptionAdvice()).build();
+	}
+
+	@Test
+	void csvRoute_returnsUrlWithoutPagination() throws Exception {
+		given(diningV2Service.getAttendeesCsv(1, 2, 3))
+			.willReturn(new DiningV2GetAttendeesCsvResponseDto("https://image.test/attendees.csv"));
+		mockMvc.perform(get("/dining/v2/1/rounds/2/attendees/csv").principal(() -> "3"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.url").value("https://image.test/attendees.csv"));
+		verify(diningV2Service).getAttendeesCsv(1, 2, 3);
+		verify(diningV2Service, never()).getAttendees(anyInt(), anyInt(), any(), anyInt());
+	}
+
+	@Test
+	void csvRoute_returnsForbiddenForUnauthorizedUser() throws Exception {
+		given(diningV2Service.getAttendeesCsv(1, 2, 3)).willThrow(new ForbiddenException());
+		mockMvc.perform(get("/dining/v2/1/rounds/2/attendees/csv").principal(() -> "3"))
+			.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void csvRoute_returnsNotFoundForWrongRound() throws Exception {
+		given(diningV2Service.getAttendeesCsv(1, 2, 3)).willThrow(new NotFoundException());
+		mockMvc.perform(get("/dining/v2/1/rounds/2/attendees/csv").principal(() -> "3"))
+			.andExpect(status().isNotFound());
 	}
 
 	@Test
