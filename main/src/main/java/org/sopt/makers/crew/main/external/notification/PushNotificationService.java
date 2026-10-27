@@ -5,6 +5,7 @@ import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 import java.util.UUID;
 
 import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
+import org.sopt.makers.crew.main.external.notification.dto.response.PushNotificationResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -26,13 +27,20 @@ public class PushNotificationService {
 
 	/**
 	 * push 서버 호출 실패는 호출부 흐름을 막지 않도록 로그만 남긴다.
+	 * HTTP 오류는 Feign 예외로, 2xx 응답 본문의 success=false 는 응답 값으로 실패를 판단한다.
+	 * 본문이나 success 값이 없는 2xx 응답은 정상 발송을 실패로 오인하지 않도록 성공으로 본다.
 	 * @return 발송 요청 성공 여부 (실패 집계가 필요한 호출부에서 사용, 기존 호출부는 무시해도 된다)
 	 */
 	public boolean sendPushNotification(PushNotificationRequestDto request) {
 		try {
-			pushServerClient.sendPushNotification(pushNotificationApiKey,
+			PushNotificationResponseDto response = pushServerClient.sendPushNotification(pushNotificationApiKey,
 				PushNotificationEnums.PUSH_NOTIFICATION_ACTION.getValue(), UUID.randomUUID().toString(), service,
 				request);
+			if (response != null && Boolean.FALSE.equals(response.getSuccess())) {
+				log.error("{} status={}, message={}", NOTIFICATION_SERVER_ERROR.getErrorCode(), response.getStatus(),
+					response.getMessage());
+				return false;
+			}
 			return true;
 		} catch (Exception e) {
 			log.error(NOTIFICATION_SERVER_ERROR.getErrorCode(), e);
