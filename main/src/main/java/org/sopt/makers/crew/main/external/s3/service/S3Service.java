@@ -55,9 +55,8 @@ public class S3Service {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 			String curDate = LocalDateTime.now().format(formatter);
 
-			String objectKey = MEETING_PATH + "/" + curDate + "/" + fileName;
-
 			File file = new File(fileName);
+			String objectKey = MEETING_PATH + "/" + curDate + "/" + file.getName();
 			PutObjectRequest putObjectRequest = PutObjectRequest.builder()
 				.bucket(awsProperties.getS3BucketName())
 				.key(objectKey)
