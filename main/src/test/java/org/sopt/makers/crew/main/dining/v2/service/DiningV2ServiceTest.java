@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -689,6 +690,38 @@ class DiningV2ServiceTest {
 			var rows = download(leader.getId());
 			assertThat(rows).hasSize(2);
 			assertThat(rows.get(1)).containsExactly("1", "\t" + input, "35", "\t" + input);
+		}
+
+		@ParameterizedTest
+		@ValueSource(booleans = {false, true})
+		@DisplayName("임시 파일 삭제 실패가 업로드 성공 결과나 원래 S3 예외를 덮어쓰지 않는다.")
+		void cleanupFailure_preservesUploadOutcome(boolean uploadFails) throws Exception {
+			var uploadException = new ServerException(S3_STORAGE_ERROR.getErrorCode());
+			doAnswer(invocation -> {
+				uploadedFile = Path.of(invocation.getArgument(0, String.class));
+				if (uploadFails) {
+					throw uploadException;
+				}
+				return CSV_URL;
+			}).when(s3Service).uploadCSVFile(anyString());
+			try {
+				try (var files = mockStatic(Files.class, CALLS_REAL_METHODS)) {
+					files.when(() -> Files.deleteIfExists(any(Path.class)))
+						.thenThrow(new IOException("임시 파일 삭제 실패 재현"));
+					if (uploadFails) {
+						assertThatThrownBy(() -> diningV2Service.getAttendeesCsv(meetingId, roundId, leader.getId()))
+							.isSameAs(uploadException);
+					} else {
+						assertThat(diningV2Service.getAttendeesCsv(meetingId, roundId, leader.getId()).url()).isEqualTo(CSV_URL);
+					}
+					files.verify(() -> Files.deleteIfExists(uploadedFile));
+				}
+				assertThat(uploadedFile).exists();
+			} finally {
+				if (uploadedFile != null) {
+					Files.deleteIfExists(uploadedFile);
+				}
+			}
 		}
 
 		@Test
