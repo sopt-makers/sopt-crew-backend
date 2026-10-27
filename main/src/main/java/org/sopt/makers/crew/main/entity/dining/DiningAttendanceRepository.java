@@ -38,6 +38,8 @@ public interface DiningAttendanceRepository extends JpaRepository<DiningAttendan
 
 	List<DiningAttendance> findAllByRoundId(Integer roundId);
 
+	List<DiningAttendance> findAllByRoundIdOrderByCreatedTimestampAscIdAsc(Integer roundId);
+
 	Page<DiningAttendance> findAllByRoundId(Integer roundId, Pageable pageable);
 
 	@Query("SELECT DISTINCT a.userId FROM DiningAttendance a WHERE a.roundId IN :roundIds")
