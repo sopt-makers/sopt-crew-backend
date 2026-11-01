@@ -48,8 +48,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 class DiningNotificationTest {
 
-	private static final String DETAIL = "https://crew.test/group/settlement/detail?id=1";
-	private static final String TAB = "https://crew.test/group/settlement";
+	private static final String DETAIL = "https://crew.test/settlement/detail?id=1";
+	private static final String TAB = "https://crew.test/settlement";
 
 	static Stream<Arguments> snapshotNotifications() {
 		return Stream.of(
@@ -164,7 +164,7 @@ class DiningNotificationTest {
 			assertThat(closeGuide.getUserIds()).containsExactly("10");
 			assertThat(closeGuide.getTitle()).isEqualTo("마감하지 않은 회차");
 			assertThat(closeGuide.getContent()).isEqualTo("[서버 회식] 내일 오전 11:59에 자동으로 마감돼요.");
-			assertThat(closeGuide.getWebLink()).isEqualTo("https://crew.test/group/settlement/management?id=1");
+			assertThat(closeGuide.getWebLink()).isEqualTo("https://crew.test/settlement/management?id=1");
 			var reminder = captor.getAllValues().get(1);
 			assertThat(reminder.getUserIds()).containsExactly("10", "11");
 			assertThat(reminder.getTitle()).isEqualTo("내일 예정된 회식");

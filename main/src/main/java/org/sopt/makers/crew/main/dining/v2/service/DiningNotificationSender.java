@@ -72,9 +72,10 @@ public class DiningNotificationSender {
 	private static final String PAYER_REVOKED_TITLE = "공동 결제자 권한 해제";
 	private static final String PAYER_REVOKED_CONTENT = "[%s] %d차 공동 결제자 권한이 해제됐어요.";
 
-	private static final String DINING_TAB_WEB_LINK_FORMAT = "%s/group/settlement";
-	private static final String DINING_DETAIL_WEB_LINK_FORMAT = "%s/group/settlement/detail?id=%d";
-	private static final String DINING_MANAGEMENT_WEB_LINK_FORMAT = "%s/group/settlement/management?id=%d";
+	// push-notification.web-url 이 이미 /group 까지 포함하므로 그 이후 경로만 붙인다. (FE 경로: /group/settlement/...)
+	private static final String DINING_TAB_WEB_LINK_FORMAT = "%s/settlement";
+	private static final String DINING_DETAIL_WEB_LINK_FORMAT = "%s/settlement/detail?id=%d";
+	private static final String DINING_MANAGEMENT_WEB_LINK_FORMAT = "%s/settlement/management?id=%d";
 
 	private final MeetingRepository meetingRepository;
 	private final DiningRoundRepository diningRoundRepository;
