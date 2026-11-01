@@ -88,6 +88,7 @@ public enum ErrorStatus {
 	 */
 	FORBIDDEN_EXCEPTION("권한이 없습니다."),
 	FORBIDDEN_SOPT_MAP_UPDATE("솝맵을 수정할 권한이 없습니다."),
+	CAPTCHA_FAILED("보안 확인에 실패했습니다. 새로고침 후 다시 시도해주세요."),
 
 	/**
 	 * 404 NOT_FOUND
@@ -117,6 +118,11 @@ public enum ErrorStatus {
 	 * 423 LOCKED
 	 */
 	LOCK_ACQUISITION_TIMEOUT("현재 요청이 처리 중입니다. 잠시 후 다시 시도해주세요."),
+
+	/**
+	 * 429 TOO_MANY_REQUESTS
+	 */
+	TOO_MANY_REQUESTS("요청이 너무 많습니다. 잠시 후 다시 시도해주세요."),
 
 	/**
 	 * 500 SERVER_ERROR
