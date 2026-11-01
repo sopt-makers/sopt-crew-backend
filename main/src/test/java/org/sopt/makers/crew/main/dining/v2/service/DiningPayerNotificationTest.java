@@ -36,14 +36,14 @@ class DiningPayerNotificationTest {
 		return Stream.of(
 			Arguments.of(new DiningPayerRequestedEvent(1, 2, 3, 4, "서버 회식", "참석자", 2), "4",
 				"[서버 회식] 2차 [참석자]님이 승인을 요청했어요. 참석자 관리 화면에서 확인해주세요.",
-				"https://crew.test/dining/attendees?id=1#payer-requests"),
+				"https://crew.test/group/settlement/management?id=1"),
 			Arguments.of(new DiningPayerApprovedEvent(1, 2, 3, "서버 회식", 2), "3",
 				"[서버 회식] 2차 요청이 승인됐어요. 이제 참석자 관리 화면을 이용할 수 있어요.",
-				"https://crew.test/dining/attendees?id=1"),
+				"https://crew.test/group/settlement/management?id=1"),
 			Arguments.of(new DiningPayerRejectedEvent(1, 2, 3, "서버 회식", 2), "3",
-				"[서버 회식] 2차 공동 결제자 요청이 거절됐어요.", "https://crew.test/dining/detail?id=1"),
+				"[서버 회식] 2차 공동 결제자 요청이 거절됐어요.", "https://crew.test/group/settlement/detail?id=1"),
 			Arguments.of(new DiningPayerRevokedEvent(1, 2, 3, "서버 회식", 2), "3",
-				"[서버 회식] 2차 공동 결제자 권한이 해제됐어요.", "https://crew.test/dining/detail?id=1")
+				"[서버 회식] 2차 공동 결제자 권한이 해제됐어요.", "https://crew.test/group/settlement/detail?id=1")
 		);
 	}
 
