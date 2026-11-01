@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.meeting.v2;
 
+import static org.sopt.makers.crew.main.meeting.v2.service.MeetingApplyGuard.*;
+
 import java.security.Principal;
 import java.util.List;
 
@@ -24,6 +26,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingById
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetMeetingPartMembersResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDto;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
+import org.sopt.makers.crew.main.meeting.v2.service.MeetingApplyGuard;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -54,6 +57,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MeetingV2Controller implements MeetingV2Api {
 
 	private final MeetingV2Service meetingV2Service;
+	private final MeetingApplyGuard meetingApplyGuard;
 	private final S3Service s3Service;
 	@Value("${API_TEST_SECRET}")
 	private String API_TEST_SECRET;
@@ -88,8 +92,10 @@ public class MeetingV2Controller implements MeetingV2Api {
 	@PostMapping("/apply")
 	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyGeneralMeeting(
 		@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
+		@RequestHeader(value = TURNSTILE_TOKEN_HEADER, required = false) String turnstileToken,
 		Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
+		meetingApplyGuard.validate(userId, turnstileToken);
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(meetingV2Service.applyGeneralMeetingWithLock(requestBody, userId));
 	}
@@ -112,8 +118,10 @@ public class MeetingV2Controller implements MeetingV2Api {
 	@PostMapping("${custom.paths.eventApply}")
 	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyEventMeeting(
 		@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
+		@RequestHeader(value = TURNSTILE_TOKEN_HEADER, required = false) String turnstileToken,
 		Principal principal) {
 		Integer userId = UserUtil.getUserId(principal);
+		meetingApplyGuard.validate(userId, turnstileToken);
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(meetingV2Service.applyEventMeetingWithLock(requestBody, userId));
 	}
