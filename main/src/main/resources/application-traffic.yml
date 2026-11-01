@@ -123,3 +123,16 @@ img:
 thread-pool:
   core-size: ${PROD_THREAD_CORE_SIZE}
   thread-name-prefix: ${PROD_THREAD_NAME_PREFIX}
+
+turnstile:
+  secret: 1x0000000000000000000000000000000AA
+  hostnames: localhost
+  # false: 검증 실패 시 로그만 남기고 통과 (FE 배포 후 로그 확인 → true로 전환)
+  enforce: false
+  # Cloudflare 통신 장애 시 신청을 통과시킬지 여부
+  fail-open: ${TURNSTILE_FAIL_OPEN:true}
+
+apply:
+  rate-limit:
+    max-requests: ${APPLY_RATE_LIMIT_MAX_REQUESTS:3}
+    window-seconds: ${APPLY_RATE_LIMIT_WINDOW_SECONDS:10}
