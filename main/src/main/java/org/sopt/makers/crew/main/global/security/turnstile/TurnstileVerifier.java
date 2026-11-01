@@ -32,6 +32,7 @@ public class TurnstileVerifier {
 	private final WebClient webClient;
 
 	public TurnstileVerifier(TurnstileProperties properties) {
+		validateConfiguration(properties);
 		this.properties = properties;
 		this.webClient = WebClient.builder()
 			.baseUrl(SITEVERIFY_BASE_URL)
@@ -39,6 +40,28 @@ public class TurnstileVerifier {
 				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, CONNECT_TIMEOUT_MILLIS)
 				.responseTimeout(RESPONSE_TIMEOUT)))
 			.build();
+	}
+
+	/**
+	 * 잘못된 설정으로 모든 신청이 403으로 거부되는 것을 막기 위해 기동 시점에 검증한다.
+	 * secret이 비어 있으면 siteverify가 missing-input-secret으로 success=false를 응답하고,
+	 * hostnames가 비어 있으면 모든 토큰이 hostname 검증에 실패한다.
+	 * enforce=false면 신청이 차단되지 않으므로 경고 로그만 남긴다.
+	 */
+	private static void validateConfiguration(TurnstileProperties properties) {
+		boolean secretMissing = properties.getSecret() == null || properties.getSecret().isBlank();
+		boolean hostnamesMissing = properties.getHostnames() == null || properties.getHostnames().isEmpty();
+
+		if (!secretMissing && !hostnamesMissing) {
+			return;
+		}
+
+		String message = String.format(
+			"Turnstile 설정이 비어 있습니다. secretMissing=%s, hostnamesMissing=%s", secretMissing, hostnamesMissing);
+		if (properties.isEnforce()) {
+			throw new IllegalStateException(message + " (turnstile.enforce=true에서는 모든 신청이 차단되므로 기동을 중단합니다)");
+		}
+		log.warn("[turnstile] {} (enforce=false라 검증 실패 시에도 신청은 통과합니다)", message);
 	}
 
 	/**
