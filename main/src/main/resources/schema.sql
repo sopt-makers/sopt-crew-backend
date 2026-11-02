@@ -324,6 +324,10 @@ create index if not exists "meetingId_index"
 create index if not exists "userId_index"
     on apply ("userId");
 
+-- 동일 사용자의 같은 모임 중복 신청 방지
+create unique index if not exists uq_apply_meeting_user
+    on apply ("meetingId", "userId");
+
 create table if not exists notice
 (
     id                serial

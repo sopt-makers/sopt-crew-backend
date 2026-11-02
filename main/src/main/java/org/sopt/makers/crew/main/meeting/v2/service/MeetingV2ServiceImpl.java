@@ -109,6 +109,7 @@ import org.sopt.makers.crew.main.user.v2.service.lock.UserLockManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -123,6 +124,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MeetingV2ServiceImpl implements MeetingV2Service {
+
+	private static final String APPLY_UNIQUE_INDEX_NAME = "uq_apply_meeting_user";
 
 	private static final int ZERO = 0;
 
@@ -309,7 +312,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		meetingApplyValidator.validateGeneralApplyRequest(meeting, user, userId, applies, coLeaders);
 
 		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-		Apply savedApply = applyRepository.save(apply);
+		Apply savedApply = saveApply(apply);
 		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 	}
 
@@ -326,7 +329,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		meetingApplyValidator.validateEventApplyRequest(meeting, user, userId, applies, coLeaders);
 
 		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-		Apply savedApply = applyRepository.save(apply);
+		Apply savedApply = saveApply(apply);
 		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 	}
 
@@ -345,7 +348,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			meetingApplyValidator.validateGeneralApplyRequest(meeting, user, userId, applies, coLeaders);
 
 			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-			Apply savedApply = applyRepository.save(apply);
+			Apply savedApply = saveApply(apply);
 			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 		});
 	}
@@ -384,7 +387,7 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			meetingApplyValidator.validateEventApplyRequest(meeting, user, userId, applies, coLeaders);
 
 			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-			Apply savedApply = applyRepository.save(apply);
+			Apply savedApply = saveApply(apply);
 			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 		});
 	}
@@ -946,5 +949,26 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (category == MeetingCategory.DINING) {
 			throw new BadRequestException(INVALID_MEETING_CATEGORY.getErrorCode());
 		}
+	}
+
+	/**
+	 * apply("meetingId", "userId") 유니크 인덱스로 중복 신청을 DB에서 차단한다.
+	 * 유저 락은 트랜잭션 커밋 전에 해제되어 동시 요청이 중복 검증을 함께 통과할 수 있으므로,
+	 * flush 시점에 제약 위반을 감지해 기존 '이미 지원한 모임' 에러로 변환한다.
+	 */
+	private Apply saveApply(Apply apply) {
+		try {
+			return applyRepository.saveAndFlush(apply);
+		} catch (DataIntegrityViolationException e) {
+			if (isDuplicateApplyViolation(e)) {
+				throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
+			}
+			throw e;
+		}
+	}
+
+	private boolean isDuplicateApplyViolation(DataIntegrityViolationException e) {
+		String message = e.getMostSpecificCause().getMessage();
+		return message != null && message.contains(APPLY_UNIQUE_INDEX_NAME);
 	}
 }
