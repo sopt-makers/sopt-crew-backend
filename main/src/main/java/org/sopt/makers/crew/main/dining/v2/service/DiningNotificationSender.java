@@ -72,13 +72,10 @@ public class DiningNotificationSender {
 	private static final String PAYER_REVOKED_TITLE = "공동 결제자 권한 해제";
 	private static final String PAYER_REVOKED_CONTENT = "[%s] %d차 공동 결제자 권한이 해제됐어요.";
 
-	// TODO: FE 회식 탭 경로 확정 후 변경 예정 (현재 임의 경로)
-	private static final String DINING_TAB_WEB_LINK_FORMAT = "%s/dining";
-	// TODO: FE 회식 상세 페이지 경로 확정 후 변경 예정 (현재 임의 경로)
-	private static final String DINING_DETAIL_WEB_LINK_FORMAT = "%s/dining/detail?id=%d";
-	// TODO: FE 참석자 관리 및 결제자 요청 영역 경로 확정 후 변경
-	private static final String DINING_ATTENDEE_WEB_LINK_FORMAT = "%s/dining/attendees?id=%d";
-	private static final String PAYER_REQUESTS_ANCHOR = "#payer-requests";
+	// push-notification.web-url 이 이미 /group 까지 포함하므로 그 이후 경로만 붙인다. (FE 경로: /group/settlement/...)
+	private static final String DINING_TAB_WEB_LINK_FORMAT = "%s/settlement";
+	private static final String DINING_DETAIL_WEB_LINK_FORMAT = "%s/settlement/detail?id=%d";
+	private static final String DINING_MANAGEMENT_WEB_LINK_FORMAT = "%s/settlement/management?id=%d";
 
 	private final MeetingRepository meetingRepository;
 	private final DiningRoundRepository diningRoundRepository;
@@ -159,25 +156,25 @@ public class DiningNotificationSender {
 	/** @return 발송 실패 시 false (스케줄러 실패 집계용) */
 	public boolean sendCloseGuideNotification(DiningCloseGuideTarget target) {
 		return send(List.of(target.leaderUserId()), CLOSE_GUIDE_TITLE,
-			String.format(CLOSE_GUIDE_CONTENT, target.diningTitle()), attendeeLink(target.meetingId()));
+			String.format(CLOSE_GUIDE_CONTENT, target.diningTitle()), managementLink(target.meetingId()));
 	}
 
 	/** @return 발송 실패 시 false (스케줄러 실패 집계용) */
 	public boolean sendReminderNotification(DiningReminderTarget target) {
 		return send(target.receiverUserIds(), REMINDER_TITLE,
-			String.format(REMINDER_CONTENT, target.diningTitle()), detailLink(target.meetingId()));
+			String.format(REMINDER_CONTENT, target.diningTitle()), tabLink());
 	}
 
 	public void sendPayerRequestedNotification(DiningPayerRequestedEvent event) {
 		send(List.of(event.leaderUserId()), PAYER_REQUESTED_TITLE,
 			String.format(PAYER_REQUESTED_CONTENT, event.diningTitle(), event.roundNumber(), event.requesterName()),
-			attendeeLink(event.meetingId()) + PAYER_REQUESTS_ANCHOR);
+			managementLink(event.meetingId()));
 	}
 
 	public void sendPayerApprovedNotification(DiningPayerApprovedEvent event) {
 		send(List.of(event.requesterUserId()), PAYER_APPROVED_TITLE,
 			String.format(PAYER_APPROVED_CONTENT, event.diningTitle(), event.roundNumber()),
-			attendeeLink(event.meetingId()));
+			managementLink(event.meetingId()));
 	}
 
 	public void sendPayerRejectedNotification(DiningPayerRejectedEvent event) {
@@ -226,8 +223,8 @@ public class DiningNotificationSender {
 		return String.format(DINING_DETAIL_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), meetingId);
 	}
 
-	private String attendeeLink(Integer meetingId) {
-		return String.format(DINING_ATTENDEE_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), meetingId);
+	private String managementLink(Integer meetingId) {
+		return String.format(DINING_MANAGEMENT_WEB_LINK_FORMAT, pushNotificationProperties.getPushWebUrl(), meetingId);
 	}
 
 	private String tabLink() {
