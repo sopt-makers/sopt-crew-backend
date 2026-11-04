@@ -40,6 +40,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDi
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateDiningResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetApprovedPayersResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
@@ -558,6 +559,24 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			.collect(Collectors.toMap(User::getId, user -> user));
 		return new DiningV2GetPayerRequestsResponseDto(requests.stream()
 			.map(attendance -> DiningV2GetPayerRequestsResponseDto.PayerRequest.of(attendance,
+				users.get(attendance.getUserId()), rounds.getRoundNumber(attendance.getRoundId())))
+			.toList());
+	}
+
+	@Override
+	public DiningV2GetApprovedPayersResponseDto getApprovedPayers(Integer meetingId, Integer userId) {
+		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+		diningPermissionValidator.validateLeader(dining, userId);
+		DiningRounds rounds = getRounds(meetingId);
+		List<DiningAttendance> payers = diningAttendanceRepository
+			.findAllByRoundIdInAndPayerStatusOrderByPayerRequestedAtAscIdAsc(rounds.getRoundIds(), DiningPayerStatus.APPROVED);
+		if (payers.isEmpty()) {
+			return new DiningV2GetApprovedPayersResponseDto(List.of());
+		}
+		Map<Integer, User> users = userRepository.findAllByIdInOrThrow(toUserIds(payers)).stream()
+			.collect(Collectors.toMap(User::getId, user -> user));
+		return new DiningV2GetApprovedPayersResponseDto(payers.stream()
+			.map(attendance -> DiningV2GetApprovedPayersResponseDto.ApprovedPayer.of(attendance,
 				users.get(attendance.getUserId()), rounds.getRoundNumber(attendance.getRoundId())))
 			.toList());
 	}

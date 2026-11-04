@@ -6,6 +6,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDi
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateDiningResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetApprovedPayersResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
@@ -54,6 +55,8 @@ public interface DiningV2Service {
 	void requestPayer(Integer meetingId, Integer roundId, Integer userId);
 
 	DiningV2GetPayerRequestsResponseDto getPayerRequests(Integer meetingId, Integer userId);
+
+	DiningV2GetApprovedPayersResponseDto getApprovedPayers(Integer meetingId, Integer userId);
 
 	void approvePayer(Integer meetingId, Integer roundId, Integer requesterUserId, Integer userId);
 

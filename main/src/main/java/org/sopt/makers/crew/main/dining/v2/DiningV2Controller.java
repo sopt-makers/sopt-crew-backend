@@ -9,6 +9,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDi
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateDiningResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetApprovedPayersResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
@@ -225,6 +226,13 @@ public class DiningV2Controller implements DiningV2Api {
 	public ResponseEntity<DiningV2GetPayerRequestsResponseDto> getPayerRequests(@PathVariable Integer meetingId,
 		Principal principal) {
 		return ResponseEntity.ok(diningV2Service.getPayerRequests(meetingId, UserUtil.getUserId(principal)));
+	}
+
+	@Override
+	@GetMapping("/{meetingId}/payers")
+	public ResponseEntity<DiningV2GetApprovedPayersResponseDto> getApprovedPayers(@PathVariable Integer meetingId,
+		Principal principal) {
+		return ResponseEntity.ok(diningV2Service.getApprovedPayers(meetingId, UserUtil.getUserId(principal)));
 	}
 
 	@Override

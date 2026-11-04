@@ -16,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sopt.makers.crew.main.dining.v2.dto.query.DiningV2GetAttendeesQueryDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetApprovedPayersResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesCsvResponseDto;
 import org.sopt.makers.crew.main.global.advice.ControllerExceptionAdvice;
@@ -139,6 +140,42 @@ class DiningV2ControllerTest {
 			.andExpect(jsonPath("$.requests[0].requestedAt").exists());
 		mockMvc.perform(get("/dining/v2/1/payer-requests").principal(() -> "4"))
 			.andExpect(status().isOk()).andExpect(jsonPath("$.requests").isEmpty());
+	}
+
+	@Test
+	void approvedPayersRoute_serializesProfileRoundAndEmptyList() throws Exception {
+		given(diningV2Service.getApprovedPayers(1, 4)).willReturn(new DiningV2GetApprovedPayersResponseDto(
+			List.of(new DiningV2GetApprovedPayersResponseDto.ApprovedPayer(3, "참석자", "profile.jpg", 2, 1))))
+			.willReturn(new DiningV2GetApprovedPayersResponseDto(List.of()));
+
+		mockMvc.perform(get("/dining/v2/1/payers").principal(() -> "4"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.payers[0].userId").value(3))
+			.andExpect(jsonPath("$.payers[0].name").value("참석자"))
+			.andExpect(jsonPath("$.payers[0].profileImage").value("profile.jpg"))
+			.andExpect(jsonPath("$.payers[0].roundId").value(2))
+			.andExpect(jsonPath("$.payers[0].roundNumber").value(1));
+		mockMvc.perform(get("/dining/v2/1/payers").principal(() -> "4"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.payers").isArray())
+			.andExpect(jsonPath("$.payers").isEmpty());
+		verify(diningV2Service, times(2)).getApprovedPayers(1, 4);
+	}
+
+	@Test
+	void approvedPayersRoute_returnsForbiddenForNonLeader() throws Exception {
+		given(diningV2Service.getApprovedPayers(1, 3)).willThrow(new ForbiddenException());
+
+		mockMvc.perform(get("/dining/v2/1/payers").principal(() -> "3"))
+			.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void approvedPayersRoute_returnsNotFoundForMissingDining() throws Exception {
+		given(diningV2Service.getApprovedPayers(1, 4)).willThrow(new NotFoundException());
+
+		mockMvc.perform(get("/dining/v2/1/payers").principal(() -> "4"))
+			.andExpect(status().isNotFound());
 	}
 
 	@Test

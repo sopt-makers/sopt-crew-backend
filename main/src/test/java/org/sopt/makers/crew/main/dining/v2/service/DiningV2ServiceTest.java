@@ -1295,6 +1295,124 @@ class DiningV2ServiceTest {
 		}
 
 		@Test
+		void approvedPayersList_returnsOnlyApprovedProfilesForLeader() {
+			request();
+			approve();
+			User pending = userRepository.save(createUser("승인 대기자", 3));
+			diningV2Service.applyAttendance(meetingId, roundId, pending.getId());
+			diningV2Service.requestPayer(meetingId, roundId, pending.getId());
+
+			var payers = diningV2Service.getApprovedPayers(meetingId, leader.getId()).payers();
+
+			assertThat(payers).hasSize(1);
+			var payer = payers.get(0);
+			assertThat(payer.userId()).isEqualTo(member.getId());
+			assertThat(payer.name()).isEqualTo(member.getName());
+			assertThat(payer.profileImage()).isEqualTo(member.getProfileImage());
+			assertThat(payer.roundId()).isEqualTo(roundId);
+			assertThat(payer.roundNumber()).isEqualTo(1);
+			assertThat(diningV2Service.getPayerRequests(meetingId, leader.getId()).requests())
+				.extracting(r -> r.userId()).containsExactly(pending.getId());
+		}
+
+		@ParameterizedTest
+		@NullSource
+		@EnumSource(value = DiningPayerStatus.class, names = "PENDING")
+		void approvedPayersList_withoutApprovals_returnsEmptyWithoutLoadingUsers(DiningPayerStatus status) {
+			if (status == DiningPayerStatus.PENDING) {
+				request();
+			}
+			clearInvocations(userRepository);
+
+			assertThat(diningV2Service.getApprovedPayers(meetingId, leader.getId()).payers()).isEmpty();
+
+			verifyNoInteractions(userRepository);
+		}
+
+		@Test
+		void approvedPayersList_keepsEachRoundAndLoadsDistinctUsersOnce() {
+			request();
+			approve();
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			Integer third = diningV2Service.createRound(meetingId, roundBody("3차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, third, member.getId());
+			diningV2Service.requestPayer(meetingId, third, member.getId());
+			diningV2Service.approvePayer(meetingId, third, member.getId(), leader.getId());
+			User other = userRepository.save(createUser("다른 공동 결제자", 3));
+			diningV2Service.applyAttendance(meetingId, third, other.getId());
+			diningV2Service.requestPayer(meetingId, third, other.getId());
+			diningV2Service.approvePayer(meetingId, third, other.getId(), leader.getId());
+			diningV2Service.deleteRound(meetingId, second, leader.getId());
+			clearInvocations(userRepository, diningAttendanceRepository);
+
+			var payers = diningV2Service.getApprovedPayers(meetingId, leader.getId()).payers();
+
+			assertThat(payers).extracting(p -> p.userId(), p -> p.roundId(), p -> p.roundNumber())
+				.containsExactly(tuple(member.getId(), roundId, 1), tuple(member.getId(), third, 2),
+					tuple(other.getId(), third, 2));
+			verify(userRepository).findAllByIdInOrThrow(List.of(member.getId(), other.getId()));
+			verifyNoMoreInteractions(userRepository);
+			verify(diningAttendanceRepository).findAllByRoundIdInAndPayerStatusOrderByPayerRequestedAtAscIdAsc(
+				List.of(roundId, third), DiningPayerStatus.APPROVED);
+		}
+
+		@ParameterizedTest
+		@ValueSource(booleans = {false, true})
+		void approvedPayersList_nonLeaderIsForbidden_evenIfApproved(boolean approved) {
+			request();
+			if (approved) {
+				approve();
+			}
+			clearInvocations(userRepository, diningAttendanceRepository);
+
+			assertThatThrownBy(() -> diningV2Service.getApprovedPayers(meetingId, member.getId()))
+				.isInstanceOf(ForbiddenException.class);
+
+			verifyNoInteractions(userRepository, diningAttendanceRepository);
+		}
+
+		@Test
+		void approvedPayersList_excludesOtherDining() {
+			request();
+			approve();
+			Integer otherDining = createDining();
+			Integer otherRound = getRounds(otherDining).get(0).getId();
+			diningV2Service.applyAttendance(otherDining, otherRound, member.getId());
+			diningV2Service.requestPayer(otherDining, otherRound, member.getId());
+			diningV2Service.approvePayer(otherDining, otherRound, member.getId(), leader.getId());
+
+			assertThat(diningV2Service.getApprovedPayers(meetingId, leader.getId()).payers())
+				.extracting(p -> p.roundId()).containsExactly(roundId);
+		}
+
+		@Test
+		void approvedPayersList_responseCanRevokeOnlyTheSelectedRoundAfterDiningEnds() {
+			request();
+			approve();
+			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, second, member.getId());
+			diningV2Service.requestPayer(meetingId, second, member.getId());
+			diningV2Service.approvePayer(meetingId, second, member.getId(), leader.getId());
+			diningV2Service.endDining(meetingId, leader.getId());
+			var payer = diningV2Service.getApprovedPayers(meetingId, leader.getId()).payers().get(0);
+
+			diningV2Service.revokePayer(meetingId, payer.roundId(), payer.userId(), leader.getId());
+
+			assertThat(diningV2Service.getApprovedPayers(meetingId, leader.getId()).payers())
+				.extracting(p -> p.userId(), p -> p.roundId(), p -> p.roundNumber())
+				.containsExactly(tuple(member.getId(), second, 2));
+			assertThat(attendance().getPayerStatus()).isNull();
+		}
+
+		@Test
+		void approvedPayersList_rejectsNonDiningMeeting() {
+			ReflectionTestUtils.setField(meetingRepository.findDiningByIdOrThrow(meetingId), "category", MeetingCategory.STUDY);
+
+			assertThatThrownBy(() -> diningV2Service.getApprovedPayers(meetingId, leader.getId()))
+				.isInstanceOf(NotFoundException.class).hasMessageContaining(NOT_FOUND_DINING.getErrorCode());
+		}
+
+		@Test
 		void requestsList_returnsPendingProfilesAndCurrentRoundNumbers() {
 			assertThat(diningV2Service.getPayerRequests(meetingId, leader.getId()).requests()).isEmpty();
 			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
