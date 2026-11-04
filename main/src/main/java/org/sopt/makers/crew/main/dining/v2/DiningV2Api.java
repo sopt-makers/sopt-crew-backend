@@ -9,6 +9,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateDi
 import org.sopt.makers.crew.main.dining.v2.dto.request.DiningV2CreateAndUpdateRoundBodyDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateDiningResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2CreateRoundResponseDto;
+import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetApprovedPayersResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendanceResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeeManagementResponseDto;
 import org.sopt.makers.crew.main.dining.v2.dto.response.DiningV2GetAttendeesResponseDto;
@@ -244,6 +245,16 @@ public interface DiningV2Api {
 		@ApiResponse(responseCode = "404", description = "존재하지 않는 회식입니다.", content = @Content),
 	})
 	ResponseEntity<DiningV2GetPayerRequestsResponseDto> getPayerRequests(@PathVariable Integer meetingId,
+		Principal principal);
+
+	@Operation(summary = "승인된 공동 결제자 목록", description = "개설자만 회식 전체의 APPROVED 공동 결제자를 요청 시각 오름차순으로 조회합니다. "
+		+ "동일 사용자도 승인된 회차별로 반환하며, 회차 번호는 현재 기준입니다. roundId와 userId로 기존 승인 해제 API를 호출할 수 있습니다.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "승인된 공동 결제자 목록 조회 성공. 공동 결제자가 없으면 빈 리스트"),
+		@ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content),
+		@ApiResponse(responseCode = "404", description = "존재하지 않는 회식입니다.", content = @Content),
+	})
+	ResponseEntity<DiningV2GetApprovedPayersResponseDto> getApprovedPayers(@PathVariable Integer meetingId,
 		Principal principal);
 
 	@Operation(summary = "공동 결제자 승인", description = "개설자만 가능합니다. 마감된 회차와 종료된 회식에서도 가능합니다. 참석 기록은 유지합니다.")
