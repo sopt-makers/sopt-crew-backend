@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
@@ -113,7 +114,7 @@ class MeetingV2ConcurrencyTest {
 
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
 
-			MeetingV2ApplyMeetingResponseDto firstResponse = meetingV2Service.applyEventMeetingWithLock(applyDto,
+			MeetingV2ApplyMeetingResponseDto firstResponse = meetingV2Service.applyEventMeetingGuarded(applyDto,
 				applicant.getId());
 			assertThat(firstResponse.getApplyId()).isNotNull();
 
@@ -133,7 +134,7 @@ class MeetingV2ConcurrencyTest {
 						readyLatch.countDown();
 						startLatch.await();
 
-						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingWithLock(applyDto,
+						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingGuarded(applyDto,
 							applicant.getId());
 
 						if (response != null && response.getApplyId() != null) {
@@ -165,6 +166,91 @@ class MeetingV2ConcurrencyTest {
 				.filter(apply -> apply.getUserId().equals(applicant.getId()))
 				.toList();
 
+			Assertions.assertThat(userApplies).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("신청한 적 없는 동일 사용자가 동시에 여러 신청을 시도하면 하나만 성공해야 한다")
+		void applyMeetingGuarded_WhenNewUserRequestsConcurrently_ShouldAcceptOnlyOne() throws InterruptedException {
+			// given
+			User leader = userRepository.save(User.builder()
+				.name("모임장")
+				.orgId(1)
+				.activities(List.of(new UserActivityVO("안드로이드", 35)))
+				.profileImage("testProfileImage.jpg")
+				.phone("010-1234-5678")
+				.build());
+
+			Meeting meeting = meetingRepository.save(Meeting.builder()
+				.user(leader)
+				.userId(leader.getId())
+				.title("동시 최초 신청 테스트 모임")
+				.category(MeetingCategory.EVENT)
+				.imageURL(List.of(new ImageUrlVO(0, "testImage.jpg")))
+				.startDate(LocalDateTime.of(2024, 4, 23, 0, 0, 0))
+				.endDate(LocalDateTime.of(2029, 4, 27, 23, 59, 59))
+				.capacity(20)
+				.desc("모임 지원 테스트입니다.")
+				.processDesc("테스트 진행 방식입니다.")
+				.mStartDate(LocalDateTime.of(2024, 11, 24, 0, 0, 0))
+				.mEndDate(LocalDateTime.of(2024, 12, 24, 0, 0, 0))
+				.leaderDesc("모임 리더 설명입니다.")
+				.note("유의사항입니다.")
+				.isMentorNeeded(false)
+				.canJoinOnlyActiveGeneration(false)
+				.createdGeneration(35)
+				.targetActiveGeneration(null)
+				.joinableParts(MeetingJoinablePart.values())
+				.build());
+
+			User applicant = userRepository.save(User.builder()
+				.name("지원자")
+				.orgId(2)
+				.activities(List.of(new UserActivityVO("웹", 35)))
+				.profileImage("applicantProfile.jpg")
+				.phone("010-1234-5678")
+				.build());
+
+			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
+
+			int concurrentRequests = 5;
+			ExecutorService executorService = Executors.newFixedThreadPool(concurrentRequests);
+			CountDownLatch readyLatch = new CountDownLatch(concurrentRequests);
+			CountDownLatch startLatch = new CountDownLatch(1);
+			CountDownLatch finishLatch = new CountDownLatch(concurrentRequests);
+			AtomicInteger successCount = new AtomicInteger(0);
+			AtomicInteger failCount = new AtomicInteger(0);
+
+			// when
+			for (int i = 0; i < concurrentRequests; i++) {
+				executorService.submit(() -> {
+					try {
+						readyLatch.countDown();
+						startLatch.await();
+						meetingV2Service.applyEventMeetingGuarded(applyDto, applicant.getId());
+						successCount.incrementAndGet();
+					} catch (Exception e) {
+						// in-flight guard(423) 또는 중복 검증·유니크 인덱스("이미 지원한 모임입니다")로 거절된다
+						failCount.incrementAndGet();
+					} finally {
+						finishLatch.countDown();
+					}
+				});
+			}
+
+			assertThat(readyLatch.await(5, TimeUnit.SECONDS)).isTrue();
+			startLatch.countDown();
+			boolean completedInTime = finishLatch.await(10, TimeUnit.SECONDS);
+			executorService.shutdown();
+
+			// then
+			assertThat(completedInTime).isTrue();
+			assertThat(successCount.get()).isEqualTo(1);
+			assertThat(failCount.get()).isEqualTo(concurrentRequests - 1);
+
+			List<Apply> userApplies = applyRepository.findAllByMeetingId(meeting.getId()).stream()
+				.filter(apply -> apply.getUserId().equals(applicant.getId()))
+				.toList();
 			Assertions.assertThat(userApplies).hasSize(1);
 		}
 
@@ -241,7 +327,7 @@ class MeetingV2ConcurrencyTest {
 						MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(),
 							"지원 동기 " + index);
 
-						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingWithLock(applyDto,
+						MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyEventMeetingGuarded(applyDto,
 							applicant.getId());
 
 						if (response != null && response.getApplyId() != null) {
@@ -325,13 +411,15 @@ class MeetingV2ConcurrencyTest {
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
 
 			CountDownLatch firstRequestDone = new CountDownLatch(1);
+			AtomicReference<Throwable> firstRequestError = new AtomicReference<>();
 
 			Thread firstThread = new Thread(() -> {
 				try {
-					meetingV2Service.applyEventMeetingWithLock(applyDto, applicant.getId());
+					meetingV2Service.applyEventMeetingGuarded(applyDto, applicant.getId());
 					firstRequestDone.countDown();  // 첫 번째 요청 완료 신호
 				} catch (Exception e) {
-					System.err.println("첫 번째 요청 실패: " + e.getMessage());
+					// 실패 원인이 테스트 결과에 남도록 저장한다
+					firstRequestError.set(e);
 				}
 			});
 
@@ -340,12 +428,14 @@ class MeetingV2ConcurrencyTest {
 			boolean firstRequestCompleted = firstRequestDone.await(5, TimeUnit.SECONDS);
 
 			// when
-			assertThat(firstRequestCompleted).isTrue();
+			Assertions.assertThat(firstRequestCompleted)
+				.as("첫 번째 요청이 5초 안에 완료되지 않았습니다. 실패 원인: %s", firstRequestError.get())
+				.isTrue();
 			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
 			Assertions.assertThat(applies).hasSize(1);
 
 			assertThatThrownBy(() -> {
-				meetingV2Service.applyEventMeetingWithLock(applyDto, applicant.getId());
+				meetingV2Service.applyEventMeetingGuarded(applyDto, applicant.getId());
 			})
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("이미 지원한 모임입니다");

@@ -36,12 +36,12 @@ public interface MeetingV2Service {
 
 	MeetingV2ApplyMeetingResponseDto applyEventMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId);
 
-	MeetingV2ApplyMeetingResponseDto applyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody, Integer userId);
+	MeetingV2ApplyMeetingResponseDto applyGeneralMeetingGuarded(MeetingV2ApplyMeetingDto requestBody, Integer userId);
 
-	MeetingV2ApplyMeetingResponseDto testApplyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
+	MeetingV2ApplyMeetingResponseDto testApplyGeneralMeetingGuarded(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId);
 
-	MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody, Integer userId);
+	MeetingV2ApplyMeetingResponseDto applyEventMeetingGuarded(MeetingV2ApplyMeetingDto requestBody, Integer userId);
 
 	void applyMeetingCancel(Integer meetingId, Integer userId);
 
