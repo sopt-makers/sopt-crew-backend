@@ -1,6 +1,7 @@
 package org.sopt.makers.crew.main.meeting.v2.service;
 
 import org.sopt.makers.crew.main.global.security.turnstile.TurnstileVerifier;
+import org.sopt.makers.crew.main.global.annotation.NoExecutionLogging;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
  * 외부 호출(Turnstile)이 DB 트랜잭션/유저 락을 붙잡지 않도록 트랜잭션 바깥(컨트롤러)에서 호출한다.
  */
 @Component
+@NoExecutionLogging
 @RequiredArgsConstructor
 public class MeetingApplyGuard {
 
