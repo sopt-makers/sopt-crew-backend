@@ -3,6 +3,8 @@ package org.sopt.makers.crew.main.global.aop;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -17,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.sopt.makers.crew.main.entity.meeting.MeetingReader;
 import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.exception.ErrorStatus;
+import org.sopt.makers.crew.main.global.exception.ForbiddenException;
+import org.sopt.makers.crew.main.global.exception.LockedException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.TooManyRequestsException;
 import org.sopt.makers.crew.main.meeting.v2.dto.redis.MeetingCacheDto;
@@ -74,7 +78,7 @@ class ApplyResultLoggingAopTest {
 		assertThat(event.getLevel()).isEqualTo(Level.INFO);
 		assertThat(event.getFormattedMessage())
 			.contains("[APPLY_RESULT]", "type=EVENT", "result=SUCCESS", "meetingId=10", "userId=7", "status=201",
-				"sinceOpenMs=350");
+				"requestedAt=2026-11-06T12:00:00.350", "sinceOpenMs=350");
 	}
 
 	@Test
@@ -88,18 +92,37 @@ class ApplyResultLoggingAopTest {
 		ILoggingEvent event = singleEvent();
 		assertThat(event.getLevel()).isEqualTo(Level.WARN);
 		assertThat(event.getFormattedMessage())
-			.contains("type=GENERAL", "result=FAILURE", "status=400", "reason=ALREADY_APPLIED_MEETING");
+			.contains("type=GENERAL", "result=FAILURE", "status=400", "reason=ALREADY_APPLIED_MEETING",
+				"sinceOpenMs=350");
 	}
 
 	@Test
-	@DisplayName("컨트롤러 진입 후 거절(rate limit 등)도 상태 코드와 함께 남긴다")
+	@DisplayName("거절된 요청(rate limit 등)은 상태 코드와 요청 시각만 남기고 모임을 조회하지 않는다")
 	void logGuardRejection() throws Throwable {
 		given(pjp.proceed()).willThrow(new TooManyRequestsException(ErrorStatus.TOO_MANY_REQUESTS.getErrorCode()));
 
 		assertThatThrownBy(() -> aop.logApplyResult(pjp, ApplyResultLoggingAop.TYPE_EVENT))
 			.isInstanceOf(TooManyRequestsException.class);
 
-		assertThat(singleEvent().getFormattedMessage()).contains("status=429", "reason=TOO_MANY_REQUESTS");
+		assertThat(singleEvent().getFormattedMessage())
+			.contains("status=429", "reason=TOO_MANY_REQUESTS", "requestedAt=2026-11-06T12:00:00.350", "sinceOpenMs=-");
+		// 거절 경로에서 캐시 미스로 DB를 조회하지 않아야 한다
+		verify(meetingReader, never()).getMeetingById(MEETING_ID);
+	}
+
+	@Test
+	@DisplayName("Turnstile(403), 동시 요청(423), 존재하지 않는 모임 요청은 오픈 시각을 조회하지 않는다")
+	void shouldResolveOpenTime() {
+		assertThat(ApplyResultLoggingAop.shouldResolveOpenTime(
+			new BadRequestException(ErrorStatus.ALREADY_APPLIED_MEETING.getErrorCode()))).isTrue();
+
+		assertThat(ApplyResultLoggingAop.shouldResolveOpenTime(
+			new ForbiddenException(ErrorStatus.CAPTCHA_FAILED.getErrorCode()))).isFalse();
+		assertThat(ApplyResultLoggingAop.shouldResolveOpenTime(
+			new LockedException(ErrorStatus.LOCK_ACQUISITION_TIMEOUT.getErrorCode()))).isFalse();
+		assertThat(ApplyResultLoggingAop.shouldResolveOpenTime(
+			new BadRequestException(ErrorStatus.NOT_FOUND_MEETING.getErrorCode()))).isFalse();
+		assertThat(ApplyResultLoggingAop.shouldResolveOpenTime(new IllegalStateException("boom"))).isFalse();
 	}
 
 	@Test

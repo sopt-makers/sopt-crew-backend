@@ -29,14 +29,17 @@ import lombok.extern.slf4j.Slf4j;
  * 컨트롤러 단에서 남겨서 rate limit(429), Turnstile(403), in-flight guard(423) 거절도 함께 기록된다.</p>
  *
  * <pre>
- * [APPLY_RESULT] type=EVENT result=SUCCESS meetingId=1 userId=2 status=201 reason=- elapsedMs=35 sinceOpenMs=412
- * [APPLY_RESULT] type=EVENT result=FAILURE meetingId=1 userId=2 status=400 reason=ALREADY_APPLIED_MEETING ...
+ * [APPLY_RESULT] type=EVENT result=SUCCESS meetingId=1 userId=2 status=201 reason=- elapsedMs=35
+ *                requestedAt=2026-11-06T12:00:00.412 sinceOpenMs=412
+ * [APPLY_RESULT] type=EVENT result=FAILURE meetingId=1 userId=2 status=429 reason=TOO_MANY_REQUESTS ... sinceOpenMs=-
  * </pre>
  *
  * <ul>
- *   <li>elapsedMs: 요청 처리 시간</li>
+ *   <li>elapsedMs: 요청 처리 시간 (로그용 모임 조회 시간은 제외)</li>
+ *   <li>requestedAt: 요청이 들어온 시각</li>
  *   <li>sinceOpenMs: 모임 신청 시작 시각(startDate)부터 요청이 들어온 시각까지. 음수면 오픈 전 요청.
- *       오픈 직후 수백 ms 안에 반복해서 들어오는 계정은 매크로를 의심할 수 있다.</li>
+ *       오픈 직후 수백 ms 안에 반복해서 들어오는 계정은 매크로를 의심할 수 있다.
+ *       거절된 요청(429·403·423)과 없는 모임 요청은 조회하지 않고 '-'로 남긴다.</li>
  * </ul>
  */
 @Slf4j
@@ -72,18 +75,36 @@ public class ApplyResultLoggingAop {
 
 		try {
 			Object result = pjp.proceed();
+			long elapsedMs = elapsedMs(startedAt);
 			log.info("[APPLY_RESULT] type={} result=SUCCESS meetingId={} userId={} status={} reason={} "
-					+ "elapsedMs={} sinceOpenMs={}",
+					+ "elapsedMs={} requestedAt={} sinceOpenMs={}",
 				type, meetingId, userId, HttpStatus.CREATED.value(), NONE,
-				elapsedMs(startedAt), sinceOpenMs(meetingId, requestedAt));
+				elapsedMs, requestedAt, sinceOpenMs(meetingId, requestedAt));
 			return result;
 		} catch (Throwable e) {
+			// 신청 처리 시간만 기록하도록 모임 조회 전에 측정한다
+			long elapsedMs = elapsedMs(startedAt);
 			log.warn("[APPLY_RESULT] type={} result=FAILURE meetingId={} userId={} status={} reason={} "
-					+ "elapsedMs={} sinceOpenMs={}",
+					+ "elapsedMs={} requestedAt={} sinceOpenMs={}",
 				type, meetingId, userId, statusOf(e), reasonOf(e),
-				elapsedMs(startedAt), sinceOpenMs(meetingId, requestedAt));
+				elapsedMs, requestedAt, shouldResolveOpenTime(e) ? sinceOpenMs(meetingId, requestedAt) : NONE);
 			throw e;
 		}
+	}
+
+	/**
+	 * 실패한 신청 중 모임 오픈 시각을 조회할 대상인지 판단한다.
+	 *
+	 * <p>rate limit(429), Turnstile(403), 동시 요청(423) 거절과 존재하지 않는 모임 요청은 조회하지 않는다.
+	 * 거절된 요청이 캐시 미스로 DB를 조회해 부하를 키우지 않도록 하기 위해서다.
+	 * 이 경우에도 requestedAt이 남으므로 모임 시작 시각과 비교해 사후에 계산할 수 있다.</p>
+	 */
+	static boolean shouldResolveOpenTime(Throwable e) {
+		if (!(e instanceof BaseException baseException)) {
+			return false;
+		}
+		return baseException.getStatusCode() == HttpStatus.BAD_REQUEST.value()
+			&& !ErrorStatus.NOT_FOUND_MEETING.name().equals(reasonOf(e));
 	}
 
 	/**
