@@ -98,9 +98,8 @@ public class MeetingApplyTransactionalService {
 
 	/**
 	 * apply("meetingId", "userId") 유니크 인덱스 위반을 기존 '이미 지원한 모임' 에러로 변환한다.
-	 * 호출한 쪽의 트랜잭션에 참여한다.
 	 */
-	public Apply saveApply(Apply apply) {
+	private Apply saveApply(Apply apply) {
 		try {
 			// IDENTITY 전략이라 save()에서도 INSERT되지만, 위반을 이 메서드 안에서 확실히 잡도록 flush를 명시한다.
 			return applyRepository.saveAndFlush(apply);

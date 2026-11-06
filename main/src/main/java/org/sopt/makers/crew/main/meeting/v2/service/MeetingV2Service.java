@@ -32,10 +32,6 @@ public interface MeetingV2Service {
 
 	MeetingV2CreateMeetingResponseDto createMeeting(MeetingV2CreateMeetingBodyDto requestBody, Integer userId);
 
-	MeetingV2ApplyMeetingResponseDto applyGeneralMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId);
-
-	MeetingV2ApplyMeetingResponseDto applyEventMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId);
-
 	MeetingV2ApplyMeetingResponseDto applyGeneralMeetingGuarded(MeetingV2ApplyMeetingDto requestBody, Integer userId);
 
 	MeetingV2ApplyMeetingResponseDto testApplyGeneralMeetingGuarded(MeetingV2ApplyMeetingDto requestBody,

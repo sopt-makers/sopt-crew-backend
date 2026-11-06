@@ -26,7 +26,6 @@ import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
-import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.flash.Flash;
@@ -72,7 +71,6 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
-import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.FlashMeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
@@ -148,7 +146,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 
 	private final MeetingMapper meetingMapper;
 	private final FlashMeetingMapper flashMeetingMapper;
-	private final ApplyMapper applyMapper;
 	private final MeetingApplyValidator meetingApplyValidator;
 	private final MeetingParticipationFactory meetingParticipationFactory;
 	private final MeetingCoLeaderFactory meetingCoLeaderFactory;
@@ -293,40 +290,6 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 			requestBody.getMeetingKeywordTypes());
 		eventPublisher.publishEvent(new KeywordEventDto(keywordMatchedUserDtos
 			, meeting.getId(), meeting.getTitle(), meeting.getCategory()));
-	}
-
-	@Override
-	@Transactional
-	public MeetingV2ApplyMeetingResponseDto applyGeneralMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
-		// 외부 인증 서버 호출이 DB 커넥션을 쥔 채 일어나지 않도록 첫 SQL보다 먼저 사용자를 조회한다
-		User user = userRepository.findByIdOrThrow(userId);
-		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
-
-		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-
-		meetingApplyValidator.validateGeneralApplyRequest(meeting, user, userId, applies, coLeaders);
-
-		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-		Apply savedApply = meetingApplyTransactionalService.saveApply(apply);
-		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
-	}
-
-	@Override
-	@Transactional
-	public MeetingV2ApplyMeetingResponseDto applyEventMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
-		// 외부 인증 서버 호출이 DB 커넥션을 쥔 채 일어나지 않도록 첫 SQL보다 먼저 사용자를 조회한다
-		User user = userRepository.findByIdOrThrow(userId);
-		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
-
-		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-
-		meetingApplyValidator.validateEventApplyRequest(meeting, user, userId, applies, coLeaders);
-
-		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-		Apply savedApply = meetingApplyTransactionalService.saveApply(apply);
-		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
 	}
 
 	@Override
