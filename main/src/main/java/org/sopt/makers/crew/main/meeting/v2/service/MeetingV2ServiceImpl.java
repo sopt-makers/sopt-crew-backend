@@ -25,10 +25,7 @@ import java.util.stream.Stream;
 import org.sopt.makers.crew.main.entity.apply.Applies;
 import org.sopt.makers.crew.main.entity.apply.Apply;
 import org.sopt.makers.crew.main.entity.apply.ApplyRepository;
-import org.sopt.makers.crew.main.entity.apply.ApplyTest;
-import org.sopt.makers.crew.main.entity.apply.ApplyTestRepository;
 import org.sopt.makers.crew.main.entity.apply.enums.EnApplyStatus;
-import org.sopt.makers.crew.main.entity.apply.enums.EnApplyType;
 import org.sopt.makers.crew.main.entity.comment.Comment;
 import org.sopt.makers.crew.main.entity.comment.CommentRepository;
 import org.sopt.makers.crew.main.entity.flash.Flash;
@@ -74,7 +71,6 @@ import org.sopt.makers.crew.main.global.pagination.dto.PageMetaDto;
 import org.sopt.makers.crew.main.global.pagination.dto.PageOptionsDto;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
-import org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.FlashMeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.query.MeetingGetAppliesQueryDto;
@@ -105,15 +101,15 @@ import org.sopt.makers.crew.main.meetingdemand.v2.service.MeetingDemandOpenedNot
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2CreateGeneralMeetingTagResponseDto;
 import org.sopt.makers.crew.main.tag.v2.dto.response.TagV2MeetingTagsResponseDto;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
-import org.sopt.makers.crew.main.user.v2.service.lock.UserLockManager;
+import org.sopt.makers.crew.main.global.annotation.NoExecutionLogging;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.opencsv.CSVWriter;
@@ -125,13 +121,10 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class MeetingV2ServiceImpl implements MeetingV2Service {
 
-	private static final String APPLY_UNIQUE_INDEX_NAME = "uq_apply_meeting_user";
-
 	private static final int ZERO = 0;
 
 	private final UserRepository userRepository;
 	private final ApplyRepository applyRepository;
-	private final ApplyTestRepository applyTestRepository;
 	private final MeetingRepository meetingRepository;
 	private final MeetingDemandRepository meetingDemandRepository;
 	private final PostRepository postRepository;
@@ -148,11 +141,11 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	private final S3Service s3Service;
 	private final TagV2Service tagV2Service;
 
-	private final UserLockManager userLockManager;
+	private final MeetingApplyTransactionalService meetingApplyTransactionalService;
+	private final MeetingApplyInFlightGuard meetingApplyInFlightGuard;
 
 	private final MeetingMapper meetingMapper;
 	private final FlashMeetingMapper flashMeetingMapper;
-	private final ApplyMapper applyMapper;
 	private final MeetingApplyValidator meetingApplyValidator;
 	private final MeetingParticipationFactory meetingParticipationFactory;
 	private final MeetingCoLeaderFactory meetingCoLeaderFactory;
@@ -300,96 +293,30 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 	}
 
 	@Override
-	@Transactional
-	public MeetingV2ApplyMeetingResponseDto applyGeneralMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
-		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
-
-		User user = userRepository.findByIdOrThrow(userId);
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
-
-		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-
-		meetingApplyValidator.validateGeneralApplyRequest(meeting, user, userId, applies, coLeaders);
-
-		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-		Apply savedApply = saveApply(apply);
-		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
-	}
-
-	@Override
-	@Transactional
-	public MeetingV2ApplyMeetingResponseDto applyEventMeeting(MeetingV2ApplyMeetingDto requestBody, Integer userId) {
-		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
-
-		User user = userRepository.findByIdOrThrow(userId);
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
-
-		List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-
-		meetingApplyValidator.validateEventApplyRequest(meeting, user, userId, applies, coLeaders);
-
-		Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-		Apply savedApply = saveApply(apply);
-		return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
-	}
-
-	@Override
-	@Transactional
-	public MeetingV2ApplyMeetingResponseDto applyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
+	@NoExecutionLogging
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	public MeetingV2ApplyMeetingResponseDto applyGeneralMeetingGuarded(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
-		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
-
-		User user = userRepository.findByIdOrThrow(userId);
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
-
-		return userLockManager.executeWithLock(userId, () -> {
-			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-
-			meetingApplyValidator.validateGeneralApplyRequest(meeting, user, userId, applies, coLeaders);
-
-			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-			Apply savedApply = saveApply(apply);
-			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
-		});
+		return meetingApplyInFlightGuard.execute(requestBody.getMeetingId(), userId,
+			() -> meetingApplyTransactionalService.applyGeneral(requestBody, userId));
 	}
 
 	@Override
-	@Transactional
-	public MeetingV2ApplyMeetingResponseDto testApplyGeneralMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
+	@NoExecutionLogging
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	public MeetingV2ApplyMeetingResponseDto testApplyGeneralMeetingGuarded(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
-		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
-		User user = userRepository.findByIdOrThrow(userId);
-
-		return userLockManager.executeWithLock(userId, () -> {
-			List<ApplyTest> applies = applyTestRepository.findAllByMeetingId(meeting.getId());
-
-			//validateMeetingCapacity(meeting, applies);
-
-			ApplyTest apply = applyMapper.toApplyTestEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-
-			ApplyTest savedApply = applyTestRepository.save(apply);
-			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
-		});
+		return meetingApplyInFlightGuard.execute(requestBody.getMeetingId(), userId,
+			() -> meetingApplyTransactionalService.testApplyGeneral(requestBody, userId));
 	}
 
 	@Override
-	@Transactional
-	public MeetingV2ApplyMeetingResponseDto applyEventMeetingWithLock(MeetingV2ApplyMeetingDto requestBody,
+	@NoExecutionLogging
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	public MeetingV2ApplyMeetingResponseDto applyEventMeetingGuarded(MeetingV2ApplyMeetingDto requestBody,
 		Integer userId) {
-		Meeting meeting = meetingRepository.findByIdOrThrow(requestBody.getMeetingId());
-
-		User user = userRepository.findByIdOrThrow(userId);
-		CoLeaders coLeaders = new CoLeaders(coLeaderRepository.findAllByMeetingId(meeting.getId()));
-
-		return userLockManager.executeWithLock(userId, () -> {
-			List<Apply> applies = applyRepository.findAllByMeetingId(meeting.getId());
-
-			meetingApplyValidator.validateEventApplyRequest(meeting, user, userId, applies, coLeaders);
-
-			Apply apply = applyMapper.toApplyEntity(requestBody, EnApplyType.APPLY, meeting, user, userId);
-			Apply savedApply = saveApply(apply);
-			return MeetingV2ApplyMeetingResponseDto.of(savedApply.getId());
-		});
+		return meetingApplyInFlightGuard.execute(requestBody.getMeetingId(), userId,
+			() -> meetingApplyTransactionalService.applyEvent(requestBody, userId));
 	}
 
 	@Override
@@ -949,26 +876,5 @@ public class MeetingV2ServiceImpl implements MeetingV2Service {
 		if (category == MeetingCategory.DINING) {
 			throw new BadRequestException(INVALID_MEETING_CATEGORY.getErrorCode());
 		}
-	}
-
-	/**
-	 * apply("meetingId", "userId") 유니크 인덱스로 중복 신청을 DB에서 차단한다.
-	 * 유저 락은 트랜잭션 커밋 전에 해제되어 동시 요청이 중복 검증을 함께 통과할 수 있으므로,
-	 * flush 시점에 제약 위반을 감지해 기존 '이미 지원한 모임' 에러로 변환한다.
-	 */
-	private Apply saveApply(Apply apply) {
-		try {
-			return applyRepository.saveAndFlush(apply);
-		} catch (DataIntegrityViolationException e) {
-			if (isDuplicateApplyViolation(e)) {
-				throw new BadRequestException(ALREADY_APPLIED_MEETING.getErrorCode());
-			}
-			throw e;
-		}
-	}
-
-	private boolean isDuplicateApplyViolation(DataIntegrityViolationException e) {
-		String message = e.getMostSpecificCause().getMessage();
-		return message != null && message.contains(APPLY_UNIQUE_INDEX_NAME);
 	}
 }

@@ -28,6 +28,7 @@ import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2GetRecommendDt
 import org.sopt.makers.crew.main.meeting.v2.dto.response.PreSignedUrlResponseDto;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingApplyGuard;
 import org.sopt.makers.crew.main.meeting.v2.service.MeetingV2Service;
+import org.sopt.makers.crew.main.global.annotation.NoExecutionLogging;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -89,6 +90,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 	}
 
 	@Override
+	@NoExecutionLogging
 	@PostMapping("/apply")
 	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyGeneralMeeting(
 		@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
@@ -97,9 +99,11 @@ public class MeetingV2Controller implements MeetingV2Api {
 		Integer userId = UserUtil.getUserId(principal);
 		meetingApplyGuard.validate(userId, turnstileToken);
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(meetingV2Service.applyGeneralMeetingWithLock(requestBody, userId));
+			.body(meetingV2Service.applyGeneralMeetingGuarded(requestBody, userId));
 	}
 
+	// 부하 테스트(perf/k6)가 이 경로를 쓰므로 실제 신청과 같은 로깅 조건으로 맞춘다
+	@NoExecutionLogging
 	@PostMapping("/test/apply")
 	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyTestGeneralMeeting(
 		@RequestHeader("X-API-TEST") String testKey,
@@ -112,9 +116,10 @@ public class MeetingV2Controller implements MeetingV2Api {
 		}
 
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(meetingV2Service.testApplyGeneralMeetingWithLock(requestBody, userId));
+			.body(meetingV2Service.testApplyGeneralMeetingGuarded(requestBody, userId));
 	}
 
+	@NoExecutionLogging
 	@PostMapping("${custom.paths.eventApply}")
 	public ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyEventMeeting(
 		@Valid @RequestBody MeetingV2ApplyMeetingDto requestBody,
@@ -123,7 +128,7 @@ public class MeetingV2Controller implements MeetingV2Api {
 		Integer userId = UserUtil.getUserId(principal);
 		meetingApplyGuard.validate(userId, turnstileToken);
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(meetingV2Service.applyEventMeetingWithLock(requestBody, userId));
+			.body(meetingV2Service.applyEventMeetingGuarded(requestBody, userId));
 	}
 
 	@Override

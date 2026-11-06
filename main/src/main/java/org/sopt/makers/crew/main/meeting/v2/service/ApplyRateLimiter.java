@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.sopt.makers.crew.main.global.exception.TooManyRequestsException;
+import org.sopt.makers.crew.main.global.annotation.NoExecutionLogging;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
+@NoExecutionLogging
 public class ApplyRateLimiter {
 
 	private final int maxRequests;

@@ -21,6 +21,7 @@ import org.sopt.makers.crew.main.global.exception.BadRequestException;
 import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.sopt.makers.crew.main.global.util.Time;
 import org.sopt.makers.crew.main.global.util.UserPartUtil;
+import org.sopt.makers.crew.main.global.annotation.NoExecutionLogging;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -32,12 +33,14 @@ public class MeetingApplyValidator {
 	private final ActiveGenerationProvider activeGenerationProvider;
 	private final Time time;
 
+	@NoExecutionLogging
 	public void validateGeneralApplyRequest(Meeting meeting, User user, Integer userId, List<Apply> applies,
 		CoLeaders coLeaders) {
 		validateMeetingCategoryNotEvent(meeting);
 		validateCommonApplyRequest(meeting, user, userId, applies, coLeaders);
 	}
 
+	@NoExecutionLogging
 	public void validateEventApplyRequest(Meeting meeting, User user, Integer userId, List<Apply> applies,
 		CoLeaders coLeaders) {
 		validateMeetingCategoryEvent(meeting);

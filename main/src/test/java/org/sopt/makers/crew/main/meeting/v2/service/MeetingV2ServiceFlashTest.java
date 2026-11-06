@@ -45,7 +45,6 @@ import org.sopt.makers.crew.main.meeting.v2.dto.FlashMeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
-import org.sopt.makers.crew.main.user.v2.service.lock.UserLockManager;
 import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
@@ -82,7 +81,9 @@ class MeetingV2ServiceFlashTest {
 	@Mock
 	private TagV2Service tagV2Service;
 	@Mock
-	private UserLockManager userLockManager;
+	private MeetingApplyTransactionalService meetingApplyTransactionalService;
+	@Mock
+	private MeetingApplyInFlightGuard meetingApplyInFlightGuard;
 	@Mock
 	private MeetingMapper meetingMapper;
 	@Spy

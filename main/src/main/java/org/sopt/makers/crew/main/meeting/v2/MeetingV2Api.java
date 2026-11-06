@@ -72,6 +72,8 @@ public interface MeetingV2Api {
 			"\"모임이 없습니다\" or \"기수/파트를 설정해주세요\" or \"정원이 꽉찼습니다\" or \"활동 기수가 아닙니다\" " +
 				"or \"지원 가능한 파트가 아닙니다\" or \"지원 가능한 기간이 아닙니다\"", content = @Content),
 		@ApiResponse(responseCode = "403", description = "\"보안 확인에 실패했습니다.\" (Turnstile 검증 실패)", content = @Content),
+		@ApiResponse(responseCode = "423", description =
+			"\"현재 요청이 처리 중입니다.\" (같은 사용자의 같은 모임 신청이 처리 중일 때 즉시 거절)", content = @Content),
 		@ApiResponse(responseCode = "429", description = "\"요청이 너무 많습니다.\" (사용자별 rate limit)", content = @Content),})
 	ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyGeneralMeeting(
 		@RequestBody MeetingV2ApplyMeetingDto requestBody,
@@ -83,7 +85,11 @@ public interface MeetingV2Api {
 	@ApiResponses(value = {@ApiResponse(responseCode = "201", description = "지원 완료"),
 		@ApiResponse(responseCode = "400", description =
 			"\"모임이 없습니다\" or \"기수/파트를 설정해주세요\" or \"정원이 꽉찼습니다\" or \"활동 기수가 아닙니다\" " +
-				"or \"지원 가능한 파트가 아닙니다\" or \"지원 가능한 기간이 아닙니다\"", content = @Content),})
+				"or \"지원 가능한 파트가 아닙니다\" or \"지원 가능한 기간이 아닙니다\"", content = @Content),
+		@ApiResponse(responseCode = "403", description = "\"보안 확인에 실패했습니다.\" (Turnstile 검증 실패)", content = @Content),
+		@ApiResponse(responseCode = "423", description =
+			"\"현재 요청이 처리 중입니다.\" (같은 사용자의 같은 모임 신청이 처리 중일 때 즉시 거절)", content = @Content),
+		@ApiResponse(responseCode = "429", description = "\"요청이 너무 많습니다.\" (사용자별 rate limit)", content = @Content),})
 	ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyEventMeeting(
 		@RequestBody MeetingV2ApplyMeetingDto requestBody,
 		@RequestHeader(value = TURNSTILE_TOKEN_HEADER, required = false) String turnstileToken,
