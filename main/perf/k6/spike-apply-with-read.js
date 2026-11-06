@@ -36,6 +36,7 @@ const X_USER_IDS = (__ENV.X_USER_IDS || "")
     .split(",")
     .map((id) => id.trim())
     .filter(Boolean);
+const APPLY_COUNT = X_USER_IDS.length > 0 ? X_USER_IDS.length : APPLY_USERS;
 
 // 조회 부하
 const READ_TPS = Number(__ENV.READ_TPS || 20);
@@ -89,7 +90,7 @@ const scenarios = {
     apply_spike: {
         executor: "per-vu-iterations",
         exec: "applySpike",
-        vus: X_USER_IDS.length > 0 ? X_USER_IDS.length : APPLY_USERS,
+        vus: APPLY_COUNT,
         iterations: 1,
         startTime: `${WARMUP}s`,
         maxDuration: `${SPIKE_WINDOW + COOLDOWN}s`,
@@ -118,8 +119,9 @@ export const options = {
         "read_failed{phase:spike}": [`rate<${READ_FAIL_RATE_LIMIT}`],
         // 판단 기준 3: 신청이 spike 구간 안에 모두 끝나야 spike 구간 조회 지연이 판단에 다 포함된다
         apply_duration: [`max<${SPIKE_WINDOW * 1000}`],
-        // 판단 기준 4: 신청 실패 없음
+        // 판단 기준 4: 신청 실패 없음 + 모든 신청이 응답까지 기록됨 (중간에 끊긴 반복이 없어야 함)
         apply_failed: ["rate==0"],
+        apply_result: [`count==${APPLY_COUNT}`],
         // 참고용 (실패해도 판단 기준은 아님)
         read_duration_before: ["p(95)>=0"],
         read_duration_after: ["p(95)>=0"],
@@ -138,11 +140,14 @@ export function setup() {
         throw new Error("X_API_TEST(/meeting/v2/test/apply 시크릿)를 설정해주세요.");
     }
 
+    // 신청 표본이 하나도 없어도 apply_result 임계값이 0건으로 평가되도록 초기화
+    applyResult.add(0);
+
     console.log("========================================");
     console.log("Spike Apply With Read Test");
     console.log(`Base URL: ${BASE_URL}`);
     console.log(`Meeting ID: ${MEETING_ID}`);
-    console.log(`Apply users: ${X_USER_IDS.length > 0 ? X_USER_IDS.length : APPLY_USERS} (동시 1회씩)`);
+    console.log(`Apply users: ${APPLY_COUNT} (동시 1회씩)`);
     console.log(`Read TPS: ${READ_TPS} (detail: ${AUTH_TOKEN ? "on" : "off"})`);
     console.log(`Timeline: warmup ${WARMUP}s → spike ${SPIKE_WINDOW}s → cooldown ${COOLDOWN}s`);
     console.log(`판단 기준: spike 조회 p95 < ${READ_P95_LIMIT_MS}ms, spike 조회 실패율 < ${READ_FAIL_RATE_LIMIT}, 신청 최대 < ${SPIKE_WINDOW}s, 신청 실패 0건`);

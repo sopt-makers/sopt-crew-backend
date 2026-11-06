@@ -168,6 +168,7 @@ k6 run \
   - `read_failed{phase:spike}`: spike 구간 조회 실패율 < `READ_FAIL_RATE_LIMIT` (기본 0.01). 조회가 빠르게 실패하면 p95가 낮아져 통과하는 것을 막습니다.
   - `apply_duration`: 신청 최대 응답 시간 < `SPIKE_WINDOW`. 신청이 구간을 넘기면 그 뒤의 조회 지연이 `after`로 빠져 판단에서 누락되므로 실패로 처리합니다. 이때는 `SPIKE_WINDOW`를 늘려 다시 측정하세요.
   - `apply_failed`: 신청 실패율 == 0. 서로 다른 사용자의 최초 신청이라 실패가 없어야 합니다. 신청이 빠르게 실패하면 `apply_duration`이 짧아져 기준을 통과하는 것을 막습니다.
+  - `apply_result`: 신청 응답 건수 == 신청자 수. 신청 지표는 응답을 받은 뒤에만 기록되므로, 반복이 중간에 끊겨 표본이 빠진 채 `apply_failed`가 통과하는 것을 막습니다.
 
 ### 1. 로컬 DB 준비
 
