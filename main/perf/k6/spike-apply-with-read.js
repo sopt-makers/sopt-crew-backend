@@ -18,6 +18,8 @@ import { Counter, Rate, Trend } from "k6/metrics";
 //   1) spike 구간 조회 p95가 READ_P95_LIMIT_MS 이하
 //   2) spike 구간 조회 실패율이 READ_FAIL_RATE_LIMIT 미만 (빠르게 실패한 응답이 p95를 낮춰 통과하는 것을 막음)
 //   3) 모든 신청이 SPIKE_WINDOW 안에 끝남 (넘으면 이후 조회 지연이 after로 빠져 판단에서 누락되므로 실패 처리)
+//   4) 신청이 모두 성공함 (서로 다른 사용자의 최초 신청이라 실패가 없어야 한다.
+//      인증 서버 오류 등으로 빠르게 실패하면 apply_duration이 짧아져 기준을 통과하는 것을 막음)
 
 // ============================================
 // 환경변수
@@ -63,6 +65,7 @@ const readSpike = new Trend("read_duration_spike", true);
 const readAfter = new Trend("read_duration_after", true);
 const readFailed = new Rate("read_failed");
 const applyDuration = new Trend("apply_duration", true);
+const applyFailed = new Rate("apply_failed");
 const applyResult = new Counter("apply_result");
 const hikariPending = new Trend("hikari_pending");
 const hikariActive = new Trend("hikari_active");
@@ -115,6 +118,8 @@ export const options = {
         "read_failed{phase:spike}": [`rate<${READ_FAIL_RATE_LIMIT}`],
         // 판단 기준 3: 신청이 spike 구간 안에 모두 끝나야 spike 구간 조회 지연이 판단에 다 포함된다
         apply_duration: [`max<${SPIKE_WINDOW * 1000}`],
+        // 판단 기준 4: 신청 실패 없음
+        apply_failed: ["rate==0"],
         // 참고용 (실패해도 판단 기준은 아님)
         read_duration_before: ["p(95)>=0"],
         read_duration_after: ["p(95)>=0"],
@@ -140,7 +145,7 @@ export function setup() {
     console.log(`Apply users: ${X_USER_IDS.length > 0 ? X_USER_IDS.length : APPLY_USERS} (동시 1회씩)`);
     console.log(`Read TPS: ${READ_TPS} (detail: ${AUTH_TOKEN ? "on" : "off"})`);
     console.log(`Timeline: warmup ${WARMUP}s → spike ${SPIKE_WINDOW}s → cooldown ${COOLDOWN}s`);
-    console.log(`판단 기준: spike 조회 p95 < ${READ_P95_LIMIT_MS}ms, spike 조회 실패율 < ${READ_FAIL_RATE_LIMIT}, 신청 최대 < ${SPIKE_WINDOW}s`);
+    console.log(`판단 기준: spike 조회 p95 < ${READ_P95_LIMIT_MS}ms, spike 조회 실패율 < ${READ_FAIL_RATE_LIMIT}, 신청 최대 < ${SPIKE_WINDOW}s, 신청 실패 0건`);
     console.log(`Metrics: ${METRICS_BASE_URL || "off"}`);
     console.log("========================================");
 
@@ -228,6 +233,7 @@ export function applySpike() {
     );
 
     applyDuration.add(res.timings.duration);
+    applyFailed.add(res.status !== 201);
     applyResult.add(1, { status: String(res.status) });
     check(res, { "apply status is 201": (r) => r.status === 201 });
 }
