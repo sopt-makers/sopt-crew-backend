@@ -162,8 +162,11 @@ k6 run \
 | after | 30 ~ 50초 | 조회만 | `read_duration_after` (회복 여부) |
 
 - 조회는 인증 없이 DB를 조회하는 `GET /meeting/v2/org-user`를 사용합니다. `AUTH_TOKEN`을 주면 상세 조회도 함께 측정합니다.
-- `METRICS_BASE_URL`을 주면 DB 커넥션 대기 수(`hikari_pending`), 사용 중 커넥션(`hikari_active`), CPU(`process_cpu_usage`)를 1초마다 수집합니다.
-- 판단 기준(`READ_P95_LIMIT_MS`, 기본 1000ms)을 넘으면 `read_duration_spike` threshold가 실패로 표시됩니다.
+- `METRICS_BASE_URL`을 주면 DB 커넥션 대기 수(`hikari_pending`), 사용 중 커넥션(`hikari_active`), CPU(`process_cpu_usage`)를 초당 `METRICS_POLL_RATE`회(기본 10회) 수집합니다. 신청 폭주는 1~2초 안에 끝나서 1초 간격으로는 순간값을 놓칩니다.
+- 아래 판단 기준 중 하나라도 넘으면 해당 threshold가 실패로 표시됩니다.
+  - `read_duration_spike`: spike 구간 조회 p95 < `READ_P95_LIMIT_MS` (기본 1000ms)
+  - `read_failed{phase:spike}`: spike 구간 조회 실패율 < `READ_FAIL_RATE_LIMIT` (기본 0.01). 조회가 빠르게 실패하면 p95가 낮아져 통과하는 것을 막습니다.
+  - `apply_duration`: 신청 최대 응답 시간 < `SPIKE_WINDOW`. 신청이 구간을 넘기면 그 뒤의 조회 지연이 `after`로 빠져 판단에서 누락되므로 실패로 처리합니다. 이때는 `SPIKE_WINDOW`를 늘려 다시 측정하세요.
 
 ### 1. 로컬 DB 준비
 
@@ -223,7 +226,8 @@ k6 run \
 | `READ_TPS` | 20 | 조회 초당 요청 수 |
 | `READ_ORG_USER_ID` | 100000 | 조회 대상 사용자 |
 | `WARMUP` / `SPIKE_WINDOW` / `COOLDOWN` | 20 / 10 / 20 | 구간 길이(초) |
-| `READ_P95_LIMIT_MS` | 1000 | 판단 기준 |
+| `READ_P95_LIMIT_MS` | 1000 | 판단 기준: spike 구간 조회 p95 |
+| `READ_FAIL_RATE_LIMIT` | 0.01 | 판단 기준: spike 구간 조회 실패율 |
 | `METRICS_POLL_RATE` | 10 | 액추에이터 지표 수집 횟수(초당) |
 
 ### 4. 판단 방법

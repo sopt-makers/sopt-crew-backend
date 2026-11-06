@@ -1,7 +1,7 @@
 import http from "k6/http";
 import exec from "k6/execution";
 import { check } from "k6";
-import { Counter, Trend } from "k6/metrics";
+import { Counter, Rate, Trend } from "k6/metrics";
 
 // ============================================
 // 목적
@@ -14,7 +14,10 @@ import { Counter, Trend } from "k6/metrics";
 //   WARMUP ~ +SPIKE_WINDOW : 신청 APPLY_USERS건을 동시에 발사 + 조회 계속 → 폭주 중 조회 응답 시간 (spike)
 //   이후 ~ 끝               : 조회만 → 회복 여부 (after)
 //
-// 판단 기준: spike 구간 조회 p95가 READ_P95_LIMIT_MS 이하인지 (threshold로 PASS/FAIL 표시)
+// 판단 기준 (threshold로 PASS/FAIL 표시)
+//   1) spike 구간 조회 p95가 READ_P95_LIMIT_MS 이하
+//   2) spike 구간 조회 실패율이 READ_FAIL_RATE_LIMIT 미만 (빠르게 실패한 응답이 p95를 낮춰 통과하는 것을 막음)
+//   3) 모든 신청이 SPIKE_WINDOW 안에 끝남 (넘으면 이후 조회 지연이 after로 빠져 판단에서 누락되므로 실패 처리)
 
 // ============================================
 // 환경변수
@@ -45,6 +48,7 @@ const TOTAL = WARMUP + SPIKE_WINDOW + COOLDOWN;
 
 // 판단 기준
 const READ_P95_LIMIT_MS = Number(__ENV.READ_P95_LIMIT_MS || 1000);
+const READ_FAIL_RATE_LIMIT = Number(__ENV.READ_FAIL_RATE_LIMIT || 0.01);
 
 // 액추에이터 (선택): 예) http://localhost:<ACTUATOR_PORT><ACTUATOR_PATH>
 const METRICS_BASE_URL = (__ENV.METRICS_BASE_URL || "").replace(/\/$/, "");
@@ -57,6 +61,7 @@ const METRICS_POLL_RATE = Number(__ENV.METRICS_POLL_RATE || 10);
 const readBefore = new Trend("read_duration_before", true);
 const readSpike = new Trend("read_duration_spike", true);
 const readAfter = new Trend("read_duration_after", true);
+const readFailed = new Rate("read_failed");
 const applyDuration = new Trend("apply_duration", true);
 const applyResult = new Counter("apply_result");
 const hikariPending = new Trend("hikari_pending");
@@ -104,12 +109,17 @@ if (METRICS_BASE_URL) {
 export const options = {
     scenarios,
     thresholds: {
-        // 판단 기준: 신청 폭주 중 조회 p95
+        // 판단 기준 1: 신청 폭주 중 조회 p95
         read_duration_spike: [`p(95)<${READ_P95_LIMIT_MS}`],
+        // 판단 기준 2: 신청 폭주 중 조회 실패율
+        "read_failed{phase:spike}": [`rate<${READ_FAIL_RATE_LIMIT}`],
+        // 판단 기준 3: 신청이 spike 구간 안에 모두 끝나야 spike 구간 조회 지연이 판단에 다 포함된다
+        apply_duration: [`max<${SPIKE_WINDOW * 1000}`],
         // 참고용 (실패해도 판단 기준은 아님)
         read_duration_before: ["p(95)>=0"],
         read_duration_after: ["p(95)>=0"],
-        apply_duration: ["p(95)>=0"],
+        "read_failed{phase:before}": ["rate>=0"],
+        "read_failed{phase:after}": ["rate>=0"],
         hikari_pending: ["max>=0"],
     },
     summaryTrendStats: ["avg", "med", "p(90)", "p(95)", "p(99)", "max"],
@@ -130,7 +140,7 @@ export function setup() {
     console.log(`Apply users: ${X_USER_IDS.length > 0 ? X_USER_IDS.length : APPLY_USERS} (동시 1회씩)`);
     console.log(`Read TPS: ${READ_TPS} (detail: ${AUTH_TOKEN ? "on" : "off"})`);
     console.log(`Timeline: warmup ${WARMUP}s → spike ${SPIKE_WINDOW}s → cooldown ${COOLDOWN}s`);
-    console.log(`판단 기준: spike 구간 조회 p95 < ${READ_P95_LIMIT_MS}ms`);
+    console.log(`판단 기준: spike 조회 p95 < ${READ_P95_LIMIT_MS}ms, spike 조회 실패율 < ${READ_FAIL_RATE_LIMIT}, 신청 최대 < ${SPIKE_WINDOW}s`);
     console.log(`Metrics: ${METRICS_BASE_URL || "off"}`);
     console.log("========================================");
 
@@ -151,7 +161,10 @@ function phaseOf(startedAt) {
     return "after";
 }
 
-function recordRead(phase, durationMs) {
+function recordRead(phase, res) {
+    readFailed.add(res.status !== 200, { phase });
+
+    const durationMs = res.timings.duration;
     if (phase === "before") {
         readBefore.add(durationMs);
     } else if (phase === "spike") {
@@ -175,7 +188,7 @@ export function readTraffic(data) {
         { ...params, tags: { ...params.tags, name: "GET /meeting/v2/org-user" } },
     );
     check(orgUserRes, { "org-user status is 200": (r) => r.status === 200 });
-    recordRead(phase, orgUserRes.timings.duration);
+    recordRead(phase, orgUserRes);
 
     if (AUTH_TOKEN) {
         const detailRes = http.get(`${BASE_URL}/meeting/v2/${MEETING_ID}`, {
@@ -184,7 +197,7 @@ export function readTraffic(data) {
             tags: { ...params.tags, name: "GET /meeting/v2/{meetingId}" },
         });
         check(detailRes, { "detail status is 200": (r) => r.status === 200 });
-        recordRead(phase, detailRes.timings.duration);
+        recordRead(phase, detailRes);
     }
 }
 
