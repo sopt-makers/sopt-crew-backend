@@ -742,6 +742,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			getFirstImageUrl(dining),
 			dining.isDiningEnded(),
 			dining.getJoinableParts(),
+			dining.isJoinablePartsModified(),
 			toLeaderDto(userRepository.findById(dining.getUserId()).orElse(null)),
 			dining.checkMeetingLeader(userId),
 			isApprovedPayer,

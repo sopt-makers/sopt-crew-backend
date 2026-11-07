@@ -220,6 +220,7 @@ create table if not exists meeting
     "createdGeneration"           integer   default 32,
     "diningEndedAt"               timestamp,
     "isDateModified"              boolean   default false not null,
+    "isJoinablePartsModified"     boolean   default false not null,
     "createdTimestamp"    timestamp default CURRENT_TIMESTAMP,
     "modifiedTimestamp"    timestamp default CURRENT_TIMESTAMP
 );
