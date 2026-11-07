@@ -54,7 +54,12 @@ class S3ServicePreSignedUrlTest {
 		"JPEG, jpeg",
 		"image/jpeg, jpeg",
 		"image/png, png",
-		"IMAGE/WEBP, webp"
+		"IMAGE/WEBP, webp",
+		"'image/jpeg; charset=UTF-8', jpeg",
+		"'image/png;', png",
+		"'\u2003jpeg\u2003', jpeg",
+		"'\u3000image/gif\u2009', gif",
+		"'image/ webp ; q=1', webp"
 	})
 	void generatePreSignedUrl_withAllowedType_usesExtensionInObjectKey(String contentType, String extension) {
 		PreSignedUrlResponseDto response = s3Service.generatePreSignedUrl(contentType);
@@ -64,7 +69,7 @@ class S3ServicePreSignedUrlTest {
 
 	@ParameterizedTest(name = "{0}")
 	@ValueSource(strings = {"svg", "image/svg+xml", "heic", "bmp", "pdf", "application/pdf", "html", "jpeg/../x",
-		"png.html"})
+		"png.html", "image/svg+xml; charset=UTF-8", "; jpeg", "application/jpeg"})
 	void generatePreSignedUrl_withDisallowedType_throwsBadRequest(String contentType) {
 		assertThatThrownBy(() -> s3Service.generatePreSignedUrl(contentType))
 			.isInstanceOf(BadRequestException.class);
@@ -72,7 +77,7 @@ class S3ServicePreSignedUrlTest {
 
 	@ParameterizedTest
 	@NullAndEmptySource
-	@ValueSource(strings = {" "})
+	@ValueSource(strings = {" ", "\u2003"})
 	void generatePreSignedUrl_withoutContentType_throwsBadRequest(String contentType) {
 		assertThatThrownBy(() -> s3Service.generatePreSignedUrl(contentType))
 			.isInstanceOf(BadRequestException.class);
