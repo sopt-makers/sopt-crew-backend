@@ -276,6 +276,23 @@ class DiningV2QueryServiceTest {
 			assertThat(detail.isLeader()).isTrue();
 			assertThat(detail.rounds().get(0).myAttendanceStatus()).isEqualTo(MyAttendanceStatus.ATTENDING);
 		}
+		@Test
+		@DisplayName("참여 파트 구성이 바뀌면 상세에 참여 파트 수정됨으로 내려준다.")
+		void getDiningDetail_returnsJoinablePartsModified() {
+			// given
+			Integer meetingId = createDining(leader, "서버 파트 회식", "2024.04.30", MeetingJoinablePart.SERVER);
+			assertThat(diningV2Service.getDiningDetail(meetingId, leader.getId()).isJoinablePartsModified()).isFalse();
+
+			// when
+			diningV2Service.updateDining(meetingId, new DiningV2CreateAndUpdateDiningBodyDto(
+				"서버 파트 회식", null, null, null, "2024.04.30", null,
+				new MeetingJoinablePart[] {MeetingJoinablePart.SERVER, MeetingJoinablePart.WEB}, null), leader.getId());
+
+			// then
+			DiningV2GetDiningDetailResponseDto detail = diningV2Service.getDiningDetail(meetingId, leader.getId());
+			assertThat(detail.isJoinablePartsModified()).isTrue();
+			assertThat(detail.isDateModified()).isFalse();
+		}
 	}
 
 	@Nested

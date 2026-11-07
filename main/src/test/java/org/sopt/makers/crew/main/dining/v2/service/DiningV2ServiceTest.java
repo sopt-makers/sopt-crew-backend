@@ -296,6 +296,62 @@ class DiningV2ServiceTest {
 			assertThat(firstRound.isStartTimeModified()).isTrue();
 			assertThat(firstRound.isPlaceModified()).isFalse();
 			assertThat(firstRound.isLinkModified()).isFalse();
+			assertThat(dining.isJoinablePartsModified()).isFalse();
+		}
+
+		@Test
+		@DisplayName("참여 파트 구성이 바뀌면 참여 파트 수정됨으로 표시되고, 일자 수정됨은 표시되지 않는다.")
+		void updateDining_withChangedParts_marksJoinablePartsModified() {
+			// given
+			Integer meetingId = createDining();
+
+			// when
+			diningV2Service.updateDining(meetingId, new DiningV2CreateAndUpdateDiningBodyDto(
+				"서버 파트 회식", "1차 장소", NAVER_LINK, KAKAO_LINK, DINING_DATE, "18:00",
+				new MeetingJoinablePart[] {MeetingJoinablePart.SERVER, MeetingJoinablePart.WEB},
+				List.of(IMAGE_URL)), leader.getId());
+
+			// then
+			Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
+			assertThat(dining.isJoinablePartsModified()).isTrue();
+			assertThat(dining.isDateModified()).isFalse();
+		}
+
+		@Test
+		@DisplayName("참여 파트의 순서나 중복만 다르면 참여 파트 수정됨으로 표시하지 않는다.")
+		void updateDining_withSamePartsInDifferentOrder_doesNotMarkJoinablePartsModified() {
+			// given
+			Integer meetingId = diningV2Service.createDining(new DiningV2CreateAndUpdateDiningBodyDto(
+				"서버 파트 회식", "1차 장소", NAVER_LINK, KAKAO_LINK, DINING_DATE, "18:00",
+				new MeetingJoinablePart[] {MeetingJoinablePart.SERVER, MeetingJoinablePart.WEB},
+				List.of(IMAGE_URL)), leader.getId()).meetingId();
+
+			// when
+			diningV2Service.updateDining(meetingId, new DiningV2CreateAndUpdateDiningBodyDto(
+				"서버 파트 회식", "1차 장소", NAVER_LINK, KAKAO_LINK, DINING_DATE, "18:00",
+				new MeetingJoinablePart[] {MeetingJoinablePart.WEB, MeetingJoinablePart.SERVER,
+					MeetingJoinablePart.WEB},
+				List.of(IMAGE_URL)), leader.getId());
+
+			// then
+			assertThat(meetingRepository.findDiningByIdOrThrow(meetingId).isJoinablePartsModified()).isFalse();
+		}
+
+		@Test
+		@DisplayName("참여 파트가 바뀐 뒤 원래대로 되돌려도 수정됨 표시는 유지된다.")
+		void updateDining_revertParts_keepsJoinablePartsModified() {
+			// given
+			Integer meetingId = createDining();
+			diningV2Service.updateDining(meetingId, new DiningV2CreateAndUpdateDiningBodyDto(
+				"서버 파트 회식", "1차 장소", NAVER_LINK, KAKAO_LINK, DINING_DATE, "18:00",
+				new MeetingJoinablePart[] {MeetingJoinablePart.WEB}, List.of(IMAGE_URL)), leader.getId());
+
+			// when
+			diningV2Service.updateDining(meetingId,
+				diningBody(DINING_DATE, "1차 장소", "18:00", NAVER_LINK, List.of(IMAGE_URL)), leader.getId());
+
+			// then
+			assertThat(meetingRepository.findDiningByIdOrThrow(meetingId).isJoinablePartsModified()).isTrue();
 		}
 
 		@Test
