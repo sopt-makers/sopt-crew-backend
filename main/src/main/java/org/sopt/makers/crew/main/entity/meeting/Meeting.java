@@ -3,8 +3,11 @@ package org.sopt.makers.crew.main.entity.meeting;
 import static org.sopt.makers.crew.main.global.exception.ErrorStatus.*;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
@@ -192,6 +195,12 @@ public class Meeting extends BaseTimeEntity {
 	@Column(name = "isDateModified", nullable = false)
 	private boolean isDateModified;
 
+	/**
+	 * 회식 참여 파트 수정 여부 (회식 카테고리 전용)
+	 */
+	@Column(name = "isJoinablePartsModified", nullable = false)
+	private boolean isJoinablePartsModified;
+
 	@Builder
 	public Meeting(User user, Integer userId, Integer meetingDemandId, String title, String subTitle,
 		MeetingCategory category, List<ImageUrlVO> imageURL, LocalDateTime startDate, LocalDateTime endDate,
@@ -348,7 +357,8 @@ public class Meeting extends BaseTimeEntity {
 
 	/**
 	 * 회식 정보 수정. 종료된 회식은 수정할 수 없다.
-	 * 회식 일자가 실제로 바뀐 경우에만 수정됨 표시를 남긴다.
+	 * 회식 일자·참여 파트가 실제로 바뀐 경우에만 각각 수정됨 표시를 남긴다.
+	 * 참여 파트는 순서·중복과 무관하게 구성이 달라졌을 때만 바뀐 것으로 본다.
 	 */
 	public void updateDining(String title, List<ImageUrlVO> imageURL, LocalDateTime mStartDate,
 		LocalDateTime mEndDate, MeetingJoinablePart[] joinableParts) {
@@ -357,6 +367,9 @@ public class Meeting extends BaseTimeEntity {
 		if (!Objects.equals(this.mStartDate, mStartDate)) {
 			this.isDateModified = true;
 		}
+		if (!toPartSet(this.joinableParts).equals(toPartSet(joinableParts))) {
+			this.isJoinablePartsModified = true;
+		}
 
 		this.title = title;
 		this.imageURL = imageURL;
@@ -364,6 +377,15 @@ public class Meeting extends BaseTimeEntity {
 		this.mStartDate = mStartDate;
 		this.mEndDate = mEndDate;
 		this.joinableParts = joinableParts;
+	}
+
+	private static Set<MeetingJoinablePart> toPartSet(MeetingJoinablePart[] parts) {
+		if (parts == null) {
+			return Set.of();
+		}
+		return Arrays.stream(parts)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toSet());
 	}
 
 	public void endDining(LocalDateTime now) {
