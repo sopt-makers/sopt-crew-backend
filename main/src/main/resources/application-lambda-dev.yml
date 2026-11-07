@@ -17,6 +17,8 @@ spring:
 
   cache:
     type: ${DEV_CACHE_TYPE}
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=1m
   
   data:
     redis:
@@ -116,7 +118,7 @@ external:
 management:
   health:
     redis:
-      enabled: true
+      enabled: false
     diskspace:
       enabled: false
   endpoints:
