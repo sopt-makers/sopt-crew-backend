@@ -42,6 +42,7 @@ public class DiningDeletionHistoryRecorder {
 		data.put("joinableParts", toPartNames(meeting));
 		data.put("diningEndedAt", toText(meeting.getDiningEndedAt()));
 		data.put("isDateModified", meeting.isDateModified());
+		data.put("isJoinablePartsModified", meeting.isJoinablePartsModified());
 		data.put("createdGeneration", meeting.getCreatedGeneration());
 		data.put("createdTimestamp", toText(meeting.createdTimestamp));
 		data.put("rounds", rounds.stream()

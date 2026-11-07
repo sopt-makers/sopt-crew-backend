@@ -42,6 +42,10 @@ public record DiningV2GetDiningDetailResponseDto(
 	@NotNull
 	MeetingJoinablePart[] joinableParts,
 
+	@Schema(description = "참여 파트 (수정됨) 표시 여부. 참여 파트 구성이 실제로 바뀐 경우에만 true", example = "false")
+	@NotNull
+	boolean isJoinablePartsModified,
+
 	@Schema(description = "개설자")
 	@NotNull
 	DiningV2LeaderDto leader,
