@@ -141,7 +141,7 @@ public interface MeetingV2Api {
 	ResponseEntity<Void> updateApplyStatus(@PathVariable Integer meetingId,
 		@RequestBody @Valid ApplyV2UpdateStatusBodyDto requestBody, Principal principal);
 
-	@Operation(summary = "Meeting 썸네일 업로드용 Pre-Signed URL 발급", description = "Meeting 썸네일 업로드용 Pre-Signed URL 발급합니다.")
+	@Operation(summary = "Meeting 썸네일 업로드용 Pre-Signed URL 발급", description = "Meeting 썸네일 업로드용 Pre-Signed URL 발급합니다. </br> 허용 형식: jpg, jpeg, png, webp, gif (image/jpeg 처럼 MIME Type 으로 보내도 됩니다). 그 외 형식은 400 을 반환합니다.")
 	ResponseEntity<PreSignedUrlResponseDto> createPreSignedUrl(@PathParam("contentType") String contentType,
 		Principal principal);
 
