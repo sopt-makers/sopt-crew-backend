@@ -37,6 +37,17 @@ jwt:
   secret: ${DEV_JWT_SECRET}
   access-token:
     expire-length: ${ACCESS_TOKEN_EXPIRED_TIME}
+  jwk:
+    issuer: ${MAKERS_AUTH_JWK_ISSUER}
+
+# 인증 서버 연동 (lambda-dev와 동일하게 dev 인증 서버 사용)
+external:
+  auth:
+    url: ${DEV_EXTERNAL_AUTH_URL}
+    api-key: ${AUTH_API_KEY}
+    service-name: ${OUR_SERVICE_NAME}
+    jwk: ${MAKERS_AUTH_JWK_ENDPOINT}
+    users: ${MAKERS_AUTH_USERS_ENDPOINT}
 
 aws-property:
   aws-region: ${AWS_REGION}
@@ -118,7 +129,30 @@ sentry:
 
 img:
   flash: ${FLASH_IMAGE}
+  dining: ${DINING_IMAGE}
 
 thread-pool:
   core-size: ${PROD_THREAD_CORE_SIZE}
   thread-name-prefix: ${PROD_THREAD_NAME_PREFIX}
+
+# Slack 소켓 연결(SlackSocketModeStarter)은 prod 프로필에서만 동작한다
+slack:
+  bot-token: ${SLACK_BOT_TOKEN}
+  app-token: ${SLACK_APP_TOKEN}
+  api-auth-token: ${SLACK_API_AUTH_TOKEN}
+
+api:
+  secret: ${API_TEST_SECRET}
+
+turnstile:
+  secret: 1x0000000000000000000000000000000AA
+  hostnames: localhost
+  # false: 검증 실패 시 로그만 남기고 통과 (FE 배포 후 로그 확인 → true로 전환)
+  enforce: false
+  # Cloudflare 통신 장애 시 신청을 통과시킬지 여부
+  fail-open: ${TURNSTILE_FAIL_OPEN:true}
+
+apply:
+  rate-limit:
+    max-requests: ${APPLY_RATE_LIMIT_MAX_REQUESTS:3}
+    window-seconds: ${APPLY_RATE_LIMIT_WINDOW_SECONDS:10}

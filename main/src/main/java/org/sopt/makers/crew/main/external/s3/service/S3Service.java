@@ -13,7 +13,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.SimpleTimeZone;
 import java.util.UUID;
 
@@ -45,6 +47,11 @@ public class S3Service {
 	private static final String MEETING_TOP_PATH = "meeting_top";
 	private static final String S3_SERVCIE = "s3";
 	private static final String PRE_SIGNED_URL_PREFIX = "https://s3.ap-northeast-2.amazonaws.com";
+	private static final String IMAGE_MIME_TYPE_PREFIX = "image/";
+	/**
+	 * Pre-Signed URL 로 업로드 가능한 이미지 확장자 (FE 모임/회식 작성 정책과 동일: JPG/JPEG, PNG, WebP, GIF)
+	 */
+	private static final Set<String> ALLOWED_PRE_SIGNED_IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp", "gif");
 
 	private final S3Client s3Client;
 
@@ -55,9 +62,8 @@ public class S3Service {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 			String curDate = LocalDateTime.now().format(formatter);
 
-			String objectKey = MEETING_PATH + "/" + curDate + "/" + fileName;
-
 			File file = new File(fileName);
+			String objectKey = MEETING_PATH + "/" + curDate + "/" + file.getName();
 			PutObjectRequest putObjectRequest = PutObjectRequest.builder()
 				.bucket(awsProperties.getS3BucketName())
 				.key(objectKey)
@@ -113,7 +119,8 @@ public class S3Service {
 		calendar.add(Calendar.MINUTE, 10);
 		Date expirationDate = calendar.getTime();
 
-		String objectKey = getObjectKey(contentType);
+		String extension = toAllowedPreSignedImageExtension(contentType);
+		String objectKey = getObjectKey(extension);
 		String encodedPolicy = generateEncodedPolicy(awsProperties.getS3BucketName(), objectKey, dateTimeStamp,
 			dateStamp, expirationDate);
 
@@ -130,17 +137,46 @@ public class S3Service {
 	}
 
 	/**
+	 * Pre-Signed URL 발급 요청의 contentType 을 허용된 이미지 확장자로 변환한다.
+	 * 확장자(jpeg)와 MIME Type(image/jpeg) 형식을 모두 받으며, 허용 목록에 없으면 거부한다.
+	 * MIME 매개변수(image/jpeg; charset=UTF-8)는 제외하고, 앞뒤 공백은 Unicode 공백까지 제거한다.
+	 */
+	private String toAllowedPreSignedImageExtension(String contentType) {
+		if (contentType == null || contentType.isBlank()) {
+			throw new BadRequestException("이미지 파일의 Content-Type이 없습니다.");
+		}
+
+		String extension = removeMimeParameters(contentType).strip().toLowerCase(Locale.ROOT);
+		if (extension.startsWith(IMAGE_MIME_TYPE_PREFIX)) {
+			extension = extension.substring(IMAGE_MIME_TYPE_PREFIX.length()).strip();
+		}
+
+		if (!ALLOWED_PRE_SIGNED_IMAGE_EXTENSIONS.contains(extension)) {
+			throw new BadRequestException("JPG/JPEG, PNG, WebP, GIF 형식의 이미지만 업로드할 수 있습니다.");
+		}
+		return extension;
+	}
+
+	private String removeMimeParameters(String contentType) {
+		int parameterIndex = contentType.indexOf(';');
+		if (parameterIndex < 0) {
+			return contentType;
+		}
+		return contentType.substring(0, parameterIndex);
+	}
+
+	/**
 	 * 파일의 경로명을 랜덤으로 생성
 	 * @author @mikekks
-	 * @param contentType 파일의 컨텐츠 타입
+	 * @param extension 파일 확장자 (허용 목록 검증을 거친 값)
 	 * @returns 파일의 경로명
 	 */
-	private String getObjectKey(String contentType) {
+	private String getObjectKey(String extension) {
 		UUID uuid = UUID.randomUUID();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 		String curDate = LocalDateTime.now().format(formatter);
 
-		return MEETING_PATH + "/" + curDate + "/" + uuid + "." + contentType;
+		return MEETING_PATH + "/" + curDate + "/" + uuid + "." + extension;
 	}
 
 	private void validateImageFile(MultipartFile imageFile) {

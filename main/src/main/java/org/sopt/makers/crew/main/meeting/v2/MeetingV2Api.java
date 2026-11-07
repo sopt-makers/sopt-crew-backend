@@ -1,5 +1,7 @@
 package org.sopt.makers.crew.main.meeting.v2;
 
+import static org.sopt.makers.crew.main.meeting.v2.service.MeetingApplyGuard.*;
+
 import java.security.Principal;
 import java.util.List;
 
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,18 +70,29 @@ public interface MeetingV2Api {
 	@ApiResponses(value = {@ApiResponse(responseCode = "201", description = "지원 완료"),
 		@ApiResponse(responseCode = "400", description =
 			"\"모임이 없습니다\" or \"기수/파트를 설정해주세요\" or \"정원이 꽉찼습니다\" or \"활동 기수가 아닙니다\" " +
-				"or \"지원 가능한 파트가 아닙니다\" or \"지원 가능한 기간이 아닙니다\"", content = @Content),})
+				"or \"지원 가능한 파트가 아닙니다\" or \"지원 가능한 기간이 아닙니다\"", content = @Content),
+		@ApiResponse(responseCode = "403", description = "\"보안 확인에 실패했습니다.\" (Turnstile 검증 실패)", content = @Content),
+		@ApiResponse(responseCode = "423", description =
+			"\"현재 요청이 처리 중입니다.\" (같은 사용자의 같은 모임 신청이 처리 중일 때 즉시 거절)", content = @Content),
+		@ApiResponse(responseCode = "429", description = "\"요청이 너무 많습니다.\" (사용자별 rate limit)", content = @Content),})
 	ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyGeneralMeeting(
 		@RequestBody MeetingV2ApplyMeetingDto requestBody,
+		@Parameter(description = "Cloudflare Turnstile 위젯 토큰 (action=apply)")
+		@RequestHeader(value = TURNSTILE_TOKEN_HEADER, required = false) String turnstileToken,
 		Principal principal);
 
 	@Operation(hidden = true, summary = "행사 모임 지원")
 	@ApiResponses(value = {@ApiResponse(responseCode = "201", description = "지원 완료"),
 		@ApiResponse(responseCode = "400", description =
 			"\"모임이 없습니다\" or \"기수/파트를 설정해주세요\" or \"정원이 꽉찼습니다\" or \"활동 기수가 아닙니다\" " +
-				"or \"지원 가능한 파트가 아닙니다\" or \"지원 가능한 기간이 아닙니다\"", content = @Content),})
+				"or \"지원 가능한 파트가 아닙니다\" or \"지원 가능한 기간이 아닙니다\"", content = @Content),
+		@ApiResponse(responseCode = "403", description = "\"보안 확인에 실패했습니다.\" (Turnstile 검증 실패)", content = @Content),
+		@ApiResponse(responseCode = "423", description =
+			"\"현재 요청이 처리 중입니다.\" (같은 사용자의 같은 모임 신청이 처리 중일 때 즉시 거절)", content = @Content),
+		@ApiResponse(responseCode = "429", description = "\"요청이 너무 많습니다.\" (사용자별 rate limit)", content = @Content),})
 	ResponseEntity<MeetingV2ApplyMeetingResponseDto> applyEventMeeting(
 		@RequestBody MeetingV2ApplyMeetingDto requestBody,
+		@RequestHeader(value = TURNSTILE_TOKEN_HEADER, required = false) String turnstileToken,
 		Principal principal);
 
 	@Operation(summary = "모임 지원 취소")
@@ -127,7 +141,7 @@ public interface MeetingV2Api {
 	ResponseEntity<Void> updateApplyStatus(@PathVariable Integer meetingId,
 		@RequestBody @Valid ApplyV2UpdateStatusBodyDto requestBody, Principal principal);
 
-	@Operation(summary = "Meeting 썸네일 업로드용 Pre-Signed URL 발급", description = "Meeting 썸네일 업로드용 Pre-Signed URL 발급합니다.")
+	@Operation(summary = "Meeting 썸네일 업로드용 Pre-Signed URL 발급", description = "Meeting 썸네일 업로드용 Pre-Signed URL 발급합니다. </br> 허용 형식: jpg, jpeg, png, webp, gif (image/jpeg 처럼 MIME Type 으로 보내도 됩니다). 그 외 형식은 400 을 반환합니다.")
 	ResponseEntity<PreSignedUrlResponseDto> createPreSignedUrl(@PathParam("contentType") String contentType,
 		Principal principal);
 

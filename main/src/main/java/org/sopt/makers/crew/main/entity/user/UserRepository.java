@@ -21,6 +21,8 @@ public interface UserRepository {
 
 	List<Integer> findAllOrgIds();
 
+	List<User> findAllByActivityGeneration(Integer generation);
+
 	Optional<UserKeywordsProjection> findInterestedKeywordsByUserId(Integer userId);
 
 	// 해당 메서드 사용하지 않음 -> test를 위해서만 사용되는 친구

@@ -6,6 +6,7 @@ import java.util.Objects;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.sopt.makers.crew.main.global.annotation.NoExecutionLogging;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,11 +30,17 @@ public class ExecutionLoggingAop {
 	/**
 	 * @implNote : 일부 클래스를 제외하고, 모든 클래스의 메서드의 시작과 끝을 로깅한다.
 	 * @implNote : 제외 클래스 - global 패키지, config 관련 패키지, Test 클래스, redis 클래스
+	 * @implNote : {@link NoExecutionLogging}이 붙은 클래스·메서드와 모임 신청 엔티티 변환도 제외한다.
+	 *           모임 신청은 오픈 순간 요청이 몰려 파라미터 리플렉션 로깅이 병목이 되므로(#910 부하 테스트),
+	 *           {@code ApplyResultLoggingAop}가 신청 결과를 한 줄로 대신 남긴다.
 	 */
 	@Around("execution(* org.sopt.makers.crew.main..*(..)) "
 		+ "&& !within(org.sopt.makers.crew.main.global..*) "
 		+ "&& !within(org.sopt.makers.crew.main.external.s3.config..*)"
-		+ "&& !within(org.sopt.makers.crew.main.external.redis..*) ")
+		+ "&& !within(org.sopt.makers.crew.main.external.redis..*) "
+		+ "&& !@within(org.sopt.makers.crew.main.global.annotation.NoExecutionLogging) "
+		+ "&& !@annotation(org.sopt.makers.crew.main.global.annotation.NoExecutionLogging) "
+		+ "&& !execution(* org.sopt.makers.crew.main.meeting.v2.dto.ApplyMapper.toApply*Entity(..)) ")
 	public Object logExecutionTrace(ProceedingJoinPoint pjp) throws Throwable {
 		// 추출 - 요청/메서드 컨텍스트 정보 및 클래스/메서드명
 		RequestContextInfo ctxInfo = extractRequestContext();

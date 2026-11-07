@@ -23,6 +23,18 @@ public enum ErrorStatus {
 	ALREADY_REPORTED_COMMENT("이미 신고한 댓글입니다."),
 	ALREADY_REPORTED_POST("이미 신고한 게시글입니다."),
 	ALREADY_REPORTED_MEETING_DEMAND("이미 신고한 모임 수요입니다."),
+	ENDED_DINING("종료된 회식입니다."),
+	ALREADY_CLOSED_DINING_ROUND("이미 마감된 회차입니다."),
+	ALREADY_REQUESTED_DINING_PAYER("이미 결제자 요청을 했습니다."),
+	NOT_APPROVED_DINING_PAYER("승인된 공동 결제자가 아닙니다."),
+	CANNOT_REQUEST_DINING_PAYER_AS_LEADER("개설자는 공동 결제자를 요청할 수 없습니다."),
+	NOT_PENDING_DINING_PAYER("승인 대기 중인 결제자 요청이 없습니다."),
+	PAST_DINING_DATE("지난 날짜로 회식을 등록할 수 없습니다."),
+	INVALID_DINING_MAP_LINK("네이버지도 또는 카카오맵 링크만 등록할 수 있습니다."),
+	CANNOT_DELETE_DINING_WITH_CLOSED_ROUND("마감된 회차가 있는 회식은 삭제할 수 없습니다."),
+	CANNOT_DELETE_CLOSED_DINING_ROUND("마감된 회차는 삭제할 수 없습니다."),
+	ALREADY_ATTENDED_DINING_ROUND("이미 참석 중인 회차입니다."),
+	CANNOT_DELETE_FIRST_DINING_ROUND("1차는 회식 삭제로만 삭제할 수 있습니다."),
 	ALREADY_REPORTED_MEETING_DEMAND_COMMENT("이미 신고한 모임 수요 댓글입니다."),
 	NOT_IN_APPLY_PERIOD("모임 지원 기간이 아닙니다."),
 	INVALID_MEETING_CATEGORY("유효하지 않은 모임 카테고리입니다."),
@@ -76,6 +88,7 @@ public enum ErrorStatus {
 	 */
 	FORBIDDEN_EXCEPTION("권한이 없습니다."),
 	FORBIDDEN_SOPT_MAP_UPDATE("솝맵을 수정할 권한이 없습니다."),
+	CAPTCHA_FAILED("보안 확인에 실패했습니다. 새로고침 후 다시 시도해주세요."),
 
 	/**
 	 * 404 NOT_FOUND
@@ -91,6 +104,9 @@ public enum ErrorStatus {
 	NOT_FOUND_PROPERTY_STRATEGY("적절한 프로퍼티 반환 전략을 찾을 수 없습니다"),
 	NOT_FOUND_SOPT_MAP("존재하지 않는 솝맵입니다."),
 	NOT_FOUND_SUBWAY_STATION("존재하지 않는 지하철역입니다."),
+	NOT_FOUND_DINING("존재하지 않는 회식입니다."),
+	NOT_FOUND_DINING_ATTENDANCE("존재하지 않는 회차 참석 기록입니다."),
+	NOT_FOUND_DINING_ROUND("존재하지 않는 회차입니다."),
 
 	/**
 	 * 405 METHOD_NOT_ALLOWED
@@ -102,6 +118,11 @@ public enum ErrorStatus {
 	 * 423 LOCKED
 	 */
 	LOCK_ACQUISITION_TIMEOUT("현재 요청이 처리 중입니다. 잠시 후 다시 시도해주세요."),
+
+	/**
+	 * 429 TOO_MANY_REQUESTS
+	 */
+	TOO_MANY_REQUESTS("요청이 너무 많습니다. 잠시 후 다시 시도해주세요."),
 
 	/**
 	 * 500 SERVER_ERROR

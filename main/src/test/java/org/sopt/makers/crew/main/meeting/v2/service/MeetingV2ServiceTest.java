@@ -66,6 +66,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @IntegratedTest
 @Import(CaffeineTestConfig.class)
@@ -1850,7 +1852,17 @@ public class MeetingV2ServiceTest {
 		}
 	}
 
+	/**
+	 * 실제 신청 경로(in-flight guard + REQUIRES_NEW 신청 트랜잭션)를 검증한다.
+	 * 신청 트랜잭션은 테스트 트랜잭션 밖에서 커밋되므로, 이 클래스는 테스트 트랜잭션을 끄고
+	 * 매 테스트 전후로 데이터를 비운다. (MeetingV2ConcurrencyTest와 같은 방식)
+	 */
 	@Nested
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	@SqlGroup({
+		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+		@Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+	})
 	class 모임_지원 {
 		@Test
 		@DisplayName("정상적인 모임 지원 시, 지원 내역이 성공적으로 저장된다.")
@@ -1903,7 +1915,7 @@ public class MeetingV2ServiceTest {
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
 
 			// when
-			MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyGeneralMeeting(applyDto,
+			MeetingV2ApplyMeetingResponseDto response = meetingV2Service.applyGeneralMeetingGuarded(applyDto,
 				applicant.getId());
 
 			// then
@@ -1978,7 +1990,7 @@ public class MeetingV2ServiceTest {
 			MeetingV2ApplyMeetingDto applyDto2 = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기 2");
 
 			// when & then
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto2, applicant2.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeetingGuarded(applyDto2, applicant2.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("정원이 꽉 찼습니다.");
 		}
@@ -2043,7 +2055,7 @@ public class MeetingV2ServiceTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, applicant.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeetingGuarded(applyDto, applicant.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("이미 지원한 모임입니다.");
 		}
@@ -2096,7 +2108,7 @@ public class MeetingV2ServiceTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, applicant.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeetingGuarded(applyDto, applicant.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessageContaining("지원 기간이 아닙니다.");
 		}
@@ -2169,7 +2181,7 @@ public class MeetingV2ServiceTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, savedCoLeader1.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeetingGuarded(applyDto, savedCoLeader1.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessage("공동 모임장은 신청할 수 없습니다.");
 		}
@@ -2214,7 +2226,7 @@ public class MeetingV2ServiceTest {
 
 			// when & then
 			MeetingV2ApplyMeetingDto applyDto = new MeetingV2ApplyMeetingDto(meeting.getId(), "지원 동기");
-			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeeting(applyDto, leader.getId()))
+			Assertions.assertThatThrownBy(() -> meetingV2Service.applyGeneralMeetingGuarded(applyDto, leader.getId()))
 				.isInstanceOf(BadRequestException.class)
 				.hasMessage("모임장은 신청할 수 없습니다.");
 		}
@@ -2271,13 +2283,13 @@ public class MeetingV2ServiceTest {
 
 			// when & then
 			Assertions.assertThatThrownBy(() ->
-					meetingV2Service.applyGeneralMeeting(applyDto, applicant.getId())
+					meetingV2Service.applyGeneralMeetingGuarded(applyDto, applicant.getId())
 				).isInstanceOf(BadRequestException.class)
 				.hasMessageContaining(INVALID_MEETING_CATEGORY.getErrorCode());
 		}
 
 		@ParameterizedTest
-		@EnumSource(value = MeetingCategory.class, names = "EVENT", mode = EnumSource.Mode.EXCLUDE)
+		@EnumSource(value = MeetingCategory.class, names = {"EVENT", "DINING"}, mode = EnumSource.Mode.EXCLUDE)
 		@DisplayName("행사 카테고리가 아닌 다른 카테고리로 행사 모임 신청 API로 호출 시 예외가 발생되어야 한다.")
 		void applyEventMeeting_WhenCategoryIsNotEvent_ShouldThrowException(MeetingCategory category) {
 			// given
@@ -2329,7 +2341,7 @@ public class MeetingV2ServiceTest {
 
 			// when & then
 			Assertions.assertThatThrownBy(() ->
-					meetingV2Service.applyEventMeeting(applyDto, applicant.getId())
+					meetingV2Service.applyEventMeetingGuarded(applyDto, applicant.getId())
 				).isInstanceOf(BadRequestException.class)
 				.hasMessageContaining(INVALID_MEETING_CATEGORY.getErrorCode());
 		}
