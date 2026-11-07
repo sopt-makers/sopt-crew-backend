@@ -139,21 +139,30 @@ public class S3Service {
 	/**
 	 * Pre-Signed URL 발급 요청의 contentType 을 허용된 이미지 확장자로 변환한다.
 	 * 확장자(jpeg)와 MIME Type(image/jpeg) 형식을 모두 받으며, 허용 목록에 없으면 거부한다.
+	 * MIME 매개변수(image/jpeg; charset=UTF-8)는 제외하고, 앞뒤 공백은 Unicode 공백까지 제거한다.
 	 */
 	private String toAllowedPreSignedImageExtension(String contentType) {
 		if (contentType == null || contentType.isBlank()) {
 			throw new BadRequestException("이미지 파일의 Content-Type이 없습니다.");
 		}
 
-		String extension = contentType.trim().toLowerCase(Locale.ROOT);
+		String extension = removeMimeParameters(contentType).strip().toLowerCase(Locale.ROOT);
 		if (extension.startsWith(IMAGE_MIME_TYPE_PREFIX)) {
-			extension = extension.substring(IMAGE_MIME_TYPE_PREFIX.length());
+			extension = extension.substring(IMAGE_MIME_TYPE_PREFIX.length()).strip();
 		}
 
 		if (!ALLOWED_PRE_SIGNED_IMAGE_EXTENSIONS.contains(extension)) {
 			throw new BadRequestException("JPG/JPEG, PNG, WebP, GIF 형식의 이미지만 업로드할 수 있습니다.");
 		}
 		return extension;
+	}
+
+	private String removeMimeParameters(String contentType) {
+		int parameterIndex = contentType.indexOf(';');
+		if (parameterIndex < 0) {
+			return contentType;
+		}
+		return contentType.substring(0, parameterIndex);
 	}
 
 	/**
