@@ -365,8 +365,8 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	public DiningV2GetAttendeeManagementResponseDto getAttendees(Integer meetingId, Integer roundId,
 		DiningV2GetAttendeesQueryDto queryCommand, Integer userId) {
 		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
-		findRoundOfDining(meetingId, roundId);
-		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
+		DiningRound round = findRoundOfDining(meetingId, roundId);
+		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, round, userId);
 		boolean ascending = "asc".equals(queryCommand.getDate());
 		Sort.Direction direction = ascending ? Sort.Direction.ASC : Sort.Direction.DESC;
 		PageRequest pageable = PageRequest.of(queryCommand.getPage() - 1, queryCommand.getTake(),
@@ -390,8 +390,8 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	@Override
 	public DiningV2GetAttendeesCsvResponseDto getAttendeesCsv(Integer meetingId, Integer roundId, Integer userId) {
 		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
-		findRoundOfDining(meetingId, roundId);
-		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
+		DiningRound round = findRoundOfDining(meetingId, roundId);
+		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, round, userId);
 
 		List<DiningAttendance> attendances = diningAttendanceRepository
 			.findAllByRoundIdOrderByCreatedTimestampAscIdAsc(roundId);
@@ -469,7 +469,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	public void addAttendee(Integer meetingId, Integer roundId, Integer attendeeUserId, Integer userId) {
 		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
 		DiningRound round = findRoundOfDining(meetingId, roundId);
-		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
+		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, round, userId);
 		addAttendance(round, attendeeUserId);
 		eventPublisher.publishEvent(new DiningAttendeeAddedEvent(meetingId, dining.getTitle(),
 			getRounds(meetingId).getRoundNumber(roundId), attendeeUserId));
@@ -480,7 +480,7 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	public void deleteAttendee(Integer meetingId, Integer roundId, Integer attendeeUserId, Integer userId) {
 		Meeting dining = meetingRepository.findDiningByIdOrThrow(meetingId);
 		DiningRound round = findRoundOfDining(meetingId, roundId);
-		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, userId);
+		diningPermissionValidator.validateLeaderOrApprovedPayer(dining, round, userId);
 		deleteAttendance(round, attendeeUserId, userId);
 		// 관리자가 자기 자신을 삭제한 경우는 알리지 않는다.
 		if (!attendeeUserId.equals(userId)) {

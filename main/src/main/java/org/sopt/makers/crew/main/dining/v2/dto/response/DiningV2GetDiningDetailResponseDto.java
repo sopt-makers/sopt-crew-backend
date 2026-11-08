@@ -54,7 +54,7 @@ public record DiningV2GetDiningDetailResponseDto(
 	@NotNull
 	boolean isLeader,
 
-	@Schema(description = "조회자가 승인된 공동 결제자인지 여부", example = "false")
+	@Schema(description = "조회자가 회식 내 하나 이상의 회차에서 승인된 공동 결제자인지 여부. 회차 관리 권한은 isLeader 또는 해당 회차의 myPayerStatus가 APPROVED인지로 판단", example = "false")
 	@NotNull
 	boolean isApprovedPayer,
 
