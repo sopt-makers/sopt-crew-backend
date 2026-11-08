@@ -7,7 +7,6 @@ import static org.springframework.test.util.ReflectionTestUtils.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -46,7 +45,6 @@ import org.sopt.makers.crew.main.meeting.v2.dto.FlashMeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.MeetingMapper;
 import org.sopt.makers.crew.main.meeting.v2.dto.response.MeetingV2CreateAndUpdateMeetingForFlashResponseDto;
 import org.sopt.makers.crew.main.tag.v2.service.TagV2Service;
-import org.sopt.makers.crew.main.user.v2.service.lock.UserLockManager;
 import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
@@ -83,7 +81,9 @@ class MeetingV2ServiceFlashTest {
 	@Mock
 	private TagV2Service tagV2Service;
 	@Mock
-	private UserLockManager userLockManager;
+	private MeetingApplyTransactionalService meetingApplyTransactionalService;
+	@Mock
+	private MeetingApplyInFlightGuard meetingApplyInFlightGuard;
 	@Mock
 	private MeetingMapper meetingMapper;
 	@Spy
@@ -194,7 +194,7 @@ class MeetingV2ServiceFlashTest {
 			doReturn("https://image.test/default-flash.png").when(imageSettingProperties).getDefaultFlashImage();
 			doReturn(35).when(activeGenerationProvider).getActiveGeneration();
 			doReturn(fixedTime).when(time).now();
-			doReturn(Optional.of(existingMeeting)).when(meetingRepository).findById(100);
+			doReturn(existingMeeting).when(meetingRepository).findByIdOrThrow(100);
 
 			// when
 			MeetingV2CreateAndUpdateMeetingForFlashResponseDto response = meetingV2Service.updateMeetingForFlash(100, 1, flashBody);

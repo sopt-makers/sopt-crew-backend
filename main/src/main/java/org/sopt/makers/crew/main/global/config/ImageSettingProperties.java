@@ -8,8 +8,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ImageSettingProperties {
 	private final String flash;
+	private final String dining;
 
 	public String getDefaultFlashImage() {
 		return flash;
+	}
+
+	public String getDefaultDiningImage() {
+		return dining;
 	}
 }
