@@ -47,17 +47,7 @@ public interface DiningAttendanceRepository extends JpaRepository<DiningAttendan
 
 	long countByRoundId(Integer roundId);
 
-	/**
-	 * @implSpec : 회식 단위 권한 확인. 해당 회식의 회차 중 하나라도 주어진 결제자 상태면 true
-	 */
-	@Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END "
-		+ "FROM DiningAttendance a, DiningRound r "
-		+ "WHERE a.roundId = r.id "
-		+ "AND r.meetingId = :meetingId "
-		+ "AND a.userId = :userId "
-		+ "AND a.payerStatus = :payerStatus")
-	boolean existsByMeetingIdAndUserIdAndPayerStatus(@Param("meetingId") Integer meetingId,
-		@Param("userId") Integer userId, @Param("payerStatus") DiningPayerStatus payerStatus);
+	boolean existsByRoundIdAndUserIdAndPayerStatus(Integer roundId, Integer userId, DiningPayerStatus payerStatus);
 
 	/**
 	 * 목록 카드용. 주어진 회식 중 사용자가 해당 결제자 상태인 회차가 있는 회식 id
