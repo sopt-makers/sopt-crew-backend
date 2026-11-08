@@ -25,6 +25,7 @@ import org.sopt.makers.crew.main.entity.dining.DiningDeletionHistoryRepository;
 import org.sopt.makers.crew.main.entity.dining.DiningRound;
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
 import org.sopt.makers.crew.main.entity.dining.enums.DiningDeletionTargetType;
+import org.sopt.makers.crew.main.entity.dining.enums.DiningPayerStatus;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
 import org.sopt.makers.crew.main.entity.user.User;
@@ -163,6 +164,8 @@ class DiningDeletionConcurrencyTest {
 
 			transaction.executeWithoutResult(status -> {
 				assertThat(attendanceRepository.findById(fixture.attendanceId())).isEmpty();
+				assertThat(attendanceRepository.existsByRoundIdAndUserIdAndPayerStatus(
+					fixture.roundId(), fixture.requesterId(), DiningPayerStatus.APPROVED)).isFalse();
 				var histories = historyRepository.findAll().stream()
 					.filter(history -> history.getMeetingId().equals(fixture.meetingId())).toList();
 				assertThat(histories).hasSize(1);

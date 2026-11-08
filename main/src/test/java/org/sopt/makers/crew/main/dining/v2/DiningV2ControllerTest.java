@@ -12,6 +12,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -54,11 +56,32 @@ class DiningV2ControllerTest {
 		verify(diningV2Service, never()).getAttendees(anyInt(), anyInt(), any(), anyInt());
 	}
 
-	@Test
-	void csvRoute_returnsForbiddenForUnauthorizedUser() throws Exception {
-		given(diningV2Service.getAttendeesCsv(1, 2, 3)).willThrow(new ForbiddenException());
-		mockMvc.perform(get("/dining/v2/1/rounds/2/attendees/csv").principal(() -> "3"))
-			.andExpect(status().isForbidden());
+	@ParameterizedTest
+	@ValueSource(strings = {"list", "csv", "add", "delete"})
+	void managementRoutes_returnForbiddenForUnapprovedRound(String operation) throws Exception {
+		var request = switch (operation) {
+			case "list" -> {
+				given(diningV2Service.getAttendees(eq(1), eq(2), any(), eq(3)))
+					.willThrow(new ForbiddenException());
+				yield get("/dining/v2/1/rounds/2/attendees");
+			}
+			case "csv" -> {
+				given(diningV2Service.getAttendeesCsv(1, 2, 3)).willThrow(new ForbiddenException());
+				yield get("/dining/v2/1/rounds/2/attendees/csv");
+			}
+			case "add" -> {
+				willThrow(new ForbiddenException()).given(diningV2Service).addAttendee(1, 2, 4, 3);
+				yield post("/dining/v2/1/rounds/2/attendees").contentType("application/json")
+					.content("{\"userId\":4}");
+			}
+			case "delete" -> {
+				willThrow(new ForbiddenException()).given(diningV2Service).deleteAttendee(1, 2, 4, 3);
+				yield delete("/dining/v2/1/rounds/2/attendees/4");
+			}
+			default -> throw new IllegalArgumentException(operation);
+		};
+
+		mockMvc.perform(request.principal(() -> "3")).andExpect(status().isForbidden());
 	}
 
 	@Test

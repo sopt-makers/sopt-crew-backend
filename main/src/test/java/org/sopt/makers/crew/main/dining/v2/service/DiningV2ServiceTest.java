@@ -620,16 +620,15 @@ class DiningV2ServiceTest {
 
 		@ParameterizedTest
 		@ValueSource(booleans = {false, true})
-		@DisplayName("다른 회차에서 승인된 공동 결제자도 선택 회차의 CSV를 받으며 종료 후에도 가능하다.")
-		void approvedPayerInAnotherRound_canDownload(boolean ended) throws Exception {
-			Integer secondRoundId = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
-			diningV2Service.applyAttendance(meetingId, secondRoundId, member.getId());
-			diningV2Service.requestPayer(meetingId, secondRoundId, member.getId());
-			diningV2Service.approvePayer(meetingId, secondRoundId, member.getId(), leader.getId());
+		@DisplayName("해당 회차에서 승인된 공동 결제자는 CSV를 받으며 종료 후에도 가능하다.")
+		void approvedPayerInTargetRound_canDownload(boolean ended) throws Exception {
+			diningV2Service.applyAttendance(meetingId, roundId, member.getId());
+			diningV2Service.requestPayer(meetingId, roundId, member.getId());
+			diningV2Service.approvePayer(meetingId, roundId, member.getId(), leader.getId());
 			if (ended) {
 				diningV2Service.endDining(meetingId, leader.getId());
 			}
-			assertThat(download(member.getId())).hasSize(2);
+			assertThat(download(member.getId())).hasSize(3);
 		}
 
 		@ParameterizedTest
@@ -1510,47 +1509,141 @@ class DiningV2ServiceTest {
 		}
 
 		@ParameterizedTest
-		@ValueSource(booleans = {false, true})
-		void deletingAttendance_keepsPermissionOnlyIfAnotherApprovalRemains(boolean anotherApproval) {
+		@CsvSource({
+			"list,none", "csv,none", "add,none", "delete,none",
+			"list,pending", "csv,pending", "add,pending", "delete,pending",
+			"list,approved", "csv,approved", "add,approved", "delete,approved"
+		})
+		@DisplayName("네 참석자 관리 API는 요청한 회차의 승인 상태만으로 권한을 판단한다.")
+		void management_requiresApprovalInTargetRound(String operation, String secondRoundState) {
 			request();
 			approve();
-			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
-			diningV2Service.applyAttendance(meetingId, second, member.getId());
-			if (anotherApproval) {
-				diningV2Service.requestPayer(meetingId, second, member.getId());
-				diningV2Service.approvePayer(meetingId, second, member.getId(), leader.getId());
+			Integer secondRoundId = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, secondRoundId, member.getId());
+			if (!secondRoundState.equals("none")) {
+				diningV2Service.requestPayer(meetingId, secondRoundId, member.getId());
 			}
-			assertThat(diningV2Service.getAttendees(meetingId, second, new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()))
-				.isNotNull();
-			diningV2Service.deleteAttendee(meetingId, roundId, member.getId(), member.getId());
-			assertThat(diningAttendanceRepository.findByRoundIdAndUserId(roundId, member.getId())).isEmpty();
-			assertThat(diningDeletionHistoryRepository.findAll()).anyMatch(h -> h.getDeletedByUserId().equals(member.getId()));
-			if (anotherApproval) {
-				assertThat(diningV2Service.getAttendees(meetingId, second, new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()))
-					.isNotNull();
+			if (secondRoundState.equals("approved")) {
+				diningV2Service.approvePayer(meetingId, secondRoundId, member.getId(), leader.getId());
+			}
+			User attendee = userRepository.save(createUser("관리 대상", 3));
+
+			assertThatCode(() -> manage(operation, roundId, attendee.getId(), member.getId())).doesNotThrowAnyException();
+			clearInvocations(diningAttendanceRepository, userRepository, s3Service);
+
+			if (secondRoundState.equals("approved")) {
+				assertThatCode(() -> manage(operation, secondRoundId, attendee.getId(), member.getId()))
+					.doesNotThrowAnyException();
 			} else {
-				assertThatThrownBy(() -> diningV2Service.getAttendees(meetingId, second,
-					new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId())).isInstanceOf(ForbiddenException.class);
+				assertThatThrownBy(() -> manage(operation, secondRoundId, attendee.getId(), member.getId()))
+					.isInstanceOf(ForbiddenException.class).hasMessageContaining(FORBIDDEN_EXCEPTION.getErrorCode());
+				verify(diningAttendanceRepository).existsByRoundIdAndUserIdAndPayerStatus(
+					secondRoundId, member.getId(), DiningPayerStatus.APPROVED);
+				verifyNoMoreInteractions(diningAttendanceRepository);
+				verifyNoInteractions(userRepository, s3Service);
 			}
 		}
 
 		@ParameterizedTest
-		@CsvSource({"cancel,false", "cancel,true", "round,false", "round,true"})
-		void attendanceOrRoundDeletion_updatesMeetingPermission(String deletion, boolean anotherApproval) {
+		@ValueSource(strings = {"list", "csv", "add", "delete"})
+		@DisplayName("개설자는 공동 결제자 승인 없이 모든 회차의 참석자를 관리한다.")
+		void leader_managesEveryRoundWithoutPayerLookup(String operation) {
+			Integer secondRoundId = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			User attendee = userRepository.save(createUser("관리 대상", 3));
+			clearInvocations(diningAttendanceRepository);
+
+			assertThatCode(() -> manage(operation, roundId, attendee.getId(), leader.getId())).doesNotThrowAnyException();
+			assertThatCode(() -> manage(operation, secondRoundId, attendee.getId(), leader.getId())).doesNotThrowAnyException();
+
+			verify(diningAttendanceRepository, never()).existsByRoundIdAndUserIdAndPayerStatus(anyInt(), anyInt(), any());
+		}
+
+		private void manage(String operation, Integer targetRoundId, Integer attendeeUserId, Integer actorUserId) {
+			switch (operation) {
+				case "list" -> diningV2Service.getAttendees(meetingId, targetRoundId,
+					new DiningV2GetAttendeesQueryDto(1, 10, "desc"), actorUserId);
+				case "csv" -> diningV2Service.getAttendeesCsv(meetingId, targetRoundId, actorUserId);
+				case "add" -> diningV2Service.addAttendee(meetingId, targetRoundId, attendeeUserId, actorUserId);
+				case "delete" -> diningV2Service.deleteAttendee(meetingId, targetRoundId, leader.getId(), actorUserId);
+				default -> throw new IllegalArgumentException(operation);
+			}
+		}
+
+		private void assertManagementForbidden(Integer targetRoundId) {
+			for (String operation : List.of("list", "csv", "add", "delete")) {
+				assertThatThrownBy(() -> manage(operation, targetRoundId, member.getId(), member.getId()))
+					.isInstanceOf(ForbiddenException.class).hasMessageContaining(FORBIDDEN_EXCEPTION.getErrorCode());
+			}
+		}
+
+		@ParameterizedTest
+		@CsvSource({
+			"cancel,false", "cancel,true", "leader,false", "leader,true", "self,false", "self,true"
+		})
+		@DisplayName("1차 참석 취소·삭제는 1차 권한만 없애고 2차 승인 상태와 권한을 유지한다.")
+		void deletingAttendance_removesOnlyTargetRoundPermission(String deletion, boolean anotherApproval) {
+			request();
+			approve();
+			Integer secondRoundId = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, secondRoundId, member.getId());
+			if (anotherApproval) {
+				diningV2Service.requestPayer(meetingId, secondRoundId, member.getId());
+				diningV2Service.approvePayer(meetingId, secondRoundId, member.getId(), leader.getId());
+			}
+			var secondAttendance = diningAttendanceRepository.findByRoundIdAndUserId(secondRoundId, member.getId()).orElseThrow();
+			LocalDateTime requestedAt = secondAttendance.getPayerRequestedAt();
+
+			switch (deletion) {
+				case "cancel" -> diningV2Service.cancelAttendance(meetingId, roundId, member.getId());
+				case "leader" -> diningV2Service.deleteAttendee(meetingId, roundId, member.getId(), leader.getId());
+				case "self" -> diningV2Service.deleteAttendee(meetingId, roundId, member.getId(), member.getId());
+			}
+
+			assertThat(diningAttendanceRepository.findByRoundIdAndUserId(roundId, member.getId())).isEmpty();
+			assertManagementForbidden(roundId);
+			var remaining = diningAttendanceRepository.findByRoundIdAndUserId(secondRoundId, member.getId()).orElseThrow();
+			assertThat(remaining.getPayerStatus()).isEqualTo(anotherApproval ? DiningPayerStatus.APPROVED : null);
+			assertThat(remaining.getPayerRequestedAt()).isEqualTo(requestedAt);
+			if (anotherApproval) {
+				assertThat(diningV2Service.getAttendees(meetingId, secondRoundId,
+					new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()).attendees()).hasSize(2);
+			} else {
+				assertManagementForbidden(secondRoundId);
+			}
+		}
+
+		@ParameterizedTest
+		@ValueSource(booleans = {false, true})
+		@DisplayName("회차 삭제는 해당 참석 행과 권한만 제거하고 다른 회차 상태를 보존한다.")
+		void roundDeletion_removesOnlyTargetRoundPermission(boolean anotherApproval) {
 			request();
 			if (anotherApproval) { approve(); }
-			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
-			diningV2Service.applyAttendance(meetingId, second, member.getId());
-			diningV2Service.requestPayer(meetingId, second, member.getId());
-			diningV2Service.approvePayer(meetingId, second, member.getId(), leader.getId());
-			if (deletion.equals("cancel")) {
-				diningV2Service.cancelAttendance(meetingId, second, member.getId());
-			} else {
-				diningV2Service.deleteRound(meetingId, second, leader.getId());
+			LocalDateTime requestedAt = attendance().getPayerRequestedAt();
+			Integer secondRoundId = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
+			diningV2Service.applyAttendance(meetingId, secondRoundId, member.getId());
+			diningV2Service.requestPayer(meetingId, secondRoundId, member.getId());
+			diningV2Service.approvePayer(meetingId, secondRoundId, member.getId(), leader.getId());
+
+			diningV2Service.deleteRound(meetingId, secondRoundId, leader.getId());
+			diningRoundRepository.flush();
+
+			assertThat(diningRoundRepository.findById(secondRoundId)).isEmpty();
+			assertThat(diningAttendanceRepository.findAllByRoundId(secondRoundId)).isEmpty();
+			assertThat(diningAttendanceRepository.existsByRoundIdAndUserIdAndPayerStatus(
+				secondRoundId, member.getId(), DiningPayerStatus.APPROVED)).isFalse();
+			for (String operation : List.of("list", "csv", "add", "delete")) {
+				assertThatThrownBy(() -> manage(operation, secondRoundId, member.getId(), member.getId()))
+					.isInstanceOf(NotFoundException.class).hasMessageContaining(NOT_FOUND_DINING_ROUND.getErrorCode());
 			}
-			assertThat(diningAttendanceRepository.findByRoundIdAndUserId(second, member.getId())).isEmpty();
-			assertThat(diningAttendanceRepository.existsByMeetingIdAndUserIdAndPayerStatus(
-				meetingId, member.getId(), DiningPayerStatus.APPROVED)).isEqualTo(anotherApproval);
+			assertThat(attendance().getPayerStatus())
+				.isEqualTo(anotherApproval ? DiningPayerStatus.APPROVED : DiningPayerStatus.PENDING);
+			assertThat(attendance().getPayerRequestedAt()).isEqualTo(requestedAt);
+			if (anotherApproval) {
+				assertThat(diningV2Service.getAttendees(meetingId, roundId,
+					new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()).attendees()).hasSize(2);
+			} else {
+				assertManagementForbidden(roundId);
+			}
 		}
 
 		@ParameterizedTest
@@ -1649,7 +1742,7 @@ class DiningV2ServiceTest {
 
 		@ParameterizedTest
 		@ValueSource(booleans = {false, true})
-		void revokingOneRound_keepsOtherApprovalAndMeetingManagement(boolean ended) {
+		void revokingOneRound_keepsOnlyOtherRoundManagement(boolean ended) {
 			request();
 			approve();
 			Integer second = diningV2Service.createRound(meetingId, roundBody("2차"), leader.getId()).roundId();
@@ -1668,13 +1761,14 @@ class DiningV2ServiceTest {
 			assertThat(attendance().getPayerRequestedAt()).isNull();
 			assertThat(diningAttendanceRepository.findByRoundIdAndUserId(second, member.getId()).orElseThrow()
 				.isApprovedPayer()).isTrue();
-			assertThat(diningV2Service.getAttendees(meetingId, roundId,
+			assertManagementForbidden(roundId);
+			assertThat(diningV2Service.getAttendees(meetingId, second,
 				new DiningV2GetAttendeesQueryDto(1, 10, "desc"), member.getId()).attendees()).hasSize(2);
 			User third = userRepository.save(createUser("추가 참석자", 3));
-			diningV2Service.addAttendee(meetingId, roundId, third.getId(), member.getId());
-			assertThat(diningAttendanceRepository.existsByRoundIdAndUserId(roundId, third.getId())).isTrue();
-			diningV2Service.deleteAttendee(meetingId, roundId, third.getId(), member.getId());
-			assertThat(diningAttendanceRepository.existsByRoundIdAndUserId(roundId, third.getId())).isFalse();
+			diningV2Service.addAttendee(meetingId, second, third.getId(), member.getId());
+			assertThat(diningAttendanceRepository.existsByRoundIdAndUserId(second, third.getId())).isTrue();
+			diningV2Service.deleteAttendee(meetingId, second, third.getId(), member.getId());
+			assertThat(diningAttendanceRepository.existsByRoundIdAndUserId(second, third.getId())).isFalse();
 		}
 
 		@Test
