@@ -55,11 +55,6 @@ public class UserRepositoryImpl implements UserRepository {
 	}
 
 	@Override
-	public List<User> findAllByActivityGeneration(Integer generation) {
-		return crewRepository.findAllByActivityGeneration(generation);
-	}
-
-	@Override
 	public List<User> findAllById(List<Integer> userIds) {
 		return crewRepository.findAllById(userIds);
 	}

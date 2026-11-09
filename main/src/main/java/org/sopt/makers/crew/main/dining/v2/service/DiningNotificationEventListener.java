@@ -2,7 +2,6 @@ package org.sopt.makers.crew.main.dining.v2.service;
 
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeAddedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeRemovedEvent;
-import org.sopt.makers.crew.main.dining.v2.dto.event.DiningCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningDeletedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundDeletedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundUpdatedEvent;
@@ -15,19 +14,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 회식 등록·수정·삭제와 참석자 직접 추가·삭제 알림. 커밋된 경우에만 비동기로 발송한다.
+ * 회식 수정·삭제와 참석자 직접 추가·삭제 알림. 커밋된 경우에만 비동기로 발송한다.
  */
 @Component
 @RequiredArgsConstructor
 public class DiningNotificationEventListener {
 
 	private final DiningNotificationSender diningNotificationSender;
-
-	@Async("taskExecutor")
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	public void handleDiningCreated(DiningCreatedEvent event) {
-		diningNotificationSender.sendDiningCreatedNotification(event);
-	}
 
 	@Async("taskExecutor")
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
