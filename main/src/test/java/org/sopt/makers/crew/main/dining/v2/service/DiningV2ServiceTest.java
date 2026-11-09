@@ -887,6 +887,20 @@ class DiningV2ServiceTest {
 		}
 
 		@Test
+		@DisplayName("참석 현황 모달은 회원 ID가 아니라 참석 등록 순서(등록 시각, 참석 기록 ID 오름차순)로 정렬한다.")
+		void modal_ordersByRegistration() {
+			User earlierJoinedUser = userRepository.save(createUser("먼저 가입", 3));
+			User laterJoinedUser = userRepository.save(createUser("나중 가입", 4));
+			diningV2Service.applyAttendance(meetingId, roundId, laterJoinedUser.getId());
+			diningV2Service.applyAttendance(meetingId, roundId, earlierJoinedUser.getId());
+
+			var response = diningV2Service.getAttendanceAttendees(meetingId, roundId, member.getId());
+
+			assertThat(response.attendees()).extracting(attendee -> attendee.id())
+				.containsExactly(leader.getId(), laterJoinedUser.getId(), earlierJoinedUser.getId());
+		}
+
+		@Test
 		@DisplayName("관리자 목록은 등록 최신순과 등록 순서 번호를 사용하고 최근 기수 및 연락처를 제공한다.")
 		void management_ordersByRegistrationAndIncludesDetails() {
 			User third = userRepository.save(User.builder().name("세 번째").orgId(3).phone("010-3333-3333")
