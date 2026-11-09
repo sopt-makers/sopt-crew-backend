@@ -9,7 +9,6 @@ import java.util.Optional;
 
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeAddedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeRemovedEvent;
-import org.sopt.makers.crew.main.dining.v2.dto.event.DiningCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningDeletedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
@@ -26,8 +25,6 @@ import org.sopt.makers.crew.main.entity.dining.DiningRounds;
 import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
 import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
-import org.sopt.makers.crew.main.entity.user.User;
-import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
 import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.global.config.PushNotificationProperties;
@@ -37,14 +34,12 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * 회식 푸시 알림. 수신자와 표시 값은 상태 변경 트랜잭션에서 확정해 이벤트로 전달받는다.
- * (회식 등록 알림만 대상이 많아 커밋 후 현재 기수 회원을 조회한다. 마감 안내·리마인드는 스케줄러가 대상을 조회한다.)
+ * (마감 안내·리마인드는 스케줄러가 대상을 조회한다.)
  */
 @Component
 @RequiredArgsConstructor
 public class DiningNotificationSender {
 
-	private static final String DINING_CREATED_TITLE = "새로운 회식 등록";
-	private static final String DINING_CREATED_CONTENT = "[%s] 함께할 분은 지금 바로 신청해주세요.";
 	private static final String NEW_ROUND_TITLE = "새로운 회차 추가";
 	private static final String NEW_ROUND_CONTENT = "[%s] %d차에 참석하려면 신청해주세요.";
 	private static final String ROUND_UPDATED_TITLE = "회차 정보 수정";
@@ -79,25 +74,8 @@ public class DiningNotificationSender {
 
 	private final MeetingRepository meetingRepository;
 	private final DiningRoundRepository diningRoundRepository;
-	private final UserRepository userRepository;
 	private final PushNotificationService pushNotificationService;
 	private final PushNotificationProperties pushNotificationProperties;
-
-	/**
-	 * 현재 활동 기수에서 참여 파트에 속한 회원에게 알린다. (개설자 제외, 회식이 삭제됐으면 보내지 않음)
-	 */
-	public void sendDiningCreatedNotification(DiningCreatedEvent event) {
-		if (findDining(event.meetingId()).isEmpty()) {
-			return;
-		}
-		List<Integer> receiverUserIds = userRepository.findAllByActivityGeneration(event.activeGeneration()).stream()
-			.filter(user -> !user.getId().equals(event.leaderUserId()))
-			.filter(user -> isInJoinableParts(user, event))
-			.map(User::getId)
-			.toList();
-		send(receiverUserIds, DINING_CREATED_TITLE,
-			String.format(DINING_CREATED_CONTENT, event.diningTitle()), detailLink(event.meetingId()));
-	}
 
 	/**
 	 * 새 회차 생성 트랜잭션에서 확정한 현재 참석자에게 알린다.
@@ -192,14 +170,6 @@ public class DiningNotificationSender {
 	private Optional<Meeting> findDining(Integer meetingId) {
 		return meetingRepository.findById(meetingId)
 			.filter(meeting -> meeting.getCategory() == MeetingCategory.DINING);
-	}
-
-	private boolean isInJoinableParts(User user, DiningCreatedEvent event) {
-		return user.getActivities() != null && user.getActivities().stream()
-			.filter(activity -> Objects.equals(activity.getGeneration(), event.activeGeneration()))
-			.map(activity -> DiningUserPartResolver.resolve(activity.getPart()))
-			.flatMap(Optional::stream)
-			.anyMatch(event.joinableParts()::contains);
 	}
 
 	/**

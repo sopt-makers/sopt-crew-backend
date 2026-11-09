@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +15,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeAddedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeRemovedEvent;
-import org.sopt.makers.crew.main.dining.v2.dto.event.DiningCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningDeletedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundDeletedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundUpdatedEvent;
@@ -24,13 +22,7 @@ import org.sopt.makers.crew.main.dining.v2.dto.event.DiningUpdatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.notification.DiningCloseGuideTarget;
 import org.sopt.makers.crew.main.dining.v2.dto.notification.DiningReminderTarget;
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
-import org.sopt.makers.crew.main.entity.meeting.Meeting;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingCategory;
-import org.sopt.makers.crew.main.entity.meeting.enums.MeetingJoinablePart;
-import org.sopt.makers.crew.main.entity.user.User;
-import org.sopt.makers.crew.main.entity.user.UserRepository;
-import org.sopt.makers.crew.main.entity.user.vo.UserActivityVO;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
 import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.global.config.PushNotificationProperties;
@@ -39,7 +31,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -112,44 +103,6 @@ class DiningNotificationTest {
 	}
 
 	@Test
-	@DisplayName("회식 등록은 현재 기수에서 참여 파트에 속한 회원에게만 보내고 개설자는 제외한다.")
-	void diningCreated_sendsToActiveGenerationMembersOfJoinableParts() {
-		try (var context = new AnnotationConfigApplicationContext(Config.class)) {
-			stubDining(context, 1);
-			when(context.getBean(UserRepository.class).findAllByActivityGeneration(39)).thenReturn(List.of(
-				user(10, new UserActivityVO("서버", 39)),                                  // 개설자
-				user(11, new UserActivityVO("서버 파트장", 39)),
-				user(12, new UserActivityVO("백엔드", 39)),
-				user(13, new UserActivityVO("ios", 39)),
-				user(14, new UserActivityVO("디자인", 39)),                               // 참여 파트 아님
-				user(15, new UserActivityVO("서버", 38), new UserActivityVO("디자인", 39)), // 현재 기수는 디자인
-				user(16, new UserActivityVO("총무", 39), new UserActivityVO("iOS 파트장", 39)),
-				user(17, new UserActivityVO("회장", 39))                                  // 파트 없음
-			));
-			transaction().executeWithoutResult(status -> context.publishEvent(new DiningCreatedEvent(1, "서버 회식", 10,
-				List.of(MeetingJoinablePart.SERVER, MeetingJoinablePart.IOS), 39)));
-
-			var request = captureRequest(context.getBean(PushNotificationService.class));
-			assertThat(request.getUserIds()).containsExactly("11", "12", "13", "16");
-			assertThat(request.getTitle()).isEqualTo("새로운 회식 등록");
-			assertThat(request.getContent()).isEqualTo("[서버 회식] 함께할 분은 지금 바로 신청해주세요.");
-			assertThat(request.getWebLink()).isEqualTo(DETAIL);
-		}
-	}
-
-	@Test
-	@DisplayName("회식 등록 알림 발송 전에 회식이 삭제됐으면 보내지 않는다.")
-	void diningCreated_skipsDeletedDining() {
-		try (var context = new AnnotationConfigApplicationContext(Config.class)) {
-			when(context.getBean(MeetingRepository.class).findById(1)).thenReturn(Optional.empty());
-			transaction().executeWithoutResult(status -> context.publishEvent(new DiningCreatedEvent(1, "서버 회식", 10,
-				List.of(MeetingJoinablePart.SERVER), 39)));
-			verifyNoInteractions(context.getBean(PushNotificationService.class));
-			verifyNoInteractions(context.getBean(UserRepository.class));
-		}
-	}
-
-	@Test
 	@DisplayName("마감 안내는 개설자에게 참석자 관리 경로로, 전날 리마인드는 참석자에게 회식 상세 경로로 보낸다.")
 	void scheduledNotifications_useFixedContentAndLinks() {
 		try (var context = new AnnotationConfigApplicationContext(Config.class)) {
@@ -193,18 +146,6 @@ class DiningNotificationTest {
 		}
 	}
 
-	private static void stubDining(AnnotationConfigApplicationContext context, Integer meetingId) {
-		Meeting dining = mock(Meeting.class);
-		when(dining.getCategory()).thenReturn(MeetingCategory.DINING);
-		when(context.getBean(MeetingRepository.class).findById(meetingId)).thenReturn(Optional.of(dining));
-	}
-
-	private static User user(Integer id, UserActivityVO... activities) {
-		User user = User.builder().name("회원" + id).orgId(id).activities(List.of(activities)).build();
-		ReflectionTestUtils.setField(user, "id", id);
-		return user;
-	}
-
 	private static PushNotificationRequestDto captureRequest(PushNotificationService push) {
 		var captor = ArgumentCaptor.forClass(PushNotificationRequestDto.class);
 		verify(push).sendPushNotification(captor.capture());
@@ -228,13 +169,11 @@ class DiningNotificationTest {
 		@Bean
 		DiningRoundRepository rounds() { return mock(DiningRoundRepository.class); }
 		@Bean
-		UserRepository users() { return mock(UserRepository.class); }
-		@Bean
-		DiningNotificationSender sender(MeetingRepository meetings, DiningRoundRepository rounds, UserRepository users,
+		DiningNotificationSender sender(MeetingRepository meetings, DiningRoundRepository rounds,
 			PushNotificationService push) {
 			var properties = mock(PushNotificationProperties.class);
 			when(properties.getPushWebUrl()).thenReturn("https://crew.test");
-			return new DiningNotificationSender(meetings, rounds, users, push, properties);
+			return new DiningNotificationSender(meetings, rounds, push, properties);
 		}
 		@Bean
 		DiningNotificationEventListener listener(DiningNotificationSender sender) {

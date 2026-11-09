@@ -221,7 +221,8 @@ public interface DiningV2Api {
 		@PathVariable Integer attendeeUserId,
 		Principal principal);
 
-	@Operation(summary = "회차 참석 현황 모달 목록 조회", description = "로그인한 모든 사용자가 참석자의 ID, 이름, 프로필 이미지를 조회합니다.")
+	@Operation(summary = "회차 참석 현황 모달 목록 조회", description = "로그인한 모든 사용자가 참석자의 ID, 이름, 프로필 이미지를 조회합니다. "
+		+ "참석 등록 시각 오름차순, 같으면 참석 기록 ID 오름차순으로 정렬합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "참석 현황 모달 목록 조회 성공"),
 		@ApiResponse(responseCode = "404", description = "회식 또는 회차를 찾을 수 없습니다.", content = @Content),

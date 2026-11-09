@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,6 @@ import java.util.stream.IntStream;
 import org.hibernate.exception.ConstraintViolationException;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeAddedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeRemovedEvent;
-import org.sopt.makers.crew.main.dining.v2.dto.event.DiningCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningDeletedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
@@ -142,9 +140,6 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			.startTime(parseStartTime(requestBody.startTime()))
 			.build());
 		attend(firstRound, userId);
-
-		eventPublisher.publishEvent(new DiningCreatedEvent(dining.getId(), dining.getTitle(), userId,
-			List.of(dining.getJoinableParts()), dining.getCreatedGeneration()));
 
 		return DiningV2CreateDiningResponseDto.from(dining.getId());
 	}
@@ -454,13 +449,17 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 	public DiningV2GetAttendeesResponseDto getAttendanceAttendees(Integer meetingId, Integer roundId, Integer userId) {
 		meetingRepository.findDiningByIdOrThrow(meetingId);
 		findRoundOfDining(meetingId, roundId);
-		List<Integer> userIds = diningAttendanceRepository.findAllByRoundId(roundId).stream()
-			.map(DiningAttendance::getUserId).toList();
+		// 참석 등록 시각 오름차순, 같으면 참석 기록 ID 오름차순 (참석자 관리 목록·CSV와 동일)
+		List<Integer> userIds = diningAttendanceRepository.findAllByRoundIdOrderByCreatedTimestampAscIdAsc(roundId)
+			.stream().map(DiningAttendance::getUserId).toList();
 		if (userIds.isEmpty()) {
 			return new DiningV2GetAttendeesResponseDto(List.of());
 		}
-		return new DiningV2GetAttendeesResponseDto(userRepository.findAllById(userIds).stream()
-			.sorted(Comparator.comparing(User::getId))
+		Map<Integer, User> users = userRepository.findAllById(userIds).stream()
+			.collect(Collectors.toMap(User::getId, Function.identity()));
+		return new DiningV2GetAttendeesResponseDto(userIds.stream()
+			.map(users::get)
+			.filter(Objects::nonNull)
 			.map(DiningV2GetAttendeesResponseDto.Attendee::of).toList());
 	}
 
