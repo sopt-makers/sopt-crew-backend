@@ -22,7 +22,6 @@ import java.util.stream.IntStream;
 import org.hibernate.exception.ConstraintViolationException;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeAddedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeRemovedEvent;
-import org.sopt.makers.crew.main.dining.v2.dto.event.DiningCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningDeletedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerApprovedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRejectedEvent;
@@ -141,9 +140,6 @@ public class DiningV2ServiceImpl implements DiningV2Service {
 			.startTime(parseStartTime(requestBody.startTime()))
 			.build());
 		attend(firstRound, userId);
-
-		eventPublisher.publishEvent(new DiningCreatedEvent(dining.getId(), dining.getTitle(), userId,
-			List.of(dining.getJoinableParts()), dining.getCreatedGeneration()));
 
 		return DiningV2CreateDiningResponseDto.from(dining.getId());
 	}

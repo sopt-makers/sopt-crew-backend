@@ -15,7 +15,6 @@ import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRequestedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningPayerRevokedEvent;
 import org.sopt.makers.crew.main.entity.dining.DiningRoundRepository;
 import org.sopt.makers.crew.main.entity.meeting.MeetingRepository;
-import org.sopt.makers.crew.main.entity.user.UserRepository;
 import org.sopt.makers.crew.main.external.notification.PushNotificationService;
 import org.sopt.makers.crew.main.external.notification.dto.request.PushNotificationRequestDto;
 import org.sopt.makers.crew.main.global.config.PushNotificationProperties;
@@ -96,7 +95,7 @@ class DiningPayerNotificationTest {
 			PushNotificationService push) {
 			var properties = mock(PushNotificationProperties.class);
 			when(properties.getPushWebUrl()).thenReturn("https://crew.test");
-			return new DiningNotificationSender(meetings, rounds, mock(UserRepository.class), push, properties);
+			return new DiningNotificationSender(meetings, rounds, push, properties);
 		}
 		@Bean
 		DiningPayerEventListener listener(DiningNotificationSender sender) {

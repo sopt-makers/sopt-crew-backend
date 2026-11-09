@@ -27,7 +27,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeAddedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningAttendeeRemovedEvent;
-import org.sopt.makers.crew.main.dining.v2.dto.event.DiningCreatedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningDeletedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundDeletedEvent;
 import org.sopt.makers.crew.main.dining.v2.dto.event.DiningRoundUpdatedEvent;
@@ -67,7 +66,6 @@ import org.sopt.makers.crew.main.global.exception.ForbiddenException;
 import org.sopt.makers.crew.main.global.exception.NotFoundException;
 import org.sopt.makers.crew.main.global.exception.UnAuthorizedException;
 import org.sopt.makers.crew.main.global.exception.ServerException;
-import org.sopt.makers.crew.main.global.util.ActiveGenerationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -106,8 +104,6 @@ class DiningV2ServiceTest {
 	private UserRepository userRepository;
 	@Autowired
 	private ImageSettingProperties imageSettingProperties;
-	@Autowired
-	private ActiveGenerationProvider activeGenerationProvider;
 
 	@Autowired
 	private DiningNotificationSender diningNotificationSender;
@@ -1836,17 +1832,6 @@ class DiningV2ServiceTest {
 		}
 
 		@Test
-		@DisplayName("회식 등록 시 회식명, 개설자, 참여 파트, 현재 기수를 담아 발행한다.")
-		void createDining_publishesCreatedEvent() {
-			var event = events(DiningCreatedEvent.class).get(0);
-			assertThat(event.meetingId()).isEqualTo(meetingId);
-			assertThat(event.diningTitle()).isEqualTo("서버 파트 회식");
-			assertThat(event.leaderUserId()).isEqualTo(leader.getId());
-			assertThat(event.joinableParts()).containsExactly(MeetingJoinablePart.SERVER);
-			assertThat(event.activeGeneration()).isEqualTo(activeGenerationProvider.getActiveGeneration());
-		}
-
-		@Test
 		@DisplayName("값이 그대로이거나 이미지·참여 파트만 바뀌면 수정 알림을 발행하지 않는다.")
 		void updateDining_noEventWithoutNotifiableChange() {
 			diningV2Service.updateDining(meetingId, sameBody(), leader.getId());
@@ -1993,21 +1978,6 @@ class DiningV2ServiceTest {
 
 			assertThat(events(DiningPayerApprovedEvent.class).get(0).roundNumber()).isEqualTo(2);
 			assertThat(events(DiningPayerRejectedEvent.class).get(0).roundNumber()).isEqualTo(2);
-		}
-
-		@Test
-		@DisplayName("활동 이력에 해당 기수가 있는 회원만 조회한다.")
-		void findAllByActivityGeneration_matchesGenerationInJsonb() {
-			User current = userRepository.save(User.builder().name("현재 기수").orgId(901)
-				.activities(List.of(new UserActivityVO("서버", 34), new UserActivityVO("ios", 99)))
-				.profileImage("profile.jpg").phone("010-1234-5678").build());
-			User past = userRepository.save(User.builder().name("지난 기수").orgId(902)
-				.activities(List.of(new UserActivityVO("서버", 98)))
-				.profileImage("profile.jpg").phone("010-1234-5678").build());
-
-			assertThat(userRepository.findAllByActivityGeneration(99)).extracting(User::getId)
-				.contains(current.getId())
-				.doesNotContain(past.getId());
 		}
 	}
 }
